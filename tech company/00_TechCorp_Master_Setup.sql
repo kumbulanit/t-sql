@@ -29,7 +29,7 @@ PRINT '';
 
 -- Step 4: Companies Data
 PRINT 'Step 4: Populating companies data...';
-:r "04_TechCorp_Companies_Data.sql"
+:r 04_TechCorp_Companies_Data_Individual.sql
 PRINT '';
 
 -- Step 5: Departments Data

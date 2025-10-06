@@ -66,7 +66,7 @@ CREATE TABLE Companies (
     Longitude DECIMAL(11,8) NULL,
     CreditRating NVARCHAR(3) NULL, -- AAA, AA+, etc.
     PaymentTerms TINYINT NOT NULL DEFAULT 30, -- days
-    PreferredCurrency CHAR(3) NOT NULL DEFAULT 'USD',
+    PreferredCurrency NVARCHAR(3) NOT NULL DEFAULT 'USD',
     IsActive BIT NOT NULL DEFAULT 1,
     CreatedDate DATETIME2(3) NOT NULL DEFAULT SYSDATETIME(),
     CreatedBy NVARCHAR(100) NOT NULL DEFAULT SYSTEM_USER,
