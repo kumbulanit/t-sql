@@ -69,7 +69,7 @@ SELECT
     SalesPersonID,
     YEAR(SaleDate) AS SaleYear,
     COUNT(*) AS TotalSales,
-    SUM(Quantity * UnitPrice) AS TotalRevenue,
+    SUM(TotalAmount) AS TotalRevenue,
     AVG(Commission) AS AverageCommission
 FROM SalesData
 GROUP BY SalesPersonID, YEAR(SaleDate);
@@ -304,12 +304,12 @@ SELECT
     CustomerID,
     YEAR(OrderDate) AS OrderYear,
     COUNT(*) AS TotalOrders,
-    SUM(OrderTotal) AS TotalRevenue,
+    SUM(TotalAmount) AS TotalRevenue,
     -- Conditional counts
-    SUM(CASE WHEN OrderTotal > 1000 THEN 1 ELSE 0 END) AS HighValueOrders,
-    SUM(CASE WHEN MONTH(OrderDate) BETWEEN 11 AND 12 THEN OrderTotal ELSE 0 END) AS HolidayRevenue,
+    SUM(CASE WHEN TotalAmount > 1000 THEN 1 ELSE 0 END) AS HighValueOrders,
+    SUM(CASE WHEN MONTH(OrderDate) BETWEEN 11 AND 12 THEN TotalAmount ELSE 0 END) AS HolidayRevenue,
     -- Percentage calculations
-    CAST(SUM(CASE WHEN OrderTotal > 1000 THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) AS HighValueOrderPercent
+    CAST(SUM(CASE WHEN TotalAmount > 1000 THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) AS HighValueOrderPercent
 FROM Orders
 WHERE OrderDate >= '2023-01-01'
 GROUP BY CustomerID, YEAR(OrderDate)
@@ -319,7 +319,7 @@ HAVING
     -- At least 30% of orders are high-value
     AND CAST(SUM(CASE WHEN OrderTotal > 1000 THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) >= 0.3
     -- Holiday season contributes at least 25% of revenue
-    AND SUM(CASE WHEN MONTH(OrderDate) BETWEEN 11 AND 12 THEN OrderTotal ELSE 0 END) >= 0.25 * SUM(OrderTotal)
+    AND SUM(CASE WHEN MONTH(OrderDate) BETWEEN 11 AND 12 THEN TotalAmount ELSE 0 END) >= 0.25 * SUM(TotalAmount)
 ORDER BY TotalRevenue DESC;
 ```
 
@@ -385,7 +385,7 @@ WITH MonthlySales AS (
     SELECT 
         YEAR(OrderDate) AS SalesYear,
         MONTH(OrderDate) AS SalesMonth,
-        SUM(OrderTotal) AS MonthlySales
+        SUM(TotalAmount) AS MonthlySales
     FROM Orders
     WHERE OrderDate >= '2022-01-01'
     GROUP BY YEAR(OrderDate), MONTH(OrderDate)

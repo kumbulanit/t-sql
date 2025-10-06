@@ -280,7 +280,7 @@ A self join is a join where a table is joined with itself. This is useful for co
 -- Use WHERE clauses to limit results
 SELECT p.ProductName, c.CategoryName
 FROM Products p
-CROSS JOIN Categories c
+CROSS JOIN (SELECT DISTINCT ProductCategory FROM Products) c(CategoryName)
 WHERE p.IsActive = 1
   AND c.IsActive = 1
   AND p.Price BETWEEN 10 AND 100;  -- Reduce result set size

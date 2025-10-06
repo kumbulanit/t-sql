@@ -548,7 +548,7 @@ INNER JOIN OrderStatus s ON o.StatusID = s.StatusID;
 SELECT 
     c.CustomerName,
     COUNT(o.OrderID) AS TotalOrders,
-    SUM(o.OrderTotal) AS TotalSales,
+    SUM(o.TotalAmount) AS TotalSales,
     MAX(o.OrderDate) AS LastOrderDate
 FROM Customers c
 LEFT JOIN Orders o ON c.CustomerID = o.CustomerID

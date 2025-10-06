@@ -274,7 +274,7 @@ WITH MonthlySales AS (
     SELECT 
         emp.FirstName + ' ' + emp.LastName AS SalesPersonName,
         DATENAME(MONTH, ord.OrderDate) AS SalesMonth,
-        SUM(ord.OrderTotal) AS MonthlyTotal
+        SUM(ord.TotalAmount) AS MonthlyTotal
     FROM Employees emp
     INNER JOIN Orders ord ON emp.EmployeeID = ord.EmployeeID
     WHERE YEAR(ord.OrderDate) = 2023
