@@ -1,13 +1,17 @@
-# Module 2 Exercises: T-SQL Fundamentals
+# Module 2 Exercises: T-SQL Fundamentals - TechCorp Solutions Business Scenarios
 
 ## Exercise Set Overview
-These exercises are designed to test your understanding of the core concepts covered in Module 2: Introducing T-SQL, Understanding Sets, Understanding Predicate Logic, and Understanding the Logical Order of Operations in SELECT Statements.
+These exercises test your understanding of T-SQL fundamentals using **TechCorp Solutions** business data. You'll work with realistic consulting company scenarios while mastering: Introducing T-SQL, Understanding Sets, Understanding Predicate Logic, and Understanding the Logical Order of Operations in SELECT Statements.
+
+## 🏢 TechCorp Business Context
+**TechCorp Solutions** is your learning environment - a technology consulting company with 145 employees working on software development, cloud migration, and cybersecurity projects for clients ranging from startups to enterprises.
 
 ## Instructions
-- Complete all exercises in order
+- Complete all exercises in order using TechCorp's database
 - Write your SQL queries clearly with proper formatting
-- Test your queries against the sample database
-- Include comments explaining your logic where appropriate
+- Test your queries against the TechCorpDB database
+- Include business-focused comments explaining your logic
+- Think about how each query helps TechCorp make business decisions
 
 ---
 
@@ -15,18 +19,19 @@ These exercises are designed to test your understanding of the core concepts cov
 
 ### 1.1 Basic Queries (5 points each)
 
-**Question 1.1.1**: Write a query to display all employee information, but format the output to show:
-- Full name as "LastName, FirstName MiddleInitial" (handle NULL middle names)
-- Salary formatted with currency symbol and commas
-- Years of service as a whole number
-- Email domain only (part after @)
+**Question 1.1.1**: TechCorp HR needs a comprehensive employee directory. Write a query to display all TechCorp employee information formatted for business use:
+- Full name as "LastName, FirstName MiddleInitial" (handle NULL middle names gracefully)
+- Salary formatted with currency symbol and commas for HR reports
+- Years of service as a whole number for recognition programs
+- Email domain only (part after @) to identify external vs company emails
+- Include department information for organizational clarity
 
-**Question 1.1.2**: Create a query that categorizes employees based on their salary ranges:
-- "Entry Level": < $55,000
-- "Mid Level": $55,000 - $75,000  
-- "Senior Level": $75,000 - $90,000
-- "Executive": > $90,000
-Show employee name, salary, and category.
+**Question 1.1.2**: TechCorp's compensation team needs to analyze salary bands for their technology consulting roles. Create a query that categorizes TechCorp employees based on their salary ranges:
+- "Junior Consultant": < $60,000 (entry-level developers, analysts)
+- "Consultant": $60,000 - $80,000 (mid-level engineers, project coordinators)
+- "Senior Consultant": $80,000 - $110,000 (senior developers, team leads)
+- "Principal Consultant": > $110,000 (architects, directors, VPs)
+Show employee name, department, salary, and consulting level category.
 
 **Question 1.1.3**: Write a query to find the employee(s) with the longest tenure in each department. Include department name, employee name, and years of service.
 
@@ -40,10 +45,11 @@ Show employee name, salary, and category.
 
 ### 2.1 Set Operations (6 points each)
 
-**Question 2.1.1**: Using set operations, create a report that shows:
-- All department names that either have a budget > $300,000 OR have employees with average salary > $70,000
-- Use UNION to combine these two conditions
-- Show department name and the reason (budget or salary) why it was included
+**Question 2.1.1**: TechCorp's executive team wants to identify high-investment departments for strategic planning. Using set operations, create a report that shows:
+- All TechCorp departments that either have a budget > $500,000 OR have employees with average salary > $75,000
+- Use UNION to combine these two investment criteria
+- Show department name, location, and the reason (high budget or high salaries) why it was included
+- This helps TechCorp understand where they're making significant investments in talent and operations
 
 **Question 2.1.2**: Find employees who work on projects with the same status as their department's primary focus:
 - Use INTERSECT to find the overlap between employee project statuses and some business rule

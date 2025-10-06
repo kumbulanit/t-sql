@@ -1,7 +1,19 @@
-# Lesson 1: Understanding Joins
+# Lesson 1: Understanding Joins - TechCorp Data Integration
 
 ## Overview
-Joins are fundamental to relational database querying, allowing you to combine data from multiple tables based on related columns. Understanding how joins work conceptually and practically is essential for effective database querying. This lesson covers join theory, types, syntax, and performance considerations.
+Joins are the backbone of TechCorp Solutions' business intelligence and reporting systems. As a technology consulting company, TechCorp needs to combine data from multiple tables to answer complex business questions: "Which employees work on which projects?", "What's the total budget across all departments?", and "How do our client relationships connect to project profitability?"
+
+This lesson covers join theory, types, syntax, and performance considerations using TechCorp's real business data.
+
+## 🏢 TechCorp Business Context
+**TechCorp Solutions** stores related business information across multiple tables:
+- **Employees** table: Staff information (145 employees)
+- **Departments** table: Organizational structure (Engineering, Sales, Marketing, HR, Finance)
+- **Projects** table: Client engagements and deliverables
+- **Companies** table: Client and partner information
+- **EmployeeProjects** table: Project assignments and roles
+
+Joins help TechCorp connect this related information to generate business insights.
 
 ## What are Joins?
 
@@ -16,11 +28,18 @@ A join is an operation that combines rows from two or more tables based on a rel
 
 ## Join Fundamentals
 
-### Basic Join Syntax
+### Basic Join Syntax - TechCorp Example
 ```sql
-SELECT columns
-FROM table1
-JOIN table2 ON table1.column = table2.column;
+-- Basic TechCorp join: Connect employees to their departments
+SELECT 
+    e.FirstName,
+    e.LastName,
+    e.JobTitle,
+    d.DepartmentName
+FROM Employees e
+JOIN Departments d ON e.DepartmentID = d.DepartmentID;
+
+-- Business insight: "Show me all TechCorp employees and their departments"
 ```
 
 ### Key Components
@@ -31,22 +50,23 @@ JOIN table2 ON table1.column = table2.column;
 
 ## Types of Joins
 
-### Visual Representation - Join Types Overview
+### Visual Representation - TechCorp Join Types Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           JOIN TYPES VISUAL GUIDE                            │
+│                      TECHCORP JOIN TYPES VISUAL GUIDE                      │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  Table A (Employees)        Table B (Departments)                          │
-│  ┌─────────────┐           ┌─────────────┐                                 │
-│  │ EmpID │ Name│           │ DeptID│ Dept│                                 │
-│  ├─────────────┤           ├─────────────┤                                 │
-│  │   1   │ John│           │   1   │ IT  │                                 │
-│  │   2   │ Jane│           │   2   │ HR  │                                 │
-│  │   3   │ Bob │           │   3   │ Fin │                                 │
-│  │   4   │ Sue │           │   5   │ Mkt │                                 │
-│  └─────────────┘           └─────────────┘                                 │
+│  TechCorp Employees Table        TechCorp Departments Table                │
+│  ┌─────────────────────────┐    ┌─────────────────────────┐                │
+│  │ EmpID │ Name     │DeptID│    │ DeptID│ Department      │                │
+│  ├─────────────────────────┤    ├─────────────────────────┤                │
+│  │ 4001  │ Sarah C  │  1   │    │   1   │ Engineering     │                │
+│  │ 4002  │ John M   │  2   │    │   2   │ Sales           │                │
+│  │ 4003  │ Lisa R   │  1   │    │   3   │ Marketing       │                │
+│  │ 4004  │ Mike T   │ NULL │    │   4   │ HR              │                │
+│  │ 4005  │ Amy K    │  2   │    │   5   │ Finance         │                │
+│  └─────────────────────────┘    └─────────────────────────┘                │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```

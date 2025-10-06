@@ -1,7 +1,15 @@
-# Lesson 1: Introducing T-SQL
+# Lesson 1: Introducing T-SQL - TechCorp Solutions Database Queries
 
 ## Overview
-Transact-SQL (T-SQL) is Microsoft's extension to SQL (Structured Query Language) for use with Microsoft SQL Server and Azure SQL Database. T-SQL expands on the SQL standard to include procedural programming, local variables, various support functions for string processing, date processing, mathematics, etc.
+Transact-SQL (T-SQL) is Microsoft's extension to SQL (Structured Query Language) that we'll use to query TechCorp Solutions' business data. As a technology consulting company, TechCorp relies on SQL Server to manage employee information, project data, client relationships, and business operations. T-SQL expands on the SQL standard to include procedural programming, local variables, and various support functions that help TechCorp analyze their business performance.
+
+## 🏢 TechCorp Business Context
+**TechCorp Solutions** uses SQL Server to manage:
+- **Employee Management**: 145 employees across Engineering, Sales, Marketing, HR, and Finance departments
+- **Project Tracking**: Custom software development, cloud migration, and cybersecurity projects
+- **Client Relationships**: From small startups to large enterprise clients
+- **Financial Operations**: Project budgets, employee salaries, and revenue tracking
+- **Performance Analytics**: Employee performance metrics and project profitability
 
 ## What is T-SQL?
 
@@ -18,31 +26,54 @@ T-SQL stands for Transact-SQL and is Microsoft's proprietary extension of the SQ
 
 ### Simple Examples
 
-#### 1. Basic SELECT Statement
+#### 1. Basic SELECT Statement - TechCorp Employee Data
 ```sql
--- Select all columns from a table
+-- Select all TechCorp employee information
 SELECT * FROM Employees;
 
--- Select specific columns
-SELECT FirstName, LastName, Salary 
+-- Select specific information about TechCorp team members
+SELECT FirstName, LastName, JobTitle, BaseSalary 
 FROM Employees;
+
+-- View TechCorp department structure
+SELECT DepartmentName, Budget, Location 
+FROM Departments;
 ```
 
-#### 2. Using WHERE Clause
+#### 2. Using WHERE Clause - TechCorp Business Filtering
 ```sql
--- Filter records with conditions
-SELECT FirstName, LastName 
+-- Find TechCorp senior-level employees
+SELECT FirstName, LastName, JobTitle
 FROM Employees 
-WHERE Salary > 50000;
+WHERE BaseSalary > 80000;
+
+-- Find TechCorp projects with high budgets
+SELECT ProjectName, Budget, Status
+FROM Projects
+WHERE Budget > 500000;
+
+-- Find TechCorp employees in Engineering department
+SELECT FirstName, LastName, JobTitle
+FROM Employees e
+INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+WHERE d.DepartmentName = 'Engineering';
 ```
 
-#### 3. Basic Data Types
+#### 3. TechCorp Business Data Types
 ```sql
--- Common T-SQL data types
-DECLARE @Name NVARCHAR(50) = 'John Doe';
-DECLARE @Age INT = 30;
-DECLARE @Salary DECIMAL(10,2) = 75000.00;
-DECLARE @HireDate DATE = '2020-01-15';
+-- Common T-SQL data types used in TechCorp's database
+DECLARE @EmployeeName NVARCHAR(100) = 'Sarah Chen';
+DECLARE @EmployeeID INT = 4051;
+DECLARE @BaseSalary DECIMAL(10,2) = 95000.00;
+DECLARE @HireDate DATE = '2021-03-15';
+DECLARE @IsActive BIT = 1;
+DECLARE @ProjectBudget MONEY = 750000;
+DECLARE @LastReviewDate DATETIME2(3) = '2024-12-01 09:30:00.000';
+
+-- TechCorp business examples
+DECLARE @ClientCompany NVARCHAR(200) = 'GlobalTech Industries';
+DECLARE @ProjectStatus NVARCHAR(50) = 'In Progress';
+DECLARE @CompletionPercentage DECIMAL(5,2) = 67.50;
 ```
 
 ### Intermediate Examples
