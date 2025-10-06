@@ -57,6 +57,26 @@ PRINT 'Step 9: Populating skills data...';
 :r "09_TechCorp_Skills_Data.sql"
 PRINT '';
 
+-- Step 10: Projects Data
+PRINT 'Step 10: Populating projects data...';
+:r "10_TechCorp_Projects_Data.sql"
+PRINT '';
+
+-- Step 11: Employee Skills Assignments
+PRINT 'Step 11: Populating employee skills assignments...';
+:r "11_TechCorp_Employee_Skills.sql"
+PRINT '';
+
+-- Step 12: Project Assignments
+PRINT 'Step 12: Populating project assignments...';
+:r "12_TechCorp_Project_Assignments.sql"
+PRINT '';
+
+-- Step 13: Performance and Time Tracking Data
+PRINT 'Step 13: Populating performance and time tracking data...';
+:r "13_TechCorp_Performance_Data.sql"
+PRINT '';
+
 -- Final Verification
 USE TechCorpDB;
 GO
@@ -86,7 +106,17 @@ SELECT 'Employees', COUNT(*) FROM Employees
 UNION ALL
 SELECT 'Skills', COUNT(*) FROM Skills
 UNION ALL
-SELECT 'ProjectTypes', COUNT(*) FROM ProjectTypes;
+SELECT 'ProjectTypes', COUNT(*) FROM ProjectTypes
+UNION ALL
+SELECT 'Projects', COUNT(*) FROM Projects
+UNION ALL
+SELECT 'EmployeeSkills', COUNT(*) FROM EmployeeSkills
+UNION ALL
+SELECT 'EmployeeProjects', COUNT(*) FROM EmployeeProjects
+UNION ALL
+SELECT 'PerformanceMetrics', COUNT(*) FROM PerformanceMetrics
+UNION ALL
+SELECT 'TimeTracking', COUNT(*) FROM TimeTracking;
 
 PRINT '';
 PRINT 'Companies by Size:';
@@ -123,6 +153,14 @@ PRINT '- Module 6: Data Types (Diverse data scenarios)';
 PRINT '- Module 7: DML Operations (Skills, Projects)';
 PRINT '- Module 8: Functions (Performance metrics)';
 PRINT '- Module 9: Grouping & Aggregating (Business analytics)';
+PRINT '';
+PRINT 'FINAL RECORD COUNTS:';
+PRINT '- 15+ Companies across multiple industries';
+PRINT '- 65+ Employees with complete organizational hierarchy';
+PRINT '- 35+ Skills with proficiency tracking';
+PRINT '- 15+ Active projects with team assignments';
+PRINT '- 40+ Performance metrics for analytics';
+PRINT '- Time tracking data for real-world scenarios';
 PRINT '==============================================';
 
 -- Sample queries to verify functionality
@@ -165,6 +203,37 @@ GROUP BY c.CompanyName, d.DepartmentName, d.Budget
 HAVING COUNT(e.EmployeeID) > 0
 ORDER BY AvgSalary DESC;
 
+PRINT '';
+PRINT '4. Advanced analytics example (Module 9):';
+SELECT 
+    pm.MetricType,
+    COUNT(pm.MetricID) as MetricCount,
+    AVG(pm.Achievement) as AvgAchievement,
+    MAX(pm.Achievement) as MaxAchievement,
+    COUNT(CASE WHEN pm.Achievement > 100 THEN 1 END) as ExceedsTarget
+FROM PerformanceMetrics pm
+GROUP BY pm.MetricType
+ORDER BY AvgAchievement DESC;
+
+PRINT '';
+PRINT '5. Project and skills correlation (Module 8-9):';
+SELECT TOP 5
+    s.SkillName,
+    COUNT(DISTINCT ep.ProjectID) as ProjectsUsing,
+    COUNT(es.EmployeeSkillID) as EmployeesWithSkill,
+    AVG(es.ProficiencyLevel) as AvgProficiency
+FROM Skills s
+    INNER JOIN EmployeeSkills es ON s.SkillID = es.SkillID
+    INNER JOIN EmployeeProjects ep ON es.EmployeeID = ep.EmployeeID
+GROUP BY s.SkillID, s.SkillName
+ORDER BY ProjectsUsing DESC;
+
+PRINT '';
+PRINT '==============================================';
+PRINT 'DATABASE SETUP VERIFICATION COMPLETE!';
+PRINT 'TechCorp database fully populated and ready for comprehensive SQL training';
+PRINT 'All 13 scripts executed successfully with realistic business data';
+PRINT '==============================================';
 PRINT '';
 PRINT 'Database setup verification complete!';
 PRINT 'All tables populated and ready for training modules.';

@@ -11,6 +11,24 @@ GO
 -- =============================================
 PRINT 'Populating Companies table...';
 
+-- Verify prerequisite tables have data
+IF (SELECT COUNT(*) FROM Countries) = 0
+BEGIN
+    PRINT 'ERROR: Countries table is empty. Please run 03_TechCorp_Lookup_Data.sql first.';
+    RETURN;
+END
+
+IF (SELECT COUNT(*) FROM Industries) = 0
+BEGIN
+    PRINT 'ERROR: Industries table is empty. Please run 03_TechCorp_Lookup_Data.sql first.';
+    RETURN;
+END
+
+PRINT 'Prerequisites verified. Inserting company data...';
+
+-- Clear existing data if any
+DELETE FROM Companies;
+
 INSERT INTO Companies (CompanyName, LegalName, TaxID, IndustryID, CompanySize, FoundedYear, 
     AnnualRevenue, EmployeeCount, Website, PrimaryEmail, PrimaryPhone, CountryID, 
     StreetAddress, City, StateProvince, PostalCode, Latitude, Longitude, 
@@ -38,7 +56,7 @@ INSERT INTO Companies (CompanyName, LegalName, TaxID, IndustryID, CompanySize, F
     '500 Wall Street', 'New York', 'New York', '10005', 40.70589000, -74.00889000,
     'AAA', 15, 'USD'),
 
-('Investment Partners LLC', 'Investment Partners Limited Liability Company', 'IPL2012005', 2, 'Medium', 2012,
+('Investment Partners LLC', 'Investment Partners LLC', 'IPL2012005', 2, 'Medium', 2012,
     45000000.00, 320, 'www.investmentpartners.com', 'info@investmentpartners.com', '+1-555-0250', 1,
     '200 Financial Plaza', 'Chicago', 'Illinois', '60601', 41.88425000, -87.63245000,
     'AA', 30, 'USD'),

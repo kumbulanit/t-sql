@@ -23,6 +23,10 @@ Or run individual scripts in this exact order:
 7. **`07_TechCorp_Employees_Regular.sql`** - Populates regular employees
 8. **`08_TechCorp_Advanced_Tables.sql`** - Creates advanced tables (Skills, Projects, etc.)
 9. **`09_TechCorp_Skills_Data.sql`** - Populates skills and project types
+10. **`10_TechCorp_Projects_Data.sql`** - Populates real project data with teams
+11. **`11_TechCorp_Employee_Skills.sql`** - Assigns skills to employees with proficiency levels
+12. **`12_TechCorp_Project_Assignments.sql`** - Assigns employees to projects with roles
+13. **`13_TechCorp_Performance_Data.sql`** - Performance metrics and time tracking data
 
 ## 🏢 Database Structure Overview
 
