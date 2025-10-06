@@ -150,7 +150,7 @@ CREATE TABLE Employees (
     EmployeeID INT IDENTITY(1,1) PRIMARY KEY,
     FirstName NVARCHAR(50) NOT NULL,
     LastName NVARCHAR(50) NOT NULL,
-    Email NVARCHAR(100) UNIQUE,
+    WorkEmail NVARCHAR(100) UNIQUE,
     HireDate DATE DEFAULT GETDATE(),
     BaseSalary DECIMAL(10,2),
     DepartmentID INT
@@ -223,7 +223,7 @@ INSERT INTO Departments (DepartmentName, Location) VALUES
 ('Marketing', 'Los Angeles');
 
 -- Employee sample data
-INSERT INTO Employees (FirstName, LastName, Email, DepartmentID, BaseSalary) VALUES
+INSERT INTO Employees (FirstName, LastName, WorkEmail, DepartmentID, BaseSalary) VALUES
 ('John', 'Smith', 'john.smith@techcorp.com', 1, 75000),
 ('Jane', 'Doe', 'jane.doe@techcorp.com', 2, 65000),
 ('Mike', 'Johnson', 'mike.johnson@techcorp.com', 1, 82000);

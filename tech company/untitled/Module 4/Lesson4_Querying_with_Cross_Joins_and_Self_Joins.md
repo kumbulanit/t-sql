@@ -1,7 +1,17 @@
 # Lesson 4: Querying with Cross Joins and Self Joins
 
 ## Overview
-Cross joins and self joins are specialized join types that serve specific purposes in SQL querying. Cross joins create Cartesian products between tables, while self joins allow a table to be joined with itself. This lesson covers when and how to use these advanced join techniques effectively.
+Cross joins and self joins are specialized join types that serve specific purposes in SQL querying. Cross joins create Cartesian products between tables, while self joins allow a table to be joined with itself. This lesson covers when and how to use these advanced jSELECT 
+    e.FirstName + ' ' + e.LastName AS EmployeeName,
+    d.DepartmentName,
+    jl.LevelName
+FROM Employees e
+CROSS JOIN Departments d
+CROSS JOIN JobLevels jl
+WHERE e.IsActive = 1
+  AND d.IsActive = 1
+  AND jl.IsActive = 1
+  AND e.DepartmentID != d.DepartmentID;  -- Cross-departmental assignmentsques effectively.
 
 ## Cross Joins
 
@@ -66,27 +76,28 @@ A cross join returns the Cartesian product of two tables, meaning every row from
 ### Practical Cross Join Example
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                       WORK SCHEDULE GENERATION                             │
+│                    EMPLOYEE-DEPARTMENT MATRIX GENERATION                   │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  Employees           Shifts              Schedule Matrix                    │
+│  Employees           Departments         Assignment Matrix                  │
 │  ┌─────────┐        ┌─────────┐         ┌────────────────────────┐          │
-│  │ EmpID│Name│       │ShiftID│Shift│     │Employee│Shift │Schedule │          │
+│  │EmpID│Name│       │DeptID│Dept│       │Employee│Dept    │Combo  │          │
 │  ├─────────┤        ├─────────┤         ├────────────────────────┤          │
-│  │  101 │John│  ×    │   1   │Day │  =  │ John   │Day   │John-Day │          │
-│  │  102 │Jane│       │   2   │Eve │     │ John   │Eve   │John-Eve │          │
-│  │  103 │Bob │       │   3   │Night│    │ John   │Night │John-Night│         │
-│  └─────────┘        └─────────┘         │ Jane   │Day   │Jane-Day │          │
-│   (3 people)         (3 shifts)         │ Jane   │Eve   │Jane-Eve │          │
-│                                         │ Jane   │Night │Jane-Night│         │
-│                                         │ Bob    │Day   │Bob-Day  │          │
-│                                         │ Bob    │Eve   │Bob-Eve  │          │
-│                                         │ Bob    │Night │Bob-Night│          │
+│  │ 3001│John│  ×    │ 2001│Eng │  =    │ John   │Eng     │John-Eng│          │
+│  │ 3002│Jane│       │ 2002│Sales│       │ John   │Sales   │John-Sales│        │
+│  │ 3003│Bob │       │ 2003│HR  │       │ John   │HR      │John-HR │          │
+│  └─────────┘        └─────────┘         │ Jane   │Eng     │Jane-Eng│          │
+│   (3 people)         (3 depts)          │ Jane   │Sales   │Jane-Sales│        │
+│                                         │ Jane   │HR      │Jane-HR │          │
+│                                         │ Bob    │Eng     │Bob-Eng │          │
+│                                         │ Bob    │Sales   │Bob-Sales│         │
+│                                         │ Bob    │HR      │Bob-HR  │          │
 │                                         └────────────────────────┘          │
-│                                              (9 schedule slots)            │
+│                                              (9 combinations)              │
 │                                                                             │
-│  SQL: SELECT e.Name, s.Shift, e.Name + '-' + s.Shift AS Schedule           │
-│       FROM Employees e CROSS JOIN Shifts s;                                │
+│  SQL: SELECT e.FirstName, d.DepartmentName,                                │
+│              e.FirstName + '-' + d.DepartmentName AS Assignment            │
+│       FROM Employees e CROSS JOIN Departments d;                           │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -142,7 +153,7 @@ A self join is a join where a table is joined with itself. This is useful for co
 │                        SELF JOIN - COMPARISON                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  Find employees with same salary:                                          │
+│  Find employees with same BaseSalary:                                          │
 │  ┌─────────────────────────────────────────┐                               │
 │  │ EmpID │ Name  │ BaseSalary │ Department     │                               │
 │  ├─────────────────────────────────────────┤                               │
@@ -253,7 +264,7 @@ A self join is a join where a table is joined with itself. This is useful for co
 │  │ Scenario                    │ Example                                  │
 │  │────────────────────────────┼─────────────────────────────────────────│
 │  │ Hierarchical Data          │ Employee-Manager relationships          │
-│  │ Peer Comparisons           │ Employees with same salary/role         │
+│  │ Peer Comparisons           │ Employees with same BaseSalary/role         │
 │  │ Sequential Data            │ Previous/Next records in time series    │
 │  │ Geographic Relationships   │ Cities within same region/state         │
 │  │ Product Relationships      │ Product bundles, alternatives           │
@@ -278,9 +289,9 @@ A self join is a join where a table is joined with itself. This is useful for co
 -- Table A (1000 rows) × Table B (1000 rows) = 1,000,000 rows
 
 -- Use WHERE clauses to limit results
-SELECT p.ProductName, c.CategoryName
-FROM Products p
-CROSS JOIN (SELECT DISTINCT ProductCategory FROM Products) c(CategoryName)
+SELECT e.FirstName, d.DepartmentName
+FROM Employees e
+CROSS JOIN Departments d
 WHERE p.IsActive = 1
   AND c.IsActive = 1
   AND p.Price BETWEEN 10 AND 100;  -- Reduce result set size
@@ -301,7 +312,7 @@ INNER JOIN Employees e2 ON e1.DepartmentID = e2.DepartmentID
     AND e1.EmployeeID < e2.EmployeeID
 WHERE e1.IsActive = 1 
   AND e2.IsActive = 1
-  AND e1.HireDate >= '2020-01-01';  -- Limit comparison scope
+  AND e1.HireDate >= '2020-01-01'';  -- Limit comparison scope
 ```
 
 ## Best Practices
@@ -331,15 +342,16 @@ WHERE emp.IsActive = 1;
 
 -- Good: Limited cross join with business purpose
 SELECT 
-    d.DayName,
-    s.ShiftName,
-    e.EmployeeName
-FROM Days d
-CROSS JOIN Shifts s
-CROSS JOIN Employees e
-WHERE d.IsWorkDay = 1
-  AND s.IsActive = 1
-  AND e.DepartmentID = 5;  -- Only operations department
+    e.FirstName + ' ' + e.LastName AS EmployeeName,
+    d.DepartmentName,
+    jl.LevelName
+FROM Employees e
+CROSS JOIN Departments d
+CROSS JOIN JobLevels jl
+WHERE e.IsActive = 1
+  AND d.IsActive = 1
+  AND jl.IsActive = 1
+  AND e.DepartmentID != d.DepartmentID;  -- Cross-departmental assignments
 ```
 
 ## Common Use Cases

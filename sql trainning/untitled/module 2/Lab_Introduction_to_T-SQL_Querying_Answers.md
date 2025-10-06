@@ -22,7 +22,7 @@ FROM Employees;
 ```
 
 #### Question 3: Calculated Columns
-**Task:** Create a query that shows full name, annual salary, and monthly salary.
+**Task:** Create a query that shows full name, annual BaseSalary, and monthly BaseSalary.
 
 ```sql
 -- Answer 3: Calculated Columns
@@ -40,8 +40,8 @@ FROM Employees;
 -- Answer 4: String Functions
 SELECT 
     FirstName + ' ' + LastName AS FullName,
-    LEFT(Email, CHARINDEX('@', Email) - 1) AS EmailUsername,
-    SUBSTRING(Email, CHARINDEX('@', Email) + 1, LEN(Email)) AS EmailDomain,
+    LEFT(WorkEmail, CHARINDEX('@', WorkEmail) - 1) AS EmailUsername,
+    SUBSTRING(WorkEmail, CHARINDEX('@', WorkEmail) + 1, LEN(WorkEmail)) AS EmailDomain,
     UPPER(FirstName + ' ' + LastName) AS FullNameUpper
 FROM Employees;
 ```
@@ -62,7 +62,7 @@ FROM Employees;
 ### Exercise 1.2: Filtering Data - Answers
 
 #### Question 1: BaseSalary Filter
-**Task:** Find all employees with salary greater than $70,000.
+**Task:** Find all employees with BaseSalary greater than $70,000.
 
 ```sql
 -- Answer 1: BaseSalary Filter
@@ -112,7 +112,7 @@ WHERE MiddleName IS NOT NULL;
 ```
 
 #### Question 6: Range Filter
-**Task:** Find all active employees with salary between $50,000 and $80,000.
+**Task:** Find all active employees with BaseSalary between $50,000 and $80,000.
 
 ```sql
 -- Answer 6: Range Filter
@@ -124,15 +124,15 @@ WHERE IsActive = 1
 
 ### Exercise 1.3: Advanced Filtering - Answers
 
-#### Question 1: Email Pattern Filter
+#### Question 1: WorkEmail Pattern Filter
 **Task:** Find employees whose email contains 'gmail' or 'company'.
 
 ```sql
--- Answer 1: Email Pattern Filter
-SELECT FirstName, LastName, Email
+-- Answer 1: WorkEmail Pattern Filter
+SELECT FirstName, LastName, WorkEmail
 FROM Employees
-WHERE Email LIKE '%gmail%' 
-   OR Email LIKE '%company%';
+WHERE WorkEmail LIKE '%gmail%' 
+   OR WorkEmail LIKE '%company%';
 ```
 
 #### Question 2: Year Range Filter
@@ -148,7 +148,7 @@ WHERE YEAR(HireDate) IN (2021, 2022);
 ```
 
 #### Question 3: Complex Logic Filter
-**Task:** Find employees with salary > $60,000 AND (in IT OR Marketing departments).
+**Task:** Find employees with BaseSalary > $60,000 AND (in IT OR Marketing departments).
 
 ```sql
 -- Answer 3: Complex Logic Filter
@@ -184,7 +184,7 @@ SELECT FirstName FROM Employees WHERE DepartmentID >= 3;
 ```
 
 #### Question 2: INTERSECT Operation
-**Task:** Find department IDs that have both high-salary and low-salary employees.
+**Task:** Find department IDs that have both high-BaseSalary and low-BaseSalary employees.
 
 ```sql
 -- Answer 2: INTERSECT Operation
@@ -215,16 +215,16 @@ FROM Employees
 WHERE DepartmentID IN (1, 3, 5);
 ```
 
-#### Question 2: Project Status Filter
+#### Question 2: Project IsActive Filter
 **Task:** Find employees who work on projects with status 'In Progress'.
 
 ```sql
--- Answer 2: Project Status Filter
+-- Answer 2: Project IsActive Filter
 SELECT DISTINCT e.FirstName, e.LastName
 FROM Employees e
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-WHERE p.Status = 'In Progress';
+WHERE p.IsActive = 'In Progress';
 ```
 
 #### Question 3: EXISTS Operation
@@ -266,7 +266,7 @@ FROM Employees e
 WHERE NOT EXISTS (
     SELECT p.ProjectID
     FROM Projects p
-    WHERE p.Status = 'In Progress'
+    WHERE p.IsActive = 'In Progress'
     AND p.ProjectID NOT IN (
         SELECT ep.ProjectID
         FROM EmployeeProjects ep
@@ -366,7 +366,7 @@ WHERE ManagerID IS NULL;
 ### Exercise 3.2: Complex Predicates - Answers
 
 #### Question 1: Complex BaseSalary and Department Logic
-**Task:** Find employees where (salary > $70k AND department is IT) OR (salary > $80k).
+**Task:** Find employees where (BaseSalary > $70k AND department is IT) OR (BaseSalary > $80k).
 
 ```sql
 -- Answer 1: Complex BaseSalary and Department Logic
@@ -376,14 +376,14 @@ WHERE (BaseSalary > 70000 AND DepartmentID = 1)
    OR (BaseSalary > 80000);
 ```
 
-#### Question 2: Project Status and Budget Logic
+#### Question 2: Project IsActive and Budget Logic
 **Task:** Find projects that are either completed OR have a budget > $100k.
 
 ```sql
--- Answer 2: Project Status and Budget Logic
-SELECT ProjectName, Status, Budget
+-- Answer 2: Project IsActive and Budget Logic
+SELECT ProjectName, IsActive, Budget
 FROM Projects
-WHERE Status = 'Completed' 
+WHERE IsActive = 'Completed' 
    OR Budget > 100000;
 ```
 
@@ -535,7 +535,7 @@ ORDER BY d.DepartmentName, e.BaseSalary DESC;
 -- Answer: Project Resource Allocation
 SELECT 
     p.ProjectName,
-    p.Status,
+    p.IsActive,
     p.Budget,
     COUNT(ep.EmployeeID) AS AssignedEmployees,
     SUM(ep.HoursAllocated) AS TotalHoursAllocated,
@@ -546,7 +546,7 @@ SELECT
     END AS CompletionPercentage
 FROM Projects p
 LEFT JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
-GROUP BY p.ProjectID, p.ProjectName, p.Status, p.Budget
+GROUP BY p.ProjectID, p.ProjectName, p.IsActive, p.Budget
 HAVING COUNT(ep.EmployeeID) > 0
 ORDER BY CompletionPercentage DESC;
 ```
@@ -565,7 +565,7 @@ SELECT
         WHEN SUM(e.BaseSalary) > d.Budget THEN 'Over Budget'
         WHEN SUM(e.BaseSalary) > d.Budget * 0.9 THEN 'Near Budget Limit'
         ELSE 'Within Budget'
-    END AS BudgetStatus
+    END AS BudgetIsActive
 FROM Departments d
 LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID 
     AND e.IsActive = 1

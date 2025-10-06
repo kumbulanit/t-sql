@@ -116,7 +116,7 @@ SELECT
     EmployeeID,
     FirstName,
     LastName,
-    Email,
+    WorkEmail,
     HireDate
 FROM Employees;
 
@@ -238,7 +238,7 @@ FROM Employees
 WHERE HireDate >= '2020-01-01';
 
 -- String pattern matching
-SELECT FirstName, LastName, Email
+SELECT FirstName, LastName, WorkEmail
 FROM Employees 
 WHERE LastName LIKE 'Smith%';
 ```
@@ -247,11 +247,11 @@ WHERE LastName LIKE 'Smith%';
 ```sql
 -- AND operator
 SELECT * FROM Employees 
-WHERE Department = 'IT' AND BaseSalary > 75000;
+WHERE d.DepartmentName = 'Engineering' AND BaseSalary > 75000;
 
 -- OR operator
 SELECT * FROM Employees 
-WHERE Department = 'IT' OR Department = 'Finance';
+WHERE d.DepartmentName = 'Engineering' OR Department = 'Finance';
 
 -- Complex conditions with parentheses
 SELECT * FROM Employees 
@@ -303,7 +303,7 @@ SELECT * FROM Employees WHERE MiddleName IS NOT NULL;
 -- Wildcard patterns
 SELECT * FROM Employees WHERE LastName LIKE 'Sm%';     -- Starts with 'Sm'
 SELECT * FROM Employees WHERE FirstName LIKE '%ohn';   -- Ends with 'ohn'
-SELECT * FROM Employees WHERE Email LIKE '%@techcorp%'; -- Contains '@techcorp'
+SELECT * FROM Employees WHERE WorkEmail LIKE '%@techcorp%'; -- Contains '@techcorp'
 
 -- Single character wildcard
 SELECT * FROM Employees WHERE FirstName LIKE 'J_n';    -- 3 letters: J_n (Jon, Jan, etc.)
@@ -340,12 +340,12 @@ ORDER BY BaseSalary DESC;                 -- Descending
 -- Multiple column sorting
 SELECT FirstName, LastName, Department, BaseSalary 
 FROM Employees 
-ORDER BY Department, LastName, FirstName;  -- Multiple levels
+ORDER BY DepartmentID, LastName, FirstName;  -- Multiple levels
 
 -- Mixed sorting directions
 SELECT FirstName, LastName, Department, BaseSalary 
 FROM Employees 
-ORDER BY Department ASC, BaseSalary DESC;      -- Department A-Z, BaseSalary high-low
+ORDER BY DepartmentID ASC, BaseSalary DESC;      -- Department A-Z, BaseSalary high-low
 ```
 
 **Advanced Sorting**:
@@ -400,7 +400,7 @@ SELECT
     FirstName + ' ' + LastName AS FullName,
     UPPER(FirstName) AS UpperFirstName,
     LEN(LastName) AS LastNameLength,
-    LEFT(Email, CHARINDEX('@', Email) - 1) AS Username
+    LEFT(WorkEmail, CHARINDEX('@', WorkEmail) - 1) AS Username
 FROM Employees;
 ```
 
@@ -460,7 +460,7 @@ FROM Employees;
 ```sql
 -- Multiple AND conditions
 SELECT * FROM Employees 
-WHERE Department = 'IT' 
+WHERE d.DepartmentName = 'Engineering' 
   AND BaseSalary > 70000 
   AND YEAR(HireDate) >= 2020;
 
@@ -525,8 +525,8 @@ FROM Employees;
 SELECT 
     FirstName + ' ' + LastName AS FullName,
     CASE 
-        WHEN Department = 'IT' AND BaseSalary > 75000 THEN 'Senior IT Professional'
-        WHEN Department = 'IT' THEN 'IT Professional'
+        WHEN d.DepartmentName = 'Engineering' AND BaseSalary > 75000 THEN 'Senior IT Professional'
+        WHEN d.DepartmentName = 'Engineering' THEN 'IT Professional'
         WHEN BaseSalary > 80000 THEN 'Senior Professional'
         ELSE 'Professional'
     END AS JobLevel
@@ -544,10 +544,10 @@ FROM Employees;
 -- Good: Select only needed columns
 SELECT EmployeeID, FirstName, LastName 
 FROM Employees 
-WHERE Department = 'IT';
+WHERE d.DepartmentName = 'Engineering';
 
 -- Avoid: SELECT * unless needed
--- SELECT * FROM Employees WHERE Department = 'IT';
+-- SELECT * FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Engineering';
 
 -- Efficient WHERE conditions
 -- Good: Use indexed columns in WHERE
@@ -579,7 +579,7 @@ WHERE i.object_id = OBJECT_ID('Employees');
 ```sql
 -- Count records to verify results
 SELECT COUNT(*) AS TotalEmployees FROM Employees;
-SELECT COUNT(*) AS ITEmployees FROM Employees WHERE Department = 'IT';
+SELECT COUNT(*) AS ITEmployees FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Engineering';
 
 -- Statistical analysis
 SELECT 
@@ -589,7 +589,7 @@ SELECT
     MAX(BaseSalary) AS MaximumSalary,
     SUM(BaseSalary) AS TotalPayroll
 FROM Employees
-WHERE Department = 'IT';
+WHERE d.DepartmentName = 'Engineering';
 
 -- Data quality checks
 SELECT 
@@ -622,7 +622,7 @@ SELECT FirstName, LastName FROM Employees;
 -- Mistake: Missing quotes around strings
 -- SELECT * FROM Employees WHERE Department = IT;
 -- Correct:
-SELECT * FROM Employees WHERE Department = 'IT';
+SELECT * FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Engineering';
 
 -- Mistake: Using = with NULL
 -- SELECT * FROM Employees WHERE MiddleName = NULL;
@@ -633,7 +633,7 @@ SELECT * FROM Employees WHERE MiddleName IS NULL;
 **Logic Errors**:
 ```sql
 -- Mistake: Incorrect operator precedence
--- SELECT * FROM Employees WHERE Department = 'IT' OR 'Finance' AND BaseSalary > 70000;
+-- SELECT * FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Engineering' OR 'Finance' AND BaseSalary > 70000;
 -- Correct:
 SELECT * FROM Employees WHERE (Department = 'IT' OR Department = 'Finance') AND BaseSalary > 70000;
 ```
@@ -685,7 +685,7 @@ SELECT
     SUM(BaseSalary) AS TotalCost,
     FORMAT(SUM(BaseSalary), 'C') AS FormattedCost
 FROM Employees 
-GROUP BY Department
+GROUP BY DepartmentID
 ORDER BY SUM(BaseSalary) DESC;
 ```
 

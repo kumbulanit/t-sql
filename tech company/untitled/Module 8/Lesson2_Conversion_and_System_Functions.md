@@ -158,7 +158,7 @@ SELECT
         FORMAT(e.EmployeeID, '00000'), 
         ' hired on ', 
         FORMAT(e.HireDate, 'MMMM dd, yyyy'),
-        ' with salary ', 
+        ' with BaseSalary ', 
         FORMAT(e.BaseSalary, 'C')
     ) AS EmployeeSummary,
     
@@ -263,13 +263,13 @@ SELECT
         'N3'
     ) AS EfficiencyRatio,
     
-    -- Status with intelligent logic
+    -- IsActive with intelligent logic
     CASE 
         WHEN ActualEndDate IS NULL AND GETDATE() > PlannedEndDate THEN 'OVERDUE'
         WHEN ActualEndDate IS NULL THEN 'IN PROGRESS'
         WHEN ActualEndDate <= PlannedEndDate THEN 'COMPLETED ON TIME'
         ELSE 'COMPLETED LATE'
-    END AS ProjectStatus
+    END AS ProjectIsActive
     
 FROM ProjectMetrics
 ORDER BY CostUtilizationPercent DESC;
@@ -306,7 +306,7 @@ SELECT
     USER_NAME() AS DatabaseUser,
     
     -- Database configuration
-    DATABASEPROPERTYEX(DB_NAME(), 'Status') AS DatabaseStatus,
+    DATABASEPROPERTYEX(DB_NAME(), 'IsActive') AS DatabaseIsActive,
     DATABASEPROPERTYEX(DB_NAME(), 'Collation') AS DatabaseCollation,
     DATABASEPROPERTYEX(DB_NAME(), 'IsAutoClose') AS IsAutoClose,
     DATABASEPROPERTYEX(DB_NAME(), 'IsAutoShrink') AS IsAutoShrink,
@@ -511,7 +511,7 @@ WITH DataQualityMetrics AS (
         'Employees',
         COUNT(*),
         COUNT(CASE WHEN FirstName IS NULL OR FirstName = '' OR LastName IS NULL OR LastName = '' THEN 1 END),
-        COUNT(CASE WHEN Email IS NULL OR Email = '' THEN 1 END),
+        COUNT(CASE WHEN WorkEmail IS NULL OR WorkEmail = '' THEN 1 END),
         COUNT(CASE WHEN BaseSalary IS NULL THEN 1 END),
         AVG(CAST(LEN(FirstName + ' ' + LastName) AS FLOAT)),
         MIN(CreatedDate),

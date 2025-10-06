@@ -184,17 +184,17 @@ SELECT
     
     -- Searched CASE with multiple conditions
     CASE 
-        WHEN Department = 'Sales' AND BaseSalary > 50000 THEN 'Senior Sales'
-        WHEN Department = 'Sales' THEN 'Sales Staff'
-        WHEN Department = 'IT' AND BaseSalary > 70000 THEN 'Senior Developer'
-        WHEN Department = 'IT' THEN 'Developer'
+        WHEN d.DepartmentName = 'Sales' AND BaseSalary > 50000 THEN 'Senior Sales'
+        WHEN d.DepartmentName = 'Sales' THEN 'Sales Staff'
+        WHEN d.DepartmentName = 'Engineering' AND BaseSalary > 70000 THEN 'Senior Developer'
+        WHEN d.DepartmentName = 'Engineering' THEN 'Developer'
         ELSE 'Other'
     END AS RoleCategory,
     
     -- CASE in calculations
     BaseSalary * CASE 
-        WHEN Department = 'Sales' THEN 1.1    -- 10% bonus for sales
-        WHEN Department = 'IT' THEN 1.05      -- 5% bonus for IT
+        WHEN d.DepartmentName = 'Sales' THEN 1.1    -- 10% bonus for sales
+        WHEN d.DepartmentName = 'Engineering' THEN 1.05      -- 5% bonus for IT
         ELSE 1.0                              -- No bonus for others
     END AS AdjustedSalary
 FROM Employees;
@@ -241,7 +241,7 @@ FROM Employees;
 -- GROUP BY approach (often faster)
 SELECT Department
 FROM Employees
-GROUP BY Department;
+GROUP BY DepartmentID;
 
 -- GROUP BY with aggregates (more informative)
 SELECT 
@@ -250,7 +250,7 @@ SELECT
     MIN(HireDate) AS EarliestHire,
     MAX(BaseSalary) AS HighestSalary
 FROM Employees
-GROUP BY Department;
+GROUP BY DepartmentID;
 ```
 
 #### **DISTINCT with Complex Expressions**
@@ -352,7 +352,7 @@ LEFT JOIN Employees mgr ON emp.ManagerID = mgr.EmployeeID;  -- Self-join clarity
 -- Common aliasing patterns
 SELECT 
     c.CustomerID,
-    c.CustomerName,
+    c.CompanyName,
     o.OrderID,
     o.OrderDate,
     od.ProductID,
@@ -366,7 +366,7 @@ INNER JOIN Products p ON od.ProductID = p.ProductID;
 -- Alternative: Meaningful abbreviations
 SELECT 
     cust.CustomerID,
-    cust.CustomerName,
+    cust.CompanyName,
     ord.OrderID,
     ord.OrderDate
 FROM Customers cust
@@ -428,12 +428,12 @@ FROM Employees;
 -- Without alias (verbose)
 SELECT Employees.FirstName, Employees.LastName
 FROM Employees
-WHERE Employees.Department = 'IT';
+WHERE d.DepartmentName = 'Engineering';
 
 -- With alias (concise)
 SELECT e.FirstName, e.LastName
 FROM Employees e
-WHERE e.Department = 'IT';
+WHERE d.DepartmentName = 'Engineering';
 ```
 
 **Best Practice**: Use meaningful, short aliases
@@ -581,7 +581,7 @@ SELECT
     COUNT(CASE WHEN BaseSalary > 75000 THEN 1 END) AS HighSalaryCount,
     AVG(CASE WHEN BaseSalary > 75000 THEN BaseSalary END) AS AvgHighSalary
 FROM Employees
-GROUP BY Department;
+GROUP BY DepartmentID;
 ```
 
 **Powerful Technique**: Allows selective aggregation based on conditions
@@ -621,7 +621,7 @@ FROM Employees;
 -- Good: Specific columns, early filtering
 SELECT FirstName, LastName, BaseSalary
 FROM Employees 
-WHERE Department = 'IT' AND IsActive = 1;
+WHERE d.DepartmentName = 'Engineering' AND IsActive = 1;
 ```
 
 ---

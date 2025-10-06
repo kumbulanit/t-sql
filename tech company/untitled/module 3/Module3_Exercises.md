@@ -26,7 +26,7 @@ These exercises test your mastery of fundamental SELECT statement concepts using
 
 **Question 1.1.1**: TechCorp's HR department needs a comprehensive employee directory for their annual review process. Create a query to display TechCorp employee information with the following business requirements:
 - Show employee full name (handle middle names properly for professional communications)
-- Display formatted salary as currency for compensation reviews
+- Display formatted BaseSalary as currency for compensation reviews
 - Calculate and show current age in years for demographic analysis
 - Show hire date in "Month DD, YYYY" format for tenure tracking
 - Include formatted phone number as (XXX) XXX-XXXX for contact purposes
@@ -53,14 +53,14 @@ These exercises test your mastery of fundamental SELECT statement concepts using
   - "Medium Department": $300,000 - $600,000
   - "Large Department": > $600,000
 - Employee headcount for resource planning
-- Average salary per department for compensation analysis
+- Average BaseSalary per department for compensation analysis
 
 **Question 1.1.4**: Write a query for employee contact management:
 - Employee name and title
 - Complete address (city, state)
 - All contact information formatted properly
 - Emergency contact details
-- Email domain classification (company vs external)
+- WorkEmail domain classification (company vs external)
 
 **Question 1.1.5**: Develop a skills inventory query displaying:
 - Skill name and category
@@ -158,7 +158,7 @@ These exercises test your mastery of fundamental SELECT statement concepts using
 ### 4.1 Business Rule Implementation (5 points each)
 
 **Question 4.1.1**: Implement a comprehensive employee performance rating system using CASE expressions:
-- Base rating on multiple criteria: tenure, salary progression, project involvement
+- Base rating on multiple criteria: tenure, BaseSalary progression, project involvement
 - Include department-specific performance indicators
 - Account for role-level expectations
 - Implement bonus eligibility determination
@@ -176,7 +176,7 @@ These exercises test your mastery of fundamental SELECT statement concepts using
 - Include cost-of-living adjustments by location
 - Calculate retention risk based on compensation competitiveness
 - Determine promotion readiness using multiple criteria
-- Provide salary adjustment recommendations
+- Provide BaseSalary adjustment recommendations
 
 **Question 4.1.4**: Build an intelligent resource allocation system:
 - Assess employee availability based on current project load
@@ -217,7 +217,7 @@ Create a comprehensive query that combines all module concepts to deliver:
 - Format all output for executive consumption
 
 **Business Logic:**
-- Performance rating: Combine salary progression, tenure, project success
+- Performance rating: Combine BaseSalary progression, tenure, project success
 - Retention risk: Consider market positioning, workload, career growth
 - Development priority: Based on skills gaps, role requirements, career aspirations
 - Succession readiness: Evaluate leadership potential, experience, skills

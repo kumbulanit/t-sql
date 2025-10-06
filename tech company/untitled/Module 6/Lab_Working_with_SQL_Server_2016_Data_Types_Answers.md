@@ -45,7 +45,7 @@ SELECT
     CASE 
         WHEN ProductName <> LTRIM(RTRIM(ProductName)) THEN 'Has Extra Spaces'
         ELSE 'Clean'
-    END AS SpaceStatus,
+    END AS SpaceIsActive,
     -- Clean version
     LTRIM(RTRIM(ProductName)) AS CleanName,
     -- Check for special characters
@@ -65,11 +65,11 @@ ORDER BY NameLength DESC;
 
 ### Task 1.2: Advanced String Manipulation - Answers
 
-#### Question 1: Email domain analysis
+#### Question 1: WorkEmail domain analysis
 **Task:** Extract and analyze email domains from contact information.
 
 ```sql
--- Answer 1: Email domain analysis
+-- Answer 1: WorkEmail domain analysis
 -- Note: Northwind doesn't have email fields, so we'll simulate this
 SELECT 
     CustomerID,
@@ -134,24 +134,24 @@ ORDER BY ProductType, ProductName;
 -- Answer 1: Price calculations with different precision
 SELECT 
     ProductName,
-    UnitPrice,
+    BaseSalary,
     -- Different precision calculations
-    UnitPrice * 1.15 AS PriceWith15PercentIncrease,
-    ROUND(UnitPrice * 1.15, 2) AS RoundedPrice,
-    CEILING(UnitPrice * 1.15) AS CeilingPrice,
-    FLOOR(UnitPrice * 1.15) AS FloorPrice,
+    BaseSalary * 1.15 AS PriceWith15PercentIncrease,
+    ROUND(BaseSalary * 1.15, 2) AS RoundedPrice,
+    CEILING(BaseSalary * 1.15) AS CeilingPrice,
+    FLOOR(BaseSalary * 1.15) AS FloorPrice,
     -- Discount calculations
-    UnitPrice * 0.90 AS DiscountedPrice,
-    UnitPrice - (UnitPrice * 0.10) AS AlternativeDiscount,
+    BaseSalary * 0.90 AS DiscountedPrice,
+    BaseSalary - (BaseSalary * 0.10) AS AlternativeDiscount,
     -- Precision demonstration
-    CAST(UnitPrice AS DECIMAL(10,4)) AS HighPrecisionPrice,
-    CAST(UnitPrice AS DECIMAL(6,1)) AS LowPrecisionPrice,
+    CAST(BaseSalary AS DECIMAL(10,4)) AS HighPrecisionPrice,
+    CAST(BaseSalary AS DECIMAL(6,1)) AS LowPrecisionPrice,
     -- Calculate tax (different rates)
-    UnitPrice * 1.08 AS PriceWithTax8Percent,
-    ROUND(UnitPrice * 1.08, 2) AS RoundedTaxPrice
+    BaseSalary * 1.08 AS PriceWithTax8Percent,
+    ROUND(BaseSalary * 1.08, 2) AS RoundedTaxPrice
 FROM Products
-WHERE UnitPrice IS NOT NULL
-ORDER BY UnitPrice DESC;
+WHERE BaseSalary IS NOT NULL
+ORDER BY BaseSalary DESC;
 ```
 
 #### Question 2: Inventory value analysis
@@ -161,26 +161,26 @@ ORDER BY UnitPrice DESC;
 -- Answer 2: Inventory value analysis
 SELECT 
     ProductName,
-    UnitPrice,
+    BaseSalary,
     UnitsInStock,
     -- Basic inventory calculations
-    COALESCE(UnitPrice * UnitsInStock, 0) AS InventoryValue,
+    COALESCE(BaseSalary * UnitsInStock, 0) AS InventoryValue,
     -- Handle NULL values properly
     CASE 
-        WHEN UnitPrice IS NULL OR UnitsInStock IS NULL THEN 0
-        ELSE UnitPrice * UnitsInStock
+        WHEN BaseSalary IS NULL OR UnitsInStock IS NULL THEN 0
+        ELSE BaseSalary * UnitsInStock
     END AS SafeInventoryValue,
     -- Different rounding strategies
-    ROUND(COALESCE(UnitPrice * UnitsInStock, 0), 0) AS RoundedValue,
-    CEILING(COALESCE(UnitPrice * UnitsInStock, 0)) AS CeilingValue,
+    ROUND(COALESCE(BaseSalary * UnitsInStock, 0), 0) AS RoundedValue,
+    CEILING(COALESCE(BaseSalary * UnitsInStock, 0)) AS CeilingValue,
     -- Percentage of total inventory
-    COALESCE(UnitPrice * UnitsInStock, 0) / 
-    NULLIF((SELECT SUM(UnitPrice * UnitsInStock) FROM Products WHERE UnitPrice IS NOT NULL AND UnitsInStock IS NOT NULL), 0) * 100 AS PercentOfTotal,
+    COALESCE(BaseSalary * UnitsInStock, 0) / 
+    NULLIF((SELECT SUM(BaseSalary * UnitsInStock) FROM Products WHERE BaseSalary IS NOT NULL AND UnitsInStock IS NOT NULL), 0) * 100 AS PercentOfTotal,
     -- Value categories
     CASE 
-        WHEN COALESCE(UnitPrice * UnitsInStock, 0) > 1000 THEN 'High Value'
-        WHEN COALESCE(UnitPrice * UnitsInStock, 0) > 500 THEN 'Medium Value'
-        WHEN COALESCE(UnitPrice * UnitsInStock, 0) > 0 THEN 'Low Value'
+        WHEN COALESCE(BaseSalary * UnitsInStock, 0) > 1000 THEN 'High Value'
+        WHEN COALESCE(BaseSalary * UnitsInStock, 0) > 500 THEN 'Medium Value'
+        WHEN COALESCE(BaseSalary * UnitsInStock, 0) > 0 THEN 'Low Value'
         ELSE 'No Value'
     END AS ValueCategory
 FROM Products
@@ -198,21 +198,21 @@ SELECT
     c.CategoryName,
     COUNT(p.ProductID) AS ProductCount,
     -- Basic statistics
-    MIN(p.UnitPrice) AS MinPrice,
-    MAX(p.UnitPrice) AS MaxPrice,
-    AVG(p.UnitPrice) AS AvgPrice,
+    MIN(p.BaseSalary) AS MinPrice,
+    MAX(p.BaseSalary) AS MaxPrice,
+    AVG(p.BaseSalary) AS AvgPrice,
     -- Advanced calculations
-    STDEV(p.UnitPrice) AS StandardDeviation,
-    VAR(p.UnitPrice) AS Variance,
+    STDEV(p.BaseSalary) AS StandardDeviation,
+    VAR(p.BaseSalary) AS Variance,
     -- Percentile approximations
-    AVG(p.UnitPrice) - STDEV(p.UnitPrice) AS LowerBound,
-    AVG(p.UnitPrice) + STDEV(p.UnitPrice) AS UpperBound,
+    AVG(p.BaseSalary) - STDEV(p.BaseSalary) AS LowerBound,
+    AVG(p.BaseSalary) + STDEV(p.BaseSalary) AS UpperBound,
     -- Range analysis
-    MAX(p.UnitPrice) - MIN(p.UnitPrice) AS PriceRange,
-    (MAX(p.UnitPrice) - MIN(p.UnitPrice)) / NULLIF(AVG(p.UnitPrice), 0) * 100 AS RangeAsPercentOfAvg
+    MAX(p.BaseSalary) - MIN(p.BaseSalary) AS PriceRange,
+    (MAX(p.BaseSalary) - MIN(p.BaseSalary)) / NULLIF(AVG(p.BaseSalary), 0) * 100 AS RangeAsPercentOfAvg
 FROM Products p
 INNER JOIN Categories c ON p.CategoryID = c.CategoryID
-WHERE p.UnitPrice IS NOT NULL
+WHERE p.BaseSalary IS NOT NULL
 GROUP BY c.CategoryID, c.CategoryName
 HAVING COUNT(p.ProductID) > 3
 ORDER BY AvgPrice DESC;
@@ -225,24 +225,24 @@ ORDER BY AvgPrice DESC;
 -- Answer 2: Financial calculations
 SELECT 
     ProductName,
-    UnitPrice AS CurrentPrice,
+    BaseSalary AS CurrentPrice,
     -- Simple interest calculations (assuming 5% annual growth)
-    UnitPrice * POWER(1.05, 1) AS PriceAfter1Year,
-    UnitPrice * POWER(1.05, 2) AS PriceAfter2Years,
-    UnitPrice * POWER(1.05, 5) AS PriceAfter5Years,
+    BaseSalary * POWER(1.05, 1) AS PriceAfter1Year,
+    BaseSalary * POWER(1.05, 2) AS PriceAfter2Years,
+    BaseSalary * POWER(1.05, 5) AS PriceAfter5Years,
     -- Compound monthly (5% annual, compounded monthly)
-    UnitPrice * POWER(1 + 0.05/12, 12) AS MonthlyCompound1Year,
+    BaseSalary * POWER(1 + 0.05/12, 12) AS MonthlyCompound1Year,
     -- Logarithmic calculations
-    LOG(UnitPrice) AS NaturalLog,
-    LOG10(UnitPrice) AS Log10,
+    LOG(BaseSalary) AS NaturalLog,
+    LOG10(BaseSalary) AS Log10,
     -- Growth rate needed to double price in 5 years
     POWER(2, 1.0/5) - 1 AS RequiredGrowthRate,
     -- Present value calculations (discount rate 8%)
-    UnitPrice / POWER(1.08, 1) AS PresentValue1Year,
-    UnitPrice / POWER(1.08, 5) AS PresentValue5Years
+    BaseSalary / POWER(1.08, 1) AS PresentValue1Year,
+    BaseSalary / POWER(1.08, 5) AS PresentValue5Years
 FROM Products
-WHERE UnitPrice > 10  -- Only meaningful prices
-ORDER BY UnitPrice DESC;
+WHERE BaseSalary > 10  -- Only meaningful prices
+ORDER BY BaseSalary DESC;
 ```
 
 ## Exercise 3: Date and Time Data Types - Answers
@@ -278,7 +278,7 @@ SELECT
         WHEN ShippedDate <= RequiredDate THEN 'On Time'
         WHEN DATEDIFF(DAY, RequiredDate, ShippedDate) <= 2 THEN 'Slightly Late'
         ELSE 'Late'
-    END AS DeliveryStatus,
+    END AS DeliveryIsActive,
     -- Business days calculation (approximate)
     CASE 
         WHEN ShippedDate IS NOT NULL THEN
@@ -433,7 +433,7 @@ ORDER BY Period;
 -- Answer 1: Safe data type conversions
 SELECT 
     ProductName,
-    UnitPrice,
+    BaseSalary,
     UnitsInStock,
     -- String to numeric conversions (safe)
     CASE 
@@ -442,10 +442,10 @@ SELECT
         ELSE 'Invalid'
     END AS ProductIDString,
     -- Numeric to string with formatting
-    FORMAT(UnitPrice, 'C', 'en-US') AS FormattedPrice,
-    FORMAT(UnitPrice, 'N2') AS NumericFormat,
-    CAST(UnitPrice AS VARCHAR(20)) AS PriceString,
-    STR(UnitPrice, 10, 2) AS STRFunction,
+    FORMAT(BaseSalary, 'C', 'en-US') AS FormattedPrice,
+    FORMAT(BaseSalary, 'N2') AS NumericFormat,
+    CAST(BaseSalary AS VARCHAR(20)) AS PriceString,
+    STR(BaseSalary, 10, 2) AS STRFunction,
     -- Date conversions
     CAST(GETDATE() AS DATE) AS DateOnly,
     CAST(GETDATE() AS TIME) AS TimeOnly,
@@ -456,7 +456,7 @@ SELECT
     CASE WHEN Discontinued = 1 THEN 'Yes' ELSE 'No' END AS DiscontinuedText,
     CAST(Discontinued AS VARCHAR(5)) AS DiscontinuedString
 FROM Products
-WHERE UnitPrice IS NOT NULL
+WHERE BaseSalary IS NOT NULL
 ORDER BY ProductName;
 ```
 
@@ -510,23 +510,23 @@ WITH ProductAnalysis AS (
     SELECT 
         p.ProductID,
         p.ProductName,
-        p.UnitPrice,
+        p.BaseSalary,
         p.UnitsInStock,
         c.CategoryName,
         -- Calculate derived values
-        COALESCE(p.UnitPrice * p.UnitsInStock, 0) AS InventoryValue,
-        ROW_NUMBER() OVER (PARTITION BY p.CategoryID ORDER BY p.UnitPrice DESC) AS PriceRankInCategory,
-        NTILE(4) OVER (ORDER BY p.UnitPrice) AS PriceQuartile
+        COALESCE(p.BaseSalary * p.UnitsInStock, 0) AS InventoryValue,
+        ROW_NUMBER() OVER (PARTITION BY p.CategoryID ORDER BY p.BaseSalary DESC) AS PriceRankInCategory,
+        NTILE(4) OVER (ORDER BY p.BaseSalary) AS PriceQuartile
     FROM Products p
     INNER JOIN Categories c ON p.CategoryID = c.CategoryID
-    WHERE p.UnitPrice IS NOT NULL
+    WHERE p.BaseSalary IS NOT NULL
 ),
 CategoryStats AS (
     SELECT 
         CategoryName,
         COUNT(*) AS ProductCount,
-        AVG(UnitPrice) AS AvgPrice,
-        MAX(UnitPrice) AS MaxPrice,
+        AVG(BaseSalary) AS AvgPrice,
+        MAX(BaseSalary) AS MaxPrice,
         SUM(InventoryValue) AS TotalInventoryValue
     FROM ProductAnalysis
     GROUP BY CategoryName
@@ -534,7 +534,7 @@ CategoryStats AS (
 SELECT 
     pa.ProductName,
     pa.CategoryName,
-    pa.UnitPrice,
+    pa.BaseSalary,
     pa.InventoryValue,
     pa.PriceRankInCategory,
     CASE 
@@ -544,7 +544,7 @@ SELECT
         ELSE 'Budget'
     END AS PriceTier,
     cs.AvgPrice AS CategoryAvgPrice,
-    pa.UnitPrice - cs.AvgPrice AS PriceVsAverage,
+    pa.BaseSalary - cs.AvgPrice AS PriceVsAverage,
     CAST((pa.InventoryValue * 100.0 / cs.TotalInventoryValue) AS DECIMAL(5,2)) AS PercentOfCategoryValue,
     -- Complex formatting
     CONCAT(
@@ -552,10 +552,10 @@ SELECT
         ' (', 
         pa.CategoryName, 
         ') - $', 
-        FORMAT(pa.UnitPrice, 'N2'),
+        FORMAT(pa.BaseSalary, 'N2'),
         CASE 
             WHEN pa.PriceRankInCategory = 1 THEN ' [TOP PRICE]'
-            WHEN pa.UnitPrice > cs.AvgPrice THEN ' [ABOVE AVG]'
+            WHEN pa.BaseSalary > cs.AvgPrice THEN ' [ABOVE AVG]'
             ELSE ''
         END
     ) AS ProductSummary
@@ -579,7 +579,7 @@ WITH DataTypeAnalysis AS (
         ProductID,
         ProductName,
         -- Appropriate numeric types
-        CAST(UnitPrice AS DECIMAL(19,4)) AS PrecisePrice,  -- High precision for financial
+        CAST(BaseSalary AS DECIMAL(19,4)) AS PrecisePrice,  -- High precision for financial
         CAST(UnitsInStock AS SMALLINT) AS StockCount,      -- Small range, use SMALLINT
         CAST(Discontinued AS BIT) AS IsDiscontinued,       -- Boolean values
         -- String types optimization
@@ -618,10 +618,10 @@ ORDER BY ProductID;
 SELECT 
     ProductID,
     ProductName,
-    UnitPrice
+    BaseSalary
 FROM Products
 WHERE ProductID BETWEEN 10 AND 20           -- SARGABLE: Can use index seek
-  AND UnitPrice >= 10.00                    -- SARGABLE: Can use index
+  AND BaseSalary >= 10.00                    -- SARGABLE: Can use index
   AND ProductName LIKE 'C%'                 -- SARGABLE: Can use index for prefix
 
 UNION ALL
@@ -642,7 +642,7 @@ UNION ALL
 SELECT 
     ProductID,
     ProductName,
-    UnitPrice
+    BaseSalary
 FROM Products
 WHERE UPPER(ProductName) LIKE 'C%'          -- NON-SARGABLE: Function on column
   OR SUBSTRING(ProductName, 1, 1) = 'C'     -- NON-SARGABLE: Function on column
@@ -652,7 +652,7 @@ WHERE UPPER(ProductName) LIKE 'C%'          -- NON-SARGABLE: Function on column
 SELECT 
     ProductID,
     ProductName,
-    UnitPrice,
+    BaseSalary,
     -- Show efficient pattern matching
     CASE 
         WHEN ProductName LIKE 'A%' THEN 'Starts with A'
@@ -678,7 +678,7 @@ WITH ValidationResults AS (
     SELECT 
         ProductID,
         ProductName,
-        UnitPrice,
+        BaseSalary,
         UnitsInStock,
         Discontinued,
         -- Validation checks
@@ -691,11 +691,11 @@ WITH ValidationResults AS (
         END AS NameValidation,
         
         CASE 
-            WHEN UnitPrice IS NULL 
+            WHEN BaseSalary IS NULL 
             THEN 'Price is required'
-            WHEN UnitPrice < 0 
+            WHEN BaseSalary < 0 
             THEN 'Price cannot be negative'
-            WHEN UnitPrice > 999.99 
+            WHEN BaseSalary > 999.99 
             THEN 'Price exceeds maximum'
             ELSE 'Valid'
         END AS PriceValidation,
@@ -738,7 +738,7 @@ ValidationSummary AS (
 SELECT 
     ProductID,
     ProductName,
-    UnitPrice,
+    BaseSalary,
     UnitsInStock,
     OverallValidation,
     ErrorCount,

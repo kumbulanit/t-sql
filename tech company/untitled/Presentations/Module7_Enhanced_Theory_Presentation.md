@@ -29,7 +29,7 @@
 ```sql
 -- Comprehensive string processing examples
 DECLARE @SampleText NVARCHAR(100) = N'  John Michael Smith, Jr.  ';
-DECLARE @Email NVARCHAR(100) = N'john.smith@company.com';
+DECLARE @WorkEmail NVARCHAR(100) = N'john.smith@company.com';
 DECLARE @PhoneNumber NVARCHAR(20) = N'(555) 123-4567';
 
 SELECT 
@@ -55,8 +55,8 @@ SELECT
     REPLACE(REPLACE(REPLACE(@PhoneNumber, '(', ''), ')', ''), ' ', '') AS CleanPhone,
     
     -- String building
-    CONCAT('Name: ', LTRIM(RTRIM(@SampleText)), ' | Email: ', @Email) AS ConcatenatedString,
-    @SampleText + ' - ' + @Email AS TraditionalConcat;
+    CONCAT('Name: ', LTRIM(RTRIM(@SampleText)), ' | WorkEmail: ', @WorkEmail) AS ConcatenatedString,
+    @SampleText + ' - ' + @WorkEmail AS TraditionalConcat;
 ```
 
 #### **Advanced String Pattern Matching**
@@ -64,8 +64,8 @@ SELECT
 -- Complex pattern matching and validation
 CREATE TABLE CustomerData (
     CustomerID INT IDENTITY(1,1) PRIMARY KEY,
-    CustomerName NVARCHAR(100),
-    Email NVARCHAR(100),
+    CompanyName NVARCHAR(100),
+    WorkEmail NVARCHAR(100),
     Phone NVARCHAR(20),
     PostalCode NVARCHAR(10)
 );
@@ -77,21 +77,21 @@ INSERT INTO CustomerData VALUES
 
 -- Pattern validation queries
 SELECT 
-    CustomerName,
-    Email,
+    CompanyName,
+    WorkEmail,
     Phone,
     PostalCode,
     
-    -- Email validation
+    -- WorkEmail validation
     CASE 
-        WHEN Email LIKE '%_@_%.__%' 
-             AND Email NOT LIKE '%..%' 
-             AND Email NOT LIKE '.%'
-             AND Email NOT LIKE '%.'
-             AND CHARINDEX(' ', Email) = 0
-        THEN 'Valid Email'
-        ELSE 'Invalid Email'
-    END AS EmailStatus,
+        WHEN WorkEmail LIKE '%_@_%.__%' 
+             AND WorkEmail NOT LIKE '%..%' 
+             AND WorkEmail NOT LIKE '.%'
+             AND WorkEmail NOT LIKE '%.'
+             AND CHARINDEX(' ', WorkEmail) = 0
+        THEN 'Valid WorkEmail'
+        ELSE 'Invalid WorkEmail'
+    END AS EmailIsActive,
     
     -- Phone format standardization
     CASE 
@@ -283,7 +283,7 @@ DECLARE @Quantity INT = 7;
 DECLARE @TaxRate DECIMAL(5,4) = 0.0875;
 
 SELECT 
-    @Price AS UnitPrice,
+    @Price AS BaseSalary,
     @Quantity AS Quantity,
     @TaxRate AS TaxRate,
     
@@ -458,7 +458,7 @@ SELECT
 ```sql
 -- Create scalar function for business calculations
 CREATE FUNCTION dbo.CalculateNetPrice(
-    @UnitPrice DECIMAL(10,2),
+    @BaseSalary DECIMAL(10,2),
     @Quantity INT,
     @DiscountPercent DECIMAL(5,2) = 0,
     @TaxRate DECIMAL(5,4) = 0.08
@@ -469,7 +469,7 @@ BEGIN
     DECLARE @NetPrice DECIMAL(12,2);
     
     -- Calculate with discount and tax
-    SET @NetPrice = @UnitPrice * @Quantity * (1 - @DiscountPercent / 100) * (1 + @TaxRate);
+    SET @NetPrice = @BaseSalary * @Quantity * (1 - @DiscountPercent / 100) * (1 + @TaxRate);
     
     RETURN ROUND(@NetPrice, 2);
 END;
@@ -478,9 +478,9 @@ END;
 SELECT 
     ProductID,
     ProductName,
-    UnitPrice,
+    BaseSalary,
     OrderQuantity,
-    dbo.CalculateNetPrice(UnitPrice, OrderQuantity, 10.0, 0.0875) AS NetPrice
+    dbo.CalculateNetPrice(BaseSalary, OrderQuantity, 10.0, 0.0875) AS NetPrice
 FROM OrderDetails od
 JOIN Products p ON od.ProductID = p.ProductID
 WHERE od.OrderID = 10248;
@@ -503,16 +503,16 @@ RETURN
     SELECT 
         o.OrderID,
         o.CustomerID,
-        c.CustomerName,
+        c.CompanyName,
         o.OrderDate,
-        SUM(od.UnitPrice * od.Quantity) AS OrderTotal,
+        SUM(od.BaseSalary * od.Quantity) AS OrderTotal,
         COUNT(od.ProductID) AS ItemCount
     FROM Orders o
     JOIN Customers c ON o.CustomerID = c.CustomerID
     JOIN OrderDetails od ON o.OrderID = od.OrderID
     WHERE o.OrderDate BETWEEN @StartDate AND @EndDate
-    GROUP BY o.OrderID, o.CustomerID, c.CustomerName, o.OrderDate
-    HAVING SUM(od.UnitPrice * od.Quantity) >= @MinAmount
+    GROUP BY o.OrderID, o.CustomerID, c.CompanyName, o.OrderDate
+    HAVING SUM(od.BaseSalary * od.Quantity) >= @MinAmount
 );
 
 -- Usage examples
@@ -521,12 +521,12 @@ ORDER BY OrderTotal DESC;
 
 -- Use in complex queries
 SELECT 
-    CustomerName,
+    CompanyName,
     COUNT(*) AS OrderCount,
     SUM(OrderTotal) AS TotalSales,
     AVG(OrderTotal) AS AverageOrder
 FROM dbo.GetSalesByDateRange('2023-01-01', '2023-12-31', 500.00)
-GROUP BY CustomerName
+GROUP BY CompanyName
 HAVING COUNT(*) >= 5
 ORDER BY TotalSales DESC;
 ```
@@ -540,9 +540,9 @@ ORDER BY TotalSales DESC;
 SELECT 
     OrderID,
     ProductID,
-    UnitPrice,
+    BaseSalary,
     Quantity,
-    dbo.CalculateNetPrice(UnitPrice, Quantity, 0, 0.08) AS NetPrice -- Slow!
+    dbo.CalculateNetPrice(BaseSalary, Quantity, 0, 0.08) AS NetPrice -- Slow!
 FROM OrderDetails
 WHERE OrderID BETWEEN 10240 AND 10250;
 
@@ -550,16 +550,16 @@ WHERE OrderID BETWEEN 10240 AND 10250;
 SELECT 
     OrderID,
     ProductID,
-    UnitPrice,
+    BaseSalary,
     Quantity,
-    ROUND(UnitPrice * Quantity * 1.08, 2) AS NetPrice
+    ROUND(BaseSalary * Quantity * 1.08, 2) AS NetPrice
 FROM OrderDetails
 WHERE OrderID BETWEEN 10240 AND 10250;
 
 -- BETTER: Table-valued function when complex logic is needed
 SELECT 
     s.OrderID,
-    s.CustomerName,
+    s.CompanyName,
     s.OrderTotal,
     -- Additional business logic can be added here
     CASE 

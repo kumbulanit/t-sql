@@ -121,19 +121,19 @@ WHERE DepartmentID IN (
 ### LIKE Predicate (Pattern Matching)
 ```sql
 -- Wildcard patterns
-SELECT FirstName, LastName, Email
+SELECT FirstName, LastName, WorkEmail
 FROM Employees
 WHERE FirstName LIKE 'J%';        -- Starts with 'J'
 
-SELECT FirstName, LastName, Email
+SELECT FirstName, LastName, WorkEmail
 FROM Employees
 WHERE LastName LIKE '%son';       -- Ends with 'son'
 
-SELECT FirstName, LastName, Email
+SELECT FirstName, LastName, WorkEmail
 FROM Employees
 WHERE FirstName LIKE '%an%';      -- Contains 'an'
 
-SELECT FirstName, LastName, Email
+SELECT FirstName, LastName, WorkEmail
 FROM Employees
 WHERE FirstName LIKE 'J_hn';      -- J + any char + hn
 
@@ -223,7 +223,7 @@ WHERE EXISTS (
     FROM EmployeeProjects ep
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
     WHERE ep.EmployeeID = e.EmployeeID
-      AND p.Status = 'Active'
+      AND p.IsActive = 'Active'
       AND ep.HoursAllocated > 100
 );
 ```
@@ -301,8 +301,8 @@ WHERE
     AND NOT (e.Title LIKE '%Intern%' OR e.Title LIKE '%Temp%')
     
     -- Handle edge cases
-    AND e.Email IS NOT NULL
-    AND e.Email LIKE '%@company.com';
+    AND e.WorkEmail IS NOT NULL
+    AND e.WorkEmail LIKE '%@company.com';
 ```
 
 ### Filtering with Calculations
@@ -319,14 +319,14 @@ WHERE
     -- Filter by calculated tenure
     DATEDIFF(YEAR, HireDate, GETDATE()) BETWEEN 3 AND 10
     
-    -- Filter by calculated salary efficiency
+    -- Filter by calculated BaseSalary efficiency
     AND BaseSalary / DATEDIFF(YEAR, HireDate, GETDATE()) > 15000
     
     -- Filter by name length
     AND LEN(FirstName + LastName) <= 20
     
     -- Filter by email domain
-    AND RIGHT(Email, LEN(Email) - CHARINDEX('@', Email)) = 'company.com';
+    AND RIGHT(WorkEmail, LEN(WorkEmail) - CHARINDEX('@', WorkEmail)) = 'company.com';
 ```
 
 ### Subquery Filtering Patterns
@@ -340,7 +340,7 @@ SELECT
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE 
-    -- Above average salary in their department
+    -- Above average BaseSalary in their department
     e.BaseSalary > (
         SELECT AVG(e2.BaseSalary)
         FROM Employees e2
@@ -391,7 +391,7 @@ WHERE
 │  │ ❌ WHERE BaseSalary * 1.1 > 55000            (expression on column)         │
 │  │ ❌ WHERE YEAR(HireDate) = 2021           (function on column)           │
 │  │ ❌ WHERE LastName LIKE '%Smith'          (leading wildcard)             │
-│  │ ❌ WHERE SUBSTRING(Email, 1, 5) = 'admin' (function on column)          │
+│  │ ❌ WHERE SUBSTRING(WorkEmail, 1, 5) = 'admin' (function on column)          │
 │  └─────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  Optimization Strategies:                                                  │
@@ -436,7 +436,7 @@ FROM Employees
 WHERE DepartmentID = 1 
   AND HireDate >= '2020-01-01';  -- Uses IX_Employees_Department_HireDate
 
-SELECT FirstName, LastName, Email
+SELECT FirstName, LastName, WorkEmail
 FROM Employees
 WHERE LastName LIKE 'Smith%';  -- Uses IX_Employees_LastName_FirstName
 ```
@@ -459,7 +459,7 @@ FROM Employees e
 WHERE EXISTS (
     SELECT 1 FROM EmployeeProjects ep
     WHERE ep.EmployeeID = e.EmployeeID
-    AND ep.ProjectID IN (SELECT ProjectID FROM Projects WHERE Status = 'Active')
+    AND ep.ProjectID IN (SELECT ProjectID FROM Projects WHERE IsActive = 'Active')
 );
 ```
 

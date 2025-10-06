@@ -31,7 +31,7 @@ SELECT
     ep.Role,
     ep.HoursAllocated,
     ep.HoursWorked,
-    p.Status AS ProjectStatus
+    p.IsActive AS ProjectIsActive
 FROM Employees e
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
@@ -51,7 +51,7 @@ SELECT
     ep.HoursAllocated,
     ep.HoursWorked,
     p.Budget AS ProjectBudget,
-    p.Status AS ProjectStatus
+    p.IsActive AS ProjectIsActive
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
@@ -73,7 +73,7 @@ SELECT
     d.DepartmentName,
     p.ProjectName,
     ep.Role,
-    p.Status AS ProjectStatus
+    p.IsActive AS ProjectIsActive
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
@@ -90,7 +90,7 @@ ORDER BY e.BaseSalary DESC;
 -- Answer 2: Active Projects with Team Members
 SELECT 
     p.ProjectName,
-    p.Status,
+    p.IsActive,
     p.Budget,
     e.FirstName + ' ' + e.LastName AS TeamMember,
     ep.Role,
@@ -101,7 +101,7 @@ FROM Projects p
 INNER JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
 INNER JOIN Employees e ON ep.EmployeeID = e.EmployeeID
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE p.Status = 'In Progress'
+WHERE p.IsActive = 'In Progress'
   AND e.IsActive = 1
 ORDER BY p.ProjectName, ep.Role, e.LastName;
 ```
@@ -173,7 +173,7 @@ ORDER BY d.DepartmentName;
 -- Answer 2: All Projects with Employee Assignments
 SELECT 
     p.ProjectName,
-    p.Status,
+    p.IsActive,
     p.Budget,
     COALESCE(COUNT(ep.EmployeeID), 0) AS AssignedEmployees,
     COALESCE(SUM(ep.HoursAllocated), 0) AS TotalHoursAllocated,
@@ -184,8 +184,8 @@ SELECT
     END AS CompletionPercentage
 FROM EmployeeProjects ep
 RIGHT JOIN Projects p ON ep.ProjectID = p.ProjectID
-GROUP BY p.ProjectID, p.ProjectName, p.Status, p.Budget
-ORDER BY p.Status, p.ProjectName;
+GROUP BY p.ProjectID, p.ProjectName, p.IsActive, p.Budget
+ORDER BY p.IsActive, p.ProjectName;
 ```
 
 ### Task 2.3: Full Outer Joins - Answers
@@ -204,11 +204,11 @@ SELECT
         WHEN e.EmployeeID IS NULL THEN 'Department with no employees'
         WHEN d.DepartmentID IS NULL THEN 'Employee without department'
         ELSE 'Normal assignment'
-    END AS RelationshipStatus
+    END AS RelationshipIsActive
 FROM Employees e
 FULL OUTER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.EmployeeID IS NULL OR d.DepartmentID IS NULL OR e.IsActive = 1
-ORDER BY RelationshipStatus, DepartmentName, EmployeeName;
+ORDER BY RelationshipIsActive, DepartmentName, EmployeeName;
 ```
 
 ## Exercise 3: Cross Joins and Self Joins - Answers
@@ -224,11 +224,11 @@ SELECT
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     e.Title,
     p.ProjectName,
-    p.Status AS ProjectStatus,
+    p.IsActive AS ProjectIsActive,
     CASE 
         WHEN ep.EmployeeID IS NOT NULL THEN 'Currently Assigned'
         ELSE 'Not Assigned'
-    END AS AssignmentStatus
+    END AS AssignmentIsActive
 FROM Employees e
 CROSS JOIN Projects p
 LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID AND p.ProjectID = ep.ProjectID
@@ -244,14 +244,14 @@ ORDER BY e.LastName, p.ProjectName;
 SELECT 
     d.DepartmentName,
     p.ProjectName,
-    p.Status AS ProjectStatus,
+    p.IsActive AS ProjectIsActive,
     COALESCE(COUNT(ep.EmployeeID), 0) AS EmployeesAssigned,
     COALESCE(SUM(ep.HoursAllocated), 0) AS TotalHoursAllocated
 FROM Departments d
 CROSS JOIN Projects p
 LEFT JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
 LEFT JOIN Employees e ON ep.EmployeeID = e.EmployeeID AND e.DepartmentID = d.DepartmentID
-GROUP BY d.DepartmentID, d.DepartmentName, p.ProjectID, p.ProjectName, p.Status
+GROUP BY d.DepartmentID, d.DepartmentName, p.ProjectID, p.ProjectName, p.IsActive
 ORDER BY d.DepartmentName, p.ProjectName;
 ```
 
@@ -272,7 +272,7 @@ SELECT
     CASE 
         WHEN mgr.EmployeeID IS NULL THEN 'Top Level'
         WHEN emp.BaseSalary > mgr.BaseSalary THEN 'Earns more than manager'
-        WHEN emp.BaseSalary = mgr.BaseSalary THEN 'Same salary as manager'
+        WHEN emp.BaseSalary = mgr.BaseSalary THEN 'Same BaseSalary as manager'
         ELSE 'Earns less than manager'
     END AS SalaryComparison
 FROM Employees emp
@@ -294,7 +294,7 @@ SELECT
     CASE 
         WHEN e1.ManagerID = e2.ManagerID THEN 'Same Manager'
         ELSE 'Different Manager'
-    END AS ManagerStatus
+    END AS ManagerIsActive
 FROM Employees e1
 INNER JOIN Employees e2 ON e1.DepartmentID = e2.DepartmentID AND e1.EmployeeID < e2.EmployeeID
 INNER JOIN Departments d ON e1.DepartmentID = d.DepartmentID
@@ -488,13 +488,13 @@ SELECT
     p.ProjectName,
     ep.Role,
     ep.HoursWorked,
-    p.Status AS ProjectStatus
+    p.IsActive AS ProjectIsActive
 FROM Employees e WITH (INDEX(IX_Employees_DepartmentID))  -- Hint for index usage
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE e.IsActive = 1
-  AND p.Status IN ('In Progress', 'Completed')  -- More selective filtering
+  AND p.IsActive IN ('In Progress', 'Completed')  -- More selective filtering
 ORDER BY e.EmployeeID, p.ProjectID;  -- Order by indexed columns
 ```
 

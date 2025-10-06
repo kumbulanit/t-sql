@@ -142,7 +142,7 @@ A self join is a join where a table is joined with itself. This is useful for co
 │                        SELF JOIN - COMPARISON                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  Find employees with same salary:                                          │
+│  Find employees with same BaseSalary:                                          │
 │  ┌─────────────────────────────────────────┐                               │
 │  │ EmpID │ Name  │ BaseSalary │ Department     │                               │
 │  ├─────────────────────────────────────────┤                               │
@@ -253,7 +253,7 @@ A self join is a join where a table is joined with itself. This is useful for co
 │  │ Scenario                    │ Example                                  │
 │  │────────────────────────────┼─────────────────────────────────────────│
 │  │ Hierarchical Data          │ Employee-Manager relationships          │
-│  │ Peer Comparisons           │ Employees with same salary/role         │
+│  │ Peer Comparisons           │ Employees with same BaseSalary/role         │
 │  │ Sequential Data            │ Previous/Next records in time series    │
 │  │ Geographic Relationships   │ Cities within same region/state         │
 │  │ Product Relationships      │ Product bundles, alternatives           │

@@ -126,7 +126,7 @@
 
 3. Write functions to validate and format data:
    - Phone number formatting
-   - Email address validation
+   - WorkEmail address validation
    - Postal code formatting
 
 4. Demonstrate string concatenation methods:
@@ -352,7 +352,7 @@ Design the data types for an e-commerce database with the following entities:
 **Customers Table**:
 - Customer ID
 - First Name, Last Name
-- Email Address
+- WorkEmail Address
 - Phone Number (international support)
 - Date of Birth
 - Registration Date

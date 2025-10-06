@@ -38,7 +38,7 @@ CREATE TABLE Employees (
     FirstName NVARCHAR(50) NOT NULL,
     LastName NVARCHAR(50) NOT NULL,
     MiddleName NVARCHAR(50) NULL,
-    Email NVARCHAR(100) NOT NULL,
+    WorkEmail NVARCHAR(100) NOT NULL,
     Phone NVARCHAR(20) NULL,
     DepartmentID INT NOT NULL,
     ManagerID INT NULL,
@@ -75,7 +75,7 @@ CREATE TABLE Projects (
     PlannedEndDate DATE NULL,
     Budget DECIMAL(10,2) NOT NULL,
     ActualCost DECIMAL(10,2) NULL,
-    Status NVARCHAR(20) NOT NULL,
+    IsActive NVARCHAR(20) NOT NULL,
     Priority NVARCHAR(10) NOT NULL,
     ClientName NVARCHAR(100) NULL
 );
@@ -123,7 +123,7 @@ INSERT INTO Departments (DepartmentName, DepartmentCode, Budget, Location, CostC
 ('Operations', 'OPS', 600000, 'Building B - Floor 2', 'CC005'),
 ('Research & Development', 'RND', 800000, 'Building C - Floor 1', 'CC006');
 
-INSERT INTO Employees (FirstName, LastName, MiddleName, Email, Phone, DepartmentID, ManagerID, BaseSalary, HireDate, Title, City, State, BirthDate, EmergencyContact) VALUES
+INSERT INTO Employees (FirstName, LastName, MiddleName, WorkEmail, Phone, DepartmentID, ManagerID, BaseSalary, HireDate, Title, City, State, BirthDate, EmergencyContact) VALUES
 ('John', 'Smith', 'Michael', 'john.smith@company.com', '555-0101', 1, NULL, 95000, '2020-01-15', 'IT Director', 'Seattle', 'WA', '1985-03-12', 'Jane Smith'),
 ('Sarah', 'Johnson', NULL, 'sarah.johnson@company.com', '555-0102', 1, 1, 75000, '2021-03-10', 'Senior Developer', 'Seattle', 'WA', '1990-07-22', 'Mike Johnson'),
 ('Mike', 'Davis', 'Robert', 'mike.davis@company.com', '555-0103', 1, 1, 65000, '2021-06-01', 'Developer', 'Bellevue', 'WA', '1992-11-08', 'Lisa Davis'),
@@ -140,7 +140,7 @@ INSERT INTO Employees (FirstName, LastName, MiddleName, Email, Phone, Department
 ('Diana', 'Rodriguez', NULL, 'diana.rodriguez@company.com', '555-0114', 2, 4, 52000, '2022-07-11', 'HR Coordinator', 'Federal Way', 'WA', '1994-09-02', 'Luis Rodriguez'),
 ('Mark', 'Thompson', 'William', 'mark.thompson@company.com', '555-0115', 5, 10, 58000, '2021-11-08', 'Operations Analyst', 'Kent', 'WA', '1991-12-20', 'Linda Thompson');
 
-INSERT INTO Projects (ProjectName, ProjectCode, Description, StartDate, EndDate, PlannedEndDate, Budget, ActualCost, Status, Priority, ClientName) VALUES
+INSERT INTO Projects (ProjectName, ProjectCode, Description, StartDate, EndDate, PlannedEndDate, Budget, ActualCost, IsActive, Priority, ClientName) VALUES
 ('Website Redesign', 'WEB001', 'Complete redesign of company website', '2023-01-01', '2023-06-30', '2023-06-15', 150000, 148000, 'Completed', 'High', 'Internal'),
 ('ERP Implementation', 'ERP001', 'Enterprise Resource Planning system implementation', '2023-03-01', NULL, '2024-02-28', 500000, 275000, 'In Progress', 'Critical', 'Internal'),
 ('Marketing Campaign Q4', 'MKT001', 'Q4 2023 marketing campaign launch', '2023-07-01', '2023-12-31', '2023-12-31', 100000, 95000, 'Completed', 'Medium', 'External Client A'),
@@ -207,16 +207,16 @@ Write queries to:
 
 3. **Department Information**: Select DepartmentName, Budget, and Location from Departments.
 
-4. **Project Overview**: Select ProjectName, Status, Budget, and ClientName from Projects.
+4. **Project Overview**: Select ProjectName, IsActive, Budget, and ClientName from Projects.
 
 #### Exercise 1.2: Calculated Columns
 Write queries to:
 
 1. **Employee Full Names**: Create a query showing:
    - Full name (FirstName + MiddleName + LastName, handling NULLs)
-   - Email domain (part after @)
+   - WorkEmail domain (part after @)
    - Years of service
-   - Monthly salary
+   - Monthly BaseSalary
 
 2. **Project Financial Analysis**: Create a query showing:
    - Project name and code
@@ -260,7 +260,7 @@ Write queries to:
 2. **Data Profiling**:
    - Count total employees vs unique first names
    - Count total vs unique email domains
-   - Find unique salary amounts and count how many earn each amount
+   - Find unique BaseSalary amounts and count how many earn each amount
    - Identify unique skill categories and difficulty levels
 
 #### Exercise 2.2: DISTINCT with Multiple Columns
@@ -315,7 +315,7 @@ Write queries to:
 
 2. **Self-Join Scenarios**:
    - Find manager-employee relationships using appropriate aliases
-   - Identify employees with the same salary using self-join
+   - Identify employees with the same BaseSalary using self-join
    - Compare project costs using self-referencing aliases
 
 #### Exercise 3.3: Complex Alias Scenarios
@@ -337,12 +337,12 @@ Write queries to:
 Write queries to:
 
 1. **Basic Categorization**:
-   - Create salary categories (Entry, Mid, Senior, Executive)
+   - Create BaseSalary categories (Entry, Mid, Senior, Executive)
    - Categorize employees by tenure (New, Junior, Experienced, Veteran)
    - Classify projects by duration (Short, Medium, Long-term)
    - Group departments by budget size (Small, Medium, Large)
 
-2. **Status Indicators**:
+2. **IsActive Indicators**:
    - Convert bit fields to readable status
    - Transform project status codes to descriptions
    - Create employee availability indicators
@@ -357,7 +357,7 @@ Write queries to:
    - Develop employee career track recommendations
 
 2. **Multi-Criteria Classification**:
-   - Combine salary, tenure, and department for employee segmentation
+   - Combine BaseSalary, tenure, and department for employee segmentation
    - Use project budget, duration, and status for project classification
    - Create comprehensive skill level assessments
 

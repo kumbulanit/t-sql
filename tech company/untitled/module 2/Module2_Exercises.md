@@ -23,15 +23,15 @@ These exercises test your understanding of T-SQL fundamentals using **TechCorp S
 - Full name as "LastName, FirstName MiddleInitial" (handle NULL middle names gracefully)
 - BaseSalary formatted with currency symbol and commas for HR reports
 - Years of service as a whole number for recognition programs
-- Email domain only (part after @) to identify external vs company emails
+- WorkEmail domain only (part after @) to identify external vs company emails
 - Include department information for organizational clarity
 
-**Question 1.1.2**: TechCorp's compensation team needs to analyze salary bands for their technology consulting roles. Create a query that categorizes TechCorp employees based on their salary ranges:
+**Question 1.1.2**: TechCorp's compensation team needs to analyze BaseSalary bands for their technology consulting roles. Create a query that categorizes TechCorp employees based on their BaseSalary ranges:
 - "Junior Consultant": < $60,000 (entry-level developers, analysts)
 - "Consultant": $60,000 - $80,000 (mid-level engineers, project coordinators)
 - "Senior Consultant": $80,000 - $110,000 (senior developers, team leads)
 - "Principal Consultant": > $110,000 (architects, directors, VPs)
-Show employee name, department, salary, and consulting level category.
+Show employee name, department, BaseSalary, and consulting level category.
 
 **Question 1.1.3**: Write a query to find the employee(s) with the longest tenure in each department. Include department name, employee name, and years of service.
 
@@ -46,7 +46,7 @@ Show employee name, department, salary, and consulting level category.
 ### 2.1 Set Operations (6 points each)
 
 **Question 2.1.1**: TechCorp's executive team wants to identify high-investment departments for strategic planning. Using set operations, create a report that shows:
-- All TechCorp departments that either have a budget > $500,000 OR have employees with average salary > $75,000
+- All TechCorp departments that either have a budget > $500,000 OR have employees with average BaseSalary > $75,000
 - Use UNION to combine these two investment criteria
 - Show department name, location, and the reason (high budget or high salaries) why it was included
 - This helps TechCorp understand where they're making significant investments in talent and operations
@@ -73,13 +73,13 @@ Use appropriate set operations to create these categories.
 ### 2.2 Complex Predicates (6 points each)
 
 **Question 2.2.1**: Write a query with complex predicate logic to find employees who meet ALL of these criteria:
-- Hired after 2020 OR have salary > $80,000
+- Hired after 2020 OR have BaseSalary > $80,000
 - Work in departments with budget > $200,000
 - Either have no middle name OR their title contains "Director"
 - Are currently active
 
 **Question 2.2.2**: Create a query using EXISTS to find departments where:
-- At least one employee earns more than the department's average salary
+- At least one employee earns more than the department's average BaseSalary
 - At least one project is assigned to department employees
 - The department budget is justified by employee productivity
 
@@ -126,7 +126,7 @@ ORDER BY ProjectCount DESC;
 **Question 3.1.3**: Create a query that demonstrates the difference between WHERE and HAVING by:
 - Filtering employees hired after 2020 (use WHERE)
 - Grouping by department
-- Showing only departments with average salary > $65,000 (use HAVING)
+- Showing only departments with average BaseSalary > $65,000 (use HAVING)
 - Explain why each filter belongs in its respective clause
 
 ---
@@ -137,7 +137,7 @@ ORDER BY ProjectCount DESC;
 
 **Question 4.1.1**: **Management Dashboard Query**
 Create a single query that provides a management dashboard showing:
-- Department performance metrics (employee count, avg salary, project count)
+- Department performance metrics (employee count, avg BaseSalary, project count)
 - Resource utilization (total hours allocated vs worked across all projects)
 - Department ranking based on productivity
 - Identify departments that may need attention
@@ -147,7 +147,7 @@ Use multiple concepts: joins, aggregation, window functions, case statements, an
 Write a query to analyze career progression by:
 - Comparing employees' current roles with their hiring positions
 - Identifying promotion patterns within departments
-- Finding employees ready for advancement (based on tenure, performance, salary relative to peers)
+- Finding employees ready for advancement (based on tenure, performance, BaseSalary relative to peers)
 - Suggesting career development opportunities
 Use subqueries, CTEs, ranking functions, and complex predicates.
 

@@ -267,10 +267,10 @@ Design queries for a sales dashboard:
 ### Multiple Choice
 
 1. Which ORDER BY clause will sort products by price from highest to lowest?
-   a) ORDER BY UnitPrice
-   b) ORDER BY UnitPrice ASC
-   c) ORDER BY UnitPrice DESC
-   d) ORDER BY UnitPrice HIGH
+   a) ORDER BY BaseSalary
+   b) ORDER BY BaseSalary ASC
+   c) ORDER BY BaseSalary DESC
+   d) ORDER BY BaseSalary HIGH
 
 2. What does the TOP 10 PERCENT clause return?
    a) Exactly 10 records

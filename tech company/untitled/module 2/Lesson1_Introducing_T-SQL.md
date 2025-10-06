@@ -1,4 +1,15 @@
-# Lesson 1: Introducing T-SQL - TechCorp Solutions Database Queries
+# Lesson 1:- **Performance Analytics**: Employee performance metrics and project profitability
+
+### 📋 Important Schema Notes for Students
+
+**Key Database Relationships:**
+
+- `Employees` table contains `DepartmentID` (INT foreign key), NOT a Department name column
+- `Departments` table contains `DepartmentName` (NVARCHAR) - the readable department names
+- To get department names in queries, you must JOIN: `Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID`
+- Similarly, `Employees` table has `BaseSalary` column (not `Salary`)
+
+## 🔑 What is T-SQL?ng T-SQL - TechCorp Solutions Database Queries
 
 ## Overview
 Transact-SQL (T-SQL) is Microsoft's extension to SQL (Structured Query Language) that we'll use to query TechCorp Solutions' business data. As a technology consulting company, TechCorp relies on SQL Server to manage employee information, project data, client relationships, and business operations. T-SQL expands on the SQL standard to include procedural programming, local variables, and various support functions that help TechCorp analyze their business performance.
@@ -10,6 +21,13 @@ Transact-SQL (T-SQL) is Microsoft's extension to SQL (Structured Query Language)
 - **Client Relationships**: From small startups to large enterprise clients
 - **Financial Operations**: Project budgets, employee salaries, and revenue tracking
 - **Performance Analytics**: Employee performance metrics and project profitability
+
+### 📋 Important Schema Notes for Students
+**Key Database Relationships:**
+- `Employees` table contains `DepartmentID` (INT foreign key), NOT a Department name column
+- `Departments` table contains `DepartmentName` (NVARCHAR) - the readable department names
+- To get department names in queries, you must JOIN: `Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID`
+- Similarly, `Employees` table has `BaseSalary` column (not `Salary`)
 
 ## What is T-SQL?
 
@@ -48,11 +66,13 @@ FROM Employees
 WHERE BaseSalary > 80000;
 
 -- Find TechCorp projects with high budgets
-SELECT ProjectName, Budget, Status
+SELECT ProjectName, Budget, IsActive
 FROM Projects
 WHERE Budget > 500000;
 
 -- Find TechCorp employees in Engineering department
+-- Note: Employees table has DepartmentID (foreign key), not Department name
+-- We JOIN with Departments table to get the readable department name
 SELECT FirstName, LastName, JobTitle
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
@@ -72,7 +92,7 @@ DECLARE @LastReviewDate DATETIME2(3) = '2024-12-01 09:30:00.000';
 
 -- TechCorp business examples
 DECLARE @ClientCompany NVARCHAR(200) = 'GlobalTech Industries';
-DECLARE @ProjectStatus NVARCHAR(50) = 'In Progress';
+DECLARE @ProjectIsActive NVARCHAR(50) = 'In Progress';
 DECLARE @CompletionPercentage DECIMAL(5,2) = 67.50;
 ```
 
@@ -84,7 +104,7 @@ DECLARE @CompletionPercentage DECIMAL(5,2) = 67.50;
 SELECT 
     UPPER(FirstName) AS UpperFirstName,
     LEN(LastName) AS LastNameLength,
-    SUBSTRING(Email, 1, CHARINDEX('@', Email) - 1) AS Username
+    SUBSTRING(WorkEmail, 1, CHARINDEX('@', WorkEmail) - 1) AS Username
 FROM Employees;
 
 -- Date functions
@@ -112,15 +132,18 @@ FROM Employees;
 
 #### 3. Grouping and Aggregation
 ```sql
--- GROUP BY with aggregate functions
+-- GROUP BY with aggregate functions (using proper JOIN)
+-- Note: We JOIN Employees with Departments to get readable department names
+-- since Employees table only contains DepartmentID (foreign key)
 SELECT 
-    Department,
+    d.DepartmentName AS Department,
     COUNT(*) AS EmployeeCount,
-    AVG(BaseSalary) AS AverageSalary,
-    MAX(BaseSalary) AS MaxSalary,
-    MIN(BaseSalary) AS MinSalary
-FROM Employees
-GROUP BY Department
+    AVG(e.BaseSalary) AS AverageSalary,
+    MAX(e.BaseSalary) AS MaxSalary,
+    MIN(e.BaseSalary) AS MinSalary
+FROM Employees e
+INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+GROUP BY d.DepartmentName
 HAVING COUNT(*) > 5;
 ```
 
@@ -135,7 +158,7 @@ WITH EmployeeSalaryRanking AS (
         LastName,
         BaseSalary,
         RANK() OVER (ORDER BY BaseSalary DESC) AS SalaryRank,
-        DENSE_RANK() OVER (PARTITION BY Department ORDER BY BaseSalary DESC) AS DeptSalaryRank
+        DENSE_RANK() OVER (PARTITION BY DepartmentIDID ORDER BY BaseSalary DESC) AS DeptSalaryRank
     FROM Employees
 )
 SELECT *
@@ -152,8 +175,8 @@ SELECT
     BaseSalary,
     LAG(BaseSalary) OVER (ORDER BY HireDate) AS PreviousEmployeeSalary,
     LEAD(BaseSalary) OVER (ORDER BY HireDate) AS NextEmployeeSalary,
-    SUM(BaseSalary) OVER (PARTITION BY Department) AS DepartmentTotalSalary,
-    ROW_NUMBER() OVER (PARTITION BY Department ORDER BY BaseSalary DESC) AS RowNum
+    SUM(BaseSalary) OVER (PARTITION BY DepartmentIDID) AS DepartmentTotalSalary,
+    ROW_NUMBER() OVER (PARTITION BY DepartmentIDID ORDER BY BaseSalary DESC) AS RowNum
 FROM Employees;
 ```
 
@@ -208,11 +231,11 @@ ORDER BY Level, LastName;
    -- T-SQL IF...ELSE
    IF @BaseSalary > 50000
    BEGIN
-       PRINT 'High salary employee';
+       PRINT 'High BaseSalary employee';
    END
    ELSE
    BEGIN
-       PRINT 'Standard salary employee';
+       PRINT 'Standard BaseSalary employee';
    END
    ```
 
@@ -222,7 +245,7 @@ ORDER BY Level, LastName;
    SELECT 
        ISNULL(MiddleName, 'No Middle Name') AS MiddleName,
        DATEPART(YEAR, HireDate) AS HireYear,
-       PATINDEX('%@gmail.com', Email) AS GmailPosition;
+       PATINDEX('%@gmail.com', WorkEmail) AS GmailPosition;
    ```
 
 ## Best Practices

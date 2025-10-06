@@ -22,7 +22,7 @@ FROM Employees;
 ```
 
 #### Question 3: Select with Calculated Columns
-**Task:** Create calculated columns for full name and annual bonus (10% of salary).
+**Task:** Create calculated columns for full name and annual bonus (10% of BaseSalary).
 
 ```sql
 -- Answer 3: Select with Calculated Columns
@@ -51,7 +51,7 @@ SELECT
     LEN(FirstName + LastName) AS NameLength,
     LEFT(FirstName, 3) AS FirstThreeChars,
     RIGHT(LastName, 3) AS LastThreeChars,
-    SUBSTRING(Email, 1, CHARINDEX('@', Email) - 1) AS EmailUsername
+    SUBSTRING(WorkEmail, 1, CHARINDEX('@', WorkEmail) - 1) AS EmailUsername
 FROM Employees;
 ```
 
@@ -101,7 +101,7 @@ FROM Employees;
 -- Answer 1: Distinct Departments
 SELECT DISTINCT DepartmentID
 FROM Employees
-ORDER BY DepartmentID;
+ORDER BY DepartmentIDID;
 ```
 
 #### Question 2: Distinct Cities
@@ -164,13 +164,13 @@ SELECT
     DepartmentID,
     COUNT(*) AS EmployeeCount
 FROM Employees
-GROUP BY DepartmentID
-ORDER BY DepartmentID;
+GROUP BY DepartmentIDID
+ORDER BY DepartmentIDID;
 
 -- Using DISTINCT (just for unique values)
 SELECT DISTINCT DepartmentID
 FROM Employees
-ORDER BY DepartmentID;
+ORDER BY DepartmentIDID;
 ```
 
 ## Exercise 3: Column and Table Aliases - Answers
@@ -270,7 +270,7 @@ ORDER BY mgr.LastName, emp.LastName;
 ### Task 4.1: Simple CASE Expressions - Answers
 
 #### Question 1: BaseSalary Categories
-**Task:** Categorize employees based on salary ranges.
+**Task:** Categorize employees based on BaseSalary ranges.
 
 ```sql
 -- Answer 1: BaseSalary Categories
@@ -287,11 +287,11 @@ FROM Employees
 ORDER BY BaseSalary DESC;
 ```
 
-#### Question 2: Employment Status
+#### Question 2: Employment IsActive
 **Task:** Show employment status based on termination date.
 
 ```sql
--- Answer 2: Employment Status
+-- Answer 2: Employment IsActive
 SELECT 
     FirstName + ' ' + LastName AS EmployeeName,
     HireDate,
@@ -301,16 +301,16 @@ SELECT
         WHEN IsActive = 1 AND TerminationDate IS NULL THEN 'Currently Employed'
         WHEN IsActive = 0 AND TerminationDate IS NOT NULL THEN 'Terminated'
         WHEN IsActive = 0 AND TerminationDate IS NULL THEN 'Inactive'
-        ELSE 'Status Unknown'
-    END AS EmploymentStatus
+        ELSE 'IsActive Unknown'
+    END AS EmploymentIsActive
 FROM Employees
-ORDER BY EmploymentStatus, LastName;
+ORDER BY EmploymentIsActive, LastName;
 ```
 
 ### Task 4.2: CASE with Aggregations - Answers
 
 #### Question 1: Department BaseSalary Analysis
-**Task:** Analyze salary distribution by department using CASE.
+**Task:** Analyze BaseSalary distribution by department using CASE.
 
 ```sql
 -- Answer 1: Department BaseSalary Analysis
@@ -330,19 +330,19 @@ GROUP BY d.DepartmentID, d.DepartmentName
 ORDER BY AverageSalary DESC;
 ```
 
-#### Question 2: Project Status Summary
+#### Question 2: Project IsActive Summary
 **Task:** Summarize project statuses using CASE.
 
 ```sql
--- Answer 2: Project Status Summary
+-- Answer 2: Project IsActive Summary
 SELECT 
     COUNT(*) AS TotalProjects,
-    SUM(CASE WHEN Status = 'Completed' THEN 1 ELSE 0 END) AS CompletedProjects,
-    SUM(CASE WHEN Status = 'In Progress' THEN 1 ELSE 0 END) AS InProgressProjects,
-    SUM(CASE WHEN Status = 'On Hold' THEN 1 ELSE 0 END) AS OnHoldProjects,
-    SUM(CASE WHEN Status = 'Cancelled' THEN 1 ELSE 0 END) AS CancelledProjects,
-    AVG(CASE WHEN Status = 'Completed' THEN Budget ELSE NULL END) AS AvgCompletedBudget,
-    AVG(CASE WHEN Status = 'In Progress' THEN Budget ELSE NULL END) AS AvgInProgressBudget
+    SUM(CASE WHEN IsActive = 'Completed' THEN 1 ELSE 0 END) AS CompletedProjects,
+    SUM(CASE WHEN IsActive = 'In Progress' THEN 1 ELSE 0 END) AS InProgressProjects,
+    SUM(CASE WHEN IsActive = 'On Hold' THEN 1 ELSE 0 END) AS OnHoldProjects,
+    SUM(CASE WHEN IsActive = 'Cancelled' THEN 1 ELSE 0 END) AS CancelledProjects,
+    AVG(CASE WHEN IsActive = 'Completed' THEN Budget ELSE NULL END) AS AvgCompletedBudget,
+    AVG(CASE WHEN IsActive = 'In Progress' THEN Budget ELSE NULL END) AS AvgInProgressBudget
 FROM Projects;
 ```
 
@@ -434,7 +434,7 @@ SELECT
         WHEN e.MiddleName IS NOT NULL THEN ' ' + LEFT(e.MiddleName, 1) + '.'
         ELSE ''
     END AS FormattedName,
-    e.Email,
+    e.WorkEmail,
     CASE 
         WHEN e.Phone IS NOT NULL THEN 
             '(' + LEFT(e.Phone, 3) + ') ' + SUBSTRING(e.Phone, 4, 3) + '-' + RIGHT(e.Phone, 4)
@@ -544,7 +544,7 @@ SELECT
         WHEN SUM(e.BaseSalary) > d.Budget * 0.95 THEN 'CRITICAL'
         WHEN SUM(e.BaseSalary) > d.Budget * 0.85 THEN 'WARNING'
         ELSE 'GOOD'
-    END AS [Budget Status],
+    END AS [Budget IsActive],
     COALESCE(mgr.FirstName + ' ' + mgr.LastName, 'No Manager') AS [Department Manager],
     d.Location AS [Office Location],
     CASE 

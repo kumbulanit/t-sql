@@ -22,7 +22,7 @@
 **Business Analysis Questions**:
 
 1. If TechCorp's project reports don't specify ASC or DESC in ORDER BY, how will the data appear?
-2. Can TechCorp sort employee reports by salary bands without showing actual salary amounts in the output?
+2. Can TechCorp sort employee reports by BaseSalary bands without showing actual BaseSalary amounts in the output?
 3. What's the performance impact when TechCorp sorts large datasets during month-end reporting processes?
 
 ### Exercise 1.2: Advanced Sorting Techniques - TechCorp Strategic Reports
@@ -33,7 +33,7 @@
 
 2. **Employee Tenure Analysis**: Create a query that sorts TechCorp employees by hire date, but handles NULL values (temporary contractors) by showing them last.
 
-3. **Project Status Priority Report**: Write a query using a CASE expression in ORDER BY to sort TechCorp projects as follows: First show overdue projects, then active projects by budget (highest first), then completed projects.
+3. **Project IsActive Priority Report**: Write a query using a CASE expression in ORDER BY to sort TechCorp projects as follows: First show overdue projects, then active projects by budget (highest first), then completed projects.
 
 4. **Geographic Client Analysis**: Create a query that sorts TechCorp clients by country/region, but with 'United States' always appearing first (primary market), followed by other countries alphabetically.
 
@@ -270,10 +270,10 @@ Design queries for a sales dashboard:
 ### Multiple Choice
 
 1. Which ORDER BY clause will sort products by price from highest to lowest?
-   a) ORDER BY UnitPrice
-   b) ORDER BY UnitPrice ASC
-   c) ORDER BY UnitPrice DESC
-   d) ORDER BY UnitPrice HIGH
+   a) ORDER BY BaseSalary
+   b) ORDER BY BaseSalary ASC
+   c) ORDER BY BaseSalary DESC
+   d) ORDER BY BaseSalary HIGH
 
 2. What does the TOP 10 PERCENT clause return?
    a) Exactly 10 records

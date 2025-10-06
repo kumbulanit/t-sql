@@ -32,44 +32,44 @@ ORDER BY sort_columns;
 -- Written order
 SELECT FirstName, LastName, BaseSalary
 FROM Employees
-WHERE Department = 'IT';
+WHERE d.DepartmentName = 'Engineering';
 
 -- Logical processing:
 -- 1. FROM Employees (get all rows from Employees table)
--- 2. WHERE Department = 'IT' (filter rows)
+-- 2. WHERE d.DepartmentName = 'Engineering' (filter rows)
 -- 3. SELECT FirstName, LastName, BaseSalary (project columns)
 ```
 
 #### 2. SELECT with GROUP BY
 ```sql
 -- Written order
-SELECT Department, COUNT(*) AS EmployeeCount
+SELECT DepartmentID, COUNT(*) AS EmployeeCount
 FROM Employees
 WHERE IsActive = 1
-GROUP BY Department;
+GROUP BY DepartmentID;
 
 -- Logical processing:
 -- 1. FROM Employees
 -- 2. WHERE IsActive = 1 (filter individual rows)
--- 3. GROUP BY Department (group filtered rows)
--- 4. SELECT Department, COUNT(*) (aggregate and project)
+-- 3. GROUP BY DepartmentID (group filtered rows)
+-- 4. SELECT DepartmentID, COUNT(*) (aggregate and project)
 ```
 
 #### 3. SELECT with HAVING
 ```sql
 -- Written order
-SELECT Department, AVG(BaseSalary) AS AvgSalary
+SELECT DepartmentID, AVG(BaseSalary) AS AvgSalary
 FROM Employees
 WHERE IsActive = 1
-GROUP BY Department
+GROUP BY DepartmentID
 HAVING COUNT(*) >= 5;
 
 -- Logical processing:
 -- 1. FROM Employees
 -- 2. WHERE IsActive = 1 (filter rows before grouping)
--- 3. GROUP BY Department (create groups)
+-- 3. GROUP BY DepartmentID (create groups)
 -- 4. HAVING COUNT(*) >= 5 (filter groups)
--- 5. SELECT Department, AVG(BaseSalary) (project results)
+-- 5. SELECT DepartmentID, AVG(BaseSalary) (project results)
 ```
 
 ### Intermediate Examples
@@ -84,16 +84,16 @@ SELECT
 FROM Employees
 WHERE HireDate >= '2020-01-01'
   AND IsActive = 1
-GROUP BY Department
+GROUP BY DepartmentID
 HAVING COUNT(*) >= 3
 ORDER BY AVG(BaseSalary) DESC;
 
 -- Logical processing order:
 -- 1. FROM Employees (start with source table)
 -- 2. WHERE HireDate >= '2020-01-01' AND IsActive = 1 (filter rows)
--- 3. GROUP BY Department (group remaining rows)
+-- 3. GROUP BY DepartmentID (group remaining rows)
 -- 4. HAVING COUNT(*) >= 3 (filter groups with less than 3 employees)
--- 5. SELECT Department, AVG(BaseSalary), COUNT(*) (calculate aggregates)
+-- 5. SELECT DepartmentID, AVG(BaseSalary), COUNT(*) (calculate aggregates)
 -- 6. ORDER BY AVG(BaseSalary) DESC (sort final results)
 ```
 
@@ -135,7 +135,7 @@ FROM (
         AVG(BaseSalary) AS AvgSalary
     FROM Employees
     WHERE IsActive = 1
-    GROUP BY Department
+    GROUP BY DepartmentID
     HAVING COUNT(*) >= 5
 ) e
 INNER JOIN Departments d ON e.Department = d.DepartmentCode
@@ -153,17 +153,17 @@ SELECT
     LastName,
     BaseSalary,
     Department,
-    AVG(BaseSalary) OVER (PARTITION BY Department) AS DeptAvgSalary,
-    ROW_NUMBER() OVER (PARTITION BY Department ORDER BY BaseSalary DESC) AS SalaryRank
+    AVG(BaseSalary) OVER (PARTITION BY DepartmentID) AS DeptAvgSalary,
+    ROW_NUMBER() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) AS SalaryRank
 FROM Employees
 WHERE IsActive = 1
-ORDER BY Department, SalaryRank;
+ORDER BY DepartmentID, SalaryRank;
 
 -- Logical processing:
 -- 1. FROM Employees
 -- 2. WHERE IsActive = 1
 -- 3. SELECT (including window function calculations)
--- 4. ORDER BY Department, SalaryRank
+-- 4. ORDER BY DepartmentID, SalaryRank
 ```
 
 #### 2. Common Table Expressions (CTEs)
@@ -177,7 +177,7 @@ WITH DepartmentStats AS (
         AVG(BaseSalary) AS AvgSalary
     FROM Employees
     WHERE IsActive = 1
-    GROUP BY Department
+    GROUP BY DepartmentID
 ),
 HighPerformingDepts AS (
     -- This CTE uses results from previous CTE
@@ -266,7 +266,7 @@ SELECT
     FirstName,      -- Error: not in GROUP BY
     COUNT(*)
 FROM Employees
-GROUP BY Department;
+GROUP BY DepartmentID;
 
 -- CORRECT: Only grouped columns or aggregates
 SELECT 
@@ -274,29 +274,29 @@ SELECT
     COUNT(*) AS EmployeeCount,
     MAX(FirstName) AS SampleFirstName  -- Aggregate function
 FROM Employees
-GROUP BY Department;
+GROUP BY DepartmentID;
 ```
 
 ### 3. WHERE vs HAVING Confusion
 ```sql
 -- Use WHERE for row-level filtering (before grouping)
-SELECT Department, COUNT(*) AS EmployeeCount
+SELECT DepartmentID, COUNT(*) AS EmployeeCount
 FROM Employees
 WHERE IsActive = 1  -- Filter rows before grouping
-GROUP BY Department;
+GROUP BY DepartmentID;
 
 -- Use HAVING for group-level filtering (after grouping)
-SELECT Department, COUNT(*) AS EmployeeCount
+SELECT DepartmentID, COUNT(*) AS EmployeeCount
 FROM Employees
 WHERE IsActive = 1
-GROUP BY Department
+GROUP BY DepartmentID
 HAVING COUNT(*) > 5;  -- Filter groups after aggregation
 
 -- WRONG: Using aggregate in WHERE
-SELECT Department, COUNT(*) AS EmployeeCount
+SELECT DepartmentID, COUNT(*) AS EmployeeCount
 FROM Employees
 WHERE COUNT(*) > 5  -- Error: aggregates not allowed in WHERE
-GROUP BY Department;
+GROUP BY DepartmentID;
 ```
 
 ## Performance Implications
@@ -310,14 +310,14 @@ SELECT
 FROM Employees
 WHERE IsActive = 1          -- Reduces rows before grouping
   AND HireDate >= '2020-01-01'
-GROUP BY Department;
+GROUP BY DepartmentID;
 
 -- Less efficient: Late filtering in HAVING
 SELECT 
     Department,
     AVG(BaseSalary) AS AvgSalary
 FROM Employees
-GROUP BY Department
+GROUP BY DepartmentID
 HAVING AVG(CASE WHEN IsActive = 1 AND HireDate >= '2020-01-01' 
                THEN BaseSalary END) IS NOT NULL;
 ```
@@ -352,7 +352,7 @@ ON Employees (Department, BaseSalary DESC);
 -- This query can benefit from the above index
 SELECT FirstName, LastName, BaseSalary
 FROM Employees
-WHERE Department = 'IT'
+WHERE d.DepartmentName = 'Engineering'
 ORDER BY BaseSalary DESC;
 ```
 
@@ -367,16 +367,16 @@ FROM Employees
 WHERE IsActive = 1;
 
 -- Step 2: Add GROUP BY
-SELECT Department, COUNT(*) AS Cnt
+SELECT DepartmentID, COUNT(*) AS Cnt
 FROM Employees
 WHERE IsActive = 1
-GROUP BY Department;
+GROUP BY DepartmentID;
 
 -- Step 3: Add HAVING
-SELECT Department, COUNT(*) AS Cnt
+SELECT DepartmentID, COUNT(*) AS Cnt
 FROM Employees
 WHERE IsActive = 1
-GROUP BY Department
+GROUP BY DepartmentID
 HAVING COUNT(*) >= 5;
 
 -- Step 4: Add final SELECT and ORDER BY
@@ -386,7 +386,7 @@ SELECT
     AVG(BaseSalary) AS AvgSalary
 FROM Employees
 WHERE IsActive = 1
-GROUP BY Department
+GROUP BY DepartmentID
 HAVING COUNT(*) >= 5
 ORDER BY AVG(BaseSalary) DESC;
 ```

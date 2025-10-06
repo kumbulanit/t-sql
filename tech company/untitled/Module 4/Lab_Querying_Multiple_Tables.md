@@ -61,7 +61,7 @@ CREATE TABLE Employees (
     FirstName NVARCHAR(50) NOT NULL,
     LastName NVARCHAR(50) NOT NULL,
     MiddleName NVARCHAR(50) NULL,
-    Email NVARCHAR(100) NOT NULL,
+    WorkEmail NVARCHAR(100) NOT NULL,
     Phone NVARCHAR(20) NULL,
     DepartmentID INT NULL,
     ManagerID INT NULL,
@@ -88,7 +88,7 @@ CREATE TABLE Projects (
     PlannedEndDate DATE NULL,
     Budget DECIMAL(10,2) NOT NULL,
     ActualCost DECIMAL(10,2) NULL,
-    Status NVARCHAR(20) NOT NULL,
+    IsActive NVARCHAR(20) NOT NULL,
     Priority NVARCHAR(10) NOT NULL,
     CompanyID INT NULL,
     ProjectManagerID INT NULL
@@ -173,7 +173,7 @@ INSERT INTO Departments (DepartmentName, DepartmentCode, Budget, Location, CostC
 ('Sales', 'SALES', 700000, 'Building B - Floor 3', 'CC007'),
 ('Customer Support', 'CS', 350000, 'Building A - Floor 1', 'CC008');
 
-INSERT INTO Employees (FirstName, LastName, MiddleName, Email, Phone, DepartmentID, ManagerID, BaseSalary, HireDate, Title, EmployeeType, City, State, BirthDate, EmergencyContact) VALUES
+INSERT INTO Employees (FirstName, LastName, MiddleName, WorkEmail, Phone, DepartmentID, ManagerID, BaseSalary, HireDate, Title, EmployeeType, City, State, BirthDate, EmergencyContact) VALUES
 ('John', 'Smith', 'Michael', 'john.smith@company.com', '555-0101', 1, NULL, 120000, '2019-01-15', 'IT Director', 'Full-Time', 'Seattle', 'WA', '1985-03-12', 'Jane Smith'),
 ('Sarah', 'Johnson', NULL, 'sarah.johnson@company.com', '555-0102', 1, 1, 95000, '2020-03-10', 'Senior Developer', 'Full-Time', 'Seattle', 'WA', '1990-07-22', 'Mike Johnson'),
 ('Mike', 'Davis', 'Robert', 'mike.davis@company.com', '555-0103', 1, 1, 85000, '2021-06-01', 'Developer', 'Full-Time', 'Bellevue', 'WA', '1992-11-08', 'Lisa Davis'),
@@ -196,7 +196,7 @@ INSERT INTO Employees (FirstName, LastName, MiddleName, Email, Phone, Department
 ('Rachel', 'Moore', 'Elizabeth', 'rachel.moore@company.com', '555-0120', 3, 6, 72000, '2021-08-10', 'Financial Analyst', 'Full-Time', 'Kirkland', 'WA', '1994-04-12', 'Mike Moore');
 
 -- Additional sample data for projects, skills, etc.
-INSERT INTO Projects (ProjectName, ProjectCode, StartDate, PlannedEndDate, Budget, Status, Priority, CompanyID, ProjectManagerID) VALUES
+INSERT INTO Projects (ProjectName, ProjectCode, StartDate, PlannedEndDate, Budget, IsActive, Priority, CompanyID, ProjectManagerID) VALUES
 ('Enterprise CRM Implementation', 'CRM001', '2023-01-01', '2024-06-30', 750000, 'In Progress', 'Critical', 1, 1),
 ('Website Redesign', 'WEB001', '2023-03-01', '2023-12-31', 200000, 'In Progress', 'High', 2, 8),
 ('Mobile App Development', 'MOB001', '2023-02-15', '2024-04-15', 500000, 'In Progress', 'High', 3, 1),
@@ -278,7 +278,7 @@ Create a comprehensive employee report showing:
 - Manager name (if applicable)
 - BaseSalary and hire date
 - Only include active employees
-- Order by department, then by salary descending
+- Order by department, then by BaseSalary descending
 
 **Question 1.1.2**: Project Team Composition
 Build a project team report displaying:
@@ -302,8 +302,8 @@ Generate a skills analysis showing:
 Create a department financial summary with:
 - Department name and budget
 - Number of active employees
-- Total department salary cost
-- Average employee salary
+- Total department BaseSalary cost
+- Average employee BaseSalary
 - Budget utilization percentage
 - Number of active projects per department
 

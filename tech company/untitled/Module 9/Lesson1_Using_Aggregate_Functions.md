@@ -65,18 +65,18 @@ SELECT
     
     -- REVENUE METRICS using SUM
     FORMAT(SUM(p.Budget), 'C0') AS TotalContractValue,
-    FORMAT(SUM(CASE WHEN p.Status = 'Completed' THEN p.Budget ELSE 0 END), 'C0') AS CompletedRevenue,
-    FORMAT(SUM(CASE WHEN p.Status = 'Active' THEN p.Budget ELSE 0 END), 'C0') AS ActivePipelineValue,
+    FORMAT(SUM(CASE WHEN p.IsActive = 'Completed' THEN p.Budget ELSE 0 END), 'C0') AS CompletedRevenue,
+    FORMAT(SUM(CASE WHEN p.IsActive = 'Active' THEN p.Budget ELSE 0 END), 'C0') AS ActivePipelineValue,
     
     -- PROJECT VOLUME using COUNT
     COUNT(p.ProjectID) AS TotalProjects,
-    COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) AS CompletedProjects,
-    COUNT(CASE WHEN p.Status = 'Active' THEN 1 END) AS ActiveProjects,
-    COUNT(CASE WHEN p.Status = 'Planning' THEN 1 END) AS ProjectsInPlanning,
+    COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
+    COUNT(CASE WHEN p.IsActive = 'Active' THEN 1 END) AS ActiveProjects,
+    COUNT(CASE WHEN p.IsActive = 'Planning' THEN 1 END) AS ProjectsInPlanning,
     
     -- AVERAGE METRICS for business intelligence
     FORMAT(AVG(p.Budget), 'C0') AS AverageProjectValue,
-    FORMAT(AVG(CASE WHEN p.Status = 'Completed' THEN p.Budget END), 'C0') AS AvgCompletedProjectValue,
+    FORMAT(AVG(CASE WHEN p.IsActive = 'Completed' THEN p.Budget END), 'C0') AS AvgCompletedProjectValue,
     
     -- STATISTICAL ANALYSIS using MIN/MAX
     FORMAT(MIN(p.Budget), 'C0') AS SmallestProject,
@@ -104,8 +104,8 @@ SELECT
     
     -- SUCCESS RATE analysis
     FORMAT(
-        COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-        NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0), 
+        COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+        NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0), 
         'N1'
     ) + '%' AS OnTimeCompletionRate,
     
@@ -146,13 +146,13 @@ SELECT
     FORMAT(AVG(p.Budget), 'C0') AS AvgProjectValue,
     
     -- PERFORMANCE INDICATORS
-    COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeProjects,
-    COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) AS CompletedProjects,
+    COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeProjects,
+    COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
     
     -- SUCCESS RATE by department
     FORMAT(
-        COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-        NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0), 
+        COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+        NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0), 
         'N1'
     ) + '%' AS DepartmentSuccessRate,
     
@@ -307,8 +307,8 @@ SELECT
     
     -- PROJECT VOLUME METRICS
     COUNT(p.ProjectID) AS TotalProjects,
-    COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) AS CompletedProjects,
-    COUNT(CASE WHEN p.Status = 'Active' THEN 1 END) AS ActiveProjects,
+    COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
+    COUNT(CASE WHEN p.IsActive = 'Active' THEN 1 END) AS ActiveProjects,
     
     -- FINANCIAL METRICS
     FORMAT(SUM(p.Budget), 'C0') AS TotalClientValue,
@@ -343,8 +343,8 @@ SELECT
     
     -- SUCCESS METRICS
     FORMAT(
-        COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-        NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0), 
+        COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+        NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0), 
         'N1'
     ) + '%' AS OnTimeDeliveryRate,
     
@@ -372,8 +372,8 @@ SELECT
     -- RISK ASSESSMENT
     CASE 
         WHEN c.CreditRating IN ('AAA', 'AA', 'A') AND 
-             COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-             NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) >= 80
+             COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+             NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 80
         THEN '🟢 Low Risk - Excellent Client'
         WHEN c.CreditRating IN ('BBB', 'BB') AND SUM(p.Budget) >= 1000000
         THEN '🟡 Moderate Risk - Monitor Closely'
@@ -438,8 +438,8 @@ WITH ExecutiveMetrics AS (
         FORMAT(AVG(p.Budget), 'C0') AS AverageValue,
         FORMAT(STDEV(p.Budget), 'C0') AS StandardDeviation,
         AVG(DATEDIFF(DAY, p.StartDate, ISNULL(p.ActualEndDate, GETDATE()))) AS AvgDuration,
-        COUNT(CASE WHEN p.Status = 'Active' THEN 1 END) AS ActiveCount,
-        COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeCompletions
+        COUNT(CASE WHEN p.IsActive = 'Active' THEN 1 END) AS ActiveCount,
+        COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeCompletions
     FROM Projects p
     WHERE p.IsActive = 1 
         AND p.StartDate >= DATEADD(YEAR, -2, GETDATE())
@@ -455,7 +455,7 @@ WITH ExecutiveMetrics AS (
         FORMAT(STDEV(c.AnnualRevenue), 'C0') AS StandardDeviation,
         AVG(DATEDIFF(MONTH, MIN(p.StartDate), MAX(ISNULL(p.ActualEndDate, GETDATE())))) AS AvgRelationshipMonths,
         COUNT(DISTINCT CASE WHEN p.StartDate >= DATEADD(YEAR, -1, GETDATE()) THEN c.CompanyID END) AS NewClients,
-        COUNT(DISTINCT CASE WHEN p.Status = 'Active' THEN c.CompanyID END) AS ActiveClients
+        COUNT(DISTINCT CASE WHEN p.IsActive = 'Active' THEN c.CompanyID END) AS ActiveClients
     FROM Companies c
         LEFT JOIN Projects p ON c.CompanyID = p.CompanyID
     WHERE c.IsActive = 1
@@ -474,7 +474,7 @@ FinancialPerformance AS (
         
         -- Volume Metrics
         COUNT(p.ProjectID) AS MonthlyProjects,
-        COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) AS CompletedProjects,
+        COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
         
         -- Efficiency Metrics
         AVG(CASE WHEN p.Budget > 0 THEN ISNULL(p.ActualCost, 0) / p.Budget END) AS AvgCostRatio,

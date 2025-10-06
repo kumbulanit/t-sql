@@ -42,7 +42,7 @@ SELECT DISTINCT Title
 FROM Employees
 ORDER BY Title;
 
--- Find all unique salary amounts
+-- Find all unique BaseSalary amounts
 SELECT DISTINCT BaseSalary
 FROM Employees
 ORDER BY BaseSalary DESC;
@@ -83,7 +83,7 @@ ORDER BY LastName, FirstName;
 -- Different combinations that illustrate the concept
 SELECT DISTINCT DepartmentID, Title
 FROM Employees
-ORDER BY DepartmentID, Title;
+ORDER BY DepartmentIDID, Title;
 
 -- Compare single vs. multiple column DISTINCT
 SELECT DISTINCT DepartmentID FROM Employees;  -- Unique departments
@@ -92,7 +92,7 @@ SELECT DISTINCT DepartmentID, Title FROM Employees;  -- Unique dept/title combin
 
 ### 2. DISTINCT with Calculated Columns
 ```sql
--- Unique salary ranges
+-- Unique BaseSalary ranges
 SELECT DISTINCT 
     CASE 
         WHEN BaseSalary < 50000 THEN 'Low'
@@ -110,7 +110,7 @@ ORDER BY HireYear, HireMonth;
 
 -- Unique email domains
 SELECT DISTINCT 
-    SUBSTRING(Email, CHARINDEX('@', Email) + 1, LEN(Email)) AS EmailDomain
+    SUBSTRING(WorkEmail, CHARINDEX('@', WorkEmail) + 1, LEN(WorkEmail)) AS EmailDomain
 FROM Employees
 ORDER BY EmailDomain;
 ```
@@ -123,7 +123,7 @@ FROM Employees
 WHERE DepartmentID IN (
     SELECT DISTINCT DepartmentID
     FROM Employees
-    GROUP BY DepartmentID
+    GROUP BY DepartmentIDID
     HAVING COUNT(DISTINCT Title) > 1
 );
 
@@ -182,13 +182,13 @@ ORDER BY SkillSet;
 
 ### 2. DISTINCT with Window Functions
 ```sql
--- Find distinct salary ranks within each department
+-- Find distinct BaseSalary ranks within each department
 SELECT DISTINCT
     DepartmentID,
-    DENSE_RANK() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) AS SalaryRank,
+    DENSE_RANK() OVER (PARTITION BY DepartmentIDID ORDER BY BaseSalary DESC) AS SalaryRank,
     BaseSalary
 FROM Employees
-ORDER BY DepartmentID, SalaryRank;
+ORDER BY DepartmentIDID, SalaryRank;
 
 -- Unique tenure patterns
 SELECT DISTINCT
@@ -215,7 +215,7 @@ SELECT DISTINCT
     e.EmployeeID,
     e.FirstName,
     e.LastName,
-    e.Email,
+    e.WorkEmail,
     'Potential Duplicate Name' AS DataQualityIssue
 FROM Employees e
 INNER JOIN PotentialDuplicates pd 
@@ -225,17 +225,17 @@ ORDER BY e.LastName, e.FirstName, e.EmployeeID;
 
 -- Find distinct email domain patterns for validation
 SELECT DISTINCT
-    SUBSTRING(Email, CHARINDEX('@', Email) + 1, LEN(Email)) AS EmailDomain,
-    COUNT(*) OVER (PARTITION BY SUBSTRING(Email, CHARINDEX('@', Email) + 1, LEN(Email))) AS UsageCount,
+    SUBSTRING(WorkEmail, CHARINDEX('@', WorkEmail) + 1, LEN(WorkEmail)) AS EmailDomain,
+    COUNT(*) OVER (PARTITION BY SUBSTRING(WorkEmail, CHARINDEX('@', WorkEmail) + 1, LEN(WorkEmail))) AS UsageCount,
     CASE 
-        WHEN SUBSTRING(Email, CHARINDEX('@', Email) + 1, LEN(Email)) NOT LIKE '%.%' 
+        WHEN SUBSTRING(WorkEmail, CHARINDEX('@', WorkEmail) + 1, LEN(WorkEmail)) NOT LIKE '%.%' 
              THEN 'Invalid Domain Format'
-        WHEN SUBSTRING(Email, CHARINDEX('@', Email) + 1, LEN(Email)) LIKE '%company.com' 
+        WHEN SUBSTRING(WorkEmail, CHARINDEX('@', WorkEmail) + 1, LEN(WorkEmail)) LIKE '%company.com' 
              THEN 'Company Domain'
         ELSE 'External Domain'
     END AS DomainType
 FROM Employees
-WHERE Email IS NOT NULL
+WHERE WorkEmail IS NOT NULL
 ORDER BY UsageCount DESC;
 ```
 
@@ -270,7 +270,7 @@ SummaryStats AS (
         STRING_AGG(DISTINCT SalaryTier, ', ') AS SalaryTiersList,
         STRING_AGG(DISTINCT RoleType, ', ') AS RoleTypesList
     FROM DistinctAnalysis
-    GROUP BY DepartmentID
+    GROUP BY DepartmentIDID
 )
 SELECT 
     ss.DepartmentID,
@@ -304,7 +304,7 @@ FROM Employees;
 -- GROUP BY - groups rows and allows aggregation
 SELECT DepartmentID
 FROM Employees
-GROUP BY DepartmentID;
+GROUP BY DepartmentIDID;
 
 -- GROUP BY with aggregation (more powerful)
 SELECT 
@@ -312,7 +312,7 @@ SELECT
     COUNT(*) AS EmployeeCount,
     AVG(BaseSalary) AS AvgSalary
 FROM Employees
-GROUP BY DepartmentID;
+GROUP BY DepartmentIDID;
 ```
 
 ### When to Use Each
@@ -384,14 +384,14 @@ FROM Employees;
 -- GROUP BY approach (sometimes more efficient)
 SELECT DepartmentID
 FROM Employees
-GROUP BY DepartmentID;
+GROUP BY DepartmentIDID;
 
 -- Using window functions to avoid DISTINCT
 SELECT DepartmentID
 FROM (
     SELECT 
         DepartmentID,
-        ROW_NUMBER() OVER (PARTITION BY DepartmentID ORDER BY EmployeeID) AS rn
+        ROW_NUMBER() OVER (PARTITION BY DepartmentIDID ORDER BY EmployeeID) AS rn
     FROM Employees
 ) ranked
 WHERE rn = 1;

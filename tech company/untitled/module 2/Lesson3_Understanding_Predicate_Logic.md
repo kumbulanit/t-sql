@@ -70,9 +70,9 @@ Unlike binary logic (TRUE/FALSE), SQL uses three-valued logic:
 -- Basic comparison operators
 SELECT * FROM Employees WHERE BaseSalary > 50000;        -- Greater than
 SELECT * FROM Employees WHERE Age <= 30;             -- Less than or equal
-SELECT * FROM Employees WHERE Department = 'IT';     -- Equal
-SELECT * FROM Employees WHERE Department != 'HR';    -- Not equal
-SELECT * FROM Employees WHERE Department <> 'HR';    -- Not equal (alternative)
+SELECT * FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Engineering';     -- Equal
+SELECT * FROM Employees WHERE DepartmentID != 2004;    -- Not equal
+SELECT * FROM Employees WHERE DepartmentID <> 2004;    -- Not equal (alternative)
 ```
 
 #### 2. BETWEEN Predicate
@@ -98,10 +98,10 @@ WHERE Department IN ('IT', 'Finance', 'Marketing');
 
 -- Equivalent to:
 SELECT * FROM Employees 
-WHERE Department = 'IT' OR Department = 'Finance' OR Department = 'Marketing';
+WHERE d.DepartmentName = 'Engineering' OR Department = 'Finance' OR Department = 'Marketing';
 
 -- With subquery
-SELECT * FROM Products 
+SELECT CustomerID, CompanyName FROM Customers 
 WHERE CategoryID IN (
     SELECT CategoryID FROM Categories 
     WHERE CategoryName LIKE '%Food%'
@@ -117,7 +117,7 @@ SELECT * FROM Employees WHERE FirstName LIKE '%an%';   -- Contains 'an'
 SELECT * FROM Employees WHERE FirstName LIKE 'J_hn';   -- J followed by any char, then 'hn'
 
 -- Escape characters
-SELECT * FROM Products WHERE ProductName LIKE '%50[%]%';  -- Contains '50%'
+SELECT CustomerID, CompanyName FROM Customers WHERE ProductName LIKE '%50[%]%';  -- Contains '50%'
 ```
 
 ### Intermediate Examples
@@ -145,7 +145,7 @@ WHERE EXISTS (
 );
 
 -- NOT EXISTS for anti-join pattern
-SELECT c.CustomerName
+SELECT c.CompanyName
 FROM Customers c
 WHERE NOT EXISTS (
     SELECT 1 FROM Orders o 
@@ -168,7 +168,7 @@ WHERE NOT (Department = 'HR' AND BaseSalary < 40000);
 
 -- Equivalent to:
 SELECT * FROM Employees 
-WHERE Department != 'HR' OR BaseSalary >= 40000;
+WHERE DepartmentID != 2004 OR BaseSalary >= 40000;
 ```
 
 ### Advanced Examples
@@ -188,8 +188,8 @@ SELECT
         ELSE 'Executive Level'
     END AS SalaryCategory,
     CASE 
-        WHEN Department = 'Sales' AND BaseSalary > 80000 THEN 'Top Sales Performer'
-        WHEN Department = 'IT' AND DATEDIFF(YEAR, HireDate, GETDATE()) > 5 THEN 'Senior IT Professional'
+        WHEN d.DepartmentName = 'Sales' AND BaseSalary > 80000 THEN 'Top Sales Performer'
+        WHEN d.DepartmentName = 'Engineering' AND DATEDIFF(YEAR, HireDate, GETDATE()) > 5 THEN 'Senior IT Professional'
         WHEN Age < 25 AND Department = 'Marketing' THEN 'Young Marketing Talent'
         ELSE 'Standard Employee'
     END AS EmployeeType
@@ -199,12 +199,12 @@ FROM Employees;
 #### 2. Advanced Pattern Matching
 ```sql
 -- Complex LIKE patterns with character classes
-SELECT * FROM Products 
+SELECT CustomerID, CompanyName FROM Customers 
 WHERE ProductCode LIKE '[A-Z][A-Z][0-9][0-9][0-9]';  -- Two letters followed by three digits
 
 -- Using wildcards with ESCAPE
 DECLARE @SearchTerm NVARCHAR(50) = '50% Off';
-SELECT * FROM Products 
+SELECT CustomerID, CompanyName FROM Customers 
 WHERE Description LIKE '%' + REPLACE(@SearchTerm, '%', '\%') + '%' ESCAPE '\';
 
 -- Regular expression-like patterns (SQL Server 2022+)
@@ -215,7 +215,7 @@ WHERE FirstName LIKE '%[aeiou]%[aeiou]%';  -- Contains at least two vowels
 #### 3. Advanced EXISTS Patterns
 ```sql
 -- Double negation (find customers who have ordered ALL products from a category)
-SELECT c.CustomerName
+SELECT c.CompanyName
 FROM Customers c
 WHERE NOT EXISTS (
     SELECT p.ProductID
@@ -381,20 +381,20 @@ SELECT * FROM Employees WHERE LastName LIKE '%smith'; -- Leading wildcard
 ```sql
 -- Instead of complex OR conditions that can't use indexes well
 SELECT * FROM Employees 
-WHERE FirstName = 'John' OR LastName = 'Smith' OR Department = 'IT';
+WHERE FirstName = 'John' OR LastName = 'Smith' OR d.DepartmentName = 'Engineering';
 
 -- Consider UNION for better performance:
 SELECT * FROM Employees WHERE FirstName = 'John'
 UNION
 SELECT * FROM Employees WHERE LastName = 'Smith'
 UNION
-SELECT * FROM Employees WHERE Department = 'IT';
+SELECT * FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Engineering';
 ```
 
 ### 3. EXISTS vs IN Performance
 ```sql
 -- EXISTS often performs better with correlated subqueries
-SELECT c.CustomerName
+SELECT c.CompanyName
 FROM Customers c
 WHERE EXISTS (
     SELECT 1 FROM Orders o 

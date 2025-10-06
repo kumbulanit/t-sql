@@ -481,7 +481,7 @@ SELECT
         WHEN ShippedDate <= RequiredDate THEN 'On Time'
         WHEN DATEDIFF(DAY, RequiredDate, ShippedDate) <= 2 THEN 'Slightly Late'
         ELSE 'Very Late'
-    END AS DeliveryStatus,
+    END AS DeliveryIsActive,
     
     -- Working days between order and required date
     DATEDIFF(DAY, OrderDate, RequiredDate) - 

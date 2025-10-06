@@ -108,7 +108,7 @@ GROUP BY
         WHEN BaseSalary > 60000 THEN 'Mid Level'
         ELSE 'Junior Level'
     END;
--- Explanation: "This creates a management report showing salary distribution"
+-- Explanation: "This creates a management report showing BaseSalary distribution"
 ```
 
 ---
@@ -136,7 +136,7 @@ FROM Companies c
     INNER JOIN Projects p ON c.CompanyID = p.CompanyID
     INNER JOIN Employees e ON p.ProjectManagerID = e.EmployeeID
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE p.Status = 'Active'
+WHERE p.IsActive = 'Active'
 ORDER BY p.Budget DESC;
 -- Explanation: "This shows active projects with their managers and budgets"
 ```
@@ -166,7 +166,7 @@ FROM Employees e
     INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE pm.Achievement > 95.0
-    AND p.Status = 'Completed'
+    AND p.IsActive = 'Completed'
     AND pm.PeriodEnd >= DATEADD(month, -12, GETDATE())
 ORDER BY pm.Achievement DESC, p.Budget DESC;
 -- Explanation: "Executive report: Top performers on high-value completed projects"

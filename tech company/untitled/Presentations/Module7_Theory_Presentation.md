@@ -55,11 +55,11 @@ INSERT INTO Employees
 VALUES (4001, 'John', 'Smith', 'john.smith@techcorp.com', '2023-01-15', 75000);
 
 -- Specific columns (recommended)
-INSERT INTO Employees (FirstName, LastName, Email, HireDate, BaseSalary)
+INSERT INTO Employees (FirstName, LastName, WorkEmail, HireDate, BaseSalary)
 VALUES ('John', 'Smith', 'john.smith@techcorp.com', '2023-01-15', 75000);
 
 -- With DEFAULT and NULL values
-INSERT INTO Employees (FirstName, LastName, Email, HireDate, BaseSalary, IsActive)
+INSERT INTO Employees (FirstName, LastName, WorkEmail, HireDate, BaseSalary, IsActive)
 VALUES ('Jane', 'Doe', 'jane.doe@techcorp.com', DEFAULT, 65000, DEFAULT);
 ```
 
@@ -180,11 +180,11 @@ WHERE LastReviewDate < DATEADD(YEAR, -1, GETDATE());
 
 -- Conditional logic
 UPDATE Projects
-SET Status = 
+SET IsActive = 
     CASE 
-        WHEN GETDATE() > PlannedEndDate AND Status = 'Active' THEN 'Overdue'
-        WHEN GETDATE() > PlannedEndDate AND Status = 'Completed' THEN 'Completed Late'
-        ELSE Status
+        WHEN GETDATE() > PlannedEndDate AND IsActive = 'Active' THEN 'Overdue'
+        WHEN GETDATE() > PlannedEndDate AND IsActive = 'Completed' THEN 'Completed Late'
+        ELSE IsActive
     END;
 ```
 
@@ -252,7 +252,7 @@ WHERE EmployeeID = @EmployeeID;
 
 -- Views for active data only
 CREATE VIEW ActiveEmployees AS
-SELECT EmployeeID, FirstName, LastName, Email, BaseSalary
+SELECT EmployeeID, FirstName, LastName, WorkEmail, BaseSalary
 FROM Employees
 WHERE IsActive = 1;
 
@@ -317,13 +317,13 @@ WHEN MATCHED AND source.LastModified > target.LastModified THEN
     UPDATE SET 
         FirstName = source.FirstName,
         LastName = source.LastName,
-        Email = source.Email,
+        WorkEmail = source.WorkEmail,
         BaseSalary = source.BaseSalary,
         LastModified = source.LastModified
 WHEN NOT MATCHED BY TARGET THEN
-    INSERT (EmployeeID, FirstName, LastName, Email, BaseSalary, LastModified)
+    INSERT (EmployeeID, FirstName, LastName, WorkEmail, BaseSalary, LastModified)
     VALUES (source.EmployeeID, source.FirstName, source.LastName, 
-            source.Email, source.BaseSalary, source.LastModified)
+            source.WorkEmail, source.BaseSalary, source.LastModified)
 WHEN NOT MATCHED BY SOURCE AND target.IsActive = 1 THEN
     UPDATE SET IsActive = 0, TerminationDate = GETDATE();
 ```
@@ -429,7 +429,7 @@ WHERE request_session_id = @@SPID;
 ```sql
 -- Error handling with TRY-CATCH
 BEGIN TRY
-    INSERT INTO Employees (FirstName, LastName, Email, DepartmentID)
+    INSERT INTO Employees (FirstName, LastName, WorkEmail, DepartmentID)
     VALUES ('John', 'Smith', 'john.smith@techcorp.com', 999);  -- Invalid DepartmentID
 END TRY
 BEGIN CATCH
@@ -468,7 +468,7 @@ END CATCH
 -- Requires values during INSERT/UPDATE
 
 -- Example with constraint violation handling
-INSERT INTO Employees (FirstName, LastName, Email, DepartmentID, BaseSalary)
+INSERT INTO Employees (FirstName, LastName, WorkEmail, DepartmentID, BaseSalary)
 VALUES ('John', 'Smith', 'existing@email.com', 1, -50000);  -- May violate constraints
 ```
 
@@ -482,7 +482,7 @@ VALUES ('John', 'Smith', 'existing@email.com', 1, -50000);  -- May violate const
 CREATE PROCEDURE sp_AddEmployee
     @FirstName NVARCHAR(50),
     @LastName NVARCHAR(50),
-    @Email NVARCHAR(100),
+    @WorkEmail NVARCHAR(100),
     @DepartmentID INT,
     @BaseSalary MONEY,
     @NewEmployeeID INT OUTPUT
@@ -491,8 +491,8 @@ BEGIN
     SET NOCOUNT ON;
     
     BEGIN TRY
-        INSERT INTO Employees (FirstName, LastName, Email, DepartmentID, BaseSalary)
-        VALUES (@FirstName, @LastName, @Email, @DepartmentID, @BaseSalary);
+        INSERT INTO Employees (FirstName, LastName, WorkEmail, DepartmentID, BaseSalary)
+        VALUES (@FirstName, @LastName, @WorkEmail, @DepartmentID, @BaseSalary);
         
         SET @NewEmployeeID = SCOPE_IDENTITY();
         
@@ -557,7 +557,7 @@ BEGIN
 END
 
 -- Data format validation
-IF @Email NOT LIKE '%@%.%'
+IF @WorkEmail NOT LIKE '%@%.%'
 BEGIN
     RAISERROR('Invalid email format', 16, 1);
     RETURN;

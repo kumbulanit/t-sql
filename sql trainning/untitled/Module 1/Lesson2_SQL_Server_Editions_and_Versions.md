@@ -349,7 +349,7 @@ Support        Clusters       Integration
 CREATE TABLE Customers_Encrypted
 (
     CustomerID int,
-    CustomerName nvarchar(100),
+    CompanyName nvarchar(100),
     SSN nvarchar(11) ENCRYPTED WITH (
         COLUMN_ENCRYPTION_KEY = CEK1,
         ENCRYPTION_TYPE = DETERMINISTIC,
@@ -360,7 +360,7 @@ CREATE TABLE Customers_Encrypted
 -- JSON Support (New in 2016)
 SELECT 
     CustomerID,
-    JSON_VALUE(CustomerData, '$.Name') as CustomerName,
+    JSON_VALUE(CustomerData, '$.Name') as CompanyName,
     JSON_QUERY(CustomerData, '$.Orders') as Orders
 FROM CustomersJSON;
 ```

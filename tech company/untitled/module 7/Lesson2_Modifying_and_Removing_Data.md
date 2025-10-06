@@ -68,7 +68,7 @@ The UPDATE and DELETE statements are essential for maintaining data accuracy and
 -- First, let's ensure we have sufficient test data
 
 -- Add more employees for UPDATE examples
-INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID, ManagerID)
+INSERT INTO Employees (FirstName, LastName, WorkEmail, BaseSalary, DepartmentID, ManagerID)
 VALUES 
     ('Robert', 'Johnson', 'robert.johnson@company.com', 72000.00, 1, NULL),
     ('Maria', 'Garcia', 'maria.garcia@company.com', 68000.00, 2, NULL),
@@ -78,18 +78,18 @@ VALUES
     ('Patricia', 'Wilson', 'patricia.wilson@company.com', 77000.00, 3, 3);
 
 -- Add employee status tracking table
-CREATE TABLE EmployeeStatusHistory (
-    StatusID INT IDENTITY(1,1) PRIMARY KEY,
+CREATE TABLE EmployeeIsActiveHistory (
+    IsActiveID INT IDENTITY(1,1) PRIMARY KEY,
     EmployeeID INT NOT NULL,
-    PreviousStatus NVARCHAR(20),
-    NewStatus NVARCHAR(20),
-    StatusChangeDate DATETIME2 DEFAULT SYSDATETIME(),
+    PreviousIsActive NVARCHAR(20),
+    NewIsActive NVARCHAR(20),
+    IsActiveChangeDate DATETIME2 DEFAULT SYSDATETIME(),
     ChangedBy NVARCHAR(100) DEFAULT SYSTEM_USER,
     Reason NVARCHAR(255),
     FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID)
 );
 
--- Add salary history table
+-- Add BaseSalary history table
 CREATE TABLE SalaryHistory (
     SalaryHistoryID INT IDENTITY(1,1) PRIMARY KEY,
     EmployeeID INT NOT NULL,
@@ -107,7 +107,7 @@ CREATE TABLE SalaryHistory (
 SELECT 
     EmployeeID,
     FirstName + ' ' + LastName AS FullName,
-    Email,
+    WorkEmail,
     FORMAT(BaseSalary, 'C') AS FormattedSalary,
     DepartmentID,
     ManagerID,
@@ -143,9 +143,9 @@ WHERE DepartmentID = 1 AND IsActive = 1;
 -- Update with string functions
 UPDATE Employees 
 SET 
-    Email = LOWER(REPLACE(FirstName + '.' + LastName + '@company.com', ' ', '')),
+    WorkEmail = LOWER(REPLACE(FirstName + '.' + LastName + '@company.com', ' ', '')),
     ModifiedDate = SYSDATETIME()
-WHERE Email IS NULL OR Email = '';
+WHERE WorkEmail IS NULL OR WorkEmail = '';
 
 -- Update with conditional logic
 UPDATE Employees 
@@ -163,7 +163,7 @@ SELECT
     EmployeeID,
     FirstName + ' ' + LastName AS FullName,
     FORMAT(BaseSalary, 'C') AS FormattedSalary,
-    Email,
+    WorkEmail,
     ModifiedDate
 FROM Employees
 WHERE IsActive = 1
@@ -211,9 +211,9 @@ SET
     ModifiedDate = SYSDATETIME()
 WHERE NOT EXISTS (
     SELECT 1 
-    FROM EmployeeStatusHistory esh
+    FROM EmployeeIsActiveHistory esh
     WHERE esh.EmployeeID = Employees.EmployeeID
-      AND esh.StatusChangeDate >= DATEADD(MONTH, -6, GETDATE())
+      AND esh.IsActiveChangeDate >= DATEADD(MONTH, -6, GETDATE())
 );
 ```
 
@@ -234,7 +234,7 @@ FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1;
 
--- Update department manager based on highest salary in department
+-- Update department manager based on highest BaseSalary in department
 UPDATE d
 SET 
     ManagerID = emp.EmployeeID,
@@ -244,7 +244,7 @@ INNER JOIN (
     SELECT 
         DepartmentID,
         EmployeeID,
-        ROW_NUMBER() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) as rn
+        ROW_NUMBER() OVER (PARTITION BY DepartmentIDID ORDER BY BaseSalary DESC) as rn
     FROM Employees
     WHERE IsActive = 1
 ) emp ON d.DepartmentID = emp.DepartmentID AND emp.rn = 1;
@@ -265,7 +265,7 @@ UPDATE e
 SET 
     BaseSalary = CASE 
         WHEN mgr.BaseSalary IS NOT NULL AND e.BaseSalary > mgr.BaseSalary * 0.9 
-            THEN mgr.BaseSalary * 0.85  -- Cap at 85% of manager salary
+            THEN mgr.BaseSalary * 0.85  -- Cap at 85% of manager BaseSalary
         ELSE e.BaseSalary
     END,
     ModifiedDate = SYSDATETIME()
@@ -318,7 +318,7 @@ INNER JOIN (
 SELECT 
     ProjectName,
     FORMAT(Budget, 'C') AS UpdatedBudget,
-    Status
+    IsActive
 FROM Projects
 ORDER BY Budget DESC;
 ```
@@ -385,11 +385,11 @@ ORDER BY PercentageIncrease DESC;
 ### Complex OUTPUT Scenarios
 ```sql
 -- UPDATE with OUTPUT to multiple destinations
-DECLARE @StatusChanges TABLE (
+DECLARE @IsActiveChanges TABLE (
     EmployeeID INT,
     EmployeeName NVARCHAR(101),
-    OldStatus BIT,
-    NewStatus BIT,
+    OldIsActive BIT,
+    NewIsActive BIT,
     ChangeReason NVARCHAR(255)
 );
 
@@ -414,27 +414,27 @@ OUTPUT
             THEN 'Invalid BaseSalary Data'
         ELSE 'No Change'
     END
-INTO @StatusChanges
+INTO @IsActiveChanges
 WHERE IsActive = 1;
 
 -- Log status changes
-INSERT INTO EmployeeStatusHistory (EmployeeID, PreviousStatus, NewStatus, Reason)
+INSERT INTO EmployeeIsActiveHistory (EmployeeID, PreviousIsActive, NewIsActive, Reason)
 SELECT 
     EmployeeID,
-    CASE OldStatus WHEN 1 THEN 'Active' ELSE 'Inactive' END,
-    CASE NewStatus WHEN 1 THEN 'Active' ELSE 'Inactive' END,
+    CASE OldIsActive WHEN 1 THEN 'Active' ELSE 'Inactive' END,
+    CASE NewIsActive WHEN 1 THEN 'Active' ELSE 'Inactive' END,
     ChangeReason
-FROM @StatusChanges
-WHERE OldStatus != NewStatus;
+FROM @IsActiveChanges
+WHERE OldIsActive != NewIsActive;
 
 -- Report on changes made
 SELECT 
     EmployeeName,
-    CASE OldStatus WHEN 1 THEN 'Active' ELSE 'Inactive' END AS PreviousStatus,
-    CASE NewStatus WHEN 1 THEN 'Active' ELSE 'Inactive' END AS CurrentStatus,
+    CASE OldIsActive WHEN 1 THEN 'Active' ELSE 'Inactive' END AS PreviousIsActive,
+    CASE NewIsActive WHEN 1 THEN 'Active' ELSE 'Inactive' END AS CurrentIsActive,
     ChangeReason
-FROM @StatusChanges
-WHERE OldStatus != NewStatus;
+FROM @IsActiveChanges
+WHERE OldIsActive != NewIsActive;
 ```
 
 ## DELETE Statement Fundamentals
@@ -495,7 +495,7 @@ CREATE TABLE EmployeeTemp AS
 SELECT * FROM Employees;
 
 -- Add test data that's safe to delete
-INSERT INTO EmployeeTemp (FirstName, LastName, Email, BaseSalary, DepartmentID, IsActive)
+INSERT INTO EmployeeTemp (FirstName, LastName, WorkEmail, BaseSalary, DepartmentID, IsActive)
 VALUES 
     ('Test', 'User1', 'test.user1@company.com', 50000.00, 1, 0),
     ('Test', 'User2', 'test.user2@company.com', 50000.00, 1, 0),
@@ -506,7 +506,7 @@ VALUES
 SELECT 
     EmployeeID,
     FirstName + ' ' + LastName AS FullName,
-    Email,
+    WorkEmail,
     IsActive
 FROM EmployeeTemp
 WHERE FirstName IN ('Test', 'Temporary') AND IsActive = 0;
@@ -518,7 +518,7 @@ BEGIN TRANSACTION;
 DECLARE @DeletedEmployees TABLE (
     EmployeeID INT,
     EmployeeName NVARCHAR(101),
-    Email NVARCHAR(100),
+    WorkEmail NVARCHAR(100),
     DeletionDate DATETIME2
 );
 
@@ -526,7 +526,7 @@ DELETE FROM EmployeeTemp
 OUTPUT 
     deleted.EmployeeID,
     deleted.FirstName + ' ' + deleted.LastName,
-    deleted.Email,
+    deleted.WorkEmail,
     SYSDATETIME()
 INTO @DeletedEmployees
 WHERE FirstName IN ('Test', 'Temporary') AND IsActive = 0;
@@ -554,7 +554,7 @@ SELECT * FROM @DeletedEmployees;
 ```sql
 -- Delete inactive test employees
 DELETE FROM EmployeeTemp 
-WHERE IsActive = 0 AND Email LIKE '%test%';
+WHERE IsActive = 0 AND WorkEmail LIKE '%test%';
 
 -- Delete employees with NULL salaries (data quality cleanup)
 DELETE FROM EmployeeTemp 
@@ -565,7 +565,7 @@ DELETE FROM EmployeeTemp
 WHERE CreatedDate < DATEADD(DAY, -30, GETDATE()) 
   AND FirstName LIKE 'Temp%';
 
--- Delete based on salary range
+-- Delete based on BaseSalary range
 DELETE FROM EmployeeTemp 
 WHERE BaseSalary < 30000 AND IsActive = 0;
 
@@ -603,16 +603,16 @@ FROM EmployeeTemp e1
 WHERE EXISTS (
     SELECT 1 
     FROM EmployeeTemp e2 
-    WHERE e2.Email = e1.Email 
+    WHERE e2.WorkEmail = e1.WorkEmail 
       AND e2.EmployeeID < e1.EmployeeID
 );
 
 -- Verify no duplicates remain
 SELECT 
-    Email, 
+    WorkEmail, 
     COUNT(*) AS DuplicateCount
 FROM EmployeeTemp
-GROUP BY Email
+GROUP BY WorkEmail
 HAVING COUNT(*) > 1;
 ```
 
@@ -719,18 +719,18 @@ OUTPUT
     deleted.EmployeeID,
     'ID:' + CAST(deleted.EmployeeID AS VARCHAR(10)) + 
     ',Name:' + deleted.FirstName + ' ' + deleted.LastName +
-    ',Email:' + ISNULL(deleted.Email, 'NULL') +
+    ',WorkEmail:' + ISNULL(deleted.WorkEmail, 'NULL') +
     ',BaseSalary:' + ISNULL(CAST(deleted.BaseSalary AS VARCHAR(20)), 'NULL') +
     ',Dept:' + CAST(deleted.DepartmentID AS VARCHAR(10)) +
     ',Active:' + CAST(deleted.IsActive AS VARCHAR(1)),
     CASE 
         WHEN deleted.IsActive = 0 THEN 'Inactive employee cleanup'
-        WHEN deleted.BaseSalary IS NULL THEN 'Data quality - NULL salary'
-        WHEN deleted.Email IS NULL OR deleted.Email = '' THEN 'Data quality - missing email'
+        WHEN deleted.BaseSalary IS NULL THEN 'Data quality - NULL BaseSalary'
+        WHEN deleted.WorkEmail IS NULL OR deleted.WorkEmail = '' THEN 'Data quality - missing email'
         ELSE 'General cleanup'
     END
 INTO @DeletedData
-WHERE IsActive = 0 OR BaseSalary IS NULL OR Email IS NULL OR Email = '';
+WHERE IsActive = 0 OR BaseSalary IS NULL OR WorkEmail IS NULL OR WorkEmail = '';
 
 -- Log all deletions to audit table
 INSERT INTO DeletionAudit (TableName, DeletedRecordID, DeletedData, DeletionReason)
@@ -806,7 +806,7 @@ BEGIN
         WHERE EmployeeID = @EmployeeID;
         
         -- Log the soft deletion
-        INSERT INTO EmployeeStatusHistory (EmployeeID, PreviousStatus, NewStatus, Reason)
+        INSERT INTO EmployeeIsActiveHistory (EmployeeID, PreviousIsActive, NewIsActive, Reason)
         VALUES (@EmployeeID, 'Active', 'Soft Deleted', @DeletionReason);
         
         -- Log to deletion audit
@@ -833,7 +833,7 @@ SELECT
     EmployeeID,
     FirstName,
     LastName,
-    Email,
+    WorkEmail,
     BaseSalary,
     DepartmentID,
     ManagerID,
@@ -871,7 +871,7 @@ BEGIN
     WHERE EmployeeID = @EmployeeID;
     
     -- Log the restoration
-    INSERT INTO EmployeeStatusHistory (EmployeeID, PreviousStatus, NewStatus, Reason)
+    INSERT INTO EmployeeIsActiveHistory (EmployeeID, PreviousIsActive, NewIsActive, Reason)
     VALUES (@EmployeeID, 'Soft Deleted', 'Active', @RestoreReason);
     
     PRINT 'Employee restored successfully';
@@ -986,7 +986,7 @@ CREATE INDEX IX_Employees_DepartmentID_IsActive
 ON Employees (DepartmentID, IsActive) 
 INCLUDE (EmployeeID, FirstName, LastName);
 
--- Index for salary-based updates
+-- Index for BaseSalary-based updates
 CREATE INDEX IX_Employees_Salary_IsActive 
 ON Employees (BaseSalary, IsActive) 
 WHERE BaseSalary IS NOT NULL;
@@ -1066,7 +1066,7 @@ BEGIN
         
         SET @UpdatedCount = @@ROWCOUNT;
         
-        -- Log salary changes
+        -- Log BaseSalary changes
         INSERT INTO SalaryHistory (EmployeeID, PreviousSalary, NewSalary, EffectiveDate, ChangeReason)
         SELECT 
             EmployeeID,
@@ -1158,7 +1158,7 @@ DECLARE @BatchSize INT = 1000;
 WHILE @@ROWCOUNT > 0
 BEGIN
     DELETE TOP (@BatchSize) FROM LargeTable 
-    WHERE StatusID = 'OBSOLETE';
+    WHERE IsActiveID = 'OBSOLETE';
     
     -- Small delay to prevent blocking
     IF @@ROWCOUNT = @BatchSize

@@ -300,7 +300,7 @@ FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-WHERE p.Status = 'Active'
+WHERE p.IsActive = 'Active'
 ORDER BY d.DepartmentName, e.LastName;
 ```
 
@@ -357,7 +357,7 @@ WITH EmployeeSummary AS (
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
     LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-    LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.Status = 'Active'
+    LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'Active'
     WHERE e.IsActive = 1
     GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.BaseSalary, 
              e.HireDate, d.DepartmentName, d.Location, mgr.FirstName, mgr.LastName
@@ -377,7 +377,7 @@ SELECT
         WHEN ActiveProjects BETWEEN 1 AND 2 THEN 'Normal Workload'
         WHEN ActiveProjects >= 3 THEN 'High Workload'
         ELSE 'Unknown'
-    END AS WorkloadStatus,
+    END AS WorkloadIsActive,
     CASE 
         WHEN AverageHourlyRate IS NULL THEN 'No Project Work'
         WHEN AverageHourlyRate >= 100 THEN 'Premium Rate'
@@ -385,7 +385,7 @@ SELECT
         ELSE 'Junior Rate'
     END AS RateCategory
 FROM EmployeeSummary
-ORDER BY DepartmentName, BaseSalary DESC;
+ORDER BY DepartmentIDName, BaseSalary DESC;
 ```
 
 ### Advanced Join Patterns
@@ -402,7 +402,7 @@ INNER JOIN Departments d ON emp.DepartmentID = d.DepartmentID
 INNER JOIN EmployeeProjects ep1 ON emp.EmployeeID = ep1.EmployeeID
 INNER JOIN EmployeeProjects ep2 ON mgr.EmployeeID = ep2.EmployeeID
 INNER JOIN Projects p ON ep1.ProjectID = p.ProjectID AND ep2.ProjectID = p.ProjectID
-WHERE p.Status = 'Active'
+WHERE p.IsActive = 'Active'
 ORDER BY d.DepartmentName, p.ProjectName;
 ```
 
@@ -431,7 +431,7 @@ SELECT e.FirstName, e.LastName, p.ProjectName
 FROM Projects p  -- If Projects has fewer rows
 INNER JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
 INNER JOIN Employees e ON ep.EmployeeID = e.EmployeeID
-WHERE p.Status = 'Active';  -- Filter early
+WHERE p.IsActive = 'Active';  -- Filter early
 ```
 
 ### 3. Avoiding Cartesian Products
@@ -515,24 +515,24 @@ LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 SELECT 
     o.OrderID,
     o.OrderDate,
-    c.CustomerName,
-    s.StatusDescription
+    c.CompanyName,
+    s.IsActiveDescription
 FROM Orders o
 INNER JOIN Customers c ON o.CustomerID = c.CustomerID
-INNER JOIN OrderStatus s ON o.StatusID = s.StatusID;
+INNER JOIN OrderIsActive s ON o.IsActiveID = s.IsActiveID;
 ```
 
 ### 2. Aggregation Pattern
 ```sql
 -- Summarize related data
 SELECT 
-    c.CustomerName,
+    c.CompanyName,
     COUNT(o.OrderID) AS TotalOrders,
     SUM(o.OrderTotal) AS TotalSales,
     MAX(o.OrderDate) AS LastOrderDate
 FROM Customers c
 LEFT JOIN Orders o ON c.CustomerID = o.CustomerID
-GROUP BY c.CustomerID, c.CustomerName;
+GROUP BY c.CustomerID, c.CompanyName;
 ```
 
 ### 3. Hierarchy Pattern
@@ -610,7 +610,7 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 -- Check for duplicate join keys
 SELECT DepartmentID, COUNT(*) 
 FROM Employees 
-GROUP BY DepartmentID 
+GROUP BY DepartmentIDID 
 HAVING COUNT(*) > 1;
 
 -- Use DISTINCT if needed

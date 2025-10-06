@@ -59,7 +59,7 @@ SELECT
     d.DepartmentName,
     jl.LevelName,
     
-    -- Simple CASE for salary bands
+    -- Simple CASE for BaseSalary bands
     CASE 
         WHEN e.BaseSalary >= 150000 THEN 'Executive Level'
         WHEN e.BaseSalary >= 100000 THEN 'Senior Professional'
@@ -120,7 +120,7 @@ SELECT
         WHEN e.BaseSalary >= jl.MaxSalary * 0.95 
         THEN 'Ready for Level Advancement'
         ELSE 'Continue Current Development'
-    END AS PromotionStatus
+    END AS PromotionIsActive
     
 FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
@@ -405,7 +405,7 @@ SELECT
     e.TerminationDate,
     
     -- Simple active/inactive status
-    IIF(e.IsActive = 1, 'Active Employee', 'Former Employee') AS EmploymentStatus,
+    IIF(e.IsActive = 1, 'Active Employee', 'Former Employee') AS EmploymentIsActive,
     
     -- BaseSalary level indicator
     IIF(e.BaseSalary >= 100000, 'Senior Level', 'Junior-Mid Level') AS SalaryLevel,
@@ -415,10 +415,10 @@ SELECT
     
     -- Bonus eligibility
     IIF(e.BaseSalary >= 75000 AND DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 1, 
-        'Bonus Eligible', 'Not Eligible') AS BonusStatus,
+        'Bonus Eligible', 'Not Eligible') AS BonusIsActive,
     
-    -- Overtime eligibility (typically non-exempt employees under certain salary threshold)
-    IIF(e.BaseSalary < 50000, 'Overtime Eligible', 'Exempt from Overtime') AS OvertimeStatus,
+    -- Overtime eligibility (typically non-exempt employees under certain BaseSalary threshold)
+    IIF(e.BaseSalary < 50000, 'Overtime Eligible', 'Exempt from Overtime') AS OvertimeIsActive,
     
     -- Performance review frequency
     IIF(DATEDIFF(YEAR, e.HireDate, GETDATE()) < 1, 'Quarterly Reviews', 'Annual Reviews') AS ReviewFrequency,
@@ -452,7 +452,7 @@ SELECT
     d.DepartmentName,
     COUNT(*) AS TotalEmployees,
     
-    -- Count employees by salary level using IIF
+    -- Count employees by BaseSalary level using IIF
     COUNT(IIF(e.BaseSalary >= 100000, 1, NULL)) AS HighSalaryCount,
     COUNT(IIF(e.BaseSalary < 100000, 1, NULL)) AS StandardSalaryCount,
     
@@ -513,7 +513,7 @@ SELECT
     p.ProjectName,
     p.Budget,
     pt.ComplexityLevel,
-    p.Status,
+    p.IsActive,
     
     -- Use CHOOSE to convert numeric complexity to descriptive text
     CHOOSE(pt.ComplexityLevel,
@@ -556,7 +556,7 @@ SELECT
     
     -- Dynamic status indicators with colors (for reporting)
     CHOOSE(
-        CASE p.Status
+        CASE p.IsActive
             WHEN 'Planning' THEN 1
             WHEN 'Active' THEN 2
             WHEN 'On Hold' THEN 3
@@ -569,8 +569,8 @@ SELECT
         '🟡 On Hold',
         '✅ Successfully Completed',
         '❌ Cancelled',
-        '❓ Status Unknown'
-    ) AS StatusIndicator,
+        '❓ IsActive Unknown'
+    ) AS IsActiveIndicator,
     
     -- Dynamic team size recommendations
     CHOOSE(
@@ -667,11 +667,11 @@ SELECT
             WHEN e.BaseSalary >= 50000 THEN 4
             ELSE 5
         END,
-        'Executive Tier - Up to 50% of salary',
-        'Senior Tier - Up to 25% of salary',
-        'Professional Tier - Up to 15% of salary',
-        'Standard Tier - Up to 10% of salary',
-        'Entry Tier - Up to 5% of salary'
+        'Executive Tier - Up to 50% of BaseSalary',
+        'Senior Tier - Up to 25% of BaseSalary',
+        'Professional Tier - Up to 15% of BaseSalary',
+        'Standard Tier - Up to 10% of BaseSalary',
+        'Entry Tier - Up to 5% of BaseSalary'
     ) AS BonusTier
     
 FROM Employees e

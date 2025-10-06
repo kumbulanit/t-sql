@@ -57,7 +57,7 @@ SELECT FirstName, LastName, BaseSalary
 FROM Employees
 ORDER BY LastName;
 
--- Sort employees by salary (descending - highest first)
+-- Sort employees by BaseSalary (descending - highest first)
 SELECT FirstName, LastName, BaseSalary
 FROM Employees
 ORDER BY BaseSalary DESC;
@@ -70,7 +70,7 @@ ORDER BY HireDate ASC;  -- ASC is optional (default)
 
 ### Multi-Column Sorting
 ```sql
--- Sort by department first, then by salary within department
+-- Sort by department first, then by BaseSalary within department
 SELECT 
     FirstName,
     LastName,
@@ -78,7 +78,7 @@ SELECT
     BaseSalary
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-ORDER BY DepartmentName, BaseSalary DESC;
+ORDER BY DepartmentIDName, BaseSalary DESC;
 
 -- Sort by multiple criteria with different directions
 SELECT 
@@ -89,7 +89,7 @@ SELECT
 FROM Employees
 ORDER BY 
     HireDate ASC,     -- Oldest employees first
-    BaseSalary DESC;      -- Within same hire date, highest salary first
+    BaseSalary DESC;      -- Within same hire date, highest BaseSalary first
 ```
 
 ### Sorting by Column Aliases
@@ -173,11 +173,11 @@ ORDER BY
 SELECT 
     FirstName,
     LastName,
-    Email,
+    WorkEmail,
     Phone
 FROM Employees
 ORDER BY 
-    RIGHT(Email, LEN(Email) - CHARINDEX('@', Email)),  -- Sort by email domain
+    RIGHT(WorkEmail, LEN(WorkEmail) - CHARINDEX('@', WorkEmail)),  -- Sort by email domain
     LEFT(Phone, 3),                                    -- Sort by area code
     LastName;
 
@@ -215,7 +215,7 @@ WITH EmployeeMetrics AS (
     FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-    LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.Status = 'Active'
+    LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'Active'
     LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
     WHERE e.IsActive = 1
     GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.BaseSalary, 
@@ -256,7 +256,7 @@ ORDER BY
         (CASE WHEN ActiveProjects >= 3 THEN 3 WHEN ActiveProjects >= 1 THEN 2 ELSE 1 END) +
         (CASE WHEN SkillCount >= 5 THEN 3 WHEN SkillCount >= 3 THEN 2 ELSE 1 END)
     ) DESC,
-    -- Final: Tenure and salary
+    -- Final: Tenure and BaseSalary
     YearsOfService DESC,
     BaseSalary DESC;
 ```
@@ -314,7 +314,7 @@ SELECT
     DepartmentName,
     BaseSalary,
     -- Ranking within department
-    RANK() OVER (PARTITION BY DepartmentName ORDER BY BaseSalary DESC) AS DeptSalaryRank,
+    RANK() OVER (PARTITION BY DepartmentIDName ORDER BY BaseSalary DESC) AS DeptSalaryRank,
     -- Overall ranking
     DENSE_RANK() OVER (ORDER BY BaseSalary DESC) AS OverallSalaryRank,
     -- Percentile ranking
@@ -377,7 +377,7 @@ ORDER BY
 │                                                                             │
 │  Recommended Indexes for Common Sorts:                                     │
 │  • ORDER BY LastName, FirstName: IX_Employees_Name(LastName, FirstName)    │
-│  • ORDER BY DepartmentID, BaseSalary: IX_Employees_Dept_Sal(DeptID, BaseSalary)    │
+│  • ORDER BY DepartmentIDID, BaseSalary: IX_Employees_Dept_Sal(DeptID, BaseSalary)    │
 │  • ORDER BY HireDate DESC: IX_Employees_HireDate(HireDate DESC)            │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -491,7 +491,7 @@ SELECT
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
-GROUP BY DepartmentName
+GROUP BY DepartmentIDName
 ORDER BY 
     EmployeeCount DESC,  -- Largest departments first
     AvgSalary DESC;      -- Highest paying departments first
@@ -507,7 +507,7 @@ SELECT
     END AS SortableName,
     FirstName,
     LastName,
-    Email
+    WorkEmail
 FROM Employees
 ORDER BY SortableName, FirstName;
 ```

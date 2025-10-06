@@ -504,12 +504,12 @@ SELECT
 
 ```sql
 -- Sample customer data with inconsistent formatting
-CREATE TABLE #CustomerNames (
+CREATE TABLE #CompanyNames (
     CustomerID INT,
     RawName NVARCHAR(100)
 );
 
-INSERT INTO #CustomerNames VALUES 
+INSERT INTO #CompanyNames VALUES 
 (1, '  JOHN    SMITH  '),
 (2, 'mary   JONES'),
 (3, 'bob  o''connor ');
@@ -523,7 +523,7 @@ SELECT
     LOWER(SUBSTRING(LTRIM(RTRIM(RawName)), 2, LEN(LTRIM(RTRIM(RawName))))) as CleanedName,
     -- Remove extra spaces
     LTRIM(RTRIM(REPLACE(REPLACE(REPLACE(RawName, '  ', ' '), '  ', ' '), '  ', ' '))) as NoExtraSpaces
-FROM #CustomerNames;
+FROM #CompanyNames;
 ```
 
 3. **Validation and formatting functions**:
@@ -553,11 +553,11 @@ END;
 -- Test the function
 SELECT dbo.FormatPhoneNumber('1234567890') as FormattedPhone;
 
--- Email validation (basic)
+-- WorkEmail validation (basic)
 SELECT 
-    Email,
+    WorkEmail,
     CASE 
-        WHEN Email LIKE '%_@_%._%' AND Email NOT LIKE '%@%@%' 
+        WHEN WorkEmail LIKE '%_@_%._%' AND WorkEmail NOT LIKE '%@%@%' 
         THEN 'Valid Format' 
         ELSE 'Invalid Format' 
     END as EmailValidation
@@ -565,7 +565,7 @@ FROM (VALUES
     ('user@domain.com'),
     ('invalid.email'),
     ('user@@domain.com')
-) AS EmailTests(Email);
+) AS EmailTests(WorkEmail);
 ```
 
 4. **String concatenation methods**:
@@ -949,7 +949,7 @@ WITH SalesByYear AS (
     SELECT 
         YEAR(o.OrderDate) as SalesYear,
         MONTH(o.OrderDate) as SalesMonth,
-        SUM(od.UnitPrice * od.Quantity * (1 - od.Discount)) as MonthlySales
+        SUM(od.BaseSalary * od.Quantity * (1 - od.Discount)) as MonthlySales
     FROM Orders o
     INNER JOIN [Order Details] od ON o.OrderID = od.OrderID
     GROUP BY YEAR(o.OrderDate), MONTH(o.OrderDate)
@@ -1171,7 +1171,7 @@ SELECT
     c.Year,
     c.MonthName,
     COUNT(o.OrderID) as OrderCount,
-    SUM(od.UnitPrice * od.Quantity * (1 - od.Discount)) as TotalSales
+    SUM(od.BaseSalary * od.Quantity * (1 - od.Discount)) as TotalSales
 FROM CalendarTable c
 LEFT JOIN Orders o ON c.FullDate = CAST(o.OrderDate AS DATE)
 LEFT JOIN [Order Details] od ON o.OrderID = od.OrderID
@@ -1423,7 +1423,7 @@ SET STATISTICS IO OFF;
 
 ```sql
 CREATE FUNCTION dbo.ValidateUserRegistration(
-    @Email NVARCHAR(255),
+    @WorkEmail NVARCHAR(255),
     @FirstName NVARCHAR(50),
     @LastName NVARCHAR(50),
     @DateOfBirth DATE,
@@ -1434,12 +1434,12 @@ RETURNS TABLE
 AS
 RETURN (
     SELECT 
-        -- Email validation
+        -- WorkEmail validation
         CASE 
-            WHEN @Email IS NULL OR @Email = '' THEN 'Email is required'
-            WHEN @Email NOT LIKE '%_@_%._%' THEN 'Invalid email format'
-            WHEN @Email LIKE '%@%@%' THEN 'Invalid email format'
-            WHEN LEN(@Email) > 255 THEN 'Email too long'
+            WHEN @WorkEmail IS NULL OR @WorkEmail = '' THEN 'WorkEmail is required'
+            WHEN @WorkEmail NOT LIKE '%_@_%._%' THEN 'Invalid email format'
+            WHEN @WorkEmail LIKE '%@%@%' THEN 'Invalid email format'
+            WHEN LEN(@WorkEmail) > 255 THEN 'WorkEmail too long'
             ELSE 'Valid'
         END as EmailValidation,
         

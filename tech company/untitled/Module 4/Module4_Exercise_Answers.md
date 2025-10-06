@@ -17,7 +17,7 @@ SELECT
     e.Title AS [Position],
     d.DepartmentName AS [Department],
     p.ProjectName AS [Project],
-    p.Status AS [Project Status],
+    p.IsActive AS [Project IsActive],
     p.Priority AS [Priority],
     ep.Role AS [Project Role],
     ep.HoursWorked AS [Hours Worked],
@@ -39,13 +39,13 @@ SELECT
         WHEN ep.HoursWorked >= ep.HoursAllocated * 0.9 THEN 'On Track'
         WHEN ep.HoursWorked >= ep.HoursAllocated * 0.7 THEN 'Behind Schedule'
         ELSE 'Needs Attention'
-    END AS [Performance Status]
+    END AS [Performance IsActive]
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE e.IsActive = 1
-  AND p.Status = 'In Progress'
+  AND p.IsActive = 'In Progress'
   AND ep.HoursAllocated > 0
 ORDER BY 
     CASE 
@@ -75,7 +75,7 @@ WITH DepartmentMetrics AS (
     FROM Departments d
     INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID AND e.IsActive = 1
     LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-    LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.Status = 'In Progress'
+    LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'In Progress'
     LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
     GROUP BY d.DepartmentID, d.DepartmentName, d.Budget, d.Location
 )
@@ -98,7 +98,7 @@ SELECT
         WHEN AvgUtilizationRate < 0.7 THEN 'Underutilized Resources'
         WHEN UniqueSkills < ActiveEmployees THEN 'Limited Skills Diversity'
         ELSE 'Healthy Operations'
-    END AS [Department Status]
+    END AS [Department IsActive]
 FROM DepartmentMetrics
 WHERE ActiveEmployees > 0
 ORDER BY [Budget Used %] DESC;
@@ -119,7 +119,7 @@ SELECT
     CAST(COUNT(CASE WHEN es.CertificationDate IS NOT NULL THEN 1 END) * 100.0 
          / COUNT(es.EmployeeID) AS DECIMAL(5,1)) AS [Certification Rate %],
     
-    -- Average salary of employees with this skill
+    -- Average BaseSalary of employees with this skill
     FORMAT(AVG(e.BaseSalary), 'C0') AS [Average BaseSalary],
     
     -- Skills gap assessment
@@ -162,7 +162,7 @@ ORDER BY
     COUNT(es.EmployeeID) ASC;
 ```
 
-**Explanation**: Comprehensive skills analysis combining market demand with internal capabilities, certification rates, and salary data to identify skills gaps and investment priorities.
+**Explanation**: Comprehensive skills analysis combining market demand with internal capabilities, certification rates, and BaseSalary data to identify skills gaps and investment priorities.
 
 **Answer 1.1.4**: Client Project Portfolio Review
 ```sql
@@ -173,10 +173,10 @@ SELECT
     FORMAT(c.AnnualRevenue, 'C0') AS [Client Revenue],
     p.ProjectName AS [Project],
     FORMAT(p.Budget, 'C0') AS [Project Budget],
-    p.Status AS [Status],
+    p.IsActive AS [IsActive],
     p.Priority AS [Priority],
     pm.FirstName + ' ' + pm.LastName AS [Project Manager],
-    pm.Email AS [PM Contact],
+    pm.WorkEmail AS [PM Contact],
     
     -- Timeline analysis
     DATEDIFF(DAY, p.StartDate, GETDATE()) AS [Days Active],
@@ -202,13 +202,13 @@ SELECT
     
     -- Project health indicator
     CASE 
-        WHEN p.Status = 'In Progress' AND GETDATE() > p.PlannedEndDate 
+        WHEN p.IsActive = 'In Progress' AND GETDATE() > p.PlannedEndDate 
              THEN 'Behind Schedule'
         WHEN p.ActualCost > p.Budget * 0.9 
              THEN 'Budget Risk'
         WHEN COUNT(ep.EmployeeID) < 3 AND p.Priority = 'Critical' 
              THEN 'Understaffed'
-        WHEN p.Status = 'In Progress' THEN 'On Track'
+        WHEN p.IsActive = 'In Progress' THEN 'On Track'
         ELSE 'Monitor'
     END AS [Project Health]
 FROM Companies c
@@ -218,9 +218,9 @@ LEFT JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
 WHERE p.Budget >= 200000
   AND c.IsActive = 1
 GROUP BY c.CompanyID, c.CompanyName, c.Industry, c.AnnualRevenue,
-         p.ProjectID, p.ProjectName, p.Budget, p.Status, p.Priority,
+         p.ProjectID, p.ProjectName, p.Budget, p.IsActive, p.Priority,
          p.StartDate, p.PlannedEndDate, p.ActualCost,
-         pm.FirstName, pm.LastName, pm.Email
+         pm.FirstName, pm.LastName, pm.WorkEmail
 ORDER BY c.AnnualRevenue DESC, p.Budget DESC;
 ```
 
@@ -247,7 +247,7 @@ WITH EmployeeMetrics AS (
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
     INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-    INNER JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.Status = 'In Progress'
+    INNER JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'In Progress'
     LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
     WHERE e.IsActive = 1
     GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.HireDate,
@@ -312,11 +312,11 @@ WITH EmployeeIntegration AS (
         
         -- Department integration
         CASE WHEN d.DepartmentID IS NOT NULL THEN 1 ELSE 0 END AS HasDepartment,
-        ISNULL(d.DepartmentName, 'Unassigned') AS DepartmentStatus,
+        ISNULL(d.DepartmentName, 'Unassigned') AS DepartmentIsActive,
         
         -- Manager integration
         CASE WHEN mgr.EmployeeID IS NOT NULL THEN 1 ELSE 0 END AS HasManager,
-        ISNULL(mgr.FirstName + ' ' + mgr.LastName, 'No Manager') AS ManagerStatus,
+        ISNULL(mgr.FirstName + ' ' + mgr.LastName, 'No Manager') AS ManagerIsActive,
         
         -- Project integration
         COUNT(ep.ProjectID) AS ProjectCount,
@@ -329,7 +329,7 @@ WITH EmployeeIntegration AS (
     LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID
     LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
     LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-    LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.Status = 'In Progress'
+    LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'In Progress'
     LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
     GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.HireDate, e.IsActive,
              d.DepartmentID, d.DepartmentName, mgr.EmployeeID, mgr.FirstName, mgr.LastName
@@ -338,9 +338,9 @@ SELECT
     EmployeeName AS [Employee],
     Title AS [Position],
     FORMAT(HireDate, 'MMM yyyy') AS [Hire Date],
-    CASE WHEN IsActive = 1 THEN 'Active' ELSE 'Inactive' END AS [Status],
-    DepartmentStatus AS [Department],
-    ManagerStatus AS [Manager],
+    CASE WHEN IsActive = 1 THEN 'Active' ELSE 'Inactive' END AS [IsActive],
+    DepartmentIsActive AS [Department],
+    ManagerIsActive AS [Manager],
     ProjectCount AS [Active Projects],
     SkillsCount AS [Registered Skills],
     
@@ -396,14 +396,14 @@ WITH DepartmentAnalysis AS (
         SELECT DISTINCT ep.EmployeeID, p.ProjectID
         FROM EmployeeProjects ep
         INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-        WHERE p.Status = 'In Progress'
+        WHERE p.IsActive = 'In Progress'
     ) proj_emp ON e.EmployeeID = proj_emp.EmployeeID
     LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
     GROUP BY d.DepartmentID, d.DepartmentName, d.Budget, d.Location, d.IsActive
 )
 SELECT 
     DepartmentName AS [Department],
-    CASE WHEN DeptActive = 1 THEN 'Active' ELSE 'Inactive' END AS [Dept Status],
+    CASE WHEN DeptActive = 1 THEN 'Active' ELSE 'Inactive' END AS [Dept IsActive],
     FORMAT(Budget, 'C0') AS [Budget],
     Location AS [Location],
     CurrentHeadcount AS [Headcount],
@@ -428,7 +428,7 @@ SELECT
         WHEN AvgEfficiency < 0.7 THEN 'Low Utilization'
         WHEN Budget - TotalSalaryCost > TotalSalaryCost * 0.5 THEN 'Expansion Capacity'
         ELSE 'Optimal Utilization'
-    END AS [Capacity Status],
+    END AS [Capacity IsActive],
     
     -- Strategic recommendations
     CASE 
@@ -478,7 +478,7 @@ ORDER BY
 **Answer 2.1.5**: Organizational Structure and Reporting Analysis (Structure)
 ```sql
 -- Key elements: Self LEFT JOIN for manager relationships
--- Analyze: Span of control, salary progression, hierarchy depth
+-- Analyze: Span of control, BaseSalary progression, hierarchy depth
 -- Identify: Management gaps, succession planning needs
 -- Recommend: Organizational structure optimization
 ```
@@ -513,7 +513,7 @@ WITH EmployeeMetrics AS (
     FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-    LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.Status = 'In Progress'
+    LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'In Progress'
     LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
     LEFT JOIN Skills s ON es.SkillID = s.SkillID
     WHERE e.IsActive = 1

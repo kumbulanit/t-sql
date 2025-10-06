@@ -171,7 +171,7 @@ UNION ALL
 SELECT 'Collation', CAST(SERVERPROPERTY('Collation') AS VARCHAR(100));
 
 PRINT ''
-PRINT '2. Service Status:'
+PRINT '2. Service IsActive:'
 SELECT 
     servicename,
     status_desc,
@@ -185,7 +185,7 @@ SELECT
     name AS DatabaseName,
     database_id,
     create_date,
-    state_desc AS Status,
+    state_desc AS IsActive,
     recovery_model_desc AS RecoveryModel
 FROM sys.databases
 ORDER BY database_id;

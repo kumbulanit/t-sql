@@ -48,7 +48,7 @@ SELECT
     VAR(BaseSalary) AS SalaryVariance
 FROM Employees
 WHERE IsActive = 1
-GROUP BY DepartmentID;
+GROUP BY DepartmentIDID;
 ```
 
 ---
@@ -89,7 +89,7 @@ SELECT
     COUNT(*) AS EmployeeCount,
     AVG(BaseSalary) AS AvgSalary
 FROM Employees
-GROUP BY Department;
+GROUP BY DepartmentID;
 
 -- Multi-dimensional grouping
 SELECT 
@@ -99,8 +99,8 @@ SELECT
     AVG(BaseSalary) AS AvgSalary,
     AVG(DATEDIFF(YEAR, HireDate, GETDATE())) AS AvgTenure
 FROM Employees
-GROUP BY Department, JobLevel
-ORDER BY Department, JobLevel;
+GROUP BY DepartmentID, JobLevel
+ORDER BY DepartmentID, JobLevel;
 ```
 
 **Key Concept**: Every non-aggregate column in SELECT must be in GROUP BY
@@ -148,7 +148,7 @@ SELECT
     MAX(HireDate) AS MostRecentHire
 FROM Employees
 WHERE IsActive = 1
-GROUP BY DepartmentID
+GROUP BY DepartmentIDID
 HAVING COUNT(*) >= 10                    -- Departments with at least 10 employees
     AND AVG(BaseSalary) > 60000              -- Above-average compensation
     AND MAX(HireDate) >= DATEADD(YEAR, -2, GETDATE())  -- Recent hiring activity
@@ -198,20 +198,20 @@ SELECT
     BaseSalary,
     
     -- Department-level aggregates
-    AVG(BaseSalary) OVER (PARTITION BY DepartmentID) AS DeptAvgSalary,
-    COUNT(*) OVER (PARTITION BY DepartmentID) AS DeptEmployeeCount,
-    SUM(BaseSalary) OVER (PARTITION BY DepartmentID) AS DeptTotalPayroll,
+    AVG(BaseSalary) OVER (PARTITION BY DepartmentIDID) AS DeptAvgSalary,
+    COUNT(*) OVER (PARTITION BY DepartmentIDID) AS DeptEmployeeCount,
+    SUM(BaseSalary) OVER (PARTITION BY DepartmentIDID) AS DeptTotalPayroll,
     
     -- Running totals and rankings
     SUM(BaseSalary) OVER (ORDER BY EmployeeID ROWS UNBOUNDED PRECEDING) AS RunningPayrollTotal,
-    ROW_NUMBER() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) AS DeptSalaryRank,
+    ROW_NUMBER() OVER (PARTITION BY DepartmentIDID ORDER BY BaseSalary DESC) AS DeptSalaryRank,
     
     -- Comparative analysis
-    BaseSalary - AVG(BaseSalary) OVER (PARTITION BY DepartmentID) AS SalaryDifference,
-    (BaseSalary * 100.0) / SUM(BaseSalary) OVER (PARTITION BY DepartmentID) AS PayrollPercentage
+    BaseSalary - AVG(BaseSalary) OVER (PARTITION BY DepartmentIDID) AS SalaryDifference,
+    (BaseSalary * 100.0) / SUM(BaseSalary) OVER (PARTITION BY DepartmentIDID) AS PayrollPercentage
 FROM Employees
 WHERE IsActive = 1
-ORDER BY DepartmentID, BaseSalary DESC;
+ORDER BY DepartmentIDID, BaseSalary DESC;
 ```
 
 ---
@@ -239,8 +239,8 @@ SELECT
     
     -- Performance metrics
     AVG(DATEDIFF(DAY, p.StartDate, ISNULL(p.ActualEndDate, p.PlannedEndDate))) AS AvgDuration,
-    COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-    NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) AS OnTimePercentage
+    COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+    NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) AS OnTimePercentage
 FROM Projects p
 WHERE p.IsActive = 1 
     AND p.StartDate >= DATEADD(YEAR, -2, GETDATE())
@@ -277,7 +277,7 @@ SELECT
     (SUM(CASE WHEN JobLevel = 'Manager' THEN BaseSalary ELSE 0 END) * 100.0) / SUM(BaseSalary) AS ManagerPayrollPercent
 FROM Employees
 WHERE IsActive = 1
-GROUP BY DepartmentID
+GROUP BY DepartmentIDID
 HAVING COUNT(*) >= 5  -- Departments with sufficient sample size
 ORDER BY HighPerformerPercent DESC;
 ```
@@ -330,7 +330,7 @@ SELECT
 FROM Employees
 WHERE IsActive = 1  -- Filter applied before grouping
     AND HireDate >= '2020-01-01'
-GROUP BY DepartmentID;
+GROUP BY DepartmentIDID;
 
 -- 3. Use indexed computed columns for complex calculations
 ALTER TABLE Employees ADD TenureYears AS DATEDIFF(YEAR, HireDate, GETDATE()) PERSISTED;
@@ -348,13 +348,13 @@ CREATE INDEX IX_Employees_TenureYears ON Employees (TenureYears);
 ```sql
 -- Mistake 1: Non-aggregate columns not in GROUP BY
 SELECT DepartmentID, FirstName, COUNT(*)  -- ERROR: FirstName not in GROUP BY
-FROM Employees GROUP BY DepartmentID;
+FROM Employees GROUP BY DepartmentIDID;
 
 -- Mistake 2: Using WHERE instead of HAVING for group conditions
 SELECT DepartmentID, COUNT(*) AS EmployeeCount
 FROM Employees
 WHERE COUNT(*) > 5  -- ERROR: Can't use aggregate in WHERE
-GROUP BY DepartmentID;
+GROUP BY DepartmentIDID;
 -- CORRECT: Use HAVING COUNT(*) > 5
 
 -- Mistake 3: Forgetting NULL handling in aggregates
@@ -466,7 +466,7 @@ SELECT
         WHEN MonthlyRevenue > TwelveMonthAvg * 1.1 THEN 'Above Trend'
         WHEN MonthlyRevenue < TwelveMonthAvg * 0.9 THEN 'Below Trend'
         ELSE 'On Trend'
-    END AS TrendStatus
+    END AS TrendIsActive
 FROM TrendAnalysis
 ORDER BY YearMonth DESC;
 ```
@@ -501,8 +501,8 @@ WITH ExecutiveSummary AS (
         COUNT(p.ProjectID) AS Volume,
         AVG(p.Budget) AS AvgValue,
         SUM(p.Budget) AS TotalValue,
-        (COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0) / 
-        NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) AS CompletionRate
+        (COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0) / 
+        NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) AS CompletionRate
     FROM ProjectTypes pt
         LEFT JOIN Projects p ON pt.ProjectTypeID = p.ProjectTypeID AND p.IsActive = 1
     WHERE pt.IsActive = 1
@@ -548,16 +548,16 @@ SELECT
     -- Completeness checks
     COUNT(*) AS TotalRecords,
     COUNT(FirstName) AS RecordsWithFirstName,
-    COUNT(Email) AS RecordsWithEmail,
+    COUNT(WorkEmail) AS RecordsWithEmail,
     COUNT(BaseSalary) AS RecordsWithSalary,
     
     -- Quality percentages
     (COUNT(FirstName) * 100.0) / COUNT(*) AS FirstNameCompleteness,
-    (COUNT(Email) * 100.0) / COUNT(*) AS EmailCompleteness,
+    (COUNT(WorkEmail) * 100.0) / COUNT(*) AS EmailCompleteness,
     (COUNT(BaseSalary) * 100.0) / COUNT(*) AS SalaryCompleteness,
     
     -- Value validation
-    COUNT(CASE WHEN Email LIKE '%@%.%' THEN 1 END) AS ValidEmails,
+    COUNT(CASE WHEN WorkEmail LIKE '%@%.%' THEN 1 END) AS ValidEmails,
     COUNT(CASE WHEN BaseSalary > 0 AND BaseSalary <= 1000000 THEN 1 END) AS ReasonableSalaries,
     COUNT(CASE WHEN LEN(FirstName) >= 2 THEN 1 END) AS ValidFirstNames,
     
@@ -600,8 +600,8 @@ BEGIN
         
         -- Performance metrics
         COUNT(CASE WHEN e.PerformanceRating >= 4 THEN 1 END) * 100.0 / COUNT(e.EmployeeID) AS HighPerformerPercent,
-        COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 /
-        NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) AS OnTimeDeliveryPercent
+        COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 /
+        NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) AS OnTimeDeliveryPercent
     FROM Departments d
         LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID 
                                AND e.IsActive = 1
@@ -684,7 +684,7 @@ SELECT
     STDEV(BaseSalary) AS SalaryStdDev
 FROM Employees
 WHERE IsActive = 1
-GROUP BY DepartmentID, Department;
+GROUP BY DepartmentIDID, Department;
 
 -- Data warehouse preparation
 -- Star schema fact table aggregations

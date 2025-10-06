@@ -69,7 +69,7 @@ CREATE TABLE Employees (
 );
 
 -- Modify structure
-ALTER TABLE Employees ADD Email NVARCHAR(100);
+ALTER TABLE Employees ADD WorkEmail NVARCHAR(100);
 
 -- Remove objects
 DROP TABLE TempTable;
@@ -81,7 +81,7 @@ DROP TABLE TempTable;
 INSERT INTO Employees VALUES (1, 'John', 'Smith');
 
 -- Update records
-UPDATE Employees SET Email = 'john@techcorp.com' WHERE ID = 1;
+UPDATE Employees SET WorkEmail = 'john@techcorp.com' WHERE ID = 1;
 
 -- Delete records
 DELETE FROM Employees WHERE EmployeeID = 1;
@@ -244,7 +244,7 @@ CREATE PROCEDURE GetEmployeesByDept
     @DeptName NVARCHAR(50)
 AS
 BEGIN
-    SELECT * FROM Employees WHERE Department = @DeptName;
+    SELECT * FROM Employees WHERE DepartmentID = @DeptID;
 END;
 ```
 
@@ -268,7 +268,7 @@ FROM Employees;
 ```sql
 WHERE BaseSalary > 50000              -- Greater than
   AND HireDate <= '2023-01-01'    -- Less than or equal
-  AND Department <> 'HR'          -- Not equal
+  AND d.DepartmentName <> 'HR'          -- Not equal
   AND EmployeeID BETWEEN 100 AND 200  -- Range
   AND LastName LIKE 'Sm%'         -- Pattern matching
 ```
@@ -288,7 +288,7 @@ WHERE BaseSalary > 50000              -- Greater than
 SELECT 
     UPPER(FirstName) AS UpperFirst,
     LEN(LastName) AS LastNameLength,
-    SUBSTRING(Email, 1, CHARINDEX('@', Email) - 1) AS Username,
+    SUBSTRING(WorkEmail, 1, CHARINDEX('@', WorkEmail) - 1) AS Username,
     CONCAT(FirstName, ' ', LastName) AS FullName
 FROM Employees;
 ```
@@ -333,10 +333,10 @@ SELECT
     EmployeeID,          -- Unique employee identifier
     FirstName,           -- Employee first name
     LastName,            -- Employee last name
-    BaseSalary               -- Annual salary in USD
+    BaseSalary               -- Annual BaseSalary in USD
 FROM Employees
-WHERE Department = 'IT'  -- Filter for IT department only
-  AND BaseSalary > 70000;    -- High salary threshold
+WHERE d.DepartmentName = 'Engineering'  -- Filter for IT department only
+  AND BaseSalary > 70000;    -- High BaseSalary threshold
 ```
 
 **Documentation Standards**:
@@ -356,7 +356,7 @@ BEGIN TRY
     -- Potentially error-prone code
     UPDATE Employees 
     SET BaseSalary = BaseSalary * 1.10
-    WHERE Department = 'IT';
+    WHERE d.DepartmentName = 'Engineering';
     
     PRINT 'BaseSalary update completed successfully';
 END TRY
@@ -490,14 +490,14 @@ WHERE emp.IsActive = 1;
 
 **Financial Analysis**:
 ```sql
--- Department salary analysis
+-- Department BaseSalary analysis
 SELECT 
     Department,
     COUNT(*) AS EmployeeCount,
     AVG(BaseSalary) AS AverageSalary,
     SUM(BaseSalary) AS TotalPayroll
 FROM Employees
-GROUP BY Department
+GROUP BY DepartmentID
 ORDER BY TotalPayroll DESC;
 ```
 
@@ -515,12 +515,12 @@ SELECT FirstName, LastName;
 SELECT FirstName, LastName FROM Employees;
 
 -- Incorrect (mixing aggregate and non-aggregate)
-SELECT Department, FirstName, COUNT(*)
-FROM Employees GROUP BY Department;
+SELECT DepartmentID, FirstName, COUNT(*)
+FROM Employees GROUP BY DepartmentID;
 
 -- Correct
-SELECT Department, COUNT(*) AS EmployeeCount
-FROM Employees GROUP BY Department;
+SELECT DepartmentID, COUNT(*) AS EmployeeCount
+FROM Employees GROUP BY DepartmentID;
 ```
 
 **Logic Errors**:

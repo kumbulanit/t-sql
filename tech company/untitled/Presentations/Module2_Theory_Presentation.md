@@ -61,7 +61,7 @@
 #### **Declarative Nature of T-SQL**
 ```sql
 -- T-SQL: What you want (declarative)
-SELECT CustomerName, TotalOrders
+SELECT CompanyName, TotalOrders
 FROM Customers c
 JOIN (SELECT CustomerID, COUNT(*) as TotalOrders 
       FROM Orders GROUP BY CustomerID) o
@@ -136,9 +136,9 @@ DEALLOCATE customer_cursor;
 ```sql
 -- Mathematical: A ∪ B = {x | x ∈ A or x ∈ B}
 -- SQL Implementation:
-SELECT CustomerID, CustomerName FROM Customers_USA
+SELECT CustomerID, CompanyName FROM Customers_USA
 UNION
-SELECT CustomerID, CustomerName FROM Customers_Canada;
+SELECT CustomerID, CompanyName FROM Customers_Canada;
 
 -- Result: All customers from both USA and Canada (no duplicates)
 ```
@@ -189,7 +189,7 @@ FROM Colors CROSS JOIN Sizes;
 -- Mathematical: σ(condition)(R)
 -- Selects tuples that satisfy the condition
 SELECT * FROM Employees
-WHERE Department = 'Sales' AND BaseSalary > 50000;
+WHERE d.DepartmentName = 'Sales' AND BaseSalary > 50000;
 
 -- Result: Subset of employees meeting the criteria
 ```
@@ -269,7 +269,7 @@ CREATE TABLE Employees (
 -- Single column primary key
 CREATE TABLE Customers (
     CustomerID int IDENTITY(1,1) PRIMARY KEY,
-    CustomerName nvarchar(100) NOT NULL
+    CompanyName nvarchar(100) NOT NULL
 );
 
 -- Composite primary key
@@ -300,7 +300,7 @@ CREATE TABLE Orders (
 CREATE TABLE Employees (
     EmployeeID int PRIMARY KEY,         -- Primary key
     SSN char(11) UNIQUE NOT NULL,       -- Candidate key
-    Email nvarchar(100) UNIQUE NOT NULL, -- Candidate key
+    WorkEmail nvarchar(100) UNIQUE NOT NULL, -- Candidate key
     EmployeeNumber char(10) UNIQUE NOT NULL -- Candidate key
 );
 ```
@@ -391,7 +391,7 @@ Note: Physical execution may differ from logical order
 
 Example:
 ```sql
-WHERE salary > 50000 AND department = 'IT'
+WHERE e.BaseSalary > 50000 AND d.DepartmentName = 'Engineering'
 ```
 
 ---
@@ -407,8 +407,8 @@ WHERE salary > 50000 AND department = 'IT'
 
 Example:
 ```sql
-SELECT first_name + ' ' + last_name AS full_name,
-       salary * 1.1 AS projected_salary
+SELECT FirstName + ' ' + LastName AS full_name,
+       e.BaseSalary * 1.1 AS projected_salary
 ```
 
 ---
@@ -440,7 +440,7 @@ GROUP BY department, job_title
 
 Example:
 ```sql
-HAVING COUNT(*) > 5 AND AVG(salary) > 60000
+HAVING COUNT(*) > 5 AND AVG(e.BaseSalary) > 60000
 ```
 
 ---
@@ -456,7 +456,7 @@ HAVING COUNT(*) > 5 AND AVG(salary) > 60000
 
 Example:
 ```sql
-ORDER BY salary DESC, last_name ASC
+ORDER BY e.BaseSalary DESC, e.LastName ASC
 ```
 
 ---

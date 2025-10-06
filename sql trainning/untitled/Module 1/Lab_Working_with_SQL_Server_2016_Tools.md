@@ -201,8 +201,8 @@ INSERT INTO JsonDemo (CustomerData) VALUES
 -- Query JSON data
 SELECT 
     ID,
-    JSON_VALUE(CustomerData, '$.name') as CustomerName,
-    JSON_VALUE(CustomerData, '$.email') as Email,
+    JSON_VALUE(CustomerData, '$.name') as CompanyName,
+    JSON_VALUE(CustomerData, '$.email') as WorkEmail,
     JSON_QUERY(CustomerData, '$.orders') as OrdersArray,
     JSON_VALUE(CustomerData, '$.orders[0].amount') as FirstOrderAmount
 FROM JsonDemo;
@@ -267,7 +267,7 @@ FROM sys.column_encryption_keys;
 CREATE TABLE SecureCustomers (
     CustomerID int IDENTITY(1,1) PRIMARY KEY,
     Name nvarchar(100) NOT NULL,
-    Email nvarchar(255) NOT NULL,
+    WorkEmail nvarchar(255) NOT NULL,
     -- In real scenario, these would be encrypted
     CreditCardNumber nvarchar(19), -- Would be ENCRYPTED WITH clause
     SSN nvarchar(11) -- Would be ENCRYPTED WITH clause
@@ -470,7 +470,7 @@ CREATE TABLE HR.Employees (
     EmployeeID int IDENTITY(1,1) PRIMARY KEY,
     FirstName nvarchar(50) NOT NULL,
     LastName nvarchar(50) NOT NULL,
-    Email nvarchar(255) UNIQUE NOT NULL,
+    WorkEmail nvarchar(255) UNIQUE NOT NULL,
     HireDate date NOT NULL,
     DepartmentID int,
     ManagerID int,
@@ -484,13 +484,13 @@ CREATE TABLE Inventory.Products (
     ProductID int IDENTITY(1,1) PRIMARY KEY,
     ProductName nvarchar(100) NOT NULL,
     CategoryID int,
-    UnitPrice decimal(10,2) NOT NULL,
+    BaseSalary decimal(10,2) NOT NULL,
     UnitsInStock int DEFAULT 0,
     ReorderLevel int DEFAULT 10,
     Discontinued bit DEFAULT 0,
     
     INDEX IX_Products_Category (CategoryID),
-    INDEX IX_Products_Price (UnitPrice)
+    INDEX IX_Products_Price (BaseSalary)
 );
 
 CREATE TABLE Sales.Orders (
@@ -510,7 +510,7 @@ CREATE TABLE Sales.OrderDetails (
     OrderDetailID int IDENTITY(1,1) PRIMARY KEY,
     OrderID int NOT NULL,
     ProductID int NOT NULL,
-    UnitPrice decimal(10,2) NOT NULL,
+    BaseSalary decimal(10,2) NOT NULL,
     Quantity int NOT NULL,
     Discount float DEFAULT 0,
     
@@ -535,7 +535,7 @@ AS SNAPSHOT OF ArchitectureDemo;
 
 -- Test data modification and snapshot comparison
 USE ArchitectureDemo;
-INSERT INTO HR.Employees (FirstName, LastName, Email, HireDate, BaseSalary)
+INSERT INTO HR.Employees (FirstName, LastName, WorkEmail, HireDate, BaseSalary)
 VALUES 
 ('John', 'Doe', 'john.doe@company.com', '2024-01-15', 65000),
 ('Jane', 'Smith', 'jane.smith@company.com', '2024-02-01', 70000);
@@ -707,7 +707,7 @@ GO
 DECLARE @Counter int = 1;
 WHILE @Counter <= 1000
 BEGIN
-    INSERT INTO HR.Employees (FirstName, LastName, Email, HireDate, BaseSalary)
+    INSERT INTO HR.Employees (FirstName, LastName, WorkEmail, HireDate, BaseSalary)
     VALUES 
     (
         'Employee' + CAST(@Counter as varchar(10)),

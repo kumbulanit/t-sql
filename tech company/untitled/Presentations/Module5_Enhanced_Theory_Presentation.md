@@ -87,7 +87,7 @@ ORDER BY
     END,
     -- Tertiary: BaseSalary (highest first within same job level)
     e.BaseSalary DESC,
-    -- Quaternary: Hire date (seniority within same salary)
+    -- Quaternary: Hire date (seniority within same BaseSalary)
     e.HireDate ASC,
     -- Final: Last name for consistent ordering
     e.LastName;
@@ -108,7 +108,7 @@ SELECT
         WHEN UnitsInStock <= ReorderLevel THEN 'Low Stock'
         WHEN UnitsInStock > ReorderLevel * 2 THEN 'Overstocked'
         ELSE 'Normal Stock'
-    END AS StockStatus
+    END AS StockIsActive
 FROM Products
 ORDER BY 
     -- Critical items first
@@ -141,7 +141,7 @@ ORDER BY
 -- Using ISNULL for custom NULL ordering
 SELECT 
     CustomerID,
-    CustomerName,
+    CompanyName,
     LastOrderDate
 FROM Customers
 ORDER BY 
@@ -187,7 +187,7 @@ WHERE
     (e.Department IN ('Sales', 'Marketing', 'Customer Service')
      AND e.BaseSalary BETWEEN 40000 AND 80000)
     OR 
-    (e.Department = 'IT' 
+    (d.DepartmentName = 'Engineering' 
      AND e.JobTitle LIKE '%Senior%'
      AND e.HireDate >= '2020-01-01')
     OR
@@ -227,7 +227,7 @@ SELECT
     ProductName,
     CategoryName,
     SupplierName,
-    UnitPrice
+    BaseSalary
 FROM Products p
 JOIN Categories c ON p.CategoryID = c.CategoryID
 JOIN Suppliers s ON p.SupplierID = s.SupplierID
@@ -241,7 +241,7 @@ WHERE
 -- Subquery with IN for dynamic lists
 SELECT 
     CustomerID,
-    CustomerName,
+    CompanyName,
     Country
 FROM Customers
 WHERE Country IN (
@@ -259,7 +259,7 @@ SELECT
     FirstName,
     LastName,
     JobTitle,
-    Email
+    WorkEmail
 FROM Employees
 WHERE 
     -- Starts with pattern
@@ -275,7 +275,7 @@ WHERE
     LastName LIKE '[A-F]%'  -- Starts with A through F
     OR
     -- Character exclusion
-    Email LIKE '%[^0-9]@company.com'  -- No digits before @
+    WorkEmail LIKE '%[^0-9]@company.com'  -- No digits before @
 ORDER BY LastName, FirstName;
 ```
 
@@ -284,17 +284,17 @@ ORDER BY LastName, FirstName;
 -- Proper NULL checking
 SELECT 
     CustomerID,
-    CustomerName,
+    CompanyName,
     Phone,
     Fax,
-    Email
+    WorkEmail
 FROM Customers
 WHERE 
     -- Explicit NULL checks
     Phone IS NOT NULL
     AND Fax IS NULL  -- Customers without fax
-    AND Email IS NOT NULL
-    AND Email <> ''  -- Not empty string either
+    AND WorkEmail IS NOT NULL
+    AND WorkEmail <> ''  -- Not empty string either
     
     -- ISNULL for default values in comparisons
     AND ISNULL(Region, 'Unknown') <> 'Unknown';
@@ -313,24 +313,24 @@ WHERE
 SELECT TOP 10
     ProductID,
     ProductName,
-    UnitPrice,
+    BaseSalary,
     UnitsInStock
 FROM Products
-ORDER BY UnitPrice DESC;
+ORDER BY BaseSalary DESC;
 
 -- Percentage of rows
 SELECT TOP 25 PERCENT
     CustomerID,
-    CustomerName,
+    CompanyName,
     TotalOrders
 FROM (
     SELECT 
         c.CustomerID,
-        c.CustomerName,
+        c.CompanyName,
         COUNT(o.OrderID) AS TotalOrders
     FROM Customers c
     LEFT JOIN Orders o ON c.CustomerID = o.CustomerID
-    GROUP BY c.CustomerID, c.CustomerName
+    GROUP BY c.CustomerID, c.CompanyName
 ) AS CustomerStats
 ORDER BY TotalOrders DESC;
 ```
@@ -347,7 +347,7 @@ FROM Employees
 ORDER BY BaseSalary DESC;
 
 -- This might return more than 5 rows if multiple employees
--- have the same salary as the 5th highest salary
+-- have the same BaseSalary as the 5th highest BaseSalary
 ```
 
 ### OFFSET-FETCH: Modern Paging Solution
@@ -357,19 +357,19 @@ ORDER BY BaseSalary DESC;
 -- Page 1 (first 20 records)
 SELECT 
     CustomerID,
-    CustomerName,
+    CompanyName,
     Country,
     TotalOrders
 FROM (
     SELECT 
         c.CustomerID,
-        c.CustomerName,
+        c.CompanyName,
         c.Country,
         COUNT(o.OrderID) AS TotalOrders,
-        ROW_NUMBER() OVER (ORDER BY COUNT(o.OrderID) DESC, c.CustomerName) AS RowNum
+        ROW_NUMBER() OVER (ORDER BY COUNT(o.OrderID) DESC, c.CompanyName) AS RowNum
     FROM Customers c
     LEFT JOIN Orders o ON c.CustomerID = o.CustomerID
-    GROUP BY c.CustomerID, c.CustomerName, c.Country
+    GROUP BY c.CustomerID, c.CompanyName, c.Country
 ) AS CustomerStats
 ORDER BY RowNum
 OFFSET 0 ROWS FETCH NEXT 20 ROWS ONLY;
@@ -392,7 +392,7 @@ SELECT
     ProductID,
     ProductName,
     CategoryName,
-    UnitPrice,
+    BaseSalary,
     UnitsInStock
 FROM Products p
 JOIN Categories c ON p.CategoryID = c.CategoryID
@@ -416,7 +416,7 @@ WHERE Discontinued = 0;
 -- Create covering index for paging queries
 CREATE NONCLUSTERED INDEX IX_Products_Paging
 ON Products (Discontinued, ProductName)
-INCLUDE (ProductID, CategoryID, UnitPrice, UnitsInStock);
+INCLUDE (ProductID, CategoryID, BaseSalary, UnitsInStock);
 
 -- This index supports:
 -- 1. WHERE clause filtering on Discontinued
@@ -433,7 +433,7 @@ SELECT TOP 20
     ProductID,
     ProductName,
     CategoryName,
-    UnitPrice
+    BaseSalary
 FROM Products p
 JOIN Categories c ON p.CategoryID = c.CategoryID
 WHERE 
@@ -475,9 +475,9 @@ ORDER BY KEY_TBL.RANK DESC;
 -- Complex pattern matching scenarios
 SELECT 
     CustomerID,
-    CustomerName,
+    CompanyName,
     Phone,
-    Email
+    WorkEmail
 FROM Customers
 WHERE 
     -- Phone number patterns (various formats)
@@ -485,12 +485,12 @@ WHERE
      OR Phone LIKE '[0-9][0-9][0-9].[0-9][0-9][0-9].[0-9][0-9][0-9][0-9]'
      OR Phone LIKE '[0-9][0-9][0-9]-[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]')
     AND
-    -- Email validation pattern
-    Email LIKE '%_@_%.__%'
-    AND Email NOT LIKE '%..%'  -- No consecutive dots
-    AND Email NOT LIKE '.%'    -- Doesn't start with dot
-    AND Email NOT LIKE '%.'    -- Doesn't end with dot
-ORDER BY CustomerName;
+    -- WorkEmail validation pattern
+    WorkEmail LIKE '%_@_%.__%'
+    AND WorkEmail NOT LIKE '%..%'  -- No consecutive dots
+    AND WorkEmail NOT LIKE '.%'    -- Doesn't start with dot
+    AND WorkEmail NOT LIKE '%.'    -- Doesn't end with dot
+ORDER BY CompanyName;
 ```
 
 ### Case-Insensitive and Accent-Insensitive Searches
@@ -511,12 +511,12 @@ WHERE
 -- Accent-insensitive search
 SELECT 
     CustomerID,
-    CustomerName,
+    CompanyName,
     City
 FROM Customers
 WHERE 
     City COLLATE SQL_Latin1_General_CP1_CI_AI = 'montreal'  -- Matches Montréal
-ORDER BY CustomerName;
+ORDER BY CompanyName;
 ```
 
 #### **UPPER/LOWER Function Approach**
@@ -539,15 +539,15 @@ WHERE
 ```sql
 -- Computed column for normalized search
 ALTER TABLE Customers 
-ADD CustomerNameUpper AS UPPER(CustomerName) PERSISTED;
+ADD CompanyNameUpper AS UPPER(CompanyName) PERSISTED;
 
 CREATE INDEX IX_Customers_UpperName 
-ON Customers (CustomerNameUpper);
+ON Customers (CompanyNameUpper);
 
 -- Use the computed column for fast case-insensitive searches
-SELECT CustomerID, CustomerName, Country
+SELECT CustomerID, CompanyName, Country
 FROM Customers
-WHERE CustomerNameUpper LIKE UPPER('%SMITH%');
+WHERE CompanyNameUpper LIKE UPPER('%SMITH%');
 ```
 
 #### **Search Query Optimization**
@@ -563,7 +563,7 @@ SELECT
 FROM Employees e
 WHERE 
     -- Most selective filter first
-    e.Department = 'Sales'
+    e.d.DepartmentName = 'Sales'
     AND e.HireDate >= '2020-01-01'
     AND (
         e.LastName LIKE 'S%'  -- SARGable (Search ARGument able)
@@ -590,7 +590,7 @@ INCLUDE (EmployeeID, JobTitle);
 SELECT 
     o.OrderID,
     o.OrderDate,
-    c.CustomerName,
+    c.CompanyName,
     o.TotalAmount
 FROM Orders o
 JOIN Customers c ON o.CustomerID = c.CustomerID
@@ -607,7 +607,7 @@ INCLUDE (OrderID, CustomerID);
 
 CREATE INDEX IX_Customers_Country_Covering  
 ON Customers (Country)
-INCLUDE (CustomerID, CustomerName);
+INCLUDE (CustomerID, CompanyName);
 ```
 
 #### **Composite Index Column Ordering**
@@ -620,7 +620,7 @@ CREATE INDEX IX_Products_CategoryDiscontinued_Name
 ON Products (CategoryID, Discontinued, ProductName);
 
 -- This index efficiently supports:
-SELECT ProductID, ProductName, UnitPrice
+SELECT ProductID, ProductName, BaseSalary
 FROM Products 
 WHERE CategoryID = 1 AND Discontinued = 0
 ORDER BY ProductName;
@@ -633,18 +633,18 @@ ORDER BY ProductName;
 -- Query that requires sorting
 SELECT 
     CustomerID,
-    CustomerName,
+    CompanyName,
     TotalOrders
 FROM (
     SELECT 
         c.CustomerID,
-        c.CustomerName,
+        c.CompanyName,
         COUNT(o.OrderID) AS TotalOrders
     FROM Customers c
     LEFT JOIN Orders o ON c.CustomerID = o.CustomerID
-    GROUP BY c.CustomerID, c.CustomerName
+    GROUP BY c.CustomerID, c.CompanyName
 ) AS CustomerStats
-ORDER BY TotalOrders DESC, CustomerName;
+ORDER BY TotalOrders DESC, CompanyName;
 
 -- Index to eliminate sort operation
 CREATE INDEX IX_Orders_CustomerID 
@@ -652,7 +652,7 @@ ON Orders (CustomerID);
 
 -- The GROUP BY can use a hash aggregate, and if we create an index on the result:
 CREATE INDEX IX_CustomerStats_TotalOrders 
-ON CustomerStats (TotalOrders DESC, CustomerName);
+ON CustomerStats (TotalOrders DESC, CompanyName);
 -- (This would be on a materialized view or temp table)
 ```
 
@@ -721,14 +721,14 @@ WHERE OrderDate >= '2023-01-01' AND OrderDate < '2024-01-01';
 #### **Index Design for Sorting**
 ```sql
 -- Query requiring specific sort order
-SELECT ProductID, ProductName, UnitPrice
+SELECT ProductID, ProductName, BaseSalary
 FROM Products 
 WHERE CategoryID = 1
-ORDER BY UnitPrice DESC, ProductName;
+ORDER BY BaseSalary DESC, ProductName;
 
 -- Optimal index (matches WHERE and ORDER BY)
 CREATE INDEX IX_Products_Category_Price_Name
-ON Products (CategoryID, UnitPrice DESC, ProductName);
+ON Products (CategoryID, BaseSalary DESC, ProductName);
 
 -- This index provides:
 -- 1. Efficient filtering on CategoryID
@@ -757,7 +757,7 @@ OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;
 SELECT 
     -- Customer information
     c.CustomerID,
-    c.CustomerName,
+    c.CompanyName,
     c.Country,
     c.City,
     
@@ -783,7 +783,7 @@ WHERE
     
 GROUP BY 
     c.CustomerID,
-    c.CustomerName, 
+    c.CompanyName, 
     c.Country,
     c.City
     
@@ -794,7 +794,7 @@ HAVING
 ORDER BY 
     TotalRevenue DESC,
     TotalOrders DESC,
-    c.CustomerName;
+    c.CompanyName;
 ```
 
 This enhanced Module 5 presentation provides comprehensive coverage of sorting and filtering with detailed explanations, advanced techniques, performance considerations, and professional best practices that will give students a deep understanding of these fundamental SQL concepts.

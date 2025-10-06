@@ -86,7 +86,7 @@ CREATE TABLE Employees (
     FirstName NVARCHAR(50) NOT NULL,
     LastName NVARCHAR(50) NOT NULL,
     MiddleName NVARCHAR(50) NULL,
-    Email NVARCHAR(100) NOT NULL,
+    WorkEmail NVARCHAR(100) NOT NULL,
     DepartmentID INT NOT NULL,
     ManagerID INT NULL,
     BaseSalary DECIMAL(10,2) NOT NULL,
@@ -105,7 +105,7 @@ CREATE TABLE Projects (
     StartDate DATE NOT NULL,
     EndDate DATE NULL,
     Budget DECIMAL(10,2) NOT NULL,
-    Status NVARCHAR(20) NOT NULL,
+    IsActive NVARCHAR(20) NOT NULL,
     Priority NVARCHAR(10) NOT NULL DEFAULT 'Medium'
 );
 
@@ -145,7 +145,7 @@ INSERT INTO Departments (DepartmentName, DepartmentCode, Budget, Location) VALUE
 ('Sales & Marketing', 'SALES', 400000, 'Building B - Floor 4');
 
 -- Insert TechCorp employees (key team members for Module 2)
-INSERT INTO Employees (FirstName, LastName, MiddleName, Email, DepartmentID, ManagerID, BaseSalary, HireDate, Title, EmployeeType) VALUES
+INSERT INTO Employees (FirstName, LastName, MiddleName, WorkEmail, DepartmentID, ManagerID, BaseSalary, HireDate, Title, EmployeeType) VALUES
 ('Marcus', 'Johnson', 'Ray', 'marcus.johnson@techcorp.com', 1, NULL, 125000, '2019-01-15', 'Development Director', 'Full-Time'),
 ('Sarah', 'Chen', NULL, 'sarah.chen@techcorp.com', 1, 2001, 95000, '2020-03-10', 'Senior Developer', 'Full-Time'),
 ('David', 'Rodriguez', 'Luis', 'david.rodriguez@techcorp.com', 1, 2001, 88000, '2020-06-01', 'Backend Developer', 'Full-Time'),
@@ -158,7 +158,7 @@ INSERT INTO Employees (FirstName, LastName, MiddleName, Email, DepartmentID, Man
 ('Steven', 'Clark', 'Michael', 'steven.clark@techcorp.com', 7, NULL, 95000, '2019-08-22', 'Finance Director', 'Full-Time');
 
 -- Insert TechCorp client projects
-INSERT INTO Projects (ProjectName, ProjectCode, CompanyID, StartDate, EndDate, Budget, Status, Priority) VALUES
+INSERT INTO Projects (ProjectName, ProjectCode, CompanyID, StartDate, EndDate, Budget, IsActive, Priority) VALUES
 ('GlobalTech ERP Migration', 'GT-ERP-2024', 1001, '2024-01-15', '2024-08-30', 850000, 'In Progress', 'High'),
 ('StartupVenture Mobile App', 'SV-MOB-2024', 1002, '2024-02-01', '2024-06-15', 180000, 'In Progress', 'High'),
 ('MegaCorp Data Warehouse', 'MC-DW-2024', 1003, '2024-01-08', '2024-12-31', 1200000, 'In Progress', 'Critical'),
@@ -232,8 +232,8 @@ FROM Employees;
 -- Let's do some business math - calculate monthly salaries
 SELECT 
     FirstName + ' ' + LastName AS FullName,    -- Combine first and last name
-    BaseSalary,                                -- Annual salary  
-    BaseSalary / 12 AS MonthlySalary,         -- Calculate monthly salary
+    BaseSalary,                                -- Annual BaseSalary  
+    BaseSalary / 12 AS MonthlySalary,         -- Calculate monthly BaseSalary
     JobTitle
 FROM Employees;
 ```
@@ -241,13 +241,13 @@ FROM Employees;
 **💡 What This Means:**
 - `FirstName + ' ' + LastName` = Combines text together (called "concatenation")
 - `AS FullName` = Give this new column a name
-- `BaseSalary / 12` = Basic math - divide annual salary by 12 months
+- `BaseSalary / 12` = Basic math - divide annual BaseSalary by 12 months
 - You can create new columns that don't exist in the original table!
 
 **🎯 Success Check**: You should see:
 1. A list of all employees (Query #1)
 2. Just the basic info for each employee (Query #2)  
-3. Full names and monthly salary calculations (Query #3)
+3. Full names and monthly BaseSalary calculations (Query #3)
 
 **🚫 Common Beginner Mistakes:**
 - Forgetting the semicolon (;) at the end
@@ -265,7 +265,7 @@ FROM Employees;
 #### Exercise 1.2: Filtering Data
 Write queries to:
 
-1. Find all employees with salary greater than $70,000.
+1. Find all employees with BaseSalary greater than $70,000.
 
 2. Find all employees hired after January 1, 2021.
 
@@ -275,7 +275,7 @@ Write queries to:
 
 5. Find all employees with a middle name.
 
-6. Find all active employees with salary between $50,000 and $80,000.
+6. Find all active employees with BaseSalary between $50,000 and $80,000.
 
 #### Exercise 1.3: Advanced Filtering
 Write queries to:
@@ -284,7 +284,7 @@ Write queries to:
 
 2. Find employees hired in 2021 or 2022.
 
-3. Find employees with salary > $60,000 AND (in IT OR Marketing departments).
+3. Find employees with BaseSalary > $60,000 AND (in IT OR Marketing departments).
 
 4. Find employees whose last name ends with 'son' or 'er'.
 
@@ -295,7 +295,7 @@ Write queries to:
 
 1. **UNION**: Get a list of all first names from both Employees and a hypothetical Customers table (use Employees twice with different filters).
 
-2. **INTERSECT**: Find department IDs that have both high-salary employees (>$70k) and low-salary employees (<$60k).
+2. **INTERSECT**: Find department IDs that have both high-BaseSalary employees (>$70k) and low-BaseSalary employees (<$60k).
 
 3. **EXCEPT**: Find employees who are not assigned to any projects.
 
@@ -335,7 +335,7 @@ Write queries to:
 #### Exercise 3.2: Complex Predicates
 Write queries to:
 
-1. Find employees where (salary > $70k AND department is IT) OR (salary > $80k).
+1. Find employees where (BaseSalary > $70k AND department is IT) OR (BaseSalary > $80k).
 
 2. Find projects that are either completed OR have a budget > $100k.
 
@@ -361,7 +361,7 @@ For each query, explain the logical processing order:
    SELECT DepartmentID, AVG(BaseSalary) as AvgSalary
    FROM Employees
    WHERE IsActive = 1
-   GROUP BY DepartmentID
+   GROUP BY DepartmentIDID
    HAVING COUNT(*) > 2
    ORDER BY AvgSalary DESC;
    ```
@@ -387,7 +387,7 @@ Identify what's wrong with these queries and fix them:
    SELECT DepartmentID, COUNT(*) AS EmpCount
    FROM Employees
    WHERE EmpCount > 2
-   GROUP BY DepartmentID;
+   GROUP BY DepartmentIDID;
    ```
 
 #### Exercise 4.3: WHERE vs HAVING
@@ -395,7 +395,7 @@ Write queries using appropriate filtering:
 
 1. Find departments with more than 2 employees, showing only active employees.
 
-2. Find employees in departments where the average salary is > $65,000.
+2. Find employees in departments where the average BaseSalary is > $65,000.
 
 3. Show department statistics, but only for departments with budget > $250,000.
 
@@ -405,7 +405,7 @@ Write queries using appropriate filtering:
 Create a comprehensive department report showing:
 - Department name
 - Number of active employees
-- Average salary
+- Average BaseSalary
 - Highest and lowest salaries
 - Number of ongoing projects
 - Total project budget
@@ -424,7 +424,7 @@ Create a report showing:
 Create a query that shows:
 - Manager name
 - Number of direct reports
-- Average salary of direct reports
+- Average BaseSalary of direct reports
 - Highest-paid direct report
 - Only show managers with at least 2 direct reports
 

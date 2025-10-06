@@ -58,7 +58,7 @@ Write queries using multiple columns in ORDER BY.
 Practice sorting with expressions and conditional logic.
 
 ```sql
--- TODO: Sort products by total inventory value (UnitPrice * UnitsInStock) descending
+-- TODO: Sort products by total inventory value (BaseSalary * UnitsInStock) descending
 -- Handle NULL values appropriately
 
 
@@ -194,7 +194,7 @@ Work with NULL values in expressions and functions.
 ```sql
 -- TODO: Calculate total inventory value for all products
 -- Treat NULL stock as 0, NULL price as 0
--- Expected: Sum of (UnitPrice * UnitsInStock) with NULL handling
+-- Expected: Sum of (BaseSalary * UnitsInStock) with NULL handling
 
 
 -- TODO: Create a contact summary for customers
@@ -213,7 +213,7 @@ Complex NULL handling in real-world scenarios.
 ```sql
 -- TODO: Create a product availability report
 -- Show product name, current stock, on order, and availability status
--- Status: 'In Stock', 'Out of Stock', 'Stock Unknown', 'Discontinued'
+-- IsActive: 'In Stock', 'Out of Stock', 'Stock Unknown', 'Discontinued'
 
 
 -- TODO: Build a customer communication matrix

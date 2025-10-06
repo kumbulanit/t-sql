@@ -30,7 +30,7 @@ Create a query that shows the performance of employees on their current projects
 Build a comprehensive department analysis showing:
 - Department name, budget, and location
 - Number of active employees
-- Total salary expense and percentage of budget used
+- Total BaseSalary expense and percentage of budget used
 - Number of active projects and total project hours
 - Average employee utilization rate
 - Skills diversity score (count of unique skills in department)
@@ -42,7 +42,7 @@ Develop a skills analysis that combines market demand with internal supply:
 - Number of employees with this skill
 - Average years of experience across employees
 - Percentage of skilled employees who are certified
-- Average salary of employees with this skill
+- Average BaseSalary of employees with this skill
 - Skills gap indicator (high demand, low internal supply)
 - Only include skills where at least one employee is certified
 
@@ -87,7 +87,7 @@ Create a comprehensive employee status report using LEFT JOINs:
 Build a complete department overview including empty departments:
 - All departments (active and inactive)
 - Current headcount (0 if no employees)
-- Budget vs actual salary costs
+- Budget vs actual BaseSalary costs
 - Project portfolio size and status
 - Average employee efficiency across projects
 - Skills coverage within department

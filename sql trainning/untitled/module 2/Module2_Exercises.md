@@ -19,14 +19,14 @@ These exercises are designed to test your understanding of the core concepts cov
 - Full name as "LastName, FirstName MiddleInitial" (handle NULL middle names)
 - BaseSalary formatted with currency symbol and commas
 - Years of service as a whole number
-- Email domain only (part after @)
+- WorkEmail domain only (part after @)
 
-**Question 1.1.2**: Create a query that categorizes employees based on their salary ranges:
+**Question 1.1.2**: Create a query that categorizes employees based on their BaseSalary ranges:
 - "Entry Level": < $55,000
 - "Mid Level": $55,000 - $75,000  
 - "Senior Level": $75,000 - $90,000
 - "Executive": > $90,000
-Show employee name, salary, and category.
+Show employee name, BaseSalary, and category.
 
 **Question 1.1.3**: Write a query to find the employee(s) with the longest tenure in each department. Include department name, employee name, and years of service.
 
@@ -41,9 +41,9 @@ Show employee name, salary, and category.
 ### 2.1 Set Operations (6 points each)
 
 **Question 2.1.1**: Using set operations, create a report that shows:
-- All department names that either have a budget > $300,000 OR have employees with average salary > $70,000
+- All department names that either have a budget > $300,000 OR have employees with average BaseSalary > $70,000
 - Use UNION to combine these two conditions
-- Show department name and the reason (budget or salary) why it was included
+- Show department name and the reason (budget or BaseSalary) why it was included
 
 **Question 2.1.2**: Find employees who work on projects with the same status as their department's primary focus:
 - Use INTERSECT to find the overlap between employee project statuses and some business rule
@@ -67,13 +67,13 @@ Use appropriate set operations to create these categories.
 ### 2.2 Complex Predicates (6 points each)
 
 **Question 2.2.1**: Write a query with complex predicate logic to find employees who meet ALL of these criteria:
-- Hired after 2020 OR have salary > $80,000
+- Hired after 2020 OR have BaseSalary > $80,000
 - Work in departments with budget > $200,000
 - Either have no middle name OR their title contains "Director"
 - Are currently active
 
 **Question 2.2.2**: Create a query using EXISTS to find departments where:
-- At least one employee earns more than the department's average salary
+- At least one employee earns more than the department's average BaseSalary
 - At least one project is assigned to department employees
 - The department budget is justified by employee productivity
 
@@ -120,7 +120,7 @@ ORDER BY ProjectCount DESC;
 **Question 3.1.3**: Create a query that demonstrates the difference between WHERE and HAVING by:
 - Filtering employees hired after 2020 (use WHERE)
 - Grouping by department
-- Showing only departments with average salary > $65,000 (use HAVING)
+- Showing only departments with average BaseSalary > $65,000 (use HAVING)
 - Explain why each filter belongs in its respective clause
 
 ---
@@ -131,7 +131,7 @@ ORDER BY ProjectCount DESC;
 
 **Question 4.1.1**: **Management Dashboard Query**
 Create a single query that provides a management dashboard showing:
-- Department performance metrics (employee count, avg salary, project count)
+- Department performance metrics (employee count, avg BaseSalary, project count)
 - Resource utilization (total hours allocated vs worked across all projects)
 - Department ranking based on productivity
 - Identify departments that may need attention
@@ -141,7 +141,7 @@ Use multiple concepts: joins, aggregation, window functions, case statements, an
 Write a query to analyze career progression by:
 - Comparing employees' current roles with their hiring positions
 - Identifying promotion patterns within departments
-- Finding employees ready for advancement (based on tenure, performance, salary relative to peers)
+- Finding employees ready for advancement (based on tenure, performance, BaseSalary relative to peers)
 - Suggesting career development opportunities
 Use subqueries, CTEs, ranking functions, and complex predicates.
 

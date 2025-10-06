@@ -81,7 +81,7 @@ CREATE TABLE Employees (
 
 
 -- TODO: Write a query to display all employees with formatted output
--- Show salary with currency formatting, percentages with % symbol, and scores with 1 decimal place
+-- Show BaseSalary with currency formatting, percentages with % symbol, and scores with 1 decimal place
 
 -- Your solution here
 
@@ -274,10 +274,10 @@ CREATE TABLE Events (
 -- Orders table requirements:
 -- - OrderID, CustomerID, OrderDate, RequiredDate, ShippedDate
 -- - OrderTotal (precise currency), TaxRate, ShippingCost
--- - OrderStatus, Priority (appropriate numeric types)
+-- - OrderIsActive, Priority (appropriate numeric types)
 
 -- OrderItems table requirements:  
--- - OrderID, ProductID, Quantity, UnitPrice, Discount
+-- - OrderID, ProductID, Quantity, BaseSalary, Discount
 -- - LineTotal (computed), ItemWeight
 
 -- Your solution here
@@ -417,10 +417,10 @@ CREATE TABLE PerformanceTest_Suboptimal (
 ### Task 7.1: Implement Comprehensive Data Validation
 ```sql
 -- TODO: Create a robust validation system:
--- 1. Email format validation using CHECK constraints
+-- 1. WorkEmail format validation using CHECK constraints
 -- 2. Phone number format validation (multiple international formats)
 -- 3. Date range validation (no future birth dates, reasonable event dates)
--- 4. Numeric range validation (salary ranges, percentage limits)
+-- 4. Numeric range validation (BaseSalary ranges, percentage limits)
 -- 5. String format validation (product codes, postal codes)
 
 -- Your solution here
@@ -465,7 +465,7 @@ CREATE TABLE BadDataTypes (
     Price FLOAT,                        -- Should be DECIMAL
     EventDate VARCHAR(20),              -- Should be DATE
     PhoneNumber VARCHAR(50),            -- Inconsistent format
-    CustomerName VARCHAR(100)           -- Mixed case, extra spaces
+    CompanyName VARCHAR(100)           -- Mixed case, extra spaces
 );
 
 -- Insert sample bad data

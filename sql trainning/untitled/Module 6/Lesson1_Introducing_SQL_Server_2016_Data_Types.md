@@ -87,7 +87,7 @@ Data types define what kind of data can be stored in a column, variable, or para
 CREATE TABLE IntegerExamples (
     -- TINYINT: Perfect for small counts, ages, etc.
     Age TINYINT,                    -- 0-255, perfect for human age
-    StatusCode TINYINT,             -- 0-255, enough for status codes
+    IsActiveCode TINYINT,             -- 0-255, enough for status codes
     
     -- SMALLINT: Good for moderate-sized numbers
     YearFounded SMALLINT,           -- Years typically fit in SMALLINT
@@ -587,7 +587,7 @@ CREATE TABLE BestPracticesExample (
     
     -- 5. Use appropriate types for flags
     IsActive BIT,                   -- Simple boolean
-    StatusFlags TINYINT,            -- Multiple flags (bit operations)
+    IsActiveFlags TINYINT,            -- Multiple flags (bit operations)
     
     -- 6. Modern binary storage
     DocumentContent VARBINARY(MAX), -- Instead of IMAGE

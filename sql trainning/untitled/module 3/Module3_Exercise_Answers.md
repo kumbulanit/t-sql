@@ -19,7 +19,7 @@ SELECT
         ELSE ' ' 
     END + e.LastName AS [Employee Full Name],
     
-    -- Formatted salary as currency
+    -- Formatted BaseSalary as currency
     FORMAT(e.BaseSalary, 'C', 'en-US') AS [Annual BaseSalary],
     
     -- Calculate age in years
@@ -53,7 +53,7 @@ ORDER BY e.LastName, e.FirstName;
 ```sql
 SELECT 
     p.ProjectName AS [Project Name],
-    p.Status AS [Current Status],
+    p.IsActive AS [Current IsActive],
     
     -- Budget utilization percentage
     CASE 
@@ -154,17 +154,17 @@ SELECT
         ELSE 'Not Available'
     END AS [Phone Number],
     
-    e.Email AS [Email Address],
+    e.WorkEmail AS [WorkEmail Address],
     
     ISNULL(e.EmergencyContact, 'Not Provided') AS [Emergency Contact],
     
-    -- Email domain classification
+    -- WorkEmail domain classification
     CASE 
-        WHEN e.Email LIKE '%@company.com' THEN 'Corporate Email'
-        WHEN e.Email LIKE '%@gmail.com' OR e.Email LIKE '%@yahoo.com' 
-             OR e.Email LIKE '%@hotmail.com' THEN 'Personal Email'
+        WHEN e.WorkEmail LIKE '%@company.com' THEN 'Corporate WorkEmail'
+        WHEN e.WorkEmail LIKE '%@gmail.com' OR e.WorkEmail LIKE '%@yahoo.com' 
+             OR e.WorkEmail LIKE '%@hotmail.com' THEN 'Personal WorkEmail'
         ELSE 'Other Domain'
-    END AS [Email Type]
+    END AS [WorkEmail Type]
 FROM Employees e
 WHERE e.IsActive = 1
 ORDER BY e.LastName, e.FirstName;
@@ -229,8 +229,8 @@ WITH DataProfileAnalysis AS (
     
     UNION ALL
     
-    SELECT 'Employees', 'Email',
-           COUNT(*), COUNT(DISTINCT Email), COUNT(*) - COUNT(DISTINCT Email)
+    SELECT 'Employees', 'WorkEmail',
+           COUNT(*), COUNT(DISTINCT WorkEmail), COUNT(*) - COUNT(DISTINCT WorkEmail)
     FROM Employees
     
     UNION ALL
@@ -324,31 +324,31 @@ ORDER BY [Employee Count] DESC, [Full Location];
 **Answer 2.1.3**: Project Portfolio Diversity Analysis
 ```sql
 SELECT DISTINCT
-    p.Status AS [Project Status],
+    p.IsActive AS [Project IsActive],
     p.Priority AS [Priority Level],
     CASE 
         WHEN p.ClientName = 'Internal' THEN 'Internal'
         WHEN p.ClientName IS NOT NULL THEN 'External'
         ELSE 'Unspecified'
     END AS [Client Type],
-    COUNT(*) OVER (PARTITION BY p.Status, p.Priority, 
+    COUNT(*) OVER (PARTITION BY p.IsActive, p.Priority, 
                   CASE WHEN p.ClientName = 'Internal' THEN 'Internal'
                        WHEN p.ClientName IS NOT NULL THEN 'External'
                        ELSE 'Unspecified' END) AS [Project Count],
     CASE 
-        WHEN p.Status = 'In Progress' AND p.Priority = 'Critical' THEN 'Immediate Attention Required'
-        WHEN p.Status = 'In Progress' AND p.Priority = 'High' THEN 'Close Monitoring Needed'
-        WHEN p.Status = 'Completed' THEN 'Success Story'
+        WHEN p.IsActive = 'In Progress' AND p.Priority = 'Critical' THEN 'Immediate Attention Required'
+        WHEN p.IsActive = 'In Progress' AND p.Priority = 'High' THEN 'Close Monitoring Needed'
+        WHEN p.IsActive = 'Completed' THEN 'Success Story'
         ELSE 'Standard Management'
     END AS [Management Focus],
     CASE 
-        WHEN COUNT(*) OVER (PARTITION BY p.Status) >= 3 THEN 'Balanced Portfolio'
-        WHEN COUNT(*) OVER (PARTITION BY p.Status) = 1 THEN 'Limited Diversity'
+        WHEN COUNT(*) OVER (PARTITION BY p.IsActive) >= 3 THEN 'Balanced Portfolio'
+        WHEN COUNT(*) OVER (PARTITION BY p.IsActive) = 1 THEN 'Limited Diversity'
         ELSE 'Moderate Diversity'
     END AS [Portfolio Health]
 FROM Projects p
 ORDER BY 
-    CASE p.Status 
+    CASE p.IsActive 
         WHEN 'In Progress' THEN 1
         WHEN 'Completed' THEN 2
         ELSE 3
@@ -394,7 +394,7 @@ SkillGapAnalysis AS (
             WHEN [Certified Count] * 100.0 / NULLIF([Employee Count], 0) >= 50 THEN 'Moderate Certification Rate'
             WHEN [Certified Count] * 100.0 / NULLIF([Employee Count], 0) > 0 THEN 'Low Certification Rate'
             ELSE 'No Certifications'
-        END AS [Certification Status]
+        END AS [Certification IsActive]
     FROM SkillDiversityAnalysis
 )
 SELECT 
@@ -404,11 +404,11 @@ SELECT
     [Available Skills] AS [Skills Available],
     [Certified Count] AS [Certified Employees],
     [Coverage Assessment] AS [Risk Assessment],
-    [Certification Status] AS [Certification Level],
+    [Certification IsActive] AS [Certification Level],
     CASE 
         WHEN [Coverage Assessment] = 'Critical Skill Gap' THEN 'Immediate Hiring Priority'
         WHEN [Coverage Assessment] = 'Single Point of Failure' THEN 'Cross-Training Priority'
-        WHEN [Certification Status] = 'No Certifications' AND [Employee Count] > 0 
+        WHEN [Certification IsActive] = 'No Certifications' AND [Employee Count] > 0 
              THEN 'Certification Training Priority'
         ELSE 'Monitor and Maintain'
     END AS [Action Recommendation]
@@ -520,7 +520,7 @@ SELECT
 FROM Employees emp
 LEFT JOIN Departments dept ON emp.DepartmentID = dept.DepartmentID
 LEFT JOIN EmployeeProjects ep ON emp.EmployeeID = ep.EmployeeID
-LEFT JOIN Projects proj ON ep.ProjectID = proj.ProjectID AND proj.Status = 'In Progress';
+LEFT JOIN Projects proj ON ep.ProjectID = proj.ProjectID AND proj.IsActive = 'In Progress';
 ```
 
 **Explanation**: Executive-level metrics with professional business terminology, financial formatting, and strategic assessment categories.
@@ -581,7 +581,7 @@ ORDER BY COUNT(emp.EmployeeID) DESC;
 SELECT 
     proj.ProjectName AS [Project Title],
     proj.ProjectCode AS [Project Identifier],
-    proj.Status AS [Current Phase],
+    proj.IsActive AS [Current Phase],
     proj.Priority AS [Business Priority],
     
     -- Resource utilization with PM terminology
@@ -602,7 +602,7 @@ SELECT
         WHEN GETDATE() > proj.PlannedEndDate THEN 'Behind Schedule'
         WHEN DATEDIFF(DAY, GETDATE(), proj.PlannedEndDate) <= 30 THEN 'Approaching Deadline'
         ELSE 'On Track'
-    END AS [Schedule Performance Status],
+    END AS [Schedule Performance IsActive],
     
     -- Budget performance with financial terms
     FORMAT(proj.Budget, 'C0') AS [Approved Budget],
@@ -615,27 +615,27 @@ SELECT
     
     -- Risk assessment with standard classifications
     CASE 
-        WHEN proj.Status = 'In Progress' AND proj.ActualCost > proj.Budget * 0.9 
+        WHEN proj.IsActive = 'In Progress' AND proj.ActualCost > proj.Budget * 0.9 
              THEN 'Budget Risk'
-        WHEN proj.Status = 'In Progress' AND GETDATE() > proj.PlannedEndDate 
+        WHEN proj.IsActive = 'In Progress' AND GETDATE() > proj.PlannedEndDate 
              THEN 'Schedule Risk'
         WHEN proj.Priority = 'Critical' AND COUNT(DISTINCT ep.EmployeeID) < 3 
              THEN 'Resource Risk'
-        WHEN proj.Status = 'Completed' THEN 'Successfully Delivered'
+        WHEN proj.IsActive = 'Completed' THEN 'Successfully Delivered'
         ELSE 'Low Risk'
     END AS [Project Risk Category],
     
     -- Quality metrics using PM language
     CASE 
-        WHEN proj.Status = 'Completed' AND proj.ActualCost <= proj.Budget 
+        WHEN proj.IsActive = 'Completed' AND proj.ActualCost <= proj.Budget 
              AND proj.EndDate <= proj.PlannedEndDate 
              THEN 'Exemplary Delivery'
-        WHEN proj.Status = 'Completed' THEN 'Successful Delivery'
+        WHEN proj.IsActive = 'Completed' THEN 'Successful Delivery'
         ELSE 'In Progress'
     END AS [Delivery Quality Assessment]
 FROM Projects proj
 LEFT JOIN EmployeeProjects ep ON proj.ProjectID = ep.ProjectID
-GROUP BY proj.ProjectID, proj.ProjectName, proj.ProjectCode, proj.Status, 
+GROUP BY proj.ProjectID, proj.ProjectName, proj.ProjectCode, proj.IsActive, 
          proj.Priority, proj.StartDate, proj.EndDate, proj.PlannedEndDate, 
          proj.Budget, proj.ActualCost
 ORDER BY 
@@ -738,7 +738,7 @@ SELECT
         WHEN SUM(emp.BaseSalary) <= dept.Budget * 0.8 THEN 'Under Budget - Capacity Available'
         WHEN SUM(emp.BaseSalary) <= dept.Budget THEN 'Within Budget Allocation'
         ELSE 'Over Budget - Review Required'
-    END AS [Budget Variance Status],
+    END AS [Budget Variance IsActive],
     
     CAST(SUM(emp.BaseSalary) * 100.0 / dept.Budget AS DECIMAL(5,1)) AS [Budget Utilization Rate],
     
@@ -811,14 +811,14 @@ SELECT
     
     -- Base performance rating using multiple criteria
     CASE 
-        -- Exceptional performers (high tenure + high salary + active projects)
+        -- Exceptional performers (high tenure + high BaseSalary + active projects)
         WHEN DATEDIFF(YEAR, emp.HireDate, GETDATE()) >= 5 
              AND emp.BaseSalary >= 80000 
              AND COUNT(ep.ProjectID) >= 2 
              AND AVG(ep.HoursWorked / NULLIF(ep.HoursAllocated, 0)) >= 0.9
              THEN 'Exceptional Performer'
         
-        -- High performers (good tenure or salary + project success)
+        -- High performers (good tenure or BaseSalary + project success)
         WHEN (DATEDIFF(YEAR, emp.HireDate, GETDATE()) >= 3 AND emp.BaseSalary >= 70000)
              OR (COUNT(ep.ProjectID) >= 2 AND AVG(ep.HoursWorked / NULLIF(ep.HoursAllocated, 0)) >= 1.0)
              THEN 'High Performer'
@@ -1032,14 +1032,14 @@ PerformanceSegmentation AS (
             WHEN SkillCount >= 3 AND CertificationCount >= 1 THEN 'Professional Level Portfolio'
             WHEN SkillCount >= 2 THEN 'Developing Portfolio'
             ELSE 'Foundation Level - Skills Development Priority'
-        END AS SkillsPortfolioStatus,
+        END AS SkillsPortfolioIsActive,
         
         -- Career development pathway recommendations
         CASE 
             WHEN Title LIKE '%Director%' AND TenureYears >= 7 THEN 'Executive Development Track'
             WHEN (Title LIKE '%Senior%' OR Title LIKE '%Manager%') AND TenureYears >= 5 
                  THEN 'Leadership Development Track'
-            WHEN TenureYears >= 3 AND BaseSalary >= AVG(BaseSalary) OVER (PARTITION BY DepartmentName)
+            WHEN TenureYears >= 3 AND BaseSalary >= AVG(BaseSalary) OVER (PARTITION BY DepartmentIDName)
                  THEN 'Senior Professional Track'
             WHEN TenureYears >= 1 THEN 'Professional Development Track'
             ELSE 'Foundation Building Track'
@@ -1047,7 +1047,7 @@ PerformanceSegmentation AS (
         
         -- Retention risk assessment with actionable insights
         CASE 
-            WHEN TenureYears >= 5 AND BaseSalary < AVG(BaseSalary) OVER (PARTITION BY DepartmentName) * 0.9
+            WHEN TenureYears >= 5 AND BaseSalary < AVG(BaseSalary) OVER (PARTITION BY DepartmentIDName) * 0.9
                  THEN 'High Flight Risk - Compensation Below Market'
             WHEN ProjectCount = 0 AND TenureYears >= 1
                  THEN 'High Flight Risk - Lack of Engagement'
@@ -1084,14 +1084,14 @@ SELECT
     FORMAT(BaseSalary, 'C0') AS [Current Compensation],
     TenureYears AS [Years of Service],
     PerformanceSegment AS [Performance Classification],
-    SkillsPortfolioStatus AS [Skills Portfolio Assessment],
+    SkillsPortfolioIsActive AS [Skills Portfolio Assessment],
     CareerDevelopmentPath AS [Recommended Development Track],
     RetentionRiskAssessment AS [Retention Risk Analysis],
     SuccessionReadiness AS [Leadership Potential],
     
     -- ROI analysis for training and development investments
     CASE 
-        WHEN PerformanceSegment LIKE 'High Performer%' AND SkillsPortfolioStatus != 'Expert Level Portfolio'
+        WHEN PerformanceSegment LIKE 'High Performer%' AND SkillsPortfolioIsActive != 'Expert Level Portfolio'
              THEN 'High ROI - Advanced Skills Investment'
         WHEN PerformanceSegment LIKE 'Medium Performer%' AND SkillCount < 3
              THEN 'Medium ROI - Professional Development'

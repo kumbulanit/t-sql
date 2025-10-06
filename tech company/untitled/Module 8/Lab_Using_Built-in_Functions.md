@@ -52,7 +52,7 @@ WITH ExecutiveMetrics AS (
         
         -- Clean and standardize email addresses
         LOWER(TRIM(COALESCE(
-            NULLIF(e.Email, ''), 
+            NULLIF(e.WorkEmail, ''), 
             NULLIF(e.PersonalEmail, ''), 
             'no-email@techcorp.com'
         ))) AS StandardizedEmail,
@@ -64,7 +64,7 @@ WITH ExecutiveMetrics AS (
             ELSE COALESCE(e.Phone, 'Phone Not Available')
         END AS FormattedPhone,
         
-        -- CONVERSION FUNCTIONS: Professional salary and data formatting
+        -- CONVERSION FUNCTIONS: Professional BaseSalary and data formatting
         FORMAT(ISNULL(e.BaseSalary, 0), 'C') AS FormattedSalary,
         CAST(ISNULL(e.Commission, 0) AS DECIMAL(5,2)) AS CommissionDecimal,
         
@@ -89,7 +89,7 @@ WITH ExecutiveMetrics AS (
         -- MATHEMATICAL FUNCTIONS: Advanced compensation analysis
         ISNULL(e.BaseSalary, 0) * (1 + ISNULL(e.Commission, 0) / 100.0) AS EstimatedTotalComp,
         
-        -- Calculate compound annual salary growth (assuming 3% average)
+        -- Calculate compound annual BaseSalary growth (assuming 3% average)
         ISNULL(e.BaseSalary, 0) * POWER(1.03, DATEDIFF(YEAR, ISNULL(e.HireDate, GETDATE()), GETDATE())) AS ProjectedCurrentValue,
         
         -- Statistical ranking within department
@@ -247,22 +247,22 @@ ProjectAnalytics AS (
             THEN '⏰ On-Time Delivery'
             
             -- Active projects
-            WHEN p.Status = 'Active' 
+            WHEN p.IsActive = 'Active' 
                  AND COALESCE(p.StartDate, p.PlannedStartDate) <= GETDATE()
             THEN '🚀 Active Project'
             
             -- At-risk projects
-            WHEN p.Status = 'Active'
+            WHEN p.IsActive = 'Active'
                  AND (COALESCE(NULLIF(p.ActualCost, 0), 0) > COALESCE(NULLIF(p.Budget, 0), 1) * 0.8
                       OR GETDATE() > COALESCE(p.PlannedEndDate, DATEADD(YEAR, 1, GETDATE())))
             THEN '⚠️ At Risk'
             
             -- Planning phase
-            WHEN p.Status IN ('Planning', 'Proposed')
+            WHEN p.IsActive IN ('Planning', 'Proposed')
             THEN '📋 In Planning'
             
-            ELSE '❓ Status Review Needed'
-        END AS ProjectHealthStatus,
+            ELSE '❓ IsActive Review Needed'
+        END AS ProjectHealthIsActive,
         
         -- Client and type information
         COALESCE(c.CompanyName, 'Client TBD') AS ClientName,
@@ -309,8 +309,8 @@ SELECT
     CASE 
         WHEN (SELECT COUNT(*) FROM ExecutiveMetrics WHERE PerformanceCategory LIKE '%Development Opportunity%') > 0
         THEN '🔴 ALERT: ' + CAST((SELECT COUNT(*) FROM ExecutiveMetrics WHERE PerformanceCategory LIKE '%Development Opportunity%') AS VARCHAR) + ' employees need career development'
-        WHEN (SELECT COUNT(*) FROM ProjectAnalytics WHERE ProjectHealthStatus LIKE '%At Risk%') > 0
-        THEN '🟡 WARNING: ' + CAST((SELECT COUNT(*) FROM ProjectAnalytics WHERE ProjectHealthStatus LIKE '%At Risk%') AS VARCHAR) + ' projects at risk'
+        WHEN (SELECT COUNT(*) FROM ProjectAnalytics WHERE ProjectHealthIsActive LIKE '%At Risk%') > 0
+        THEN '🟡 WARNING: ' + CAST((SELECT COUNT(*) FROM ProjectAnalytics WHERE ProjectHealthIsActive LIKE '%At Risk%') AS VARCHAR) + ' projects at risk'
         ELSE '🟢 HEALTHY: All key metrics within normal ranges'
     END AS ExecutiveAlert,
     
@@ -355,11 +355,11 @@ SELECT
     FORMAT(EffectiveCost, 'C') AS TotalEmployeeCompensation,
     FORMAT(ProjectProfit, 'C') AS HighestPaidEmployee,
     ISNULL(FORMAT(ProjectROI, 'N1') + '%', 'ROI TBD') AS LargestProject,
-    ProjectHealthStatus AS ExecutiveAlert,
+    ProjectHealthIsActive AS ExecutiveAlert,
     CAST(ProjectAge AS VARCHAR) + ' days old' AS AverageProjectROI,
     ProjectCode AS AverageEmployeeTenure
 FROM ProjectAnalytics
-WHERE ProjectHealthStatus IN ('🌟 Strategic Success', '💰 High-Value Project', '⏰ On-Time Delivery')
+WHERE ProjectHealthIsActive IN ('🌟 Strategic Success', '💰 High-Value Project', '⏰ On-Time Delivery')
 
 ORDER BY ExecutiveSummary DESC;
 ```
@@ -655,10 +655,10 @@ WITH DataQualityAssessment AS (
         END AS FirstNameQuality,
         
         CASE 
-            WHEN e.Email IS NULL OR TRIM(e.Email) = '' THEN 'MISSING'
-            WHEN e.Email NOT LIKE '%_@_%._%' THEN 'INVALID_FORMAT'
-            WHEN LEN(e.Email) > 100 THEN 'TOO_LONG'
-            WHEN UPPER(e.Email) LIKE '%TEST%' OR UPPER(e.Email) LIKE '%SAMPLE%' THEN 'TEST_DATA'
+            WHEN e.WorkEmail IS NULL OR TRIM(e.WorkEmail) = '' THEN 'MISSING'
+            WHEN e.WorkEmail NOT LIKE '%_@_%._%' THEN 'INVALID_FORMAT'
+            WHEN LEN(e.WorkEmail) > 100 THEN 'TOO_LONG'
+            WHEN UPPER(e.WorkEmail) LIKE '%TEST%' OR UPPER(e.WorkEmail) LIKE '%SAMPLE%' THEN 'TEST_DATA'
             ELSE 'VALID'
         END AS EmailQuality,
         
@@ -702,7 +702,7 @@ WITH DataQualityAssessment AS (
         
         -- NULL FUNCTIONS: Completeness assessment
         CASE 
-            WHEN COALESCE(e.FirstName, e.LastName, e.Email, '') = '' THEN 'CRITICAL_DATA_MISSING'
+            WHEN COALESCE(e.FirstName, e.LastName, e.WorkEmail, '') = '' THEN 'CRITICAL_DATA_MISSING'
             WHEN e.DepartmentID IS NULL AND e.JobLevelID IS NULL THEN 'ORGANIZATIONAL_DATA_MISSING'
             WHEN e.DirectManagerID IS NULL AND e.JobLevelID > 1 THEN 'MANAGEMENT_STRUCTURE_INCOMPLETE'
             ELSE 'ADEQUATE'
@@ -719,7 +719,7 @@ WITH DataQualityAssessment AS (
         
         -- Overall record quality score (0-100)
         (CASE WHEN e.FirstName IS NOT NULL AND TRIM(e.FirstName) != '' AND e.FirstName NOT LIKE '%[0-9]%' THEN 15 ELSE 0 END +
-         CASE WHEN e.Email IS NOT NULL AND e.Email LIKE '%_@_%._%' THEN 20 ELSE 0 END +
+         CASE WHEN e.WorkEmail IS NOT NULL AND e.WorkEmail LIKE '%_@_%._%' THEN 20 ELSE 0 END +
          CASE WHEN e.Phone IS NOT NULL AND LEN(REPLACE(REPLACE(REPLACE(REPLACE(e.Phone, '(', ''), ')', ''), '-', ''), ' ', '')) = 10 THEN 10 ELSE 0 END +
          CASE WHEN e.BaseSalary IS NOT NULL AND e.BaseSalary > 0 THEN 20 ELSE 0 END +
          CASE WHEN e.HireDate IS NOT NULL AND e.HireDate <= GETDATE() THEN 15 ELSE 0 END +
@@ -735,8 +735,8 @@ WITH DataQualityAssessment AS (
                 ELSE ''
             END +
             CASE 
-                WHEN e.Email IS NULL OR e.Email NOT LIKE '%_@_%._%' 
-                THEN 'Email: Generate default email or request valid email; '
+                WHEN e.WorkEmail IS NULL OR e.WorkEmail NOT LIKE '%_@_%._%' 
+                THEN 'WorkEmail: Generate default email or request valid email; '
                 ELSE ''
             END +
             CASE 
@@ -781,12 +781,12 @@ WITH DataQualityAssessment AS (
             ELSE 'VALID'
         END AS EmailQuality,
         
-        -- Status validation
+        -- IsActive validation
         CASE 
-            WHEN p.Status IS NULL OR TRIM(p.Status) = '' THEN 'MISSING'
-            WHEN p.Status NOT IN ('Planning', 'Active', 'On Hold', 'Completed', 'Cancelled') THEN 'INVALID_STATUS'
-            WHEN p.Status = 'Completed' AND p.ActualEndDate IS NULL THEN 'INCOMPLETE_COMPLETION'
-            WHEN p.Status = 'Active' AND p.StartDate > GETDATE() THEN 'FUTURE_ACTIVE'
+            WHEN p.IsActive IS NULL OR TRIM(p.IsActive) = '' THEN 'MISSING'
+            WHEN p.IsActive NOT IN ('Planning', 'Active', 'On Hold', 'Completed', 'Cancelled') THEN 'INVALID_STATUS'
+            WHEN p.IsActive = 'Completed' AND p.ActualEndDate IS NULL THEN 'INCOMPLETE_COMPLETION'
+            WHEN p.IsActive = 'Active' AND p.StartDate > GETDATE() THEN 'FUTURE_ACTIVE'
             ELSE 'VALID'
         END AS PhoneQuality,
         
@@ -825,21 +825,21 @@ WITH DataQualityAssessment AS (
         
         -- Business rule consistency
         CASE 
-            WHEN p.Status = 'Completed' AND (p.ActualEndDate IS NULL OR p.ActualCost IS NULL) THEN 'INCOMPLETE_COMPLETION_DATA'
-            WHEN p.Status = 'Cancelled' AND p.ActualEndDate IS NULL THEN 'MISSING_CANCELLATION_DATE'
-            WHEN p.IsActive = 0 AND p.Status IN ('Active', 'Planning') THEN 'ACTIVE_STATUS_INACTIVE_FLAG'
+            WHEN p.IsActive = 'Completed' AND (p.ActualEndDate IS NULL OR p.ActualCost IS NULL) THEN 'INCOMPLETE_COMPLETION_DATA'
+            WHEN p.IsActive = 'Cancelled' AND p.ActualEndDate IS NULL THEN 'MISSING_CANCELLATION_DATE'
+            WHEN p.IsActive = 0 AND p.IsActive IN ('Active', 'Planning') THEN 'ACTIVE_STATUS_INACTIVE_FLAG'
             ELSE 'CONSISTENT'
         END AS BusinessRuleQuality,
         
         -- Project quality score
         (CASE WHEN p.ProjectName IS NOT NULL AND LEN(TRIM(p.ProjectName)) >= 5 THEN 15 ELSE 0 END +
          CASE WHEN p.Budget IS NOT NULL AND p.Budget > 0 THEN 20 ELSE 0 END +
-         CASE WHEN p.Status IN ('Planning', 'Active', 'On Hold', 'Completed', 'Cancelled') THEN 15 ELSE 0 END +
+         CASE WHEN p.IsActive IN ('Planning', 'Active', 'On Hold', 'Completed', 'Cancelled') THEN 15 ELSE 0 END +
          CASE WHEN p.StartDate IS NOT NULL THEN 15 ELSE 0 END +
          CASE WHEN p.CompanyID IS NOT NULL THEN 10 ELSE 0 END +
          CASE WHEN p.ProjectManagerID IS NOT NULL THEN 10 ELSE 0 END +
          CASE WHEN p.ProjectTypeID IS NOT NULL THEN 10 ELSE 0 END +
-         CASE WHEN p.IsActive = 1 OR (p.IsActive = 0 AND p.Status IN ('Completed', 'Cancelled')) THEN 5 ELSE 0 END
+         CASE WHEN p.IsActive = 1 OR (p.IsActive = 0 AND p.IsActive IN ('Completed', 'Cancelled')) THEN 5 ELSE 0 END
         ) AS QualityScore,
         
         -- Project cleaning recommendations
@@ -885,7 +885,7 @@ SELECT
     '' AS AvgQualityScore,
     '' AS CriticalIssues,
     '' AS RecommendedActions,
-    '' AS DataGovernanceStatus
+    '' AS DataGovernanceIsActive
 
 UNION ALL
 
@@ -933,7 +933,7 @@ SELECT
     (SELECT TOP 1 
         CASE 
             WHEN FirstNameQuality != 'VALID' THEN 'Name/Title Issues: ' + CAST(COUNT(*) AS VARCHAR)
-            WHEN EmailQuality != 'VALID' THEN 'Email Issues: ' + CAST(COUNT(*) AS VARCHAR)
+            WHEN EmailQuality != 'VALID' THEN 'WorkEmail Issues: ' + CAST(COUNT(*) AS VARCHAR)
             WHEN PhoneQuality != 'VALID' THEN 'Phone Issues: ' + CAST(COUNT(*) AS VARCHAR)
             WHEN SalaryQuality != 'VALID' THEN 'Financial Data Issues: ' + CAST(COUNT(*) AS VARCHAR)
             WHEN DateQuality != 'VALID' THEN 'Date Issues: ' + CAST(COUNT(*) AS VARCHAR)
@@ -946,7 +946,7 @@ SELECT
             OR SalaryQuality != 'VALID' OR DateQuality != 'VALID' OR CompletenessQuality != 'ADEQUATE')
      GROUP BY CASE 
          WHEN FirstNameQuality != 'VALID' THEN 'Name/Title'
-         WHEN EmailQuality != 'VALID' THEN 'Email'
+         WHEN EmailQuality != 'VALID' THEN 'WorkEmail'
          WHEN PhoneQuality != 'VALID' THEN 'Phone'
          WHEN SalaryQuality != 'VALID' THEN 'Financial'
          WHEN DateQuality != 'VALID' THEN 'Date'

@@ -57,13 +57,13 @@ SELECT
         WHEN 1 THEN 'Active'
         WHEN 0 THEN 'Inactive'
         ELSE 'Unknown'
-    END AS EmployeeStatus
+    END AS EmployeeIsActive
 FROM Employees;
 ```
 
 ### 2. Basic Searched CASE
 ```sql
--- Searched CASE for salary categorization
+-- Searched CASE for BaseSalary categorization
 SELECT 
     FirstName,
     LastName,
@@ -121,12 +121,12 @@ FROM Employees;
 SELECT 
     FirstName,
     LastName,
-    Email,
+    WorkEmail,
     CASE 
-        WHEN Email LIKE '%@company.com' THEN 'Internal Employee'
-        WHEN Email LIKE '%@contractor.%' THEN 'External Contractor'
-        WHEN Email IS NULL THEN 'No Email on File'
-        ELSE 'External Email'
+        WHEN WorkEmail LIKE '%@company.com' THEN 'Internal Employee'
+        WHEN WorkEmail LIKE '%@contractor.%' THEN 'External Contractor'
+        WHEN WorkEmail IS NULL THEN 'No WorkEmail on File'
+        ELSE 'External WorkEmail'
     END AS EmailType,
     CASE 
         WHEN LEN(FirstName) + LEN(LastName) > 20 THEN 
@@ -178,9 +178,9 @@ SELECT
 FROM Employees
 WHERE 
     CASE 
-        WHEN DepartmentID = 1 THEN BaseSalary >= 70000  -- IT requires higher salary
-        WHEN DepartmentID = 2 THEN BaseSalary >= 50000  -- HR standard salary
-        WHEN DepartmentID = 3 THEN BaseSalary >= 60000  -- Finance requires higher salary
+        WHEN DepartmentID = 1 THEN BaseSalary >= 70000  -- IT requires higher BaseSalary
+        WHEN DepartmentID = 2 THEN BaseSalary >= 50000  -- HR standard BaseSalary
+        WHEN DepartmentID = 3 THEN BaseSalary >= 60000  -- Finance requires higher BaseSalary
         ELSE BaseSalary >= 45000                        -- Other departments
     END = 1;
 
@@ -214,7 +214,7 @@ SELECT
         ELSE NULL 
     END) AS ActiveEmployeeAvgSalary
 FROM Employees
-GROUP BY DepartmentID;
+GROUP BY DepartmentIDID;
 ```
 
 ## Advanced Examples
@@ -299,7 +299,7 @@ SELECT
                     SELECT 1 FROM EmployeeProjects ep 
                     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
                     WHERE ep.EmployeeID = e.EmployeeID 
-                    AND p.Status = 'Completed'
+                    AND p.IsActive = 'Completed'
                     AND ep.HoursWorked <= ep.HoursAllocated
                 ) THEN e.BaseSalary * 0.15  -- Project completion bonus
                 ELSE e.BaseSalary * 0.08    -- Standard IT bonus
@@ -324,22 +324,22 @@ SELECT
     BaseSalary,
     DepartmentID,
     CASE 
-        WHEN RANK() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) = 1 
+        WHEN RANK() OVER (PARTITION BY DepartmentIDID ORDER BY BaseSalary DESC) = 1 
              THEN 'Department Top Earner'
-        WHEN RANK() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) <= 3 
+        WHEN RANK() OVER (PARTITION BY DepartmentIDID ORDER BY BaseSalary DESC) <= 3 
              THEN 'Department Top 3'
-        WHEN PERCENT_RANK() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary) >= 0.75 
+        WHEN PERCENT_RANK() OVER (PARTITION BY DepartmentIDID ORDER BY BaseSalary) >= 0.75 
              THEN 'Department Top Quartile'
-        WHEN PERCENT_RANK() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary) >= 0.5 
+        WHEN PERCENT_RANK() OVER (PARTITION BY DepartmentIDID ORDER BY BaseSalary) >= 0.5 
              THEN 'Department Above Median'
         ELSE 'Department Below Median'
     END AS SalaryPosition,
     CASE 
-        WHEN BaseSalary > AVG(BaseSalary) OVER (PARTITION BY DepartmentID) * 1.2 
+        WHEN BaseSalary > AVG(BaseSalary) OVER (PARTITION BY DepartmentIDID) * 1.2 
              THEN 'Significantly Above Dept Average'
-        WHEN BaseSalary > AVG(BaseSalary) OVER (PARTITION BY DepartmentID) 
+        WHEN BaseSalary > AVG(BaseSalary) OVER (PARTITION BY DepartmentIDID) 
              THEN 'Above Department Average'
-        WHEN BaseSalary < AVG(BaseSalary) OVER (PARTITION BY DepartmentID) * 0.8 
+        WHEN BaseSalary < AVG(BaseSalary) OVER (PARTITION BY DepartmentIDID) * 0.8 
              THEN 'Significantly Below Dept Average'
         ELSE 'Near Department Average'
     END AS SalaryComparison
@@ -355,14 +355,14 @@ SELECT
     p.ProjectName,
     CASE 
         WHEN ep.EmployeeID IS NULL THEN 'No Project Assignment'
-        WHEN p.Status = 'Completed' THEN 'Completed Project'
-        WHEN p.Status = 'In Progress' AND ep.HoursWorked > ep.HoursAllocated 
+        WHEN p.IsActive = 'Completed' THEN 'Completed Project'
+        WHEN p.IsActive = 'In Progress' AND ep.HoursWorked > ep.HoursAllocated 
              THEN 'Over-allocated on Active Project'
-        WHEN p.Status = 'In Progress' AND ep.HoursWorked < ep.HoursAllocated * 0.5 
+        WHEN p.IsActive = 'In Progress' AND ep.HoursWorked < ep.HoursAllocated * 0.5 
              THEN 'Under-utilized on Active Project'
-        WHEN p.Status = 'In Progress' THEN 'Actively Working'
-        ELSE 'Unknown Project Status'
-    END AS ProjectStatus,
+        WHEN p.IsActive = 'In Progress' THEN 'Actively Working'
+        ELSE 'Unknown Project IsActive'
+    END AS ProjectIsActive,
     CASE 
         WHEN ep.EmployeeID IS NOT NULL AND p.ProjectID IS NOT NULL THEN
             CASE 
@@ -374,7 +374,7 @@ SELECT
                 )
             END
         ELSE 'N/A'
-    END AS CompletionStatus
+    END AS CompletionIsActive
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
@@ -549,12 +549,12 @@ SELECT
     COUNT(CASE WHEN BaseSalary BETWEEN 40000 AND 70000 THEN 1 END) AS MidSalary,
     COUNT(CASE WHEN BaseSalary < 40000 THEN 1 END) AS LowSalary
 FROM Employees
-GROUP BY DepartmentID;
+GROUP BY DepartmentIDID;
 
 -- vs. Multiple separate queries (less efficient)
--- SELECT DepartmentID, COUNT(*) FROM Employees WHERE BaseSalary > 70000 GROUP BY DepartmentID;
--- SELECT DepartmentID, COUNT(*) FROM Employees WHERE BaseSalary BETWEEN 40000 AND 70000 GROUP BY DepartmentID;
--- SELECT DepartmentID, COUNT(*) FROM Employees WHERE BaseSalary < 40000 GROUP BY DepartmentID;
+-- SELECT DepartmentID, COUNT(*) FROM Employees WHERE BaseSalary > 70000 GROUP BY DepartmentIDID;
+-- SELECT DepartmentID, COUNT(*) FROM Employees WHERE BaseSalary BETWEEN 40000 AND 70000 GROUP BY DepartmentIDID;
+-- SELECT DepartmentID, COUNT(*) FROM Employees WHERE BaseSalary < 40000 GROUP BY DepartmentIDID;
 ```
 
 ### 2. Simple vs. Searched CASE Performance

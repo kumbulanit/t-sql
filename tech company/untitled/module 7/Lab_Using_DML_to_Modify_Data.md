@@ -30,7 +30,7 @@ GO
 
 -- Verify our complete schema foundation
 SELECT 
-    'TechCorp Database Status' as Status,
+    'TechCorp Database IsActive' as IsActive,
     DB_NAME() AS DatabaseName,
     GETDATE() AS Module7StartTime,
     SYSTEM_USER AS CurrentUser;
@@ -63,7 +63,7 @@ CREATE TABLE ClientContacts (
     FirstName NVARCHAR(50) NOT NULL,
     LastName NVARCHAR(50) NOT NULL,
     Title NVARCHAR(100) NOT NULL,
-    Email NVARCHAR(100) NOT NULL,
+    WorkEmail NVARCHAR(100) NOT NULL,
     Phone NVARCHAR(20) NULL,
     IsPrimary BIT NOT NULL DEFAULT 0,
     IsActive BIT NOT NULL DEFAULT 1,
@@ -81,7 +81,7 @@ CREATE TABLE ProjectPhases (
     EndDate DATE NULL,
     PlannedEndDate DATE NOT NULL,
     Budget DECIMAL(10,2) NOT NULL,
-    Status NVARCHAR(20) NOT NULL DEFAULT 'Planning',
+    IsActive NVARCHAR(20) NOT NULL DEFAULT 'Planning',
     CompletionPercentage DECIMAL(5,2) NOT NULL DEFAULT 0.00,
     FOREIGN KEY (ProjectID) REFERENCES Projects(ProjectID)
 );
@@ -141,12 +141,12 @@ CREATE TABLE Categories (
 -- - CategoryID: Foreign key to Categories
 -- - ProductName: Required, max 200 characters
 -- - Description: Optional, large text field
--- - UnitPrice: Required, currency with 2 decimal places
+-- - BaseSalary: Required, currency with 2 decimal places
 -- - UnitsInStock: Default to 0
 -- - ReorderLevel: Default to 10
 -- - IsDiscontinued: Default to false
 -- - SKU: Computed as 'PRD' + zero-padded ProductID (5 digits)
--- - StockStatus: Computed based on UnitsInStock vs ReorderLevel
+-- - StockIsActive: Computed based on UnitsInStock vs ReorderLevel
 -- - CreatedDate: Auto-populated
 
 CREATE TABLE Products (
@@ -185,7 +185,7 @@ CREATE TABLE Products (
 CREATE TYPE CustomerRegistrationType AS TABLE (
     FirstName NVARCHAR(50) NOT NULL,
     LastName NVARCHAR(50) NOT NULL,
-    Email NVARCHAR(100) NOT NULL,
+    WorkEmail NVARCHAR(100) NOT NULL,
     Phone NVARCHAR(20),
     DateOfBirth DATE,
     RegistrationSource NVARCHAR(50)
@@ -214,7 +214,7 @@ END;
 -- Test the bulk registration procedure
 DECLARE @TestCustomers CustomerRegistrationType;
 
-INSERT INTO @TestCustomers (FirstName, LastName, Email, Phone, DateOfBirth, RegistrationSource)
+INSERT INTO @TestCustomers (FirstName, LastName, WorkEmail, Phone, DateOfBirth, RegistrationSource)
 VALUES 
     ('John', 'Smith', 'john.smith@email.com', '555-0101', '1985-03-15', 'Website'),
     ('Jane', 'Doe', 'jane.doe@email.com', '555-0102', '1990-07-22', 'Mobile App'),
@@ -271,7 +271,7 @@ CREATE TABLE Regions (
 -- - RegionID: Foreign key to Regions (NULL for all regions)
 -- - MinQuantity: Minimum quantity for this price tier
 -- - MaxQuantity: Maximum quantity for this price tier (NULL for unlimited)
--- - UnitPrice: Price per unit for this tier
+-- - BaseSalary: Price per unit for this tier
 -- - EffectiveDate: When this pricing becomes active
 -- - ExpirationDate: When this pricing expires (NULL for indefinite)
 -- - IsActive: Whether this pricing rule is currently active
@@ -421,7 +421,7 @@ ALTER TABLE Customers ADD
 CREATE TABLE CustomerDataStaging (
     StagingID INT IDENTITY(1,1) PRIMARY KEY,
     CustomerID INT NULL, -- NULL for new customers
-    Email NVARCHAR(100) NOT NULL,
+    WorkEmail NVARCHAR(100) NOT NULL,
     FirstName NVARCHAR(50),
     LastName NVARCHAR(50),
     Phone NVARCHAR(20),
@@ -606,7 +606,7 @@ CREATE TABLE CustomersArchive (
     CustomerID INT NOT NULL,
     FirstName NVARCHAR(50),
     LastName NVARCHAR(50),
-    Email NVARCHAR(100),
+    WorkEmail NVARCHAR(100),
     Phone NVARCHAR(20),
     DateOfBirth DATE,
     RegistrationDate DATETIME2,
@@ -962,7 +962,7 @@ CREATE TABLE Orders (
     OrderID INT IDENTITY(1,1) PRIMARY KEY,
     CustomerID INT NOT NULL,
     OrderDate DATETIME2 DEFAULT SYSDATETIME(),
-    Status NVARCHAR(20) DEFAULT 'Pending',
+    IsActive NVARCHAR(20) DEFAULT 'Pending',
     SubTotal DECIMAL(12,2),
     TaxAmount DECIMAL(12,2),
     ShippingAmount DECIMAL(12,2),
@@ -981,9 +981,9 @@ CREATE TABLE OrderItems (
     OrderID INT NOT NULL,
     ProductID INT NOT NULL,
     Quantity INT NOT NULL,
-    UnitPrice DECIMAL(10,2) NOT NULL,
+    BaseSalary DECIMAL(10,2) NOT NULL,
     DiscountAmount DECIMAL(10,2) DEFAULT 0.00,
-    LineTotal AS ((Quantity * UnitPrice) - DiscountAmount) PERSISTED,
+    LineTotal AS ((Quantity * BaseSalary) - DiscountAmount) PERSISTED,
     FOREIGN KEY (OrderID) REFERENCES Orders(OrderID),
     FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
 );
@@ -1249,7 +1249,7 @@ CREATE TABLE TestResults (
     TestCategory NVARCHAR(50),
     Expected NVARCHAR(MAX),
     Actual NVARCHAR(MAX),
-    Status NVARCHAR(20), -- 'PASS', 'FAIL', 'ERROR'
+    IsActive NVARCHAR(20), -- 'PASS', 'FAIL', 'ERROR'
     ErrorMessage NVARCHAR(MAX),
     ExecutionTime INT,
     TestDate DATETIME2 DEFAULT SYSDATETIME()
@@ -1306,9 +1306,9 @@ EXEC RunAllDMLTests;
 SELECT 
     TestCategory,
     COUNT(*) AS TotalTests,
-    SUM(CASE WHEN Status = 'PASS' THEN 1 ELSE 0 END) AS PassedTests,
-    SUM(CASE WHEN Status = 'FAIL' THEN 1 ELSE 0 END) AS FailedTests,
-    SUM(CASE WHEN Status = 'ERROR' THEN 1 ELSE 0 END) AS ErrorTests,
+    SUM(CASE WHEN IsActive = 'PASS' THEN 1 ELSE 0 END) AS PassedTests,
+    SUM(CASE WHEN IsActive = 'FAIL' THEN 1 ELSE 0 END) AS FailedTests,
+    SUM(CASE WHEN IsActive = 'ERROR' THEN 1 ELSE 0 END) AS ErrorTests,
     AVG(ExecutionTime) AS AvgExecutionTimeMS
 FROM TestResults
 GROUP BY TestCategory

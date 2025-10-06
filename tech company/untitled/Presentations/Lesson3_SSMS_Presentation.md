@@ -111,7 +111,7 @@ Authentication: Windows Authentication
 -- IntelliSense example
 SELECT e.FirstName, e.LastName
 FROM Employees e
-WHERE e.Department = 'IT';
+WHERE d.DepartmentName = 'Engineering';
 ```
 
 **Productivity Tools**:

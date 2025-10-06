@@ -32,7 +32,7 @@
 -- Complex string operations
 SELECT 
     -- Extract domain from email
-    RIGHT(Email, LEN(Email) - CHARINDEX('@', Email)) AS Domain,
+    RIGHT(WorkEmail, LEN(WorkEmail) - CHARINDEX('@', WorkEmail)) AS Domain,
     
     -- Clean phone numbers
     REPLACE(REPLACE(REPLACE(PhoneNumber, '(', ''), ')', ''), '-', '') AS CleanPhone,
@@ -70,7 +70,7 @@ CROSS APPLY STRING_SPLIT(SkillsList, ',')
 WHERE TRIM(value) <> '';
 
 -- Advanced LIKE patterns with ESCAPE
-SELECT * FROM Products
+SELECT CustomerID, CompanyName FROM Customers
 WHERE ProductName LIKE '%50\% Off%' ESCAPE '\';
 ```
 
@@ -86,12 +86,12 @@ SELECT
     STRING_AGG(FirstName + ' ' + LastName, '; ') WITHIN GROUP (ORDER BY LastName) AS EmployeeList
 FROM Employees
 WHERE IsActive = 1
-GROUP BY DepartmentID;
+GROUP BY DepartmentIDID;
 
 -- JSON functions (SQL Server 2016+)
 SELECT 
     EmployeeID,
-    JSON_VALUE(ContactInfo, '$.email') AS Email,
+    JSON_VALUE(ContactInfo, '$.email') AS WorkEmail,
     JSON_VALUE(ContactInfo, '$.phone') AS Phone,
     JSON_QUERY(ContactInfo, '$.address') AS Address
 FROM Employees
@@ -311,12 +311,12 @@ SELECT
     DepartmentID,
     
     -- Ranking functions
-    ROW_NUMBER() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) AS SalaryRank,
+    ROW_NUMBER() OVER (PARTITION BY DepartmentIDID ORDER BY BaseSalary DESC) AS SalaryRank,
     RANK() OVER (ORDER BY BaseSalary DESC) AS OverallRank,
     DENSE_RANK() OVER (ORDER BY YEAR(HireDate)) AS HireYearRank,
     
     -- Aggregate window functions
-    AVG(BaseSalary) OVER (PARTITION BY DepartmentID) AS DeptAvgSalary,
+    AVG(BaseSalary) OVER (PARTITION BY DepartmentIDID) AS DeptAvgSalary,
     SUM(BaseSalary) OVER (ORDER BY EmployeeID ROWS UNBOUNDED PRECEDING) AS RunningTotal,
     
     -- Lead/Lag functions
@@ -349,9 +349,9 @@ END CATCH
 -- Validation functions
 SELECT 
     EmployeeID,
-    Email,
+    WorkEmail,
     CASE 
-        WHEN Email LIKE '%@%.%' AND CHARINDEX(' ', Email) = 0 
+        WHEN WorkEmail LIKE '%@%.%' AND CHARINDEX(' ', WorkEmail) = 0 
         THEN 'Valid'
         ELSE 'Invalid'
     END AS EmailValidation,
@@ -586,7 +586,7 @@ SELECT
     STRING_AGG(FirstName + ' ' + LastName, ', ') AS EmployeeList
 FROM Employees
 WHERE IsActive = 1
-GROUP BY DepartmentID;
+GROUP BY DepartmentIDID;
 ```
 
 ---

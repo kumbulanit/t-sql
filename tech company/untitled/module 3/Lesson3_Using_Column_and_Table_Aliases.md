@@ -64,7 +64,7 @@ SELECT
     FirstName + ' ' + LastName AS FullName,
     UPPER(FirstName) AS UpperFirstName,
     LEN(FirstName) AS FirstNameLength,
-    LEFT(Email, CHARINDEX('@', Email) - 1) AS Username
+    LEFT(WorkEmail, CHARINDEX('@', WorkEmail) - 1) AS Username
 FROM Employees;
 ```
 
@@ -123,7 +123,7 @@ FROM Employees emp
 LEFT JOIN Employees mgr ON emp.ManagerID = mgr.EmployeeID
 ORDER BY mgr.LastName, emp.LastName;
 
--- Find employees with the same salary
+-- Find employees with the same BaseSalary
 SELECT 
     e1.FirstName + ' ' + e1.LastName AS Employee1,
     e2.FirstName + ' ' + e2.LastName AS Employee2,
@@ -188,7 +188,7 @@ SELECT
         WHEN ep.HoursWorked > ep.HoursAllocated THEN 'Over Allocated'
         WHEN ep.HoursWorked = ep.HoursAllocated THEN 'On Track'
         ELSE 'Under Allocated'
-    END AS ProjectStatus,
+    END AS ProjectIsActive,
     ROUND(ep.HoursWorked / ep.HoursAllocated * 100, 2) AS CompletionPercentage,
     mgr.FirstName + ' ' + mgr.LastName AS DirectManager
 FROM Employees emp
@@ -245,26 +245,27 @@ DepartmentBenchmarks AS (
         AVG(TenureInMonths) AS DepartmentAverageTenure,
         AVG(TotalHoursWorked) AS DepartmentAverageHours
     FROM EmployeePerformanceMetrics
-    GROUP BY Department
+    GROUP BY DepartmentID
 )
 SELECT 
-    epm.FullName AS EmployeeName,
-    epm.Department AS DepartmentName,
-    epm.BaseSalary AS CurrentSalary,
-    FORMAT(epm.BaseSalary, 'C') AS FormattedSalary,
-    epm.TenureInMonths AS MonthsEmployed,
-    epm.ActiveProjects AS ProjectCount,
-    epm.TotalHoursWorked AS HoursWorked,
-    db.DepartmentAverageSalary AS DeptAvgSalary,
-    epm.BaseSalary - db.DepartmentAverageSalary AS SalaryDifferenceFromAvg,
+    emp.FirstName + ' ' + emp.LastName AS EmployeeName,
+    d.DepartmentName AS DepartmentName,
+    emp.BaseSalary AS CurrentSalary,
+    FORMAT(emp.BaseSalary, 'C') AS FormattedSalary,
+    DATEDIFF(MONTH, emp.HireDate, GETDATE()) AS MonthsEmployed,
+    emp.ProjectCount AS ProjectCount,
+    emp.BaseSalary * 2080 AS EstimatedAnnualHours, -- Assuming 40 hrs/week * 52 weeks
+    AVG(emp2.BaseSalary) OVER (PARTITION BY d.DepartmentID) AS DeptAvgSalary,
+    emp.BaseSalary - AVG(emp2.BaseSalary) OVER (PARTITION BY d.DepartmentID) AS SalaryDifferenceFromAvg,
     CASE 
-        WHEN epm.BaseSalary > db.DepartmentAverageSalary * 1.2 THEN 'Above Market'
-        WHEN epm.BaseSalary < db.DepartmentAverageSalary * 0.8 THEN 'Below Market'
+        WHEN emp.BaseSalary > AVG(emp2.BaseSalary) OVER (PARTITION BY d.DepartmentID) * 1.2 THEN 'Above Market'
+        WHEN emp.BaseSalary < AVG(emp2.BaseSalary) OVER (PARTITION BY d.DepartmentID) * 0.8 THEN 'Below Market'
         ELSE 'Market Rate'
     END AS SalaryPosition
-FROM EmployeePerformanceMetrics epm
-INNER JOIN DepartmentBenchmarks db ON epm.Department = db.Department
-ORDER BY epm.Department, epm.BaseSalary DESC;
+FROM Employees emp
+INNER JOIN Departments d ON emp.DepartmentID = d.DepartmentID
+CROSS JOIN Employees emp2 -- For calculating department averages
+ORDER BY d.DepartmentName, emp.BaseSalary DESC;
 ```
 
 ### 4. Dynamic Aliases with Pivot Operations
@@ -503,9 +504,9 @@ ORDER BY d.DepartmentName, e.LastName;
 -- Prepare data for export with clean column names
 SELECT 
     e.EmployeeID AS employee_id,
-    e.FirstName AS first_name,
-    e.LastName AS last_name,
-    e.Email AS email_address,
+    e.FirstName AS FirstName,
+    e.LastName AS LastName,
+    e.WorkEmail AS email_address,
     d.DepartmentName AS department,
     e.Title AS job_title,
     e.BaseSalary AS annual_salary,

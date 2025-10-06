@@ -82,7 +82,7 @@ ORDER BY OrderDate DESC;
 
 ### TOP with Percentage
 ```sql
--- Get top 10% of employees by salary
+-- Get top 10% of employees by BaseSalary
 SELECT TOP (10) PERCENT
     FirstName,
     LastName,
@@ -108,13 +108,13 @@ DECLARE @TopPercent FLOAT = 15.5;
 -- Using variable for count
 SELECT TOP (@TopCount)
     ProductName,
-    UnitPrice
+    BaseSalary
 FROM Products
-ORDER BY UnitPrice DESC;
+ORDER BY BaseSalary DESC;
 
 -- Using variable for percentage
 SELECT TOP (@TopPercent) PERCENT
-    CustomerName,
+    CompanyName,
     TotalOrders
 FROM CustomerSummary
 ORDER BY TotalOrders DESC;
@@ -297,12 +297,12 @@ SELECT
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.Status = 'Active'
+LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'Active'
 WHERE e.IsActive = 1
 GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.BaseSalary, d.DepartmentName
 ORDER BY 
     ActiveProjects DESC,      -- Most active employees first
-    BaseSalary DESC,              -- Then by salary
+    BaseSalary DESC,              -- Then by BaseSalary
     LastName,                 -- Then alphabetically
     FirstName
 OFFSET 20 ROWS
@@ -521,7 +521,7 @@ ORDER BY RowNum;
 
 ### Top N Analysis
 ```sql
--- Top 5 departments by average salary
+-- Top 5 departments by average BaseSalary
 SELECT TOP (5)
     d.DepartmentName,
     COUNT(e.EmployeeID) AS EmployeeCount,
@@ -601,7 +601,7 @@ FETCH NEXT 10 ROWS ONLY;
 SELECT TOP (10) WITH TIES
     FirstName, LastName, BaseSalary
 FROM Employees
-ORDER BY BaseSalary DESC;  -- Includes all employees tied at 10th place salary
+ORDER BY BaseSalary DESC;  -- Includes all employees tied at 10th place BaseSalary
 ```
 
 ## Summary

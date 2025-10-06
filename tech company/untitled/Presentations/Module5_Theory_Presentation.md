@@ -36,7 +36,7 @@ ORDER BY BaseSalary DESC, LastName ASC;
 ORDER BY LastName
 
 -- Multiple columns with different directions
-ORDER BY Department ASC, BaseSalary DESC, HireDate ASC
+ORDER BY DepartmentID ASC, BaseSalary DESC, HireDate ASC
 
 -- Sort by column position (not recommended)
 ORDER BY 2, 3
@@ -84,7 +84,7 @@ ORDER BY
 ```sql
 SELECT FirstName, LastName, BaseSalary
 FROM Employees
-WHERE Department = 'IT' 
+WHERE d.DepartmentName = 'Engineering' 
     AND BaseSalary > 50000 
     AND IsActive = 1;
 ```
@@ -97,7 +97,7 @@ WHERE Department = 'IT'
 ```sql
 -- Equality and inequality
 WHERE BaseSalary = 50000
-WHERE Department <> 'IT'
+WHERE d.DepartmentName <> 'Engineering'
 WHERE HireDate != '2020-01-01'
 
 -- Relational operators
@@ -180,17 +180,17 @@ WHERE COALESCE(Bonus, 0) + BaseSalary > 50000
 
 ```sql
 -- AND (both conditions must be TRUE)
-WHERE Department = 'IT' AND BaseSalary > 50000
+WHERE d.DepartmentName = 'Engineering' AND BaseSalary > 50000
 
 -- OR (either condition can be TRUE)
-WHERE Department = 'IT' OR Department = 'HR'
+WHERE d.DepartmentName = 'Engineering' OR d.DepartmentName = 'HR'
 
 -- NOT (negates condition)
-WHERE NOT (Department = 'IT')
+WHERE NOT (d.DepartmentName = 'Engineering')
 WHERE NOT Department IN ('IT', 'HR')
 
 -- Precedence (use parentheses for clarity)
-WHERE (Department = 'IT' OR Department = 'HR') 
+WHERE (Department = 'IT' OR d.DepartmentName = 'HR') 
     AND BaseSalary > 50000
 ```
 
@@ -256,7 +256,7 @@ WHERE HireDate >= '2020-01-01' AND HireDate < '2021-01-01'
 -- String manipulation
 WHERE LEN(FirstName) > 5
 WHERE UPPER(LastName) = 'SMITH'
-WHERE CHARINDEX('@company.com', Email) > 0
+WHERE CHARINDEX('@company.com', WorkEmail) > 0
 
 -- Mathematical conditions
 WHERE BaseSalary % 1000 = 0  -- BaseSalary is multiple of 1000
@@ -402,7 +402,7 @@ SELECT
     Department,
     BaseSalary,
     ROW_NUMBER() OVER (
-        PARTITION BY Department 
+        PARTITION BY DepartmentID 
         ORDER BY BaseSalary DESC
     ) AS DeptSalaryRank
 FROM Employees
@@ -481,7 +481,7 @@ DECLARE @MinSalary MONEY = NULL;
 
 SELECT FirstName, LastName, Department, BaseSalary
 FROM Employees
-WHERE (@Department IS NULL OR Department = @Department)
+WHERE (@Department IS NULL OR d.DepartmentName = @Department)
     AND (@MinSalary IS NULL OR BaseSalary >= @MinSalary)
     AND IsActive = 1;
 

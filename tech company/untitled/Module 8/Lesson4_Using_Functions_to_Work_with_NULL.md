@@ -10,7 +10,7 @@ As TechCorp Solutions has grown into a sophisticated consulting firm, data quali
 
 - **Missing Client Information**: Not all companies provide complete contact details
 - **Incomplete Project Data**: Some projects have missing budget estimates or end dates
-- **Employee Records**: Historical data may have gaps in salary or contact information
+- **Employee Records**: Historical data may have gaps in BaseSalary or contact information
 - **System Integration**: Different systems may use different conventions for missing data
 - **Reporting Reliability**: Reports must handle missing data professionally and accurately
 
@@ -62,7 +62,7 @@ SELECT
     ISNULL(e.FirstName, 'Not Provided') + ' ' + ISNULL(e.LastName, 'Not Provided') AS EmployeeName,
     
     -- Handle missing contact information professionally
-    ISNULL(e.Email, 'Email Not Available') AS EmailAddress,
+    ISNULL(e.WorkEmail, 'WorkEmail Not Available') AS EmailAddress,
     ISNULL(e.Phone, 'Phone Not Available') AS PhoneNumber,
     ISNULL(e.Address, 'Address Not Provided') AS Address,
     
@@ -93,17 +93,17 @@ SELECT
         ELSE DATEDIFF(YEAR, ISNULL(e.HireDate, '1900-01-01'), GETDATE())
     END AS YearsOfService,
     
-    -- Status with NULL-safe logic
+    -- IsActive with NULL-safe logic
     CASE 
         WHEN e.IsActive = 1 THEN 'Active'
         WHEN e.IsActive = 0 THEN 'Inactive'
-        ELSE 'Status Unknown'
+        ELSE 'IsActive Unknown'
     END +
     CASE 
         WHEN e.TerminationDate IS NOT NULL 
         THEN ' (Terminated: ' + CONVERT(VARCHAR, e.TerminationDate, 101) + ')'
         ELSE ''
-    END AS EmploymentStatus,
+    END AS EmploymentIsActive,
     
     -- Emergency contact handling
     ISNULL(e.EmergencyContactName, 'No Emergency Contact') AS EmergencyContact,
@@ -172,8 +172,8 @@ SELECT
         ELSE 'Duration Unknown'
     END AS ActualDuration,
     
-    -- Status with comprehensive NULL handling
-    ISNULL(p.Status, 'Status Not Set') AS ProjectStatus,
+    -- IsActive with comprehensive NULL handling
+    ISNULL(p.IsActive, 'IsActive Not Set') AS ProjectIsActive,
     
     -- Risk assessment with missing data consideration
     CASE 
@@ -219,7 +219,7 @@ WITH MonthlyMetrics AS (
         
         -- NULL-safe calculations for KPIs
         COUNT(CASE WHEN p.ActualEndDate IS NOT NULL THEN 1 END) AS CompletedProjects,
-        COUNT(CASE WHEN p.ActualEndDate IS NULL AND p.Status = 'Active' THEN 1 END) AS ActiveProjects,
+        COUNT(CASE WHEN p.ActualEndDate IS NULL AND p.IsActive = 'Active' THEN 1 END) AS ActiveProjects,
         COUNT(CASE WHEN ISNULL(p.ActualCost, 0) > ISNULL(p.Budget, 0) THEN 1 END) AS OverBudgetProjects
         
     FROM Projects p
@@ -305,7 +305,7 @@ SELECT
     COUNT(CASE WHEN e.DirectManagerID IS NULL THEN 1 END) AS EmployeesWithoutManager,
     
     -- Contact information completeness
-    COUNT(CASE WHEN e.Email IS NOT NULL AND e.Email != '' THEN 1 END) AS EmployeesWithEmail,
+    COUNT(CASE WHEN e.WorkEmail IS NOT NULL AND e.WorkEmail != '' THEN 1 END) AS EmployeesWithEmail,
     COUNT(CASE WHEN e.Phone IS NOT NULL AND e.Phone != '' THEN 1 END) AS EmployeesWithPhone,
     COUNT(CASE WHEN e.Address IS NOT NULL AND e.Address != '' THEN 1 END) AS EmployeesWithAddress,
     
@@ -313,7 +313,7 @@ SELECT
     FORMAT(
         (COUNT(CASE WHEN e.BaseSalary IS NOT NULL 
                         AND e.HireDate IS NOT NULL 
-                        AND e.Email IS NOT NULL 
+                        AND e.WorkEmail IS NOT NULL 
                         AND e.Phone IS NOT NULL 
                     THEN 1 END) * 100.0) / COUNT(*), 
         'N1'
@@ -328,7 +328,7 @@ SELECT
         WHEN (COUNT(CASE WHEN e.BaseSalary IS NULL OR e.HireDate IS NULL THEN 1 END) * 100.0) / COUNT(*) < 25 
         THEN '🟡 Moderate Data Quality Issues'
         ELSE '🔴 Significant Data Quality Issues'
-    END AS DataQualityStatus
+    END AS DataQualityIsActive
     
 FROM Employees e
     LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID
@@ -362,9 +362,9 @@ SELECT
     e.LastName,
     
     -- Clean placeholder email addresses
-    NULLIF(e.Email, '') AS CleanEmail,
-    NULLIF(NULLIF(e.Email, ''), 'N/A') AS EmailCleaned,
-    NULLIF(NULLIF(NULLIF(e.Email, ''), 'N/A'), 'TBD') AS EmailFinal,
+    NULLIF(e.WorkEmail, '') AS CleanEmail,
+    NULLIF(NULLIF(e.WorkEmail, ''), 'N/A') AS EmailCleaned,
+    NULLIF(NULLIF(NULLIF(e.WorkEmail, ''), 'N/A'), 'TBD') AS EmailFinal,
     
     -- Clean placeholder phone numbers
     NULLIF(NULLIF(NULLIF(e.Phone, ''), '000-000-0000'), 'N/A') AS CleanPhone,
@@ -391,7 +391,7 @@ SELECT
     
     -- Data quality assessment after cleaning
     CASE 
-        WHEN NULLIF(e.Email, '') IS NULL THEN 0 ELSE 1 END +
+        WHEN NULLIF(e.WorkEmail, '') IS NULL THEN 0 ELSE 1 END +
         CASE WHEN NULLIF(e.Phone, '') IS NULL THEN 0 ELSE 1 END +
         CASE WHEN NULLIF(e.BaseSalary, 0) IS NULL THEN 0 ELSE 1 END +
         CASE WHEN NULLIF(e.Address, '') IS NULL THEN 0 ELSE 1 END AS DataQualityScore
@@ -439,7 +439,7 @@ SELECT
         WHEN (p.ActualCost / NULLIF(p.Budget, 0)) > 1.0 THEN 'Over Budget (100-110%)'
         WHEN (p.ActualCost / NULLIF(p.Budget, 0)) > 0.9 THEN 'Near Budget (90-100%)'
         ELSE 'Under Budget (<90%)'
-    END AS BudgetStatus,
+    END AS BudgetIsActive,
     
     CASE 
         WHEN NULLIF(p.EstimatedHours, 0) IS NULL THEN 'No Time Estimate'
@@ -447,7 +447,7 @@ SELECT
         WHEN (ISNULL(p.ActualHours, 0) / NULLIF(p.EstimatedHours, 0)) > 1.0 THEN 'Over Time'
         WHEN (ISNULL(p.ActualHours, 0) / NULLIF(p.EstimatedHours, 0)) >= 0.9 THEN 'On Time'
         ELSE 'Under Time'
-    END AS TimeStatus
+    END AS TimeIsActive
     
 FROM Projects p
 WHERE p.IsActive = 1
@@ -477,12 +477,12 @@ COALESCE returns the first non-NULL value from a list:
 SELECT 
     e.EmployeeID,
     
-    -- Email priority: Work email, personal email, alternate email, default message
+    -- WorkEmail priority: Work email, personal email, alternate email, default message
     COALESCE(
-        NULLIF(e.Email, ''), 
+        NULLIF(e.WorkEmail, ''), 
         NULLIF(e.PersonalEmail, ''), 
         NULLIF(e.AlternateEmail, ''),
-        'No Email Available'
+        'No WorkEmail Available'
     ) AS PrimaryEmail,
     
     -- Phone priority: Work phone, mobile phone, home phone, emergency contact phone
@@ -715,7 +715,7 @@ SELECT
     -- Critical field completeness
     COUNT(*) - COUNT(CASE WHEN FirstName IS NULL OR FirstName = '' THEN 1 END) AS ValidFirstName,
     COUNT(*) - COUNT(CASE WHEN LastName IS NULL OR LastName = '' THEN 1 END) AS ValidLastName,
-    COUNT(*) - COUNT(CASE WHEN Email IS NULL OR Email = '' THEN 1 END) AS ValidEmail,
+    COUNT(*) - COUNT(CASE WHEN WorkEmail IS NULL OR WorkEmail = '' THEN 1 END) AS ValidEmail,
     COUNT(*) - COUNT(CASE WHEN BaseSalary IS NULL OR BaseSalary = 0 THEN 1 END) AS ValidSalary,
     COUNT(*) - COUNT(CASE WHEN HireDate IS NULL THEN 1 END) AS ValidHireDate,
     COUNT(*) - COUNT(CASE WHEN DepartmentID IS NULL THEN 1 END) AS ValidDepartment,
@@ -723,7 +723,7 @@ SELECT
     -- Calculate completeness percentages
     FORMAT((COUNT(*) - COUNT(CASE WHEN FirstName IS NULL OR FirstName = '' THEN 1 END)) * 100.0 / COUNT(*), 'N1') + '%' AS FirstNameCompleteness,
     FORMAT((COUNT(*) - COUNT(CASE WHEN LastName IS NULL OR LastName = '' THEN 1 END)) * 100.0 / COUNT(*), 'N1') + '%' AS LastNameCompleteness,
-    FORMAT((COUNT(*) - COUNT(CASE WHEN Email IS NULL OR Email = '' THEN 1 END)) * 100.0 / COUNT(*), 'N1') + '%' AS EmailCompleteness,
+    FORMAT((COUNT(*) - COUNT(CASE WHEN WorkEmail IS NULL OR WorkEmail = '' THEN 1 END)) * 100.0 / COUNT(*), 'N1') + '%' AS EmailCompleteness,
     FORMAT((COUNT(*) - COUNT(CASE WHEN BaseSalary IS NULL OR BaseSalary = 0 THEN 1 END)) * 100.0 / COUNT(*), 'N1') + '%' AS SalaryCompleteness,
     FORMAT((COUNT(*) - COUNT(CASE WHEN HireDate IS NULL THEN 1 END)) * 100.0 / COUNT(*), 'N1') + '%' AS HireDateCompleteness,
     
@@ -731,7 +731,7 @@ SELECT
     FORMAT(
         (COUNT(*) - COUNT(CASE WHEN FirstName IS NULL OR FirstName = '' 
                                   OR LastName IS NULL OR LastName = ''
-                                  OR Email IS NULL OR Email = ''
+                                  OR WorkEmail IS NULL OR WorkEmail = ''
                                   OR BaseSalary IS NULL OR BaseSalary = 0
                                   OR HireDate IS NULL
                                   OR DepartmentID IS NULL 
@@ -789,7 +789,7 @@ SELECT
     -- Flag each missing critical field
     CASE WHEN e.FirstName IS NULL OR e.FirstName = '' THEN '❌ Missing' ELSE '✅ Present' END AS FirstName,
     CASE WHEN e.LastName IS NULL OR e.LastName = '' THEN '❌ Missing' ELSE '✅ Present' END AS LastName,
-    CASE WHEN e.Email IS NULL OR e.Email = '' THEN '❌ Missing' ELSE '✅ Present' END AS Email,
+    CASE WHEN e.WorkEmail IS NULL OR e.WorkEmail = '' THEN '❌ Missing' ELSE '✅ Present' END AS WorkEmail,
     CASE WHEN e.BaseSalary IS NULL OR e.BaseSalary = 0 THEN '❌ Missing' ELSE '✅ Present' END AS BaseSalary,
     CASE WHEN e.HireDate IS NULL THEN '❌ Missing' ELSE '✅ Present' END AS HireDate,
     CASE WHEN e.DepartmentID IS NULL THEN '❌ Missing' ELSE '✅ Present' END AS Department_ID,
@@ -798,7 +798,7 @@ SELECT
     -- Count missing fields
     (CASE WHEN e.FirstName IS NULL OR e.FirstName = '' THEN 1 ELSE 0 END +
      CASE WHEN e.LastName IS NULL OR e.LastName = '' THEN 1 ELSE 0 END +
-     CASE WHEN e.Email IS NULL OR e.Email = '' THEN 1 ELSE 0 END +
+     CASE WHEN e.WorkEmail IS NULL OR e.WorkEmail = '' THEN 1 ELSE 0 END +
      CASE WHEN e.BaseSalary IS NULL OR e.BaseSalary = 0 THEN 1 ELSE 0 END +
      CASE WHEN e.HireDate IS NULL THEN 1 ELSE 0 END +
      CASE WHEN e.DepartmentID IS NULL THEN 1 ELSE 0 END +
@@ -808,7 +808,7 @@ SELECT
     CASE 
         WHEN (e.FirstName IS NULL OR e.FirstName = '' OR 
               e.LastName IS NULL OR e.LastName = '' OR 
-              e.Email IS NULL OR e.Email = '') THEN 'HIGH PRIORITY'
+              e.WorkEmail IS NULL OR e.WorkEmail = '') THEN 'HIGH PRIORITY'
         WHEN (e.BaseSalary IS NULL OR e.BaseSalary = 0 OR 
               e.HireDate IS NULL OR 
               e.DepartmentID IS NULL) THEN 'MEDIUM PRIORITY'
@@ -820,7 +820,7 @@ FROM Employees e
 WHERE e.IsActive = 1
     AND (e.FirstName IS NULL OR e.FirstName = ''
          OR e.LastName IS NULL OR e.LastName = ''
-         OR e.Email IS NULL OR e.Email = ''
+         OR e.WorkEmail IS NULL OR e.WorkEmail = ''
          OR e.BaseSalary IS NULL OR e.BaseSalary = 0
          OR e.HireDate IS NULL
          OR e.DepartmentID IS NULL
@@ -829,7 +829,7 @@ ORDER BY
     CASE 
         WHEN (e.FirstName IS NULL OR e.FirstName = '' OR 
               e.LastName IS NULL OR e.LastName = '' OR 
-              e.Email IS NULL OR e.Email = '') THEN 1
+              e.WorkEmail IS NULL OR e.WorkEmail = '') THEN 1
         WHEN (e.BaseSalary IS NULL OR e.BaseSalary = 0 OR 
               e.HireDate IS NULL OR 
               e.DepartmentID IS NULL) THEN 2
@@ -837,7 +837,7 @@ ORDER BY
     END,
     (CASE WHEN e.FirstName IS NULL OR e.FirstName = '' THEN 1 ELSE 0 END +
      CASE WHEN e.LastName IS NULL OR e.LastName = '' THEN 1 ELSE 0 END +
-     CASE WHEN e.Email IS NULL OR e.Email = '' THEN 1 ELSE 0 END +
+     CASE WHEN e.WorkEmail IS NULL OR e.WorkEmail = '' THEN 1 ELSE 0 END +
      CASE WHEN e.BaseSalary IS NULL OR e.BaseSalary = 0 THEN 1 ELSE 0 END +
      CASE WHEN e.HireDate IS NULL THEN 1 ELSE 0 END +
      CASE WHEN e.DepartmentID IS NULL THEN 1 ELSE 0 END +

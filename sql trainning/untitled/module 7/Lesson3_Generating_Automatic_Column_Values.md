@@ -53,7 +53,7 @@ CREATE TABLE Orders (
     CustomerID INT NOT NULL,
     OrderDate DATETIME2 DEFAULT SYSDATETIME(),
     OrderTotal DECIMAL(10,2),
-    Status NVARCHAR(20) DEFAULT 'Pending',
+    IsActive NVARCHAR(20) DEFAULT 'Pending',
     CreatedBy NVARCHAR(100) DEFAULT SYSTEM_USER
 );
 
@@ -78,7 +78,7 @@ SELECT
     CustomerID,
     OrderDate,
     OrderTotal,
-    Status
+    IsActive
 FROM Orders;
 
 -- IDENTITY functions demonstration
@@ -107,7 +107,7 @@ SELECT * FROM InvoiceNumbers;
 SET IDENTITY_INSERT Orders ON;
 
 -- Insert with explicit IDENTITY value (for data migration scenarios)
-INSERT INTO Orders (OrderID, CustomerID, OrderTotal, Status)
+INSERT INTO Orders (OrderID, CustomerID, OrderTotal, IsActive)
 VALUES (100, 999, 999.99, 'Migrated');
 
 SET IDENTITY_INSERT Orders OFF;
@@ -145,8 +145,8 @@ CREATE TABLE OrderDetails (
     OrderID INT NOT NULL,
     ProductID INT NOT NULL,
     Quantity INT NOT NULL,
-    UnitPrice DECIMAL(10,2) NOT NULL,
-    LineTotal AS (Quantity * UnitPrice) PERSISTED,
+    BaseSalary DECIMAL(10,2) NOT NULL,
+    LineTotal AS (Quantity * BaseSalary) PERSISTED,
     FOREIGN KEY (OrderID) REFERENCES Orders(OrderID)
 );
 
@@ -160,7 +160,7 @@ VALUES (106, 0);  -- Will calculate total later
 SET @NewOrderID = SCOPE_IDENTITY();
 
 -- Insert child records using captured IDENTITY
-INSERT INTO OrderDetails (OrderID, ProductID, Quantity, UnitPrice)
+INSERT INTO OrderDetails (OrderID, ProductID, Quantity, BaseSalary)
 VALUES 
     (@NewOrderID, 1, 2, 25.00),
     (@NewOrderID, 2, 1, 45.50),
@@ -183,7 +183,7 @@ SELECT
     od.OrderDetailID,
     od.ProductID,
     od.Quantity,
-    od.UnitPrice,
+    od.BaseSalary,
     od.LineTotal
 FROM Orders o
 INNER JOIN OrderDetails od ON o.OrderID = od.OrderID
@@ -390,7 +390,7 @@ CREATE TABLE CustomerProfiles (
     -- String defaults
     TimeZone NVARCHAR(50) DEFAULT 'UTC',
     Language NVARCHAR(10) DEFAULT 'en-US',
-    CommunicationPreference NVARCHAR(20) DEFAULT 'Email',
+    CommunicationPreference NVARCHAR(20) DEFAULT 'WorkEmail',
     
     -- Numeric defaults
     CreditLimit DECIMAL(10,2) DEFAULT 1000.00,
@@ -471,7 +471,7 @@ CREATE TABLE CustomerAccounts (
     
     -- Context-sensitive defaults
     RegistrationSource NVARCHAR(50) DEFAULT 'Direct',
-    InitialStatus NVARCHAR(20) DEFAULT CASE 
+    InitialIsActive NVARCHAR(20) DEFAULT CASE 
         WHEN DATENAME(WEEKDAY, GETDATE()) IN ('Saturday', 'Sunday') THEN 'Pending Review'
         ELSE 'Active'
     END
@@ -518,7 +518,7 @@ SELECT
     BillingCycleStart,
     NextBillingDate,
     RegistrationSource,
-    InitialStatus,
+    InitialIsActive,
     CreditScore
 FROM CustomerAccounts;
 ```
@@ -573,16 +573,16 @@ CREATE TABLE SalesTransactions (
     CustomerID INT NOT NULL,
     ProductID INT NOT NULL,
     Quantity INT NOT NULL,
-    UnitPrice DECIMAL(10,2) NOT NULL,
+    BaseSalary DECIMAL(10,2) NOT NULL,
     DiscountPercent DECIMAL(5,2) DEFAULT 0.00,
     TaxRate DECIMAL(5,4) DEFAULT 0.0825,  -- 8.25% tax rate
     
     -- Basic computed columns
-    LineTotal AS (Quantity * UnitPrice),
-    DiscountAmount AS (Quantity * UnitPrice * DiscountPercent / 100),
-    NetAmount AS (Quantity * UnitPrice * (1 - DiscountPercent / 100)),
-    TaxAmount AS (Quantity * UnitPrice * (1 - DiscountPercent / 100) * TaxRate),
-    GrandTotal AS (Quantity * UnitPrice * (1 - DiscountPercent / 100) * (1 + TaxRate)),
+    LineTotal AS (Quantity * BaseSalary),
+    DiscountAmount AS (Quantity * BaseSalary * DiscountPercent / 100),
+    NetAmount AS (Quantity * BaseSalary * (1 - DiscountPercent / 100)),
+    TaxAmount AS (Quantity * BaseSalary * (1 - DiscountPercent / 100) * TaxRate),
+    GrandTotal AS (Quantity * BaseSalary * (1 - DiscountPercent / 100) * (1 + TaxRate)),
     
     -- String computed columns
     TransactionCode AS ('TXN' + RIGHT('00000' + CAST(TransactionID AS VARCHAR(5)), 5)),
@@ -601,14 +601,14 @@ CREATE TABLE SalesTransactions (
     END,
     
     TransactionCategory AS CASE 
-        WHEN Quantity * UnitPrice > 1000 THEN 'Large'
-        WHEN Quantity * UnitPrice > 500 THEN 'Medium'
+        WHEN Quantity * BaseSalary > 1000 THEN 'Large'
+        WHEN Quantity * BaseSalary > 500 THEN 'Medium'
         ELSE 'Small'
     END PERSISTED  -- Persisted for indexing
 );
 
 -- Insert test data
-INSERT INTO SalesTransactions (CustomerID, ProductID, Quantity, UnitPrice, DiscountPercent)
+INSERT INTO SalesTransactions (CustomerID, ProductID, Quantity, BaseSalary, DiscountPercent)
 VALUES 
     (101, 1, 5, 25.00, 5.00),
     (102, 2, 15, 45.50, 10.00),
@@ -622,7 +622,7 @@ SELECT
     CustomerID,
     ProductID,
     Quantity,
-    FORMAT(UnitPrice, 'C') AS UnitPrice,
+    FORMAT(BaseSalary, 'C') AS BaseSalary,
     CAST(DiscountPercent AS VARCHAR(10)) + '%' AS Discount,
     FORMAT(LineTotal, 'C') AS LineTotal,
     FORMAT(DiscountAmount, 'C') AS DiscountAmount,
@@ -773,8 +773,8 @@ WHERE TransactionCategory = 'Large';
 SELECT COUNT(*) 
 FROM SalesTransactions 
 WHERE CASE 
-    WHEN Quantity * UnitPrice > 1000 THEN 'Large'
-    WHEN Quantity * UnitPrice > 500 THEN 'Medium'
+    WHEN Quantity * BaseSalary > 1000 THEN 'Large'
+    WHEN Quantity * BaseSalary > 500 THEN 'Medium'
     ELSE 'Small'
 END = 'Large';
 SET STATISTICS IO OFF;
@@ -789,7 +789,7 @@ CREATE TABLE EmployeeHistory (
     EmployeeID INT NOT NULL PRIMARY KEY,
     FirstName NVARCHAR(50) NOT NULL,
     LastName NVARCHAR(50) NOT NULL,
-    Email NVARCHAR(100) NOT NULL,
+    WorkEmail NVARCHAR(100) NOT NULL,
     BaseSalary DECIMAL(10,2),
     DepartmentID INT,
     Position NVARCHAR(100),
@@ -802,7 +802,7 @@ CREATE TABLE EmployeeHistory (
 WITH (SYSTEM_VERSIONING = ON (HISTORY_TABLE = dbo.EmployeeHistory_Archive));
 
 -- Insert initial data
-INSERT INTO EmployeeHistory (EmployeeID, FirstName, LastName, Email, BaseSalary, DepartmentID, Position)
+INSERT INTO EmployeeHistory (EmployeeID, FirstName, LastName, WorkEmail, BaseSalary, DepartmentID, Position)
 VALUES 
     (1, 'John', 'Doe', 'john.doe@company.com', 65000.00, 1, 'Developer'),
     (2, 'Jane', 'Smith', 'jane.smith@company.com', 70000.00, 2, 'Analyst'),
@@ -830,7 +830,7 @@ WHERE EmployeeID = 3;
 SELECT 
     EmployeeID,
     FirstName + ' ' + LastName AS FullName,
-    Email,
+    WorkEmail,
     FORMAT(BaseSalary, 'C') AS BaseSalary,
     DepartmentID,
     Position,
@@ -861,7 +861,7 @@ SELECT
     CASE 
         WHEN ValidTo = '9999-12-31 23:59:59.9999999' THEN 'Current'
         ELSE 'Historical'
-    END AS RecordStatus
+    END AS RecordIsActive
 FROM EmployeeHistory FOR SYSTEM_TIME ALL
 WHERE EmployeeID = 1
 ORDER BY ValidFrom;
@@ -985,7 +985,7 @@ CREATE TABLE BestPracticesDemo (
     ExternalReference UNIQUEIDENTIFIER DEFAULT NEWID(),
     
     -- Use appropriate defaults for business rules
-    Status NVARCHAR(20) DEFAULT 'Active',
+    IsActive NVARCHAR(20) DEFAULT 'Active',
     Priority INT DEFAULT 5,  -- Medium priority
     
     -- Business data

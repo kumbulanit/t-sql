@@ -93,7 +93,7 @@ SELECT
     EmployeeID,
     FirstName,
     LastName,
-    Email,
+    WorkEmail,
     DepartmentID,
     BaseSalary,
     HireDate
@@ -120,7 +120,7 @@ FROM Employees;
 SELECT 
     LastName,
     FirstName,
-    Email,
+    WorkEmail,
     BaseSalary
 FROM Employees;
 
@@ -139,7 +139,7 @@ SELECT
     'Employee' AS RecordType,
     FirstName,
     LastName,
-    'Active' AS Status,
+    'Active' AS IsActive,
     GETDATE() AS ReportDate
 FROM Employees;
 
@@ -185,14 +185,14 @@ FROM Employees;
 -- Basic string concatenation
 SELECT 
     FirstName + ' ' + LastName AS FullName,
-    Email,
+    WorkEmail,
     BaseSalary
 FROM Employees;
 
 -- Handling NULL values in concatenation
 SELECT 
     FirstName + ' ' + ISNULL(MiddleName + ' ', '') + LastName AS FullName,
-    Email,
+    WorkEmail,
     BaseSalary
 FROM Employees;
 
@@ -251,7 +251,7 @@ WHERE BaseSalary > 60000
 SELECT 
     FirstName,
     LastName,
-    Email
+    WorkEmail
 FROM Employees
 WHERE FirstName LIKE 'J%'
    OR LastName LIKE '%son';
@@ -267,7 +267,7 @@ SELECT
     LastName,
     BaseSalary,
     HireDate,
-    -- Performance rating based on tenure and salary
+    -- Performance rating based on tenure and BaseSalary
     CASE 
         WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 5 AND BaseSalary >= 80000 
              THEN 'Senior High Performer'
@@ -279,7 +279,7 @@ SELECT
              THEN 'New Hire'
         ELSE 'Needs Review'
     END AS PerformanceCategory,
-    -- Projected salary growth
+    -- Projected BaseSalary growth
     CASE 
         WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 2 
              THEN BaseSalary * 1.05
@@ -296,11 +296,11 @@ FROM Employees;
 SELECT 
     FirstName,
     LastName,
-    Email,
+    WorkEmail,
     -- Extract username from email
-    LEFT(Email, CHARINDEX('@', Email) - 1) AS Username,
+    LEFT(WorkEmail, CHARINDEX('@', WorkEmail) - 1) AS Username,
     -- Extract domain from email
-    SUBSTRING(Email, CHARINDEX('@', Email) + 1, LEN(Email)) AS EmailDomain,
+    SUBSTRING(WorkEmail, CHARINDEX('@', WorkEmail) + 1, LEN(WorkEmail)) AS EmailDomain,
     -- Create initials
     LEFT(FirstName, 1) + LEFT(LastName, 1) AS Initials,
     -- Create display name variations
@@ -393,7 +393,7 @@ FROM Employees;
 ### 1. Column Selection
 ```sql
 -- Good: Specify only needed columns
-SELECT FirstName, LastName, Email
+SELECT FirstName, LastName, WorkEmail
 FROM Employees;
 
 -- Avoid: Using SELECT * in production code
@@ -406,14 +406,14 @@ FROM Employees;
 SELECT 
     e.FirstName,
     e.LastName,
-    e.Email,
+    e.WorkEmail,
     e.BaseSalary
 FROM Employees e
 WHERE e.IsActive = 1
 ORDER BY e.LastName, e.FirstName;
 
 -- Avoid: Inconsistent formatting
--- SELECT FirstName,LastName,Email,BaseSalary FROM Employees WHERE IsActive=1;
+-- SELECT FirstName,LastName,WorkEmail,BaseSalary FROM Employees WHERE IsActive=1;
 ```
 
 ### 3. Use Meaningful Column Names
@@ -528,7 +528,7 @@ FROM Employees;
 ### 1. Column Selection Impact
 ```sql
 -- More efficient: Select only needed columns
-SELECT FirstName, LastName, Email
+SELECT FirstName, LastName, WorkEmail
 FROM Employees;
 
 -- Less efficient: Selecting unnecessary large columns

@@ -18,7 +18,7 @@ INSERT INTO Products (
     SupplierID, 
     CategoryID, 
     QuantityPerUnit, 
-    UnitPrice, 
+    BaseSalary, 
     UnitsInStock, 
     UnitsOnOrder, 
     ReorderLevel, 
@@ -52,14 +52,14 @@ ORDER BY ProductID DESC;
 CREATE TABLE TestProducts (
     ProductID INT IDENTITY(1,1) PRIMARY KEY,
     ProductName NVARCHAR(40) NOT NULL,
-    UnitPrice MONEY DEFAULT 0.00,
+    BaseSalary MONEY DEFAULT 0.00,
     UnitsInStock SMALLINT DEFAULT 0,
     CreatedDate DATETIME DEFAULT GETDATE(),
     Description NVARCHAR(255) NULL
 );
 
 -- Insert using defaults and NULL
-INSERT INTO TestProducts (ProductName, UnitPrice, Description)
+INSERT INTO TestProducts (ProductName, BaseSalary, Description)
 VALUES 
     ('Basic Product', 10.50, 'This is a basic product'),
     ('Free Sample', DEFAULT, NULL),  -- Use default price, NULL description
@@ -94,7 +94,7 @@ INSERT INTO Products (
     SupplierID, 
     CategoryID, 
     QuantityPerUnit, 
-    UnitPrice, 
+    BaseSalary, 
     UnitsInStock, 
     UnitsOnOrder, 
     ReorderLevel, 
@@ -106,7 +106,7 @@ VALUES
     ('Premium Dog Food', 3, (SELECT CategoryID FROM Categories WHERE CategoryName = 'Pet Supplies'), '5kg bag', 29.99, 15, 5, 3, 0);
 
 -- Verify the inserts
-SELECT p.ProductName, c.CategoryName, p.UnitPrice
+SELECT p.ProductName, c.CategoryName, p.BaseSalary
 FROM Products p
 INNER JOIN Categories c ON p.CategoryID = c.CategoryID
 WHERE c.CategoryName IN ('Health Foods', 'Frozen Foods', 'Pet Supplies');
@@ -124,7 +124,7 @@ CREATE TABLE DiscontinuedProducts (
     ProductID INT,
     ProductName NVARCHAR(40),
     CategoryName NVARCHAR(15),
-    UnitPrice MONEY,
+    BaseSalary MONEY,
     UnitsInStock SMALLINT,
     ArchiveDate DATETIME DEFAULT GETDATE()
 );
@@ -134,14 +134,14 @@ INSERT INTO DiscontinuedProducts (
     ProductID, 
     ProductName, 
     CategoryName, 
-    UnitPrice, 
+    BaseSalary, 
     UnitsInStock
 )
 SELECT 
     p.ProductID,
     p.ProductName,
     c.CategoryName,
-    p.UnitPrice,
+    p.BaseSalary,
     p.UnitsInStock
 FROM Products p
 INNER JOIN Categories c ON p.CategoryID = c.CategoryID
@@ -193,8 +193,8 @@ SELECT
     c.CategoryID,
     c.CategoryName,
     COUNT(p.ProductID) as ProductCount,
-    AVG(p.UnitPrice) as AveragePrice,
-    SUM(p.UnitPrice * p.UnitsInStock) as TotalInventoryValue
+    AVG(p.BaseSalary) as AveragePrice,
+    SUM(p.BaseSalary * p.UnitsInStock) as TotalInventoryValue
 FROM Categories c
 LEFT JOIN Products p ON c.CategoryID = p.CategoryID
 WHERE p.Discontinued = 0 OR p.Discontinued IS NULL
@@ -334,14 +334,14 @@ DROP TABLE StagingCustomers;
 ```sql
 -- Answer 1: Update single record
 -- First, let's see the current values
-SELECT ProductID, ProductName, UnitPrice, UnitsInStock
+SELECT ProductID, ProductName, BaseSalary, UnitsInStock
 FROM Products
 WHERE ProductName = 'Gourmet Coffee Blend';
 
 -- Update specific product
 UPDATE Products
 SET 
-    UnitPrice = 27.99,
+    BaseSalary = 27.99,
     UnitsInStock = 75,
     ReorderLevel = 15
 WHERE ProductName = 'Gourmet Coffee Blend';
@@ -350,7 +350,7 @@ WHERE ProductName = 'Gourmet Coffee Blend';
 SELECT 
     ProductID, 
     ProductName, 
-    UnitPrice, 
+    BaseSalary, 
     UnitsInStock, 
     ReorderLevel,
     'Updated: ' + FORMAT(GETDATE(), 'yyyy-MM-dd HH:mm:ss') as UpdateInfo
@@ -370,8 +370,8 @@ PRINT 'Rows affected: ' + CAST(@@ROWCOUNT AS VARCHAR(10));
 SELECT 
     p.ProductName,
     c.CategoryName,
-    p.UnitPrice as CurrentPrice,
-    p.UnitPrice * 1.10 as NewPrice
+    p.BaseSalary as CurrentPrice,
+    p.BaseSalary * 1.10 as NewPrice
 FROM Products p
 INNER JOIN Categories c ON p.CategoryID = c.CategoryID
 WHERE c.CategoryName = 'Beverages'
@@ -379,7 +379,7 @@ WHERE c.CategoryName = 'Beverages'
 
 -- Apply 10% price increase to all active beverages
 UPDATE p
-SET UnitPrice = p.UnitPrice * 1.10
+SET BaseSalary = p.BaseSalary * 1.10
 FROM Products p
 INNER JOIN Categories c ON p.CategoryID = c.CategoryID
 WHERE c.CategoryName = 'Beverages'
@@ -391,13 +391,13 @@ PRINT 'Updated ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' beverage products with 10
 SELECT 
     p.ProductName,
     c.CategoryName,
-    p.UnitPrice as UpdatedPrice,
-    FORMAT(p.UnitPrice / 1.10, 'N2') as OriginalPrice
+    p.BaseSalary as UpdatedPrice,
+    FORMAT(p.BaseSalary / 1.10, 'N2') as OriginalPrice
 FROM Products p
 INNER JOIN Categories c ON p.CategoryID = c.CategoryID
 WHERE c.CategoryName = 'Beverages'
   AND p.Discontinued = 0
-ORDER BY p.UnitPrice DESC;
+ORDER BY p.BaseSalary DESC;
 ```
 
 #### Question 3: Update with calculated values
@@ -480,7 +480,7 @@ DELETE p
 FROM Products p
 LEFT JOIN [Order Details] od ON p.ProductID = od.ProductID
 WHERE p.Discontinued = 1
-GROUP BY p.ProductID, p.ProductName, p.UnitPrice, p.SupplierID, p.CategoryID, 
+GROUP BY p.ProductID, p.ProductName, p.BaseSalary, p.SupplierID, p.CategoryID, 
          p.QuantityPerUnit, p.UnitsInStock, p.UnitsOnOrder, p.ReorderLevel, p.Discontinued
 HAVING COUNT(od.OrderID) = 0;
 
@@ -546,13 +546,13 @@ PRINT 'Backup created in CustomerBackup table with ' + CAST((SELECT COUNT(*) FRO
 CREATE TABLE ProductUpdates (
     ProductID INT,
     ProductName NVARCHAR(40),
-    UnitPrice MONEY,
+    BaseSalary MONEY,
     UnitsInStock SMALLINT,
     Action NVARCHAR(10)
 );
 
 -- Insert sample update data
-INSERT INTO ProductUpdates (ProductID, ProductName, UnitPrice, UnitsInStock)
+INSERT INTO ProductUpdates (ProductID, ProductName, BaseSalary, UnitsInStock)
 VALUES 
     (1, 'Chai - Premium Blend', 25.00, 50),      -- Update existing
     (999, 'New Exotic Tea', 22.00, 30),          -- Insert new
@@ -563,7 +563,7 @@ VALUES
 UPDATE p
 SET 
     p.ProductName = pu.ProductName,
-    p.UnitPrice = pu.UnitPrice,
+    p.BaseSalary = pu.BaseSalary,
     p.UnitsInStock = pu.UnitsInStock
 FROM Products p
 INNER JOIN ProductUpdates pu ON p.ProductID = pu.ProductID;
@@ -574,13 +574,13 @@ SET Action = 'UPDATED'
 WHERE ProductID IN (SELECT ProductID FROM Products);
 
 -- Step 2: Insert new products
-INSERT INTO Products (ProductName, SupplierID, CategoryID, QuantityPerUnit, UnitPrice, UnitsInStock, UnitsOnOrder, ReorderLevel, Discontinued)
+INSERT INTO Products (ProductName, SupplierID, CategoryID, QuantityPerUnit, BaseSalary, UnitsInStock, UnitsOnOrder, ReorderLevel, Discontinued)
 SELECT 
     pu.ProductName,
     1,  -- Default supplier
     1,  -- Default category
     '1 unit',
-    pu.UnitPrice,
+    pu.BaseSalary,
     pu.UnitsInStock,
     0,
     10,
@@ -607,7 +607,7 @@ SELECT
     pu.Action,
     p.ProductID as ActualProductID,
     p.ProductName as ActualName,
-    p.UnitPrice,
+    p.BaseSalary,
     p.UnitsInStock
 FROM ProductUpdates pu
 LEFT JOIN Products p ON pu.ProductName = p.ProductName
@@ -651,12 +651,12 @@ BEGIN TRY
     SET @OrderID = SCOPE_IDENTITY();
     
     -- Add order details
-    INSERT INTO [Order Details] (OrderID, ProductID, UnitPrice, Quantity, Discount)
-    SELECT @OrderID, @ProductID1, UnitPrice, @Quantity1, 0.0
+    INSERT INTO [Order Details] (OrderID, ProductID, BaseSalary, Quantity, Discount)
+    SELECT @OrderID, @ProductID1, BaseSalary, @Quantity1, 0.0
     FROM Products WHERE ProductID = @ProductID1;
     
-    INSERT INTO [Order Details] (OrderID, ProductID, UnitPrice, Quantity, Discount)
-    SELECT @OrderID, @ProductID2, UnitPrice, @Quantity2, 0.05  -- 5% discount
+    INSERT INTO [Order Details] (OrderID, ProductID, BaseSalary, Quantity, Discount)
+    SELECT @OrderID, @ProductID2, BaseSalary, @Quantity2, 0.05  -- 5% discount
     FROM Products WHERE ProductID = @ProductID2;
     
     -- Update inventory
@@ -680,8 +680,8 @@ BEGIN TRY
         od.ProductID,
         p.ProductName,
         od.Quantity,
-        od.UnitPrice,
-        od.Quantity * od.UnitPrice * (1 - od.Discount) as LineTotal,
+        od.BaseSalary,
+        od.Quantity * od.BaseSalary * (1 - od.Discount) as LineTotal,
         p.UnitsInStock as RemainingStock
     FROM Orders o
     INNER JOIN [Order Details] od ON o.OrderID = od.OrderID
@@ -833,7 +833,7 @@ CREATE TABLE CustomerOrders (
     CustomerID NCHAR(5) NOT NULL,
     OrderDate DATETIME DEFAULT GETDATE(),
     RequiredDate DATETIME DEFAULT DATEADD(DAY, 14, GETDATE()),
-    Status NVARCHAR(20) DEFAULT 'Pending',
+    IsActive NVARCHAR(20) DEFAULT 'Pending',
     Priority INT DEFAULT 3,  -- 1=High, 2=Medium, 3=Normal, 4=Low
     OrderTotal MONEY DEFAULT 0.00,
     CreatedBy NVARCHAR(50) DEFAULT SYSTEM_USER,
@@ -851,7 +851,7 @@ INSERT INTO CustomerOrders (CustomerID, Priority, IsRush, Notes)
 VALUES ('BLONP', 1, 1, 'Rush order - customer called');
 
 -- Insert with explicit date overrides
-INSERT INTO CustomerOrders (CustomerID, OrderDate, RequiredDate, Status)
+INSERT INTO CustomerOrders (CustomerID, OrderDate, RequiredDate, IsActive)
 VALUES ('CHOPS', '2024-01-15', '2024-01-20', 'Processing');
 
 -- Show results
@@ -860,7 +860,7 @@ SELECT
     CustomerID,
     FORMAT(OrderDate, 'yyyy-MM-dd HH:mm') as OrderDate,
     FORMAT(RequiredDate, 'yyyy-MM-dd') as RequiredDate,
-    Status,
+    IsActive,
     CASE Priority
         WHEN 1 THEN 'High'
         WHEN 2 THEN 'Medium'
@@ -884,7 +884,7 @@ SELECT
     CASE 
         WHEN c.COLUMN_DEFAULT IS NOT NULL THEN 'Has Default'
         ELSE 'No Default'
-    END as DefaultStatus
+    END as DefaultIsActive
 FROM INFORMATION_SCHEMA.COLUMNS c
 WHERE c.TABLE_NAME = 'CustomerOrders'
 ORDER BY c.ORDINAL_POSITION;
@@ -903,20 +903,20 @@ CREATE TABLE OrderDetails (
     DetailID INT IDENTITY(1, 1) PRIMARY KEY,
     OrderID INT NOT NULL,
     ProductID INT NOT NULL,
-    UnitPrice MONEY NOT NULL,
+    BaseSalary MONEY NOT NULL,
     Quantity INT NOT NULL,
     Discount REAL DEFAULT 0.0,
     -- Non-persisted computed columns
-    LineTotal AS (UnitPrice * Quantity * (1 - Discount)),
-    DiscountAmount AS (UnitPrice * Quantity * Discount),
+    LineTotal AS (BaseSalary * Quantity * (1 - Discount)),
+    DiscountAmount AS (BaseSalary * Quantity * Discount),
     -- Persisted computed column (stored physically)
-    LineTotalPersisted AS (UnitPrice * Quantity * (1 - Discount)) PERSISTED,
+    LineTotalPersisted AS (BaseSalary * Quantity * (1 - Discount)) PERSISTED,
     -- Complex computed column
     PriceCategory AS (
         CASE 
-            WHEN UnitPrice < 10 THEN 'Budget'
-            WHEN UnitPrice < 50 THEN 'Standard'
-            WHEN UnitPrice < 100 THEN 'Premium'
+            WHEN BaseSalary < 10 THEN 'Budget'
+            WHEN BaseSalary < 50 THEN 'Standard'
+            WHEN BaseSalary < 100 THEN 'Premium'
             ELSE 'Luxury'
         END
     ),
@@ -926,7 +926,7 @@ CREATE TABLE OrderDetails (
 );
 
 -- Insert test data
-INSERT INTO OrderDetails (OrderID, ProductID, UnitPrice, Quantity, Discount)
+INSERT INTO OrderDetails (OrderID, ProductID, BaseSalary, Quantity, Discount)
 VALUES 
     (1, 1, 15.50, 10, 0.0),
     (1, 2, 25.00, 5, 0.05),
@@ -935,7 +935,7 @@ VALUES
 
 -- Wait a moment and insert another record to show DaysOld calculation
 WAITFOR DELAY '00:00:02';
-INSERT INTO OrderDetails (OrderID, ProductID, UnitPrice, Quantity, Discount)
+INSERT INTO OrderDetails (OrderID, ProductID, BaseSalary, Quantity, Discount)
 VALUES (3, 4, 125.00, 1, 0.0);
 
 -- Show computed column results
@@ -943,7 +943,7 @@ SELECT
     DetailID,
     OrderID,
     ProductID,
-    FORMAT(UnitPrice, 'C') as UnitPrice,
+    FORMAT(BaseSalary, 'C') as BaseSalary,
     Quantity,
     FORMAT(Discount, 'P') as DiscountPct,
     FORMAT(LineTotal, 'C') as LineTotal,
@@ -974,7 +974,7 @@ ORDER BY ORDINAL_POSITION;
 
 -- Demonstrate that you cannot INSERT into computed columns
 -- This would cause an error:
--- INSERT INTO OrderDetails (OrderID, ProductID, UnitPrice, Quantity, LineTotal)
+-- INSERT INTO OrderDetails (OrderID, ProductID, BaseSalary, Quantity, LineTotal)
 -- VALUES (4, 5, 50.00, 2, 100.00);
 
 -- Clean up
@@ -1073,7 +1073,7 @@ CREATE TABLE Products_Custom (
     ProductID NVARCHAR(20) PRIMARY KEY,  -- Will be auto-generated
     ProductName NVARCHAR(40) NOT NULL,
     CategoryID INT,
-    UnitPrice MONEY,
+    BaseSalary MONEY,
     CreatedDate DATETIME DEFAULT GETDATE(),
     ModifiedDate DATETIME DEFAULT GETDATE()
 );
@@ -1086,13 +1086,13 @@ AS
 BEGIN
     SET NOCOUNT ON;
     
-    INSERT INTO Products_Custom (ProductID, ProductName, CategoryID, UnitPrice, CreatedDate, ModifiedDate)
+    INSERT INTO Products_Custom (ProductID, ProductName, CategoryID, BaseSalary, CreatedDate, ModifiedDate)
     SELECT 
         'PROD-' + 
         FORMAT(ISNULL((SELECT MAX(CAST(SUBSTRING(ProductID, 6, 10) AS INT)) FROM Products_Custom WHERE ProductID LIKE 'PROD-%'), 0) + ROW_NUMBER() OVER (ORDER BY ProductName), '000000') as ProductID,
         ProductName,
         CategoryID,
-        UnitPrice,
+        BaseSalary,
         GETDATE(),
         GETDATE()
     FROM inserted;
@@ -1112,25 +1112,25 @@ BEGIN
 END;
 
 -- Test the custom auto-generation
-INSERT INTO Products_Custom (ProductName, CategoryID, UnitPrice)
+INSERT INTO Products_Custom (ProductName, CategoryID, BaseSalary)
 VALUES 
     ('Custom Product A', 1, 25.99),
     ('Custom Product B', 2, 15.50),
     ('Custom Product C', 1, 35.75);
 
 -- Show generated IDs
-SELECT * FROM Products_Custom ORDER BY ProductID;
+SELECT CustomerID, CompanyName FROM Customers_Custom ORDER BY ProductID;
 
 -- Test update trigger
 UPDATE Products_Custom 
-SET UnitPrice = 29.99 
+SET BaseSalary = 29.99 
 WHERE ProductName = 'Custom Product A';
 
 -- Show updated ModifiedDate
 SELECT 
     ProductID,
     ProductName,
-    FORMAT(UnitPrice, 'C') as UnitPrice,
+    FORMAT(BaseSalary, 'C') as BaseSalary,
     CreatedDate,
     ModifiedDate,
     DATEDIFF(SECOND, CreatedDate, ModifiedDate) as SecondsBetweenCreateAndModify

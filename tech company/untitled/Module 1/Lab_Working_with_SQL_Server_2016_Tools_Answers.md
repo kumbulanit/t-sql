@@ -157,7 +157,7 @@ SELECT
     CASE 
         WHEN t.IsActive = 1 THEN 'Active'
         ELSE 'Inactive'
-    END as Status
+    END as IsActive
 FROM TestTable t
 WHERE t.IsActive = 1
 ORDER BY t.CreateDate DESC;

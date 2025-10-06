@@ -15,7 +15,7 @@ CREATE TABLE Employees (
     FirstName NVARCHAR(50) NOT NULL,
     LastName NVARCHAR(50) NOT NULL,
     MiddleName NVARCHAR(50) NULL,
-    Email NVARCHAR(100) NOT NULL,
+    WorkEmail NVARCHAR(100) NOT NULL,
     DepartmentID INT NOT NULL,
     ManagerID INT NULL,
     BaseSalary DECIMAL(10,2) NOT NULL,
@@ -39,7 +39,7 @@ CREATE TABLE Projects (
     StartDate DATE NOT NULL,
     EndDate DATE NULL,
     Budget DECIMAL(10,2) NOT NULL,
-    Status NVARCHAR(20) NOT NULL
+    IsActive NVARCHAR(20) NOT NULL
 );
 
 -- EmployeeProjects table (many-to-many relationship)
@@ -63,7 +63,7 @@ INSERT INTO Departments (DepartmentName, Budget, ManagerID) VALUES
 ('Operations', 400000, NULL);
 
 -- Insert sample employees
-INSERT INTO Employees (FirstName, LastName, MiddleName, Email, DepartmentID, ManagerID, BaseSalary, HireDate, Title) VALUES
+INSERT INTO Employees (FirstName, LastName, MiddleName, WorkEmail, DepartmentID, ManagerID, BaseSalary, HireDate, Title) VALUES
 ('John', 'Smith', 'Michael', 'john.smith@company.com', 1, NULL, 95000, '2020-01-15', 'IT Director'),
 ('Sarah', 'Johnson', NULL, 'sarah.johnson@company.com', 1, 1, 75000, '2021-03-10', 'Senior Developer'),
 ('Mike', 'Davis', 'Robert', 'mike.davis@company.com', 1, 1, 65000, '2021-06-01', 'Developer'),
@@ -76,7 +76,7 @@ INSERT INTO Employees (FirstName, LastName, MiddleName, Email, DepartmentID, Man
 ('Amanda', 'Lewis', 'Grace', 'amanda.lewis@company.com', 5, NULL, 88000, '2020-08-18', 'Operations Director');
 
 -- Insert sample projects
-INSERT INTO Projects (ProjectName, StartDate, EndDate, Budget, Status) VALUES
+INSERT INTO Projects (ProjectName, StartDate, EndDate, Budget, IsActive) VALUES
 ('Website Redesign', '2023-01-01', '2023-06-30', 150000, 'Completed'),
 ('ERP Implementation', '2023-03-01', NULL, 300000, 'In Progress'),
 ('Marketing Campaign Q3', '2023-07-01', '2023-09-30', 75000, 'Completed'),
@@ -108,12 +108,12 @@ Write queries to:
 
 3. **Calculated Columns**: Create a query that shows:
    - Full name (FirstName + LastName)
-   - Annual salary
-   - Monthly salary (annual salary / 12)
+   - Annual BaseSalary
+   - Monthly BaseSalary (annual BaseSalary / 12)
 
 4. **String Functions**: Create a query showing:
    - Employee email username (part before @)
-   - Email domain (part after @)
+   - WorkEmail domain (part after @)
    - Full name in uppercase
 
 5. **Date Functions**: Create a query showing:
@@ -125,7 +125,7 @@ Write queries to:
 #### Exercise 1.2: Filtering Data
 Write queries to:
 
-1. Find all employees with salary greater than $70,000.
+1. Find all employees with BaseSalary greater than $70,000.
 
 2. Find all employees hired after January 1, 2021.
 
@@ -135,7 +135,7 @@ Write queries to:
 
 5. Find all employees with a middle name.
 
-6. Find all active employees with salary between $50,000 and $80,000.
+6. Find all active employees with BaseSalary between $50,000 and $80,000.
 
 #### Exercise 1.3: Advanced Filtering
 Write queries to:
@@ -144,7 +144,7 @@ Write queries to:
 
 2. Find employees hired in 2021 or 2022.
 
-3. Find employees with salary > $60,000 AND (in IT OR Marketing departments).
+3. Find employees with BaseSalary > $60,000 AND (in IT OR Marketing departments).
 
 4. Find employees whose last name ends with 'son' or 'er'.
 
@@ -155,7 +155,7 @@ Write queries to:
 
 1. **UNION**: Get a list of all first names from both Employees and a hypothetical Customers table (use Employees twice with different filters).
 
-2. **INTERSECT**: Find department IDs that have both high-salary employees (>$70k) and low-salary employees (<$60k).
+2. **INTERSECT**: Find department IDs that have both high-BaseSalary employees (>$70k) and low-BaseSalary employees (<$60k).
 
 3. **EXCEPT**: Find employees who are not assigned to any projects.
 
@@ -195,7 +195,7 @@ Write queries to:
 #### Exercise 3.2: Complex Predicates
 Write queries to:
 
-1. Find employees where (salary > $70k AND department is IT) OR (salary > $80k).
+1. Find employees where (BaseSalary > $70k AND department is IT) OR (BaseSalary > $80k).
 
 2. Find projects that are either completed OR have a budget > $100k.
 
@@ -221,7 +221,7 @@ For each query, explain the logical processing order:
    SELECT DepartmentID, AVG(BaseSalary) as AvgSalary
    FROM Employees
    WHERE IsActive = 1
-   GROUP BY DepartmentID
+   GROUP BY DepartmentIDID
    HAVING COUNT(*) > 2
    ORDER BY AvgSalary DESC;
    ```
@@ -247,7 +247,7 @@ Identify what's wrong with these queries and fix them:
    SELECT DepartmentID, COUNT(*) AS EmpCount
    FROM Employees
    WHERE EmpCount > 2
-   GROUP BY DepartmentID;
+   GROUP BY DepartmentIDID;
    ```
 
 #### Exercise 4.3: WHERE vs HAVING
@@ -255,7 +255,7 @@ Write queries using appropriate filtering:
 
 1. Find departments with more than 2 employees, showing only active employees.
 
-2. Find employees in departments where the average salary is > $65,000.
+2. Find employees in departments where the average BaseSalary is > $65,000.
 
 3. Show department statistics, but only for departments with budget > $250,000.
 
@@ -265,7 +265,7 @@ Write queries using appropriate filtering:
 Create a comprehensive department report showing:
 - Department name
 - Number of active employees
-- Average salary
+- Average BaseSalary
 - Highest and lowest salaries
 - Number of ongoing projects
 - Total project budget
@@ -284,7 +284,7 @@ Create a report showing:
 Create a query that shows:
 - Manager name
 - Number of direct reports
-- Average salary of direct reports
+- Average BaseSalary of direct reports
 - Highest-paid direct report
 - Only show managers with at least 2 direct reports
 

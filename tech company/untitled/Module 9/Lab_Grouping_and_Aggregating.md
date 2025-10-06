@@ -60,9 +60,9 @@ WITH ExecutiveIntelligence AS (
         AVG(CASE WHEN p.Budget > 0 THEN (ISNULL(p.Budget, 0) - ISNULL(p.ActualCost, 0)) / p.Budget END) AS AvgProfitMargin,
         
         -- DELIVERY PERFORMANCE
-        COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) AS CompletedProjects,
-        COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeCompletions,
-        AVG(CASE WHEN p.Status = 'Completed' THEN DATEDIFF(DAY, p.StartDate, p.ActualEndDate) END) AS AvgProjectDuration,
+        COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
+        COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeCompletions,
+        AVG(CASE WHEN p.IsActive = 'Completed' THEN DATEDIFF(DAY, p.StartDate, p.ActualEndDate) END) AS AvgProjectDuration,
         
         -- GROWTH METRICS
         SUM(p.Budget) - LAG(SUM(p.Budget), 1, 0) OVER (ORDER BY YEAR(p.StartDate), MONTH(p.StartDate)) AS MonthOverMonthGrowth,
@@ -96,8 +96,8 @@ WITH ExecutiveIntelligence AS (
         AVG(CASE WHEN p.Budget > 0 THEN (ISNULL(p.Budget, 0) - ISNULL(p.ActualCost, 0)) / p.Budget END) AS AvgProfitMargin,
         
         -- DEPARTMENT DELIVERY
-        COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) AS CompletedProjects,
-        COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeCompletions,
+        COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
+        COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeCompletions,
         AVG(DATEDIFF(YEAR, e.HireDate, GETDATE())) AS AvgTenure,
         
         NULL AS MonthOverMonthGrowth,
@@ -134,8 +134,8 @@ WITH ExecutiveIntelligence AS (
         AVG(CASE WHEN p.Budget > 0 THEN (ISNULL(p.Budget, 0) - ISNULL(p.ActualCost, 0)) / p.Budget END) AS AvgProfitMargin,
         
         -- CLIENT SATISFACTION
-        COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) AS CompletedProjects,
-        COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeDeliveries,
+        COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
+        COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeDeliveries,
         COUNT(p.ProjectID) * 12.0 / NULLIF(DATEDIFF(MONTH, MIN(p.StartDate), MAX(ISNULL(p.ActualEndDate, GETDATE()))), 0) AS ProjectFrequency,
         
         NULL AS MonthOverMonthGrowth,
@@ -214,8 +214,8 @@ CompetitiveIntelligence AS (
         
         -- PERFORMANCE VS MARKET
         (SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(p.Budget), 0) AS SegmentProfitMargin,
-        COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-        NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) AS SegmentOnTimeRate
+        COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+        NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) AS SegmentOnTimeRate
         
     FROM Companies c
         INNER JOIN Projects p ON c.CompanyID = p.CompanyID
@@ -453,8 +453,8 @@ WITH HistoricalPerformance AS (
         
         -- VOLUME METRICS
         COUNT(p.ProjectID) AS MonthlyProjects,
-        COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) AS CompletedProjects,
-        COUNT(CASE WHEN p.Status = 'Active' THEN 1 END) AS ActiveProjects,
+        COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
+        COUNT(CASE WHEN p.IsActive = 'Active' THEN 1 END) AS ActiveProjects,
         
         -- FINANCIAL METRICS
         SUM(p.Budget) AS MonthlyRevenue,
@@ -464,8 +464,8 @@ WITH HistoricalPerformance AS (
         SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)) AS MonthlyProfit,
         
         -- PERFORMANCE METRICS
-        COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeDeliveries,
-        AVG(CASE WHEN p.Status = 'Completed' THEN DATEDIFF(DAY, p.StartDate, p.ActualEndDate) END) AS AvgDeliveryDays,
+        COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeDeliveries,
+        AVG(CASE WHEN p.IsActive = 'Completed' THEN DATEDIFF(DAY, p.StartDate, p.ActualEndDate) END) AS AvgDeliveryDays,
         
         -- MARKET INDICATORS
         COUNT(DISTINCT c.CompanyID) AS UniqueClients,

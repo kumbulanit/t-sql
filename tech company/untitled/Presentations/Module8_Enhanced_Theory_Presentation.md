@@ -42,12 +42,12 @@ FROM Employees
 WHERE IsActive = 1 
     AND HireDate >= '2020-01-01'
 -- 3. GROUP BY: Group rows by specified columns
-GROUP BY Department, JobTitle
+GROUP BY DepartmentID, JobTitle
 -- 4. HAVING: Filter groups (after grouping)
 HAVING COUNT(*) >= 3 
     AND AVG(BaseSalary) > 50000
 -- 6. ORDER BY: Sort final result set
-ORDER BY Department, AverageSalary DESC;
+ORDER BY DepartmentID, AverageSalary DESC;
 ```
 
 #### **Grouping Rules and Constraints**
@@ -60,7 +60,7 @@ CREATE TABLE SalesData (
     ProductID INT,
     SaleDate DATE,
     Quantity INT,
-    UnitPrice DECIMAL(10,2),
+    BaseSalary DECIMAL(10,2),
     Commission DECIMAL(5,4)
 );
 
@@ -86,7 +86,7 @@ SELECT
         WHEN MONTH(SaleDate) BETWEEN 7 AND 9 THEN 'Q3'
         ELSE 'Q4'
     END AS Quarter,
-    SUM(Quantity * UnitPrice) AS QuarterlyRevenue
+    SUM(Quantity * BaseSalary) AS QuarterlyRevenue
 FROM SalesData
 GROUP BY SalesPersonID, 
          CASE 
@@ -140,7 +140,7 @@ SELECT
     -- Statistical functions
     STDEVP(Price) AS PriceStandardDeviationPopulation,
     VARP(Price) AS PriceVariancePopulation
-FROM ProductSales
+FROM Orders o INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
 GROUP BY Category
 ORDER BY TotalRevenue DESC;
 ```
@@ -154,7 +154,7 @@ SELECT
     STRING_AGG(Product, ', ') AS ProductList,
     STRING_AGG(Product, ', ') WITHIN GROUP (ORDER BY Price DESC) AS ProductsByPrice,
     STRING_AGG(CONCAT(Product, ' ($', CAST(Price AS VARCHAR(10)), ')'), '; ') AS ProductsWithPrices
-FROM ProductSales
+FROM Orders o INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
 GROUP BY Category
 ORDER BY Category;
 
@@ -163,12 +163,12 @@ SELECT
     Category,
     STUFF((
         SELECT ', ' + Product
-        FROM ProductSales ps2
+        FROM Orders o INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID ps2
         WHERE ps2.Category = ps1.Category
         ORDER BY Product
         FOR XML PATH(''), TYPE
     ).value('.', 'NVARCHAR(MAX)'), 1, 2, '') AS ProductList
-FROM ProductSales ps1
+FROM Orders o INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID ps1
 GROUP BY Category;
 ```
 
@@ -285,16 +285,16 @@ SELECT
     STDEV(BaseSalary) AS SalaryStandardDeviation
 FROM Employees
 WHERE IsActive = 1
-GROUP BY Department, JobTitle
+GROUP BY DepartmentID, JobTitle
 HAVING 
     -- Multiple aggregate conditions
     COUNT(*) >= 5                               -- At least 5 employees
-    AND AVG(BaseSalary) BETWEEN 50000 AND 150000    -- Average salary in range
-    AND MAX(BaseSalary) - MIN(BaseSalary) > 20000       -- Significant salary variation
+    AND AVG(BaseSalary) BETWEEN 50000 AND 150000    -- Average BaseSalary in range
+    AND MAX(BaseSalary) - MIN(BaseSalary) > 20000       -- Significant BaseSalary variation
     AND STDEV(BaseSalary) < 15000                   -- Not too much variation
     -- Percentage-based conditions
-    AND MIN(BaseSalary) > 0.7 * AVG(BaseSalary)        -- Min salary at least 70% of average
-ORDER BY Department, AverageSalary DESC;
+    AND MIN(BaseSalary) > 0.7 * AVG(BaseSalary)        -- Min BaseSalary at least 70% of average
+ORDER BY DepartmentID, AverageSalary DESC;
 ```
 
 #### **Conditional Aggregation in HAVING**
@@ -349,17 +349,17 @@ WITH EmployeeRankings AS (
         NTILE(4) OVER (ORDER BY BaseSalary DESC) AS SalaryQuartile,
         
         -- Department-specific rankings
-        ROW_NUMBER() OVER (PARTITION BY Department ORDER BY BaseSalary DESC) AS DeptSalaryRank,
-        RANK() OVER (PARTITION BY Department ORDER BY HireDate) AS DeptSeniorityRank,
+        ROW_NUMBER() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) AS DeptSalaryRank,
+        RANK() OVER (PARTITION BY DepartmentID ORDER BY HireDate) AS DeptSeniorityRank,
         
         -- Percentage ranking
         PERCENT_RANK() OVER (ORDER BY BaseSalary) AS SalaryPercentRank,
         CUME_DIST() OVER (ORDER BY BaseSalary) AS SalaryCumulativeDistribution,
         
         -- Window frame calculations
-        AVG(BaseSalary) OVER (PARTITION BY Department) AS DeptAverageSalary,
-        SUM(BaseSalary) OVER (PARTITION BY Department) AS DeptTotalSalary,
-        COUNT(*) OVER (PARTITION BY Department) AS DeptEmployeeCount
+        AVG(BaseSalary) OVER (PARTITION BY DepartmentID) AS DeptAverageSalary,
+        SUM(BaseSalary) OVER (PARTITION BY DepartmentID) AS DeptTotalSalary,
+        COUNT(*) OVER (PARTITION BY DepartmentID) AS DeptEmployeeCount
         
     FROM Employees
     WHERE IsActive = 1
@@ -375,7 +375,7 @@ SELECT
         ELSE 'Bottom 50%'
     END AS SalaryPercentile
 FROM EmployeeRankings
-ORDER BY Department, DeptSalaryRank;
+ORDER BY DepartmentID, DeptSalaryRank;
 ```
 
 #### **Analytical Functions**
@@ -537,35 +537,35 @@ GROUP BY SalesPersonID;
 
 -- Approach 1: Single pass with CASE expressions (Efficient)
 SELECT 
-    ProductCategory,
+    DepartmentName,
     COUNT(*) AS TotalProducts,
-    SUM(CASE WHEN UnitPrice > 100 THEN 1 ELSE 0 END) AS ExpensiveProducts,
-    SUM(CASE WHEN UnitPrice <= 100 THEN 1 ELSE 0 END) AS AffordableProducts,
-    AVG(UnitPrice) AS AveragePrice,
-    SUM(CASE WHEN UnitPrice > 100 THEN UnitPrice ELSE 0 END) / 
-        NULLIF(SUM(CASE WHEN UnitPrice > 100 THEN 1 ELSE 0 END), 0) AS AvgExpensivePrice
+    SUM(CASE WHEN BaseSalary > 100 THEN 1 ELSE 0 END) AS ExpensiveProducts,
+    SUM(CASE WHEN BaseSalary <= 100 THEN 1 ELSE 0 END) AS AffordableProducts,
+    AVG(BaseSalary) AS AveragePrice,
+    SUM(CASE WHEN BaseSalary > 100 THEN BaseSalary ELSE 0 END) / 
+        NULLIF(SUM(CASE WHEN BaseSalary > 100 THEN 1 ELSE 0 END), 0) AS AvgExpensivePrice
 FROM Products
-GROUP BY ProductCategory;
+GROUP BY DepartmentName;
 
 -- Approach 2: Multiple subqueries (Less efficient)
 SELECT 
-    p1.ProductCategory,
+    p1.DepartmentName,
     p1.TotalProducts,
     p2.ExpensiveProducts,
     p3.AffordableProducts,
     p1.AveragePrice
 FROM (
-    SELECT ProductCategory, COUNT(*) AS TotalProducts, AVG(UnitPrice) AS AveragePrice
-    FROM Products GROUP BY ProductCategory
+    SELECT DepartmentName, COUNT(*) AS TotalProducts, AVG(BaseSalary) AS AveragePrice
+    FROM Products GROUP BY DepartmentName
 ) p1
 JOIN (
-    SELECT ProductCategory, COUNT(*) AS ExpensiveProducts
-    FROM Products WHERE UnitPrice > 100 GROUP BY ProductCategory
-) p2 ON p1.ProductCategory = p2.ProductCategory
+    SELECT DepartmentName, COUNT(*) AS ExpensiveProducts
+    FROM Products WHERE BaseSalary > 100 GROUP BY DepartmentName
+) p2 ON p1.DepartmentName = p2.DepartmentName
 JOIN (
-    SELECT ProductCategory, COUNT(*) AS AffordableProducts
-    FROM Products WHERE UnitPrice <= 100 GROUP BY ProductCategory
-) p3 ON p1.ProductCategory = p3.ProductCategory;
+    SELECT DepartmentName, COUNT(*) AS AffordableProducts
+    FROM Products WHERE BaseSalary <= 100 GROUP BY DepartmentName
+) p3 ON p1.DepartmentName = p3.DepartmentName;
 ```
 
 This comprehensive Module 8 presentation covers all aspects of data aggregation and grouping with detailed explanations, advanced techniques, and performance optimization strategies.

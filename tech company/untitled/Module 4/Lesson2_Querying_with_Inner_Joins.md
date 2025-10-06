@@ -96,7 +96,7 @@ FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-WHERE p.Status = 'In Progress'
+WHERE p.IsActive = 'In Progress'
 ORDER BY d.DepartmentName, e.LastName, p.ProjectName;
 ```
 
@@ -137,7 +137,7 @@ WHERE p.ProjectID IN (
     SELECT ProjectID 
     FROM Projects 
     WHERE Priority = 'Critical' 
-    AND Status = 'In Progress'
+    AND IsActive = 'In Progress'
 )
 ORDER BY p.ProjectName, e.LastName;
 ```
@@ -157,7 +157,7 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE e.IsActive = 1
-  AND p.Status IN ('In Progress', 'Planning')
+  AND p.IsActive IN ('In Progress', 'Planning')
   AND d.DepartmentName IN ('Information Technology', 'Research & Development')
   AND e.HireDate >= '2019-01-01'
 GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, d.DepartmentName, e.BaseSalary
@@ -176,7 +176,7 @@ WITH ProjectPerformance AS (
         COUNT(ep.ProjectID) AS TotalProjects,
         AVG(ep.HoursWorked / NULLIF(ep.HoursAllocated, 0)) AS AvgEfficiency,
         SUM(ep.HoursWorked * ep.HourlyRate) AS TotalProjectRevenue,
-        COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) AS CompletedProjects
+        COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects
     FROM EmployeeProjects ep
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
     GROUP BY ep.EmployeeID
@@ -274,11 +274,11 @@ SELECT
         WHEN COUNT(ep.ProjectID) = 0 THEN 'Available'
         WHEN COUNT(ep.ProjectID) BETWEEN 1 AND 2 THEN 'Normal Load'
         ELSE 'Heavy Load'
-    END AS [Workload Status]
+    END AS [Workload IsActive]
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.Status = 'In Progress'
+LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'In Progress'
 WHERE e.IsActive = 1
 GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.BaseSalary, 
          e.HireDate, d.DepartmentID, d.DepartmentName
@@ -320,11 +320,11 @@ SELECT
     
     -- Performance indicators
     CASE 
-        WHEN p.Status = 'Completed' AND ISNULL(p.ActualCost, 0) <= p.Budget * 0.95 
+        WHEN p.IsActive = 'Completed' AND ISNULL(p.ActualCost, 0) <= p.Budget * 0.95 
              THEN 'Excellent - Under Budget'
-        WHEN p.Status = 'Completed' AND ISNULL(p.ActualCost, 0) <= p.Budget 
+        WHEN p.IsActive = 'Completed' AND ISNULL(p.ActualCost, 0) <= p.Budget 
              THEN 'Good - On Budget'
-        WHEN p.Status = 'In Progress' AND ISNULL(p.ActualCost, 0) <= p.Budget * 0.8 
+        WHEN p.IsActive = 'In Progress' AND ISNULL(p.ActualCost, 0) <= p.Budget * 0.8 
              THEN 'On Track'
         WHEN ISNULL(p.ActualCost, 0) > p.Budget 
              THEN 'Over Budget - Review Required'
@@ -339,18 +339,18 @@ SELECT
              THEN 'Delivered On Time'
         WHEN p.EndDate IS NOT NULL AND p.EndDate > p.PlannedEndDate 
              THEN 'Delivered Late'
-        WHEN GETDATE() > p.PlannedEndDate AND p.Status != 'Completed' 
+        WHEN GETDATE() > p.PlannedEndDate AND p.IsActive != 'Completed' 
              THEN 'Behind Schedule'
         ELSE 'On Schedule'
-    END AS [Timeline Status]
+    END AS [Timeline IsActive]
 FROM Projects p
 INNER JOIN Clients c ON p.ClientID = c.ClientID
 INNER JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
 INNER JOIN Employees e ON ep.EmployeeID = e.EmployeeID
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE p.Status IN ('Completed', 'In Progress')
+WHERE p.IsActive IN ('Completed', 'In Progress')
 GROUP BY p.ProjectID, p.ProjectName, p.ProjectCode, p.Budget, p.ActualCost,
-         p.Status, p.StartDate, p.EndDate, p.PlannedEndDate,
+         p.IsActive, p.StartDate, p.EndDate, p.PlannedEndDate,
          c.ClientName, d.DepartmentName
 HAVING COUNT(DISTINCT ep.EmployeeID) >= 2  -- Projects with teams of 2+
 ORDER BY [Project Health], p.Budget DESC;
@@ -461,7 +461,7 @@ ORDER BY [Project Health], p.Budget DESC;
 CREATE INDEX IX_Employees_DepartmentID ON Employees(DepartmentID);
 CREATE INDEX IX_EmployeeProjects_EmployeeID ON EmployeeProjects(EmployeeID);
 CREATE INDEX IX_EmployeeProjects_ProjectID ON EmployeeProjects(ProjectID);
-CREATE INDEX IX_Projects_Status ON Projects(Status);
+CREATE INDEX IX_Projects_IsActive ON Projects(IsActive);
 
 -- Covering index for common query patterns
 CREATE INDEX IX_Employees_Covering 
@@ -515,11 +515,11 @@ WHERE EXISTS (
 SELECT 
     o.OrderID,
     o.OrderDate,
-    c.CustomerName,
+    c.CompanyName,
     od.ProductName,
     od.Quantity,
-    od.UnitPrice,
-    od.Quantity * od.UnitPrice AS LineTotal
+    od.BaseSalary,
+    od.Quantity * od.BaseSalary AS LineTotal
 FROM Orders o
 INNER JOIN Customers c ON o.CustomerID = c.CustomerID
 INNER JOIN OrderDetails od ON o.OrderID = od.OrderID
@@ -533,11 +533,11 @@ SELECT
     e.FirstName,
     e.LastName,
     et.TypeDescription AS EmployeeType,
-    es.StatusDescription AS EmployeeStatus,
+    es.IsActiveDescription AS EmployeeIsActive,
     d.DepartmentName
 FROM Employees e
 INNER JOIN EmployeeTypes et ON e.EmployeeTypeID = et.EmployeeTypeID
-INNER JOIN EmployeeStatuses es ON e.StatusID = es.StatusID
+INNER JOIN EmployeeIsActivees es ON e.IsActiveID = es.IsActiveID
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 ```
 
@@ -580,7 +580,7 @@ SELECT p.ProjectName, e.FirstName, e.LastName
 FROM Projects p  -- If fewer projects than employees
 INNER JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
 INNER JOIN Employees e ON ep.EmployeeID = e.EmployeeID
-WHERE p.Status = 'Critical';
+WHERE p.IsActive = 'Critical';
 ```
 
 ### 3. Consistent Formatting
@@ -599,7 +599,7 @@ FROM Employees e
     INNER JOIN Projects p 
         ON ep.ProjectID = p.ProjectID
 WHERE e.IsActive = 1
-    AND p.Status = 'Active'
+    AND p.IsActive = 'Active'
 ORDER BY d.DepartmentName, e.LastName;
 ```
 

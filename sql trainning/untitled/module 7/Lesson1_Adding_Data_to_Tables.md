@@ -55,7 +55,7 @@ CREATE TABLE Employees (
     EmployeeID INT IDENTITY(1,1) PRIMARY KEY,
     FirstName NVARCHAR(50) NOT NULL,
     LastName NVARCHAR(50) NOT NULL,
-    Email NVARCHAR(100) UNIQUE,
+    WorkEmail NVARCHAR(100) UNIQUE,
     HireDate DATE DEFAULT GETDATE(),
     BaseSalary DECIMAL(10,2),
     DepartmentID INT,
@@ -81,7 +81,7 @@ CREATE TABLE Projects (
     StartDate DATE,
     EndDate DATE,
     Budget DECIMAL(12,2),
-    Status NVARCHAR(20) DEFAULT 'Planning',
+    IsActive NVARCHAR(20) DEFAULT 'Planning',
     CreatedDate DATETIME2 DEFAULT SYSDATETIME()
 );
 
@@ -110,29 +110,29 @@ INSERT INTO Departments (DepartmentName, Location, Budget)
 VALUES ('Finance', 'Building A, Floor 2', 300000.00);
 
 -- INSERT with explicit column list (recommended practice)
-INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
+INSERT INTO Employees (FirstName, LastName, WorkEmail, BaseSalary, DepartmentID)
 VALUES ('John', 'Smith', 'john.smith@company.com', 75000.00, 1);
 
 -- INSERT without column list (not recommended - fragile)
 -- INSERT INTO Employees VALUES (2, 'Jane', 'Doe', 'jane.doe@company.com', ...);
 
 -- INSERT with NULL values and defaults
-INSERT INTO Employees (FirstName, LastName, Email, DepartmentID)
+INSERT INTO Employees (FirstName, LastName, WorkEmail, DepartmentID)
 VALUES ('Alice', 'Johnson', 'alice.johnson@company.com', 2);  -- BaseSalary will be NULL, HireDate will use default
 
 -- INSERT with explicit NULLs
-INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID, ManagerID)
+INSERT INTO Employees (FirstName, LastName, WorkEmail, BaseSalary, DepartmentID, ManagerID)
 VALUES ('Bob', 'Wilson', 'bob.wilson@company.com', 65000.00, 1, NULL);
 
 -- Verifying the inserts
-SELECT * FROM Departments ORDER BY DepartmentID;
+SELECT * FROM Departments ORDER BY DepartmentIDID;
 SELECT * FROM Employees ORDER BY EmployeeID;
 ```
 
 ### Multiple Row Inserts
 ```sql
 -- Multiple VALUES clauses (SQL Server 2008+)
-INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID, ManagerID)
+INSERT INTO Employees (FirstName, LastName, WorkEmail, BaseSalary, DepartmentID, ManagerID)
 VALUES 
     ('Sarah', 'Davis', 'sarah.davis@company.com', 80000.00, 1, 1),
     ('Michael', 'Brown', 'michael.brown@company.com', 72000.00, 2, NULL),
@@ -142,7 +142,7 @@ VALUES
     ('James', 'Martinez', 'james.martinez@company.com', 90000.00, 3, 4);
 
 -- INSERT multiple projects
-INSERT INTO Projects (ProjectName, Description, StartDate, EndDate, Budget, Status)
+INSERT INTO Projects (ProjectName, Description, StartDate, EndDate, Budget, IsActive)
 VALUES 
     ('ERP System Upgrade', 'Upgrade enterprise resource planning system', '2024-01-15', '2024-06-30', 250000.00, 'In Progress'),
     ('Data Warehouse Migration', 'Migrate data warehouse to cloud platform', '2024-02-01', '2024-08-15', 180000.00, 'Planning'),
@@ -157,7 +157,7 @@ SELECT COUNT(*) AS ProjectCount FROM Projects;
 ### INSERT with Calculations and Functions
 ```sql
 -- INSERT with calculated values
-INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID, HireDate)
+INSERT INTO Employees (FirstName, LastName, WorkEmail, BaseSalary, DepartmentID, HireDate)
 VALUES 
     ('Thomas', 'Anderson', 'thomas.anderson@company.com', 
      (SELECT AVG(BaseSalary) * 1.1 FROM Employees WHERE DepartmentID = 1), -- 10% above IT average
@@ -165,14 +165,14 @@ VALUES
      DATEADD(DAY, 30, GETDATE())); -- Start date 30 days from now
 
 -- INSERT with string functions
-INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
+INSERT INTO Employees (FirstName, LastName, WorkEmail, BaseSalary, DepartmentID)
 VALUES 
     ('Jennifer', 'Williams-Jones', 
      LOWER('Jennifer') + '.' + LOWER(REPLACE('Williams-Jones', '-', '')) + '@company.com',
      67500.00, 2);
 
 -- INSERT with CASE expressions
-INSERT INTO Projects (ProjectName, Description, StartDate, EndDate, Budget, Status)
+INSERT INTO Projects (ProjectName, Description, StartDate, EndDate, Budget, IsActive)
 VALUES 
     ('Q4 Planning Initiative', 
      'Strategic planning for fourth quarter',
@@ -195,19 +195,19 @@ CREATE TABLE EmployeeBackup (
     EmployeeID INT,
     FirstName NVARCHAR(50),
     LastName NVARCHAR(50),
-    Email NVARCHAR(100),
+    WorkEmail NVARCHAR(100),
     BaseSalary DECIMAL(10,2),
     DepartmentName NVARCHAR(100),
     BackupDate DATETIME2 DEFAULT SYSDATETIME()
 );
 
 -- INSERT...SELECT with JOIN
-INSERT INTO EmployeeBackup (EmployeeID, FirstName, LastName, Email, BaseSalary, DepartmentName)
+INSERT INTO EmployeeBackup (EmployeeID, FirstName, LastName, WorkEmail, BaseSalary, DepartmentName)
 SELECT 
     e.EmployeeID,
     e.FirstName,
     e.LastName,
-    e.Email,
+    e.WorkEmail,
     e.BaseSalary,
     d.DepartmentName
 FROM Employees e
@@ -280,7 +280,7 @@ WHERE e.IsActive = 1
   AND (RANK() OVER (PARTITION BY d.DepartmentName ORDER BY e.BaseSalary DESC) <= 2 
        OR e.BaseSalary > (SELECT AVG(BaseSalary) FROM Employees WHERE DepartmentID = e.DepartmentID));
 
-SELECT * FROM HighPerformers ORDER BY DepartmentName, SalaryRank;
+SELECT * FROM HighPerformers ORDER BY DepartmentIDName, SalaryRank;
 
 -- INSERT...SELECT with UNION for combining data from multiple sources
 CREATE TABLE AllContacts (
@@ -288,17 +288,17 @@ CREATE TABLE AllContacts (
     ContactType NVARCHAR(20),
     FirstName NVARCHAR(50),
     LastName NVARCHAR(50),
-    Email NVARCHAR(100),
+    WorkEmail NVARCHAR(100),
     Department NVARCHAR(100),
     ContactDate DATETIME2 DEFAULT SYSDATETIME()
 );
 
-INSERT INTO AllContacts (ContactType, FirstName, LastName, Email, Department)
+INSERT INTO AllContacts (ContactType, FirstName, LastName, WorkEmail, Department)
 SELECT 
     'Employee' AS ContactType,
     e.FirstName,
     e.LastName,
-    e.Email,
+    e.WorkEmail,
     d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
@@ -310,7 +310,7 @@ SELECT
     'Manager' AS ContactType,
     m.FirstName,
     m.LastName,
-    m.Email,
+    m.WorkEmail,
     d.DepartmentName
 FROM Employees e
 INNER JOIN Employees m ON e.ManagerID = m.EmployeeID
@@ -330,16 +330,16 @@ GROUP BY ContactType;
 DECLARE @InsertedEmployees TABLE (
     EmployeeID INT,
     FullName NVARCHAR(101),
-    Email NVARCHAR(100),
+    WorkEmail NVARCHAR(100),
     HireDate DATE
 );
 
 -- INSERT with OUTPUT clause
-INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
+INSERT INTO Employees (FirstName, LastName, WorkEmail, BaseSalary, DepartmentID)
 OUTPUT 
     inserted.EmployeeID,
     inserted.FirstName + ' ' + inserted.LastName AS FullName,
-    inserted.Email,
+    inserted.WorkEmail,
     inserted.HireDate
 INTO @InsertedEmployees
 VALUES 
@@ -359,7 +359,7 @@ CREATE TABLE InsertLog (
     InsertedDate DATETIME2 DEFAULT SYSDATETIME()
 );
 
-INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
+INSERT INTO Employees (FirstName, LastName, WorkEmail, BaseSalary, DepartmentID)
 OUTPUT 
     'Employees' AS TableName,
     'INSERT' AS Action,
@@ -414,7 +414,7 @@ SELECT
     END AS AllocationPercentage
 FROM Projects p
 CROSS JOIN Employees e
-WHERE p.Status = 'Planning' 
+WHERE p.IsActive = 'Planning' 
   AND e.DepartmentID = 1  -- IT Department
   AND e.IsActive = 1;
 
@@ -429,14 +429,14 @@ SELECT * FROM @NewAssignments ORDER BY ProjectName, Role DESC;
 -- Demonstrate constraint violations and error handling
 BEGIN TRY
     -- This will succeed
-    INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
+    INSERT INTO Employees (FirstName, LastName, WorkEmail, BaseSalary, DepartmentID)
     VALUES ('Valid', 'Employee', 'valid.employee@company.com', 65000.00, 1);
     
     PRINT 'First insert succeeded';
     
     -- This will fail due to duplicate email (UNIQUE constraint)
-    INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
-    VALUES ('Duplicate', 'Email', 'valid.employee@company.com', 70000.00, 2);
+    INSERT INTO Employees (FirstName, LastName, WorkEmail, BaseSalary, DepartmentID)
+    VALUES ('Duplicate', 'WorkEmail', 'valid.employee@company.com', 70000.00, 2);
     
     PRINT 'This should not print - duplicate email insert';
     
@@ -452,7 +452,7 @@ END CATCH;
 -- INSERT with foreign key constraint handling
 BEGIN TRY
     -- This will fail due to invalid DepartmentID (foreign key constraint)
-    INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
+    INSERT INTO Employees (FirstName, LastName, WorkEmail, BaseSalary, DepartmentID)
     VALUES ('Invalid', 'Department', 'invalid.dept@company.com', 65000.00, 999);
     
 END TRY
@@ -460,7 +460,7 @@ BEGIN CATCH
     PRINT 'Foreign key violation: ' + ERROR_MESSAGE();
     
     -- Handle the error by using a valid department
-    INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
+    INSERT INTO Employees (FirstName, LastName, WorkEmail, BaseSalary, DepartmentID)
     VALUES ('Corrected', 'Employee', 'corrected.employee@company.com', 65000.00, 1);
     
     PRINT 'Corrected insert completed successfully';
@@ -473,7 +473,7 @@ END CATCH;
 CREATE PROCEDURE InsertEmployeeWithValidation
     @FirstName NVARCHAR(50),
     @LastName NVARCHAR(50),
-    @Email NVARCHAR(100),
+    @WorkEmail NVARCHAR(100),
     @BaseSalary DECIMAL(10,2),
     @DepartmentID INT
 AS
@@ -496,15 +496,15 @@ BEGIN
         SET @ValidationPassed = 0;
     END
     
-    IF @Email IS NULL OR @Email NOT LIKE '%_@__%.__%'
+    IF @WorkEmail IS NULL OR @WorkEmail NOT LIKE '%_@__%.__%'
     BEGIN
         SET @ErrorMessage = @ErrorMessage + 'Valid email is required. ';
         SET @ValidationPassed = 0;
     END
     
-    IF EXISTS (SELECT 1 FROM Employees WHERE Email = @Email)
+    IF EXISTS (SELECT 1 FROM Employees WHERE WorkEmail = @WorkEmail)
     BEGIN
-        SET @ErrorMessage = @ErrorMessage + 'Email already exists. ';
+        SET @ErrorMessage = @ErrorMessage + 'WorkEmail already exists. ';
         SET @ValidationPassed = 0;
     END
     
@@ -523,8 +523,8 @@ BEGIN
     -- If validation passed, insert the record
     IF @ValidationPassed = 1
     BEGIN
-        INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
-        VALUES (@FirstName, @LastName, @Email, @BaseSalary, @DepartmentID);
+        INSERT INTO Employees (FirstName, LastName, WorkEmail, BaseSalary, DepartmentID)
+        VALUES (@FirstName, @LastName, @WorkEmail, @BaseSalary, @DepartmentID);
         
         PRINT 'Employee inserted successfully. EmployeeID: ' + CAST(SCOPE_IDENTITY() AS VARCHAR(10));
     END
@@ -807,7 +807,7 @@ ORDER BY OverallRank;
 
 -- 1. Always specify column list (maintainable and safe)
 -- GOOD
-INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
+INSERT INTO Employees (FirstName, LastName, WorkEmail, BaseSalary, DepartmentID)
 VALUES ('Best', 'Practice', 'best.practice@company.com', 75000.00, 1);
 
 -- AVOID (fragile if table structure changes)
@@ -824,7 +824,7 @@ BEGIN TRY
     
     SET @NewDeptID = SCOPE_IDENTITY();
     
-    INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
+    INSERT INTO Employees (FirstName, LastName, WorkEmail, BaseSalary, DepartmentID)
     VALUES ('Research', 'Director', 'research.director@company.com', 95000.00, @NewDeptID);
     
     COMMIT TRANSACTION;
@@ -840,14 +840,14 @@ END CATCH;
 -- Enable identity insert for specific scenarios
 SET IDENTITY_INSERT Employees ON;
 
-INSERT INTO Employees (EmployeeID, FirstName, LastName, Email, BaseSalary, DepartmentID)
+INSERT INTO Employees (EmployeeID, FirstName, LastName, WorkEmail, BaseSalary, DepartmentID)
 VALUES (1000, 'Specific', 'ID', 'specific.id@company.com', 80000.00, 1);
 
 SET IDENTITY_INSERT Employees OFF;
 
 -- 4. Handle default values appropriately
 -- Let defaults work when appropriate
-INSERT INTO Employees (FirstName, LastName, Email, DepartmentID)
+INSERT INTO Employees (FirstName, LastName, WorkEmail, DepartmentID)
 VALUES ('Default', 'Values', 'default.values@company.com', 1);
 -- HireDate, IsActive, CreatedDate, ModifiedDate will use defaults
 
@@ -871,7 +871,7 @@ VALUES ('Best Practices Project', 'Implementing coding standards', GETDATE(), 50
 -- PITFALL 2: String truncation issues
 BEGIN TRY
     -- This may fail if FirstName column is shorter than the value
-    INSERT INTO Employees (FirstName, LastName, Email, DepartmentID)
+    INSERT INTO Employees (FirstName, LastName, WorkEmail, DepartmentID)
     VALUES (REPLICATE('VeryLongFirstName', 10), 'User', 'long.name@company.com', 1);
 END TRY
 BEGIN CATCH
@@ -879,7 +879,7 @@ BEGIN CATCH
     
     -- Solution: Validate string lengths before insert
     DECLARE @FirstName NVARCHAR(50) = LEFT(REPLICATE('VeryLongFirstName', 10), 50);
-    INSERT INTO Employees (FirstName, LastName, Email, DepartmentID)
+    INSERT INTO Employees (FirstName, LastName, WorkEmail, DepartmentID)
     VALUES (@FirstName, 'User', 'truncated.name@company.com', 1);
 END CATCH;
 
@@ -915,10 +915,10 @@ BEGIN TRANSACTION;
 -- Check if record already exists with appropriate locking
 IF NOT EXISTS (
     SELECT 1 FROM Employees WITH (UPDLOCK, HOLDLOCK) 
-    WHERE Email = 'unique.email@company.com'
+    WHERE WorkEmail = 'unique.email@company.com'
 )
 BEGIN
-    INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
+    INSERT INTO Employees (FirstName, LastName, WorkEmail, BaseSalary, DepartmentID)
     VALUES ('Unique', 'User', 'unique.email@company.com', 70000.00, 1);
 END
 ELSE

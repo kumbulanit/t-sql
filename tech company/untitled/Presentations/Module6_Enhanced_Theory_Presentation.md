@@ -51,7 +51,7 @@ DECLARE @TaxRate DECIMAL(5,4) = 0.0875;
 DECLARE @Quantity INT = 3;
 
 SELECT 
-    @Price AS UnitPrice,
+    @Price AS BaseSalary,
     @Quantity AS Quantity,
     @Price * @Quantity AS Subtotal,
     (@Price * @Quantity) * @TaxRate AS TaxAmount,
@@ -138,21 +138,21 @@ SELECT
 #### **Collation and Sorting**
 ```sql
 -- Collation-sensitive operations
-CREATE TABLE CustomerNames (
+CREATE TABLE CompanyNames (
     CustomerID INT IDENTITY(1,1) PRIMARY KEY,
     Name NVARCHAR(100) COLLATE SQL_Latin1_General_CP1_CI_AS -- Case-insensitive
 );
 
-INSERT INTO CustomerNames (Name) VALUES 
+INSERT INTO CompanyNames (Name) VALUES 
     (N'Smith'), (N'SMITH'), (N'smith'), 
     (N'Müller'), (N'Mueller'), (N'MÜLLER'),
     (N'José'), (N'Jose'), (N'JOSÉ');
 
 -- Different collation behaviors
-SELECT Name FROM CustomerNames 
+SELECT Name FROM CompanyNames 
 ORDER BY Name COLLATE SQL_Latin1_General_CP1_CS_AS; -- Case-sensitive
 
-SELECT Name FROM CustomerNames 
+SELECT Name FROM CompanyNames 
 ORDER BY Name COLLATE SQL_Latin1_General_CP1_CI_AI; -- Case and accent insensitive
 ```
 
@@ -283,12 +283,12 @@ WHERE ProductDetails.exist('/Product/Specifications[CPU[contains(., "i7")]]') = 
 -- JSON data handling
 CREATE TABLE CustomerProfiles (
     CustomerID INT PRIMARY KEY,
-    CustomerName NVARCHAR(100),
+    CompanyName NVARCHAR(100),
     ProfileData NVARCHAR(MAX) -- Store JSON as string
 );
 
 -- Insert JSON data
-INSERT INTO CustomerProfiles (CustomerID, CustomerName, ProfileData)
+INSERT INTO CustomerProfiles (CustomerID, CompanyName, ProfileData)
 VALUES 
     (1, 'John Smith', 
      '{"age": 35, "interests": ["technology", "sports"], "address": {"city": "New York", "state": "NY"}}'),
@@ -298,7 +298,7 @@ VALUES
 -- JSON querying
 SELECT 
     CustomerID,
-    CustomerName,
+    CompanyName,
     JSON_VALUE(ProfileData, '$.age') AS Age,
     JSON_VALUE(ProfileData, '$.address.city') AS City,
     JSON_QUERY(ProfileData, '$.interests') AS Interests
@@ -340,7 +340,7 @@ SELECT
     CASE WHEN DeliveryArea.STContains(@CustomerLocation) = 1 
          THEN 'Available' 
          ELSE 'Not Available' 
-    END AS DeliveryStatus
+    END AS DeliveryIsActive
 FROM StoreLocations
 ORDER BY Location.STDistance(@CustomerLocation);
 ```
@@ -425,13 +425,13 @@ CREATE TABLE OptimizedEmployees (
     IsActive BIT,                              -- 1 bit per value
     IsManager BIT,
     
-    -- Status codes
-    EmployeeStatus TINYINT,                    -- Numeric codes: 1=Active, 2=Inactive, etc.
+    -- IsActive codes
+    EmployeeIsActive TINYINT,                    -- Numeric codes: 1=Active, 2=Inactive, etc.
     
     -- Constraints for data integrity
     CONSTRAINT CK_Employees_Age CHECK (Age BETWEEN 18 AND 100),
     CONSTRAINT CK_Employees_Salary CHECK (BaseSalary >= 0),
-    CONSTRAINT CK_Employees_Status CHECK (EmployeeStatus BETWEEN 1 AND 5)
+    CONSTRAINT CK_Employees_IsActive CHECK (EmployeeIsActive BETWEEN 1 AND 5)
 );
 ```
 
@@ -447,12 +447,12 @@ CREATE TABLE Orders (
 
 CREATE TABLE Customers (
     CustomerID INT PRIMARY KEY,                -- Consistent data type
-    CustomerName NVARCHAR(100)
+    CompanyName NVARCHAR(100)
 );
 
 -- Efficient join (matching data types)
 SELECT 
-    c.CustomerName,
+    c.CompanyName,
     o.OrderID,
     o.OrderDate,
     o.TotalAmount

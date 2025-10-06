@@ -62,7 +62,7 @@ SQL Server provides hundreds of built-in functions organized into categories:
 
 In the real world, data comes from many sources and isn't always clean:
 - Client names entered inconsistently ("TechCorp", "Tech Corp", "TECHCORP")
-- Email addresses with extra spaces
+- WorkEmail addresses with extra spaces
 - Phone numbers in different formats
 - Mixed case data that needs standardization
 
@@ -275,7 +275,7 @@ Business runs on time:
 -- Business scenario: Real-time dashboard with current information
 
 SELECT 
-    'TechCorp Dashboard - Current Status' AS ReportTitle,
+    'TechCorp Dashboard - Current IsActive' AS ReportTitle,
     
     -- Different ways to get current date/time
     GETDATE() AS CurrentDateTime_Legacy,
@@ -377,7 +377,7 @@ SELECT
         WHEN p.ActualEndDate IS NULL AND GETDATE() > p.PlannedEndDate THEN 'Overdue'
         WHEN p.ActualEndDate <= p.PlannedEndDate THEN 'Completed On Time'
         WHEN p.ActualEndDate > p.PlannedEndDate THEN 'Completed Late'
-    END AS ProjectStatus,
+    END AS ProjectIsActive,
     
     -- Calculate completion percentage for active projects
     CASE 
@@ -489,7 +489,7 @@ SELECT
         WHEN 1 THEN 'Profitable'
         WHEN 0 THEN 'Break Even'
         WHEN -1 THEN 'Loss'
-    END AS ProfitabilityStatus,
+    END AS ProfitabilityIsActive,
     
     -- Financial performance categories
     CASE 
@@ -531,7 +531,7 @@ SELECT
     MAX(e.BaseSalary) - MIN(e.BaseSalary) AS SalaryRange,
     ROUND((MAX(e.BaseSalary) - MIN(e.BaseSalary)) / AVG(e.BaseSalary) * 100.0, 2) AS SalaryRangePercent,
     
-    -- Logarithmic calculations for salary growth analysis
+    -- Logarithmic calculations for BaseSalary growth analysis
     ROUND(LOG(MAX(e.BaseSalary) / MIN(e.BaseSalary)), 4) AS SalaryGrowthLog,
     
     -- Exponential calculations

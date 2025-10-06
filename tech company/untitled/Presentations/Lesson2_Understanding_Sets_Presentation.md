@@ -106,7 +106,7 @@ SELECT
     FirstName,
     LastName,
     CASE 
-        WHEN Department = 'IT' THEN 'Member of IT Set'
+        WHEN d.DepartmentName = 'Engineering' THEN 'Member of IT Set'
         ELSE 'Not Member of IT Set'
     END AS SetMembership
 FROM Employees;
@@ -117,7 +117,7 @@ WHERE Department IN ('IT', 'Finance');  -- Members of specified set
 
 -- BaseSalary range membership
 SELECT * FROM Employees
-WHERE BaseSalary BETWEEN 60000 AND 80000;   -- Members of salary range set
+WHERE BaseSalary BETWEEN 60000 AND 80000;   -- Members of BaseSalary range set
 ```
 
 ---
@@ -133,7 +133,7 @@ WHERE Department = 'NonExistentDept';   -- Returns empty set
 
 -- Checking for empty results
 IF NOT EXISTS (SELECT * FROM Employees WHERE BaseSalary > 200000)
-    PRINT 'No employees with salary > 200000 (Empty Set)';
+    PRINT 'No employees with BaseSalary > 200000 (Empty Set)';
 ```
 
 **Universal Set**:
@@ -167,17 +167,17 @@ WHERE 1 = 1;  -- Always true condition = Universal set
 ```sql
 -- Combine IT and HR employees
 SELECT EmployeeID, FirstName, LastName, 'IT' AS Source
-FROM Employees WHERE Department = 'IT'
+FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Engineering'
 
 UNION
 
 SELECT EmployeeID, FirstName, LastName, 'HR' AS Source  
-FROM Employees WHERE Department = 'HR';
+FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Human Resources';
 
--- Union of salary ranges
-SELECT DISTINCT BaseSalary FROM Employees WHERE Department = 'IT'
+-- Union of BaseSalary ranges
+SELECT DISTINCT BaseSalary FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Engineering'
 UNION
-SELECT DISTINCT BaseSalary FROM Employees WHERE Department = 'Finance';
+SELECT DISTINCT BaseSalary FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Finance';
 ```
 
 **UNION vs UNION ALL**:
@@ -209,7 +209,7 @@ SELECT Department FROM Departments;
 -- Employees who are both in IT and have high salaries
 SELECT EmployeeID, FirstName, LastName
 FROM Employees 
-WHERE Department = 'IT'
+WHERE d.DepartmentName = 'Engineering'
 
 INTERSECT
 
@@ -223,7 +223,7 @@ FROM Employees e1
 INNER JOIN (
     SELECT EmployeeID FROM Employees WHERE BaseSalary > 70000
 ) e2 ON e1.EmployeeID = e2.EmployeeID
-WHERE e1.Department = 'IT';
+WHERE d.DepartmentName = 'Engineering';
 ```
 
 **Business Applications**:
@@ -247,7 +247,7 @@ WHERE e1.Department = 'IT';
 -- Employees in IT but not earning high salaries
 SELECT EmployeeID, FirstName, LastName
 FROM Employees 
-WHERE Department = 'IT'
+WHERE d.DepartmentName = 'Engineering'
 
 EXCEPT
 
@@ -258,7 +258,7 @@ WHERE BaseSalary > 80000;
 -- Alternative using NOT EXISTS
 SELECT EmployeeID, FirstName, LastName
 FROM Employees e1
-WHERE Department = 'IT'
+WHERE d.DepartmentName = 'Engineering'
   AND NOT EXISTS (
     SELECT 1 FROM Employees e2 
     WHERE e2.EmployeeID = e1.EmployeeID 
@@ -469,20 +469,20 @@ WHERE IsActive = 1
 EXCEPT
 
 SELECT DISTINCT EmployeeID FROM ProjectAssignments
-WHERE ProjectStatus = 'Active'
+WHERE ProjectIsActive = 'Active'
   AND EndDate > GETDATE();
 ```
 
 **Reporting and Analytics**:
 ```sql
 -- Department union for company-wide reports
-SELECT Department, COUNT(*) as EmployeeCount
+SELECT DepartmentID, COUNT(*) as EmployeeCount
 FROM (
     SELECT Department FROM FullTimeEmployees
     UNION ALL
     SELECT Department FROM ContractEmployees
 ) AS AllEmployees
-GROUP BY Department;
+GROUP BY DepartmentID;
 ```
 
 ---
@@ -501,12 +501,12 @@ GROUP BY Department;
 -- Good: Set-based approach
 UPDATE Employees 
 SET BaseSalary = BaseSalary * 1.10
-WHERE Department = 'IT' 
+WHERE d.DepartmentName = 'Engineering' 
   AND PerformanceRating >= 4;
 
 -- Avoid: Row-by-row processing
 DECLARE employee_cursor CURSOR FOR 
-    SELECT EmployeeID FROM Employees WHERE Department = 'IT';
+    SELECT EmployeeID FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Engineering';
 -- ... cursor processing logic
 ```
 
@@ -563,7 +563,7 @@ SELECT
     CASE 
         WHEN NOT EXISTS (
             SELECT 1 FROM Employees 
-            WHERE Department = 'IT' AND BaseSalary < 70000
+            WHERE d.DepartmentName = 'Engineering' AND BaseSalary < 70000
         )
         THEN 'All IT employees have high salaries'
         ELSE 'Some IT employees have lower salaries'

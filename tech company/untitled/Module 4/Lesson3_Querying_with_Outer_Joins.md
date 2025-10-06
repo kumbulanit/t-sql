@@ -177,10 +177,10 @@ SELECT
         WHEN e.EmployeeID IS NULL THEN 'Department with no employees'
         WHEN d.DepartmentID IS NULL THEN 'Employee without department'
         ELSE 'Properly assigned'
-    END AS AssignmentStatus
+    END AS AssignmentIsActive
 FROM Employees e
 FULL OUTER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-ORDER BY AssignmentStatus, d.DepartmentName, e.LastName;
+ORDER BY AssignmentIsActive, d.DepartmentName, e.LastName;
 
 -- Result: All employees AND all departments, showing relationship gaps
 ```
@@ -196,7 +196,7 @@ SELECT
     d.DepartmentName,
     e.HireDate,
     DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
-    'Available for project assignment' AS Status
+    'Available for project assignment' AS IsActive
 FROM Employees e
 LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID
 LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
@@ -238,7 +238,7 @@ ORDER BY COUNT(e.EmployeeID) DESC, d.DepartmentName;
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     e.Title,
-    e.Email,
+    e.WorkEmail,
     FORMAT(e.BaseSalary, 'C0') AS BaseSalary,
     
     -- Department info (might be NULL)
@@ -260,18 +260,18 @@ SELECT
         WHEN COUNT(ep.ProjectID) = 0 THEN 'Available for Projects'
         WHEN COUNT(es.SkillID) = 0 THEN 'Needs Skills Assessment'
         ELSE 'Fully Integrated'
-    END AS IntegrationStatus
+    END AS IntegrationIsActive
 FROM Employees e
 LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID
 LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
 LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.Status = 'In Progress'
+LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'In Progress'
 LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
 WHERE e.IsActive = 1
-GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.Email, e.BaseSalary,
+GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.WorkEmail, e.BaseSalary,
          d.DepartmentID, d.DepartmentName, d.Location,
          mgr.FirstName, mgr.LastName
-ORDER BY IntegrationStatus, d.DepartmentName, e.LastName;
+ORDER BY IntegrationIsActive, d.DepartmentName, e.LastName;
 ```
 
 ## Advanced Examples
@@ -283,7 +283,7 @@ WITH ProjectResourceSummary AS (
     SELECT 
         p.ProjectID,
         p.ProjectName,
-        p.Status,
+        p.IsActive,
         p.Priority,
         p.Budget,
         p.StartDate,
@@ -295,13 +295,13 @@ WITH ProjectResourceSummary AS (
     FROM Projects p
     LEFT JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
     LEFT JOIN Employees e ON ep.EmployeeID = e.EmployeeID AND e.IsActive = 1
-    WHERE p.Status IN ('Planning', 'In Progress', 'On Hold')
-    GROUP BY p.ProjectID, p.ProjectName, p.Status, p.Priority, p.Budget, 
+    WHERE p.IsActive IN ('Planning', 'In Progress', 'On Hold')
+    GROUP BY p.ProjectID, p.ProjectName, p.IsActive, p.Priority, p.Budget, 
              p.StartDate, p.PlannedEndDate
 )
 SELECT 
     prs.ProjectName,
-    prs.Status,
+    prs.IsActive,
     prs.Priority,
     FORMAT(prs.Budget, 'C0') AS Budget,
     
@@ -328,14 +328,14 @@ SELECT
     DATEDIFF(DAY, prs.StartDate, GETDATE()) AS DaysActive,
     DATEDIFF(DAY, GETDATE(), prs.PlannedEndDate) AS DaysToDeadline,
     
-    -- Status assessment
+    -- IsActive assessment
     CASE 
         WHEN prs.AssignedEmployees = 0 THEN 'Critical - No Resources Assigned'
-        WHEN prs.Status = 'Planning' AND prs.AssignedEmployees < 2 THEN 'Needs Resource Planning'
-        WHEN prs.Status = 'In Progress' AND prs.TotalHoursWorked = 0 THEN 'Stalled - No Progress'
-        WHEN prs.Status = 'In Progress' AND GETDATE() > prs.PlannedEndDate THEN 'Behind Schedule'
+        WHEN prs.IsActive = 'Planning' AND prs.AssignedEmployees < 2 THEN 'Needs Resource Planning'
+        WHEN prs.IsActive = 'In Progress' AND prs.TotalHoursWorked = 0 THEN 'Stalled - No Progress'
+        WHEN prs.IsActive = 'In Progress' AND GETDATE() > prs.PlannedEndDate THEN 'Behind Schedule'
         WHEN prs.Priority = 'Critical' AND prs.AssignedEmployees < 3 THEN 'Understaffed Critical Project'
-        ELSE 'Normal Status'
+        ELSE 'Normal IsActive'
     END AS ProjectAssessment,
     
     -- Recommendations
@@ -409,7 +409,7 @@ LEFT JOIN (
     FROM Employees emp
     INNER JOIN EmployeeProjects ep ON emp.EmployeeID = ep.EmployeeID
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-    WHERE emp.IsActive = 1 AND p.Status = 'In Progress'
+    WHERE emp.IsActive = 1 AND p.IsActive = 'In Progress'
 ) ep ON d.DepartmentID = ep.DepartmentID;
 ```
 
@@ -431,7 +431,7 @@ WITH DepartmentMetrics AS (
     FROM Departments d
     LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID AND e.IsActive = 1
     LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-    LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.Status = 'In Progress'
+    LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'In Progress'
     GROUP BY d.DepartmentID, d.DepartmentName, d.Budget, d.Location
 ),
 SkillsMetrics AS (
@@ -486,7 +486,7 @@ SELECT
         WHEN dm.EmployeeCount > 0 AND sm.UniqueSkills < 3 THEN 'Limited Skill Diversity'
         WHEN dm.TotalHoursWorked > dm.TotalHoursAllocated * 1.2 THEN 'Overallocated Resources'
         ELSE 'Healthy Operation'
-    END AS [Department Status],
+    END AS [Department IsActive],
     
     -- Strategic recommendations
     CASE 
@@ -533,7 +533,7 @@ SELECT
         WHEN COUNT(e.EmployeeID) = 0 THEN 'Vacant Department'
         WHEN COUNT(e.EmployeeID) = 1 THEN 'Single Employee'
         ELSE CAST(COUNT(e.EmployeeID) AS VARCHAR) + ' Employees'
-    END AS StaffingStatus
+    END AS StaffingIsActive
 FROM Departments d
 LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID AND e.IsActive = 1
 GROUP BY d.DepartmentID, d.DepartmentName;
@@ -570,13 +570,13 @@ WHERE EXISTS (
 ### 1. Finding Missing Relationships
 ```sql
 -- Find employees without projects
-SELECT e.FirstName, e.LastName, 'No Projects' AS Status
+SELECT e.FirstName, e.LastName, 'No Projects' AS IsActive
 FROM Employees e
 LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 WHERE ep.EmployeeID IS NULL;
 
 -- Find departments without employees
-SELECT d.DepartmentName, 'No Employees' AS Status
+SELECT d.DepartmentName, 'No Employees' AS IsActive
 FROM Departments d
 LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID
 WHERE e.DepartmentID IS NULL;
@@ -588,7 +588,7 @@ WHERE e.DepartmentID IS NULL;
 SELECT 
     o.OrderID,
     o.OrderDate,
-    c.CustomerName,
+    c.CompanyName,
     ISNULL(s.ShippingMethod, 'Not Yet Shipped') AS ShippingMethod,
     ISNULL(s.TrackingNumber, 'N/A') AS TrackingNumber
 FROM Orders o

@@ -19,7 +19,7 @@ SELECT
     END AS FullName,
     FORMAT(BaseSalary, 'C', 'en-US') AS FormattedSalary,
     DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsOfService,
-    SUBSTRING(Email, CHARINDEX('@', Email) + 1, LEN(Email)) AS EmailDomain
+    SUBSTRING(WorkEmail, CHARINDEX('@', WorkEmail) + 1, LEN(WorkEmail)) AS EmailDomain
 FROM Employees
 ORDER BY LastName, FirstName;
 ```
@@ -41,7 +41,7 @@ FROM Employees
 ORDER BY BaseSalary DESC;
 ```
 
-**Explanation**: Uses CASE statement with BETWEEN for range categorization, ordered by salary for easy verification.
+**Explanation**: Uses CASE statement with BETWEEN for range categorization, ordered by BaseSalary for easy verification.
 
 **Answer 1.1.3**: Longest Tenure by Department
 ```sql
@@ -86,14 +86,14 @@ ORDER BY MONTH(HireDate), YEAR(HireDate);
 
 **Explanation**: Subquery identifies months with multiple hires, main query shows all employees hired in those months.
 
-**Answer 1.1.5**: Potential Email Conflicts
+**Answer 1.1.5**: Potential WorkEmail Conflicts
 ```sql
 WITH EmailBase AS (
     SELECT 
         EmployeeID,
         FirstName + ' ' + LastName AS EmployeeName,
         LOWER(FirstName + '.' + LastName) AS PotentialEmail,
-        Email
+        WorkEmail
     FROM Employees
 )
 SELECT 
@@ -131,19 +131,19 @@ WHERE d.DepartmentID IN (
     GROUP BY e.DepartmentID
     HAVING AVG(e.BaseSalary) > 70000
 )
-ORDER BY DepartmentName;
+ORDER BY DepartmentIDName;
 ```
 
 **Explanation**: UNION combines departments meeting either criteria, with reason codes to explain inclusion.
 
-**Answer 2.1.2**: Employee Project Status Alignment
+**Answer 2.1.2**: Employee Project IsActive Alignment
 ```sql
 -- Employees in IT working on "In Progress" projects
 SELECT e.EmployeeID
 FROM Employees e
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-WHERE e.DepartmentID = 1 AND p.Status = 'In Progress'
+WHERE e.DepartmentID = 1 AND p.IsActive = 'In Progress'
 
 INTERSECT
 
@@ -152,7 +152,7 @@ SELECT e.EmployeeID
 FROM Employees e
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-WHERE e.DepartmentID = 4 AND p.Status = 'Completed';
+WHERE e.DepartmentID = 4 AND p.IsActive = 'Completed';
 ```
 
 **Explanation**: INTERSECT finds employees whose project assignments align with department expectations.
@@ -336,7 +336,7 @@ WHERE NOT EXISTS (
     INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
     WHERE e.DepartmentID = d.DepartmentID
-      AND p.Status = 'In Progress'
+      AND p.IsActive = 'In Progress'
 )
 
 UNION
@@ -570,9 +570,9 @@ DepartmentBenchmarks AS (
         AVG(BaseSalary) AS DeptAvgSalary,
         AVG(TenureMonths) AS DeptAvgTenure,
         PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY BaseSalary) 
-            OVER (PARTITION BY DepartmentName) AS Salary75thPercentile
+            OVER (PARTITION BY DepartmentIDName) AS Salary75thPercentile
     FROM EmployeeMetrics
-    GROUP BY DepartmentName
+    GROUP BY DepartmentIDName
 ),
 CareerAnalysis AS (
     SELECT 
@@ -658,7 +658,7 @@ WorkloadCategories AS (
             WHEN TotalWorked > TotalAllocated * 1.1 THEN 'Overallocated'
             WHEN TotalWorked < TotalAllocated * 0.8 THEN 'Underutilized'
             ELSE 'Balanced'
-        END AS WorkloadStatus,
+        END AS WorkloadIsActive,
         CASE 
             WHEN TotalAllocated > 0 
             THEN ROUND(TotalWorked * 100.0 / TotalAllocated, 1)
@@ -670,7 +670,7 @@ ProjectAnalysis AS (
     SELECT 
         p.ProjectID,
         p.ProjectName,
-        p.Status,
+        p.IsActive,
         p.Budget,
         COUNT(ep.EmployeeID) AS AssignedEmployees,
         SUM(ep.HoursAllocated) AS ProjectHoursAllocated,
@@ -682,7 +682,7 @@ ProjectAnalysis AS (
         END AS ProjectCompletion
     FROM Projects p
     LEFT JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
-    GROUP BY p.ProjectID, p.ProjectName, p.Status, p.Budget
+    GROUP BY p.ProjectID, p.ProjectName, p.IsActive, p.Budget
 ),
 OptimizationOpportunities AS (
     SELECT 
@@ -692,7 +692,7 @@ OptimizationOpportunities AS (
         1 AS Priority,
         'Reduce workload by ' + CAST(ABS(VarianceHours) AS VARCHAR) + ' hours' AS Recommendation
     FROM WorkloadCategories
-    WHERE WorkloadStatus = 'Overallocated'
+    WHERE WorkloadIsActive = 'Overallocated'
     
     UNION ALL
     
@@ -703,7 +703,7 @@ OptimizationOpportunities AS (
         2,
         'Can take on ' + CAST(ABS(VarianceHours) AS VARCHAR) + ' additional hours'
     FROM WorkloadCategories
-    WHERE WorkloadStatus = 'Underutilized'
+    WHERE WorkloadIsActive = 'Underutilized'
     
     UNION ALL
     
@@ -714,7 +714,7 @@ OptimizationOpportunities AS (
         3,
         'Available for project assignment'
     FROM WorkloadCategories
-    WHERE WorkloadStatus = 'Unassigned'
+    WHERE WorkloadIsActive = 'Unassigned'
     
     UNION ALL
     
@@ -725,14 +725,14 @@ OptimizationOpportunities AS (
         1,
         'Project at ' + CAST(pa.ProjectCompletion AS VARCHAR) + '% completion'
     FROM ProjectAnalysis pa
-    WHERE pa.Status = 'In Progress' AND pa.ProjectCompletion < 75
+    WHERE pa.IsActive = 'In Progress' AND pa.ProjectCompletion < 75
 ),
 ImpactAnalysis AS (
     SELECT 
         wc.DepartmentName,
-        COUNT(CASE WHEN wc.WorkloadStatus = 'Overallocated' THEN 1 END) AS OverallocatedCount,
-        COUNT(CASE WHEN wc.WorkloadStatus = 'Underutilized' THEN 1 END) AS UnderutilizedCount,
-        COUNT(CASE WHEN wc.WorkloadStatus = 'Unassigned' THEN 1 END) AS UnassignedCount,
+        COUNT(CASE WHEN wc.WorkloadIsActive = 'Overallocated' THEN 1 END) AS OverallocatedCount,
+        COUNT(CASE WHEN wc.WorkloadIsActive = 'Underutilized' THEN 1 END) AS UnderutilizedCount,
+        COUNT(CASE WHEN wc.WorkloadIsActive = 'Unassigned' THEN 1 END) AS UnassignedCount,
         AVG(wc.UtilizationRate) AS DeptUtilizationRate,
         SUM(ABS(wc.VarianceHours)) AS TotalVarianceHours
     FROM WorkloadCategories wc
@@ -743,7 +743,7 @@ SELECT
     'RESOURCE OPTIMIZATION SUMMARY' AS ReportSection,
     '' AS Department,
     '' AS Employee_Project,
-    '' AS Status_Priority,
+    '' AS IsActive_Priority,
     'Total Issues: ' + CAST(COUNT(*) AS VARCHAR) AS Recommendation
 FROM OptimizationOpportunities
 
@@ -788,7 +788,7 @@ ORDER BY
         WHEN 'OPTIMIZATION OPPORTUNITIES (Priority 2-3)' THEN 3
         WHEN 'DEPARTMENT IMPACT ANALYSIS' THEN 4
     END,
-    Status_Priority;
+    IsActive_Priority;
 ```
 
 **Business Logic Explanation**:

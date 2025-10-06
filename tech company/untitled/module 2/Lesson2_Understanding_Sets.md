@@ -131,8 +131,8 @@ ORDER BY City, Type, LastName;
 #### 2. Set Membership with IN
 ```sql
 -- Simple membership test
-SELECT * FROM Products
-WHERE ProductCategory IN ('Software', 'Services', 'Support');
+SELECT CustomerID, CompanyName FROM Customers
+WHERE DepartmentName IN ('Software', 'Services', 'Support');
 
 -- Subquery membership test
 SELECT * FROM Employees
@@ -242,7 +242,7 @@ ProductsOrderedByAll AS (
 )
 SELECT 
     p.ProductName,
-    p.UnitPrice
+    p.BaseSalary
 FROM Products p
 WHERE p.ProductID IN (SELECT ProductID FROM ProductsOrderedByAll);
 ```
@@ -344,7 +344,7 @@ SELECT CustomerID FROM Orders WHERE OrderDate = '2023-01-02';
 #### 3. EXISTS vs IN for Large Sets
 ```sql
 -- EXISTS is often more efficient for large datasets
-SELECT c.CustomerName
+SELECT c.CompanyName
 FROM Customers c
 WHERE EXISTS (
     SELECT 1 FROM Orders o 
@@ -398,7 +398,7 @@ SELECT
 WITH CategoryProducts AS (
     SELECT ProductID 
     FROM Products 
-    WHERE ProductCategory = 'Software'
+    WHERE DepartmentName = 'Software'
 ),
 CustomerProductCombos AS (
     SELECT DISTINCT c.CustomerID, p.ProductID
@@ -411,7 +411,7 @@ ActualOrders AS (
     INNER JOIN OrderDetails od ON o.OrderID = od.OrderID
     WHERE od.ProductID IN (SELECT ProductID FROM CategoryProducts)
 )
-SELECT c.CustomerID, c.CustomerName
+SELECT c.CustomerID, c.CompanyName
 FROM Customers c
 WHERE NOT EXISTS (
     SELECT 1 

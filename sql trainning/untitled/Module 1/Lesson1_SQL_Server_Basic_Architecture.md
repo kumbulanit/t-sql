@@ -81,7 +81,7 @@ SELECT @@SERVERNAME;
 **Example - Query Processing Flow:**
 ```sql
 -- 1. Parser checks syntax
-SELECT CustomerName, OrderDate 
+SELECT CompanyName, OrderDate 
 FROM Customers C
 INNER JOIN Orders O ON C.CustomerID = O.CustomerID
 WHERE OrderDate > '2024-01-01';
@@ -240,14 +240,14 @@ SET STATISTICS TIME ON;
 
 -- Complex query with multiple joins
 SELECT 
-    c.CustomerName,
+    c.CompanyName,
     COUNT(o.OrderID) as OrderCount,
-    SUM(od.Quantity * od.UnitPrice) as TotalRevenue
+    SUM(od.Quantity * od.BaseSalary) as TotalRevenue
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
 INNER JOIN OrderDetails od ON o.OrderID = od.OrderID
 WHERE o.OrderDate >= DATEADD(YEAR, -1, GETDATE())
-GROUP BY c.CustomerID, c.CustomerName
+GROUP BY c.CustomerID, c.CompanyName
 HAVING COUNT(o.OrderID) > 5
 ORDER BY TotalRevenue DESC;
 

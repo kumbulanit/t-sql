@@ -51,7 +51,7 @@ FROM Employees
 WHERE IsActive = 1
 ORDER BY LastName;
 
--- TODO: Sort all employees by salary from highest to lowest  
+-- TODO: Sort all employees by BaseSalary from highest to lowest  
 -- Expected: Highest paid employees first
 SELECT EmployeeID, FirstName, LastName, JobTitle, BaseSalary
 FROM Employees  
@@ -85,7 +85,7 @@ FROM Employees e
 WHERE e.IsActive = 1
 ORDER BY c.CompanyName, d.DepartmentName;
 
--- TODO: Sort employees by job level, then by salary (highest first) within each level
+-- TODO: Sort employees by job level, then by BaseSalary (highest first) within each level
 -- Expected: Job levels in hierarchy order, high salaries first in each level
 SELECT 
     jl.LevelName,
@@ -107,7 +107,7 @@ ORDER BY jl.AuthorityLevel DESC, e.BaseSalary DESC;
 Practice sorting with expressions and conditional logic.
 
 ```sql
--- TODO: Sort products by total inventory value (UnitPrice * UnitsInStock) descending
+-- TODO: Sort products by total inventory value (BaseSalary * UnitsInStock) descending
 -- Handle NULL values appropriately
 
 
@@ -243,7 +243,7 @@ Work with NULL values in expressions and functions.
 ```sql
 -- TODO: Calculate total inventory value for all products
 -- Treat NULL stock as 0, NULL price as 0
--- Expected: Sum of (UnitPrice * UnitsInStock) with NULL handling
+-- Expected: Sum of (BaseSalary * UnitsInStock) with NULL handling
 
 
 -- TODO: Create a contact summary for customers
@@ -262,7 +262,7 @@ Complex NULL handling in real-world scenarios.
 ```sql
 -- TODO: Create a product availability report
 -- Show product name, current stock, on order, and availability status
--- Status: 'In Stock', 'Out of Stock', 'Stock Unknown', 'Discontinued'
+-- IsActive: 'In Stock', 'Out of Stock', 'Stock Unknown', 'Discontinued'
 
 
 -- TODO: Build a customer communication matrix

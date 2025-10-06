@@ -62,10 +62,10 @@ WHERE Region <> NULL;    -- Always returns no rows
 SELECT 
     ProductID,
     ProductName,
-    UnitPrice,
+    BaseSalary,
     UnitsInStock,
-    UnitPrice * UnitsInStock AS TotalValue,  -- NULL if either is NULL
-    UnitPrice + 10 AS AdjustedPrice          -- NULL if UnitPrice is NULL
+    BaseSalary * UnitsInStock AS TotalValue,  -- NULL if either is NULL
+    BaseSalary + 10 AS AdjustedPrice          -- NULL if BaseSalary is NULL
 FROM Products;
 ```
 
@@ -102,9 +102,9 @@ FROM Customers;
 SELECT 
     ProductID,
     ProductName,
-    UnitPrice,
+    BaseSalary,
     ISNULL(UnitsInStock, 0) AS Stock,
-    UnitPrice * ISNULL(UnitsInStock, 0) AS TotalValue
+    BaseSalary * ISNULL(UnitsInStock, 0) AS TotalValue
 FROM Products;
 ```
 
@@ -162,7 +162,7 @@ SELECT
     ProductName,
     UnitsInStock,
     IIF(UnitsInStock IS NULL, 'Unknown', 
-        IIF(UnitsInStock = 0, 'Out of Stock', 'In Stock')) AS StockStatus
+        IIF(UnitsInStock = 0, 'Out of Stock', 'In Stock')) AS StockIsActive
 FROM Products;
 ```
 
@@ -215,7 +215,7 @@ ORDER BY CompanyName;
 SELECT 
     CategoryID,
     ProductName,
-    UnitPrice,
+    BaseSalary,
     ISNULL(UnitsInStock, 0) AS CurrentStock,
     ISNULL(UnitsOnOrder, 0) AS OnOrder,
     ISNULL(UnitsInStock, 0) + ISNULL(UnitsOnOrder, 0) AS TotalAvailable,
@@ -224,7 +224,7 @@ SELECT
         WHEN UnitsInStock = 0 THEN 'Out of Stock'
         WHEN UnitsInStock < ReorderLevel THEN 'Low Stock'
         ELSE 'Adequate Stock'
-    END AS StockStatus
+    END AS StockIsActive
 FROM Products
 WHERE Discontinued = 0
 ORDER BY CategoryID, ProductName;
@@ -262,12 +262,12 @@ LEFT JOIN (
 SELECT 
     ProductID,
     ProductName,
-    UnitPrice,
+    BaseSalary,
     UnitsInStock,
     CASE 
-        WHEN UnitPrice IS NULL OR UnitsInStock IS NULL 
+        WHEN BaseSalary IS NULL OR UnitsInStock IS NULL 
             THEN NULL
-        ELSE UnitPrice * UnitsInStock
+        ELSE BaseSalary * UnitsInStock
     END AS InventoryValue
 FROM Products;
 ```
@@ -327,11 +327,11 @@ FROM Employees;
 ### 2. Unexpected Results in Conditions
 ```sql
 -- Problem: This might not return expected results
-SELECT * FROM Products
+SELECT CustomerID, CompanyName FROM Customers
 WHERE NOT (UnitsInStock > 10);
 
 -- Solution: Handle NULL explicitly
-SELECT * FROM Products
+SELECT CustomerID, CompanyName FROM Customers
 WHERE UnitsInStock IS NULL OR UnitsInStock <= 10;
 ```
 

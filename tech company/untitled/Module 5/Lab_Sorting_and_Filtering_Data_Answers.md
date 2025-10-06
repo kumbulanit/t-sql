@@ -30,11 +30,11 @@ ORDER BY CompanyName ASC;
 SELECT 
     ProductID,
     ProductName,
-    UnitPrice,
+    BaseSalary,
     UnitsInStock,
     CategoryID
 FROM Products
-ORDER BY UnitPrice DESC;
+ORDER BY BaseSalary DESC;
 ```
 
 #### Question 3: Sort employees by hire date, newest first
@@ -77,11 +77,11 @@ ORDER BY Country ASC, City ASC;
 SELECT 
     p.ProductName,
     c.CategoryName,
-    p.UnitPrice,
+    p.BaseSalary,
     p.UnitsInStock
 FROM Products p
 INNER JOIN Categories c ON p.CategoryID = c.CategoryID
-ORDER BY c.CategoryName ASC, p.UnitPrice DESC;
+ORDER BY c.CategoryName ASC, p.BaseSalary DESC;
 ```
 
 #### Question 3: Sort orders by customer, then by order date
@@ -103,15 +103,15 @@ ORDER BY c.CompanyName ASC, o.OrderDate DESC;
 ### Task 1.3: Advanced Sorting - Answers
 
 #### Question 1: Sort products by total inventory value
-**Task:** Sort products by total inventory value (UnitPrice * UnitsInStock) descending.
+**Task:** Sort products by total inventory value (BaseSalary * UnitsInStock) descending.
 
 ```sql
 -- Answer 1: Sort products by total inventory value
 SELECT 
     ProductName,
-    UnitPrice,
+    BaseSalary,
     UnitsInStock,
-    COALESCE(UnitPrice * UnitsInStock, 0) AS InventoryValue
+    COALESCE(BaseSalary * UnitsInStock, 0) AS InventoryValue
 FROM Products
 ORDER BY InventoryValue DESC;
 ```
@@ -174,12 +174,12 @@ ORDER BY CompanyName;
 SELECT 
     ProductID,
     ProductName,
-    UnitPrice,
+    BaseSalary,
     UnitsInStock,
     Discontinued
 FROM Products
-WHERE UnitPrice > 20
-ORDER BY UnitPrice DESC;
+WHERE BaseSalary > 20
+ORDER BY BaseSalary DESC;
 ```
 
 #### Question 3: Find orders placed in 1997
@@ -225,14 +225,14 @@ ORDER BY Country, CompanyName;
 SELECT 
     ProductID,
     ProductName,
-    UnitPrice,
+    BaseSalary,
     UnitsInStock,
     Discontinued,
     CASE 
         WHEN Discontinued = 1 THEN 'Discontinued'
         WHEN UnitsInStock < 10 THEN 'Low Stock'
         ELSE 'Available'
-    END AS ProductStatus
+    END AS ProductIsActive
 FROM Products
 WHERE Discontinued = 1 OR UnitsInStock < 10
 ORDER BY Discontinued DESC, UnitsInStock ASC;
@@ -267,11 +267,11 @@ ORDER BY Freight DESC;
 -- Answer 1: Top 5 most expensive products
 SELECT TOP 5
     ProductName,
-    UnitPrice,
+    BaseSalary,
     CategoryID,
     UnitsInStock
 FROM Products
-ORDER BY UnitPrice DESC;
+ORDER BY BaseSalary DESC;
 ```
 
 #### Question 2: Top 10 customers by number of orders
@@ -297,9 +297,9 @@ ORDER BY OrderCount DESC;
 SELECT TOP 3
     c.CategoryName,
     COUNT(p.ProductID) AS ProductCount,
-    AVG(p.UnitPrice) AS AveragePrice,
-    MAX(p.UnitPrice) AS HighestPrice,
-    MIN(p.UnitPrice) AS LowestPrice
+    AVG(p.BaseSalary) AS AveragePrice,
+    MAX(p.BaseSalary) AS HighestPrice,
+    MIN(p.BaseSalary) AS LowestPrice
 FROM Categories c
 INNER JOIN Products p ON c.CategoryID = p.CategoryID
 GROUP BY c.CategoryID, c.CategoryName
@@ -315,10 +315,10 @@ ORDER BY AveragePrice DESC;
 -- Answer 1: Top 25% of products by price
 SELECT TOP 25 PERCENT
     ProductName,
-    UnitPrice,
+    BaseSalary,
     CategoryID
 FROM Products
-ORDER BY UnitPrice DESC;
+ORDER BY BaseSalary DESC;
 ```
 
 #### Question 2: Top 10% of orders by freight cost
@@ -346,7 +346,7 @@ ORDER BY Freight DESC;
 SELECT 
     ProductID,
     ProductName,
-    UnitPrice,
+    BaseSalary,
     CategoryID
 FROM Products
 ORDER BY ProductName
@@ -418,7 +418,7 @@ SELECT
     ProductID,
     ProductName,
     CategoryID,
-    UnitPrice,
+    BaseSalary,
     UnitsInStock
 FROM Products
 WHERE CategoryID IS NULL
@@ -451,15 +451,15 @@ ORDER BY OrderDate;
 -- Answer 1: Safe inventory value calculation
 SELECT 
     ProductName,
-    UnitPrice,
+    BaseSalary,
     UnitsInStock,
-    COALESCE(UnitPrice, 0) AS SafePrice,
+    COALESCE(BaseSalary, 0) AS SafePrice,
     COALESCE(UnitsInStock, 0) AS SafeStock,
-    COALESCE(UnitPrice, 0) * COALESCE(UnitsInStock, 0) AS InventoryValue,
+    COALESCE(BaseSalary, 0) * COALESCE(UnitsInStock, 0) AS InventoryValue,
     CASE 
-        WHEN UnitPrice IS NULL OR UnitsInStock IS NULL THEN 'Incomplete Data'
+        WHEN BaseSalary IS NULL OR UnitsInStock IS NULL THEN 'Incomplete Data'
         ELSE 'Complete'
-    END AS DataStatus
+    END AS DataIsActive
 FROM Products
 ORDER BY InventoryValue DESC;
 ```
@@ -494,11 +494,11 @@ ORDER BY OrderDate DESC;
 SELECT 
     'All Products' AS Category,
     COUNT(*) AS TotalProducts,
-    COUNT(UnitPrice) AS ProductsWithPrice,
+    COUNT(BaseSalary) AS ProductsWithPrice,
     COUNT(UnitsInStock) AS ProductsWithStock,
-    AVG(UnitPrice) AS AvgPrice,
+    AVG(BaseSalary) AS AvgPrice,
     AVG(UnitsInStock) AS AvgStock,
-    SUM(UnitPrice) AS TotalPrice,
+    SUM(BaseSalary) AS TotalPrice,
     SUM(UnitsInStock) AS TotalStock
 FROM Products
 
@@ -507,14 +507,14 @@ UNION ALL
 SELECT 
     'Non-NULL Only' AS Category,
     COUNT(*),
-    COUNT(UnitPrice),
+    COUNT(BaseSalary),
     COUNT(UnitsInStock),
-    AVG(UnitPrice),
+    AVG(BaseSalary),
     AVG(UnitsInStock),
-    SUM(UnitPrice),
+    SUM(BaseSalary),
     SUM(UnitsInStock)
 FROM Products
-WHERE UnitPrice IS NOT NULL AND UnitsInStock IS NOT NULL;
+WHERE BaseSalary IS NOT NULL AND UnitsInStock IS NOT NULL;
 ```
 
 #### Question 2: Three-valued logic demonstration
@@ -557,16 +557,16 @@ FROM Customers;
 SELECT 
     p.ProductName,
     c.CategoryName,
-    p.UnitPrice,
+    p.BaseSalary,
     p.UnitsInStock,
     p.Discontinued
 FROM Products p
 INNER JOIN Categories c ON p.CategoryID = c.CategoryID
 WHERE (c.CategoryName = 'Seafood' OR c.CategoryName = 'Beverages')
-  AND p.UnitPrice BETWEEN 10 AND 50
+  AND p.BaseSalary BETWEEN 10 AND 50
   AND p.UnitsInStock > 20
   AND p.Discontinued = 0
-ORDER BY c.CategoryName, p.UnitPrice;
+ORDER BY c.CategoryName, p.BaseSalary;
 ```
 
 #### Question 2: Customer order analysis
@@ -671,7 +671,7 @@ ORDER BY BusinessType, CompanyName;
 SELECT 
     ProductName,
     CategoryID,
-    UnitPrice,
+    BaseSalary,
     UnitsInStock,
     CASE 
         WHEN ProductName LIKE '%Cheese%' THEN 'Cheese Product'
@@ -679,7 +679,7 @@ SELECT
         WHEN ProductName LIKE '%Beer%' OR ProductName LIKE '%Wine%' THEN 'Alcoholic Beverage'
         WHEN ProductName LIKE '%Coffee%' OR ProductName LIKE '%Tea%' THEN 'Hot Beverage'
         ELSE 'Other Product'
-    END AS ProductCategory
+    END AS DepartmentName
 FROM Products
 WHERE ProductName LIKE '%Cheese%'
    OR ProductName LIKE '%Sauce%'
@@ -687,7 +687,7 @@ WHERE ProductName LIKE '%Cheese%'
    OR ProductName LIKE '%Wine%'
    OR ProductName LIKE '%Coffee%'
    OR ProductName LIKE '%Tea%'
-ORDER BY ProductCategory, ProductName;
+ORDER BY DepartmentName, ProductName;
 ```
 
 ## Exercise 6: Advanced Sorting and Filtering Combinations - Answers
@@ -702,7 +702,7 @@ ORDER BY ProductCategory, ProductName;
 SELECT 
     p.ProductName,
     c.CategoryName,
-    p.UnitPrice,
+    p.BaseSalary,
     p.UnitsInStock,
     CASE c.CategoryName
         WHEN 'Beverages' THEN 1
@@ -719,7 +719,7 @@ ORDER BY
         WHEN 'Seafood' THEN 3
         ELSE 4
     END,
-    p.UnitPrice DESC;
+    p.BaseSalary DESC;
 ```
 
 #### Question 2: Custom order status sorting
@@ -737,14 +737,14 @@ SELECT
         WHEN ShippedDate IS NULL THEN 'Not Shipped'
         WHEN ShippedDate > RequiredDate THEN 'Late'
         WHEN ShippedDate <= RequiredDate THEN 'On Time'
-    END AS ShippingStatus,
+    END AS ShippingIsActive,
     CASE 
         WHEN ShippedDate IS NULL THEN 1  -- Not shipped (highest priority)
         WHEN ShippedDate > RequiredDate THEN 2  -- Late shipments
         ELSE 3  -- On time shipments
-    END AS StatusPriority
+    END AS IsActivePriority
 FROM Orders
-ORDER BY StatusPriority, OrderDate DESC;
+ORDER BY IsActivePriority, OrderDate DESC;
 ```
 
 ### Task 6.2: Performance Optimization with Indexes - Answers

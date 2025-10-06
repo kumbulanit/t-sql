@@ -379,7 +379,7 @@ SELECT CAST(EmployeeID AS VARCHAR(10)) + '1' AS Result
 SELECT 
     LEN(FirstName) AS NameLength,
     UPPER(LastName) AS UpperName,
-    SUBSTRING(Email, 1, CHARINDEX('@', Email) - 1) AS Username,
+    SUBSTRING(WorkEmail, 1, CHARINDEX('@', WorkEmail) - 1) AS Username,
     REPLACE(PhoneNumber, '-', '') AS CleanPhone,
     STUFF(SSN, 4, 0, '-') AS FormattedSSN,
     REVERSE(LastName) AS ReversedName,

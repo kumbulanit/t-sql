@@ -53,7 +53,7 @@ DECLARE @HireDate DATE = '2020-01-15';
 SELECT 
     UPPER(FirstName) AS UpperFirstName,
     LEN(LastName) AS LastNameLength,
-    SUBSTRING(Email, 1, CHARINDEX('@', Email) - 1) AS Username
+    SUBSTRING(WorkEmail, 1, CHARINDEX('@', WorkEmail) - 1) AS Username
 FROM Employees;
 
 -- Date functions
@@ -89,7 +89,7 @@ SELECT
     MAX(BaseSalary) AS MaxSalary,
     MIN(BaseSalary) AS MinSalary
 FROM Employees
-GROUP BY Department
+GROUP BY DepartmentID
 HAVING COUNT(*) > 5;
 ```
 
@@ -104,7 +104,7 @@ WITH EmployeeSalaryRanking AS (
         LastName,
         BaseSalary,
         RANK() OVER (ORDER BY BaseSalary DESC) AS SalaryRank,
-        DENSE_RANK() OVER (PARTITION BY Department ORDER BY BaseSalary DESC) AS DeptSalaryRank
+        DENSE_RANK() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) AS DeptSalaryRank
     FROM Employees
 )
 SELECT *
@@ -121,8 +121,8 @@ SELECT
     BaseSalary,
     LAG(BaseSalary) OVER (ORDER BY HireDate) AS PreviousEmployeeSalary,
     LEAD(BaseSalary) OVER (ORDER BY HireDate) AS NextEmployeeSalary,
-    SUM(BaseSalary) OVER (PARTITION BY Department) AS DepartmentTotalSalary,
-    ROW_NUMBER() OVER (PARTITION BY Department ORDER BY BaseSalary DESC) AS RowNum
+    SUM(BaseSalary) OVER (PARTITION BY DepartmentID) AS DepartmentTotalSalary,
+    ROW_NUMBER() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) AS RowNum
 FROM Employees;
 ```
 
@@ -177,11 +177,11 @@ ORDER BY Level, LastName;
    -- T-SQL IF...ELSE
    IF @BaseSalary > 50000
    BEGIN
-       PRINT 'High salary employee';
+       PRINT 'High BaseSalary employee';
    END
    ELSE
    BEGIN
-       PRINT 'Standard salary employee';
+       PRINT 'Standard BaseSalary employee';
    END
    ```
 
@@ -191,7 +191,7 @@ ORDER BY Level, LastName;
    SELECT 
        ISNULL(MiddleName, 'No Middle Name') AS MiddleName,
        DATEPART(YEAR, HireDate) AS HireYear,
-       PATINDEX('%@gmail.com', Email) AS GmailPosition;
+       PATINDEX('%@gmail.com', WorkEmail) AS GmailPosition;
    ```
 
 ## Best Practices

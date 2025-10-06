@@ -448,7 +448,7 @@ CREATE TABLE IndexingExample (
     ID INT IDENTITY(1,1) PRIMARY KEY,
     LastName VARCHAR(50) NOT NULL,
     FirstName VARCHAR(50) NOT NULL,
-    Email VARCHAR(100) NOT NULL,
+    WorkEmail VARCHAR(100) NOT NULL,
     PhoneNumber VARCHAR(20),
     Description NVARCHAR(MAX)
 );
@@ -457,11 +457,11 @@ CREATE TABLE IndexingExample (
 -- 1. Covering index for name searches
 CREATE INDEX IX_Name_Covering 
 ON IndexingExample (LastName, FirstName) 
-INCLUDE (Email, PhoneNumber);
+INCLUDE (WorkEmail, PhoneNumber);
 
 -- 2. Index for email lookups (unique constraint)
 CREATE UNIQUE INDEX IX_Email_Unique 
-ON IndexingExample (Email);
+ON IndexingExample (WorkEmail);
 
 -- 3. Prefix index for partial matching (if supported)
 -- Note: SQL Server doesn't support prefix indexes like MySQL
@@ -481,7 +481,7 @@ KEY INDEX PK__IndexingExample__ID;
 
 -- Demonstrating index usage
 -- Good: Uses index efficiently
-SELECT ID, FirstName, LastName, Email
+SELECT ID, FirstName, LastName, WorkEmail
 FROM IndexingExample
 WHERE LastName = 'Smith'
 ORDER BY FirstName;
@@ -505,12 +505,12 @@ WHERE CONTAINS(Description, 'manager OR supervisor');
 CREATE TABLE ValidatedCharacterData (
     ID INT IDENTITY(1,1) PRIMARY KEY,
     
-    -- Email validation using CHECK constraint
-    Email VARCHAR(255) NOT NULL,
+    -- WorkEmail validation using CHECK constraint
+    WorkEmail VARCHAR(255) NOT NULL,
     CONSTRAINT CK_Email_Format CHECK (
-        Email LIKE '%_@__%.__%' AND
-        Email NOT LIKE '%@%@%' AND
-        LEN(Email) >= 5
+        WorkEmail LIKE '%_@__%.__%' AND
+        WorkEmail NOT LIKE '%@%@%' AND
+        LEN(WorkEmail) >= 5
     ),
     
     -- Phone number validation
@@ -547,7 +547,7 @@ CREATE TABLE ValidatedCharacterData (
 
 -- Testing validation constraints
 -- These should succeed
-INSERT INTO ValidatedCharacterData (Email, PhoneNumber, ProductCode, Description, FirstName, UserName)
+INSERT INTO ValidatedCharacterData (WorkEmail, PhoneNumber, ProductCode, Description, FirstName, UserName)
 VALUES 
     ('john.doe@company.com', '425-555-1234', 'AB123456C', 'High-quality product with excellent features', 'John', 'johndoe'),
     ('jane.smith@email.org', '(206) 555-9876', 'XY789012D', 'Premium service offering for enterprise clients', 'Jane', 'janesmith');
@@ -555,23 +555,23 @@ VALUES
 -- These should fail due to constraint violations
 /*
 -- Invalid email format
-INSERT INTO ValidatedCharacterData (Email, ProductCode, FirstName, UserName)
+INSERT INTO ValidatedCharacterData (WorkEmail, ProductCode, FirstName, UserName)
 VALUES ('invalid-email', 'AB123456C', 'John', 'test1');
 
 -- Invalid phone format
-INSERT INTO ValidatedCharacterData (Email, PhoneNumber, ProductCode, FirstName, UserName)
+INSERT INTO ValidatedCharacterData (WorkEmail, PhoneNumber, ProductCode, FirstName, UserName)
 VALUES ('test@test.com', '1234567890', 'AB123456C', 'John', 'test2');
 
 -- Invalid product code format
-INSERT INTO ValidatedCharacterData (Email, ProductCode, FirstName, UserName)
+INSERT INTO ValidatedCharacterData (WorkEmail, ProductCode, FirstName, UserName)
 VALUES ('test@test.com', 'invalid', 'John', 'test3');
 
 -- Description too short
-INSERT INTO ValidatedCharacterData (Email, ProductCode, Description, FirstName, UserName)
+INSERT INTO ValidatedCharacterData (WorkEmail, ProductCode, Description, FirstName, UserName)
 VALUES ('test@test.com', 'AB123456C', 'Too short', 'John', 'test4');
 
 -- Invalid first name (contains numbers)
-INSERT INTO ValidatedCharacterData (Email, ProductCode, FirstName, UserName)
+INSERT INTO ValidatedCharacterData (WorkEmail, ProductCode, FirstName, UserName)
 VALUES ('test@test.com', 'AB123456C', 'John123', 'test5');
 */
 ```
@@ -685,7 +685,7 @@ SELECT
     STRING_AGG(EmployeeName, ', ') WITHIN GROUP (ORDER BY EmployeeName) AS SortedEmployeeList,
     COUNT(*) AS EmployeeCount
 FROM EmployeeDepartments
-GROUP BY DepartmentID, DepartmentName;
+GROUP BY DepartmentIDID, DepartmentName;
 
 -- Legacy string aggregation methods (for older versions)
 -- Method 1: Using FOR XML PATH
@@ -699,7 +699,7 @@ SELECT
         FOR XML PATH('')
     ), 1, 2, '') AS EmployeeList
 FROM EmployeeDepartments e1
-GROUP BY DepartmentID, DepartmentName;
+GROUP BY DepartmentIDID, DepartmentName;
 
 -- Method 2: Using recursive CTE (complex but works in all versions)
 WITH EmployeeCTE AS (
@@ -707,8 +707,8 @@ WITH EmployeeCTE AS (
         DepartmentID,
         DepartmentName,
         EmployeeName,
-        ROW_NUMBER() OVER (PARTITION BY DepartmentID ORDER BY EmployeeName) AS RowNum,
-        COUNT(*) OVER (PARTITION BY DepartmentID) AS TotalCount
+        ROW_NUMBER() OVER (PARTITION BY DepartmentIDID ORDER BY EmployeeName) AS RowNum,
+        COUNT(*) OVER (PARTITION BY DepartmentIDID) AS TotalCount
     FROM EmployeeDepartments
 ),
 AggregationCTE AS (

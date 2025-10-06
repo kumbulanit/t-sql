@@ -77,14 +77,14 @@ SELECT
     FORMAT(AVG(p.Budget), 'C0') AS AvgProjectValue,
     
     -- SUCCESS METRICS by department
-    COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) AS CompletedProjects,
-    COUNT(CASE WHEN p.Status = 'Active' THEN 1 END) AS ActiveProjects,
-    COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeProjects,
+    COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
+    COUNT(CASE WHEN p.IsActive = 'Active' THEN 1 END) AS ActiveProjects,
+    COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeProjects,
     
     -- CALCULATED PERFORMANCE INDICATORS
     FORMAT(
-        COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-        NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0), 
+        COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+        NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0), 
         'N1'
     ) + '%' AS OnTimeDeliveryRate,
     
@@ -112,16 +112,16 @@ SELECT
     -- DEPARTMENT PERFORMANCE RATING
     CASE 
         WHEN SUM(p.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 2000000 
-             AND COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-                 NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) >= 85
+             AND COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+                 NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 85
         THEN '🌟 STAR PERFORMER - Exceeds all targets'
         WHEN SUM(p.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 1500000 
-             AND COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-                 NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) >= 75
+             AND COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+                 NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 75
         THEN '🚀 HIGH PERFORMER - Above average results'
         WHEN SUM(p.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 800000 
-             AND COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-                 NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) >= 65
+             AND COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+                 NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 65
         THEN '📈 SOLID PERFORMER - Meeting expectations'
         WHEN COUNT(DISTINCT p.ProjectID) > 0
         THEN '⚠️ NEEDS IMPROVEMENT - Below targets'
@@ -132,8 +132,8 @@ SELECT
     CASE 
         WHEN SUM(p.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 2000000 
         THEN 'EXPAND: Increase headcount and project capacity'
-        WHEN COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-             NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) < 65
+        WHEN COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+             NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) < 65
         THEN 'IMPROVE: Focus on project management and delivery'
         WHEN AVG(e.BaseSalary) < 75000 AND SUM(p.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 1000000
         THEN 'INVEST: Increase compensation to retain talent'
@@ -158,8 +158,8 @@ SELECT
     
     -- PROJECT VOLUME METRICS
     COUNT(p.ProjectID) AS TotalProjects,
-    COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) AS CompletedProjects,
-    COUNT(CASE WHEN p.Status = 'Active' THEN 1 END) AS ActiveProjects,
+    COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
+    COUNT(CASE WHEN p.IsActive = 'Active' THEN 1 END) AS ActiveProjects,
     COUNT(CASE WHEN p.StartDate >= DATEADD(YEAR, -1, GETDATE()) THEN 1 END) AS RecentProjects,
     
     -- FINANCIAL PERFORMANCE
@@ -192,8 +192,8 @@ SELECT
     AVG(DATEDIFF(DAY, p.StartDate, ISNULL(p.ActualEndDate, GETDATE()))) AS AvgProjectDuration,
     
     FORMAT(
-        COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-        NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0), 
+        COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+        NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0), 
         'N1'
     ) + '%' AS OnTimeDeliveryRate,
     
@@ -220,8 +220,8 @@ SELECT
     CASE 
         WHEN COUNT(p.ProjectID) >= 10 
              AND SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)) >= 1000000
-             AND COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-                 NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) >= 80
+             AND COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+                 NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 80
         THEN '💎 PREMIUM SERVICE LINE - Market leader'
         WHEN COUNT(p.ProjectID) >= 5 
              AND SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)) >= 500000
@@ -242,8 +242,8 @@ SELECT
         WHEN COUNT(p.ProjectID) >= 10 
              AND AVG(p.Budget) < 100000
         THEN 'OPTIMIZE: Standardize delivery for volume efficiency'
-        WHEN COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-             NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) < 60
+        WHEN COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+             NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) < 60
         THEN 'IMPROVE: Focus on delivery methodology and project management'
         WHEN pt.ComplexityLevel <= 2 
              AND SUM(p.Budget) >= 2000000
@@ -273,7 +273,7 @@ SELECT
     -- CLIENT PORTFOLIO METRICS
     COUNT(DISTINCT c.CompanyID) AS TotalClients,
     COUNT(DISTINCT CASE WHEN p.StartDate >= DATEADD(YEAR, -1, GETDATE()) THEN c.CompanyID END) AS ActiveClientsLast12Months,
-    COUNT(DISTINCT CASE WHEN p.Status = 'Active' THEN c.CompanyID END) AS CurrentlyActiveClients,
+    COUNT(DISTINCT CASE WHEN p.IsActive = 'Active' THEN c.CompanyID END) AS CurrentlyActiveClients,
     
     -- CLIENT SIZE DISTRIBUTION
     COUNT(CASE WHEN c.CompanySize = 'Startup' THEN 1 END) AS StartupClients,
@@ -289,8 +289,8 @@ SELECT
     
     -- PROJECT PERFORMANCE BY INDUSTRY
     COUNT(p.ProjectID) AS TotalProjects,
-    COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) AS CompletedProjects,
-    COUNT(CASE WHEN p.Status = 'Active' THEN 1 END) AS ActiveProjects,
+    COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
+    COUNT(CASE WHEN p.IsActive = 'Active' THEN 1 END) AS ActiveProjects,
     
     -- FINANCIAL PERFORMANCE BY INDUSTRY
     FORMAT(SUM(p.Budget), 'C0') AS TotalIndustryRevenue,
@@ -309,8 +309,8 @@ SELECT
     
     -- DELIVERY PERFORMANCE BY INDUSTRY
     FORMAT(
-        COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-        NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0), 
+        COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+        NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0), 
         'N1'
     ) + '%' AS IndustryOnTimeRate,
     
@@ -334,8 +334,8 @@ SELECT
     CASE 
         WHEN SUM(p.Budget) >= 10000000 
              AND COUNT(DISTINCT c.CompanyID) >= 10
-             AND COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-                 NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) >= 80
+             AND COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+                 NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 80
         THEN '🌟 MARKET LEADER - Dominant position with excellent delivery'
         WHEN SUM(p.Budget) >= 5000000 
              AND COUNT(DISTINCT c.CompanyID) >= 5
@@ -359,8 +359,8 @@ SELECT
         THEN 'STARTUP SPECIALIZATION: Create startup-focused service packages and pricing'
         WHEN (SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(p.Budget), 0) >= 30
         THEN 'PROFIT OPTIMIZATION: High-margin industry, increase market share'
-        WHEN COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-             NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) < 60
+        WHEN COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+             NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) < 60
         THEN 'DELIVERY IMPROVEMENT: Focus on industry-specific delivery methodology'
         WHEN COUNT(DISTINCT c.CompanyID) < 3 AND SUM(p.Budget) < 1000000
         THEN 'MARKET ENTRY: Evaluate industry potential and develop entry strategy'
@@ -413,8 +413,8 @@ SELECT
     
     -- VOLUME METRICS by department and time
     COUNT(p.ProjectID) AS MonthlyProjects,
-    COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) AS CompletedProjects,
-    COUNT(CASE WHEN p.Status = 'Active' THEN 1 END) AS ActiveProjects,
+    COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
+    COUNT(CASE WHEN p.IsActive = 'Active' THEN 1 END) AS ActiveProjects,
     
     -- FINANCIAL METRICS by department and time
     FORMAT(SUM(p.Budget), 'C0') AS MonthlyRevenue,
@@ -424,8 +424,8 @@ SELECT
     
     -- PERFORMANCE METRICS by department and time
     FORMAT(
-        COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-        NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0), 
+        COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+        NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0), 
         'N1'
     ) + '%' AS MonthlyOnTimeRate,
     
@@ -522,15 +522,15 @@ SELECT
     CASE 
         WHEN COUNT(p.ProjectID) >= 10 AND 
              SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)) >= 500000 AND
-             COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-             NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) >= 80
+             COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+             NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 80
         THEN '🌟 EXCEPTIONAL MONTH - All metrics exceed targets'
         WHEN SUM(p.Budget) >= 2000000 AND 
              (SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(p.Budget), 0) >= 20
         THEN '💎 EXCELLENT MONTH - High revenue and profitability'
         WHEN COUNT(p.ProjectID) >= 5 AND 
-             COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-             NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) >= 75
+             COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+             NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 75
         THEN '🎯 GOOD MONTH - Solid volume and delivery'
         WHEN COUNT(p.ProjectID) >= 1
         THEN '📊 STANDARD MONTH - Regular business activity'
@@ -588,12 +588,12 @@ SELECT
     ) + '%' AS ProfitMargin,
     
     -- DELIVERY PERFORMANCE BY COMBINATION
-    COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) AS CompletedProjects,
-    COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeCompletions,
+    COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
+    COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeCompletions,
     
     FORMAT(
-        COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-        NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0), 
+        COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+        NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0), 
         'N1'
     ) + '%' AS OnTimeDeliveryRate,
     
@@ -625,8 +625,8 @@ SELECT
         THEN '🏆 MARKET DOMINATION - Premium positioning with excellent margins'
         WHEN SUM(p.Budget) >= 2000000 
              AND COUNT(DISTINCT c.CompanyID) >= 3
-             AND COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-                 NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) >= 80
+             AND COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+                 NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 80
         THEN '🚀 STRONG POSITION - Significant market share with reliable delivery'
         WHEN AVG(p.Budget) >= 500000 
              AND pt.ComplexityLevel >= 4
@@ -657,13 +657,13 @@ SELECT
         
         -- Growth opportunities with good fundamentals
         WHEN COUNT(p.ProjectID) BETWEEN 5 AND 10 
-             AND COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-                 NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) >= 75
+             AND COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+                 NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 75
         THEN 'EXPAND: Scale successful model with targeted business development'
         
         -- Underperforming combinations
-        WHEN COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-             NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) < 60
+        WHEN COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+             NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) < 60
         THEN 'IMPROVE: Address delivery challenges before scaling'
         
         -- Low-margin combinations
@@ -693,8 +693,8 @@ SELECT
         WHEN COUNT(DISTINCT c.CompanyID) = 1 AND SUM(p.Budget) >= 2000000
         THEN '⚠️ CLIENT CONCENTRATION RISK - Diversify client base'
         WHEN pt.ComplexityLevel >= 4 AND COUNT(p.ProjectID) >= 5 
-             AND COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-                 NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) < 70
+             AND COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+                 NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) < 70
         THEN '🔴 DELIVERY RISK - Complex services with delivery challenges'
         WHEN (SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(p.Budget), 0) < 10
         THEN '💰 MARGIN RISK - Low profitability threatens sustainability'

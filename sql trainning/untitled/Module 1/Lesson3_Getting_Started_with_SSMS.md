@@ -179,16 +179,16 @@ The Query Editor is where you write and execute T-SQL commands.
 │  Database: [YourDB ▼] │ Available Databases           │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
-│  1  SELECT CustomerID, CustomerName                     │
+│  1  SELECT CustomerID, CompanyName                     │
 │  2  FROM Customers                                      │
 │  3  WHERE Country = 'USA'                              │
-│  4  ORDER BY CustomerName;                             │
+│  4  ORDER BY CompanyName;                             │
 │  5                                                      │
 │                                                         │
 ├─────────────────────────────────────────────────────────┤
 │  Results │ Messages │ Execution Plan │                 │
 ├─────────────────────────────────────────────────────────┤
-│  CustomerID │ CustomerName                             │
+│  CustomerID │ CompanyName                             │
 │  1          │ ABC Company                              │
 │  2          │ XYZ Corporation                          │
 └─────────────────────────────────────────────────────────┘
@@ -197,7 +197,7 @@ The Query Editor is where you write and execute T-SQL commands.
 **Advanced Query Editor Features:**
 ```sql
 -- IntelliSense example
-SELECT c.CustomerID, c.CustomerName, o.OrderDate
+SELECT c.CustomerID, c.CompanyName, o.OrderDate
 FROM Customers c -- IntelliSense suggests columns
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID;
 
@@ -223,11 +223,11 @@ INNER JOIN Orders o ON c.CustomerID = o.CustomerID;
 SELECT 
     ProductID,
     ProductName,
-    FORMAT(UnitPrice, 'C', 'en-US') as FormattedPrice,
+    FORMAT(BaseSalary, 'C', 'en-US') as FormattedPrice,
     UnitsInStock
 FROM Products
-WHERE UnitPrice > 20
-ORDER BY UnitPrice DESC;
+WHERE BaseSalary > 20
+ORDER BY BaseSalary DESC;
 ```
 
 **Text Results Example:**
@@ -240,7 +240,7 @@ SELECT
 
 SELECT 
     ProductName + ' costs ' + 
-    CAST(UnitPrice as varchar(10)) + 
+    CAST(BaseSalary as varchar(10)) + 
     ' with ' + CAST(UnitsInStock as varchar(10)) + 
     ' units in stock' as ProductInfo
 FROM Products
@@ -275,8 +275,8 @@ GO
 CREATE TABLE <Schema_Name, sysname, dbo>.<Table_Name, sysname, Customers>
 (
     CustomerID int IDENTITY(1,1) NOT NULL,
-    CustomerName nvarchar(100) NOT NULL,
-    Email nvarchar(255) NULL,
+    CompanyName nvarchar(100) NOT NULL,
+    WorkEmail nvarchar(255) NULL,
     CreatedDate datetime2 DEFAULT GETDATE()
 );
 ```
@@ -332,7 +332,7 @@ Real-time monitoring of SQL Server performance.
 │                                                         │
 │  ┌─────────────────────────────────────────────────────┐ │
 │  │              PROCESSES                              │ │
-│  │  Session ID │ User    │ Database │ Status │ CPU    │ │
+│  │  Session ID │ User    │ Database │ IsActive │ CPU    │ │
 │  │  52         │ AppUser │ SalesDB  │ Active │ 1,250  │ │
 │  │  67         │ WebUser │ WebDB    │ Sleep  │ 0      │ │
 │  └─────────────────────────────────────────────────────┘ │
@@ -387,14 +387,14 @@ SET STATISTICS IO ON;
 SET STATISTICS TIME ON;
 
 SELECT 
-    c.CustomerName,
+    c.CompanyName,
     COUNT(o.OrderID) as OrderCount,
-    SUM(od.Quantity * od.UnitPrice) as TotalRevenue
+    SUM(od.Quantity * od.BaseSalary) as TotalRevenue
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
 INNER JOIN OrderDetails od ON o.OrderID = od.OrderID
 WHERE o.OrderDate >= '2024-01-01'
-GROUP BY c.CustomerID, c.CustomerName
+GROUP BY c.CustomerID, c.CompanyName
 HAVING COUNT(o.OrderID) > 5
 ORDER BY TotalRevenue DESC;
 
@@ -456,8 +456,8 @@ Visual representation of database relationships.
 │   Customers     │         │     Orders      │
 ├─────────────────┤    1:N  ├─────────────────┤
 │ CustomerID (PK) │◄────────│ CustomerID (FK) │
-│ CustomerName    │         │ OrderID (PK)    │
-│ Email          │         │ OrderDate       │
+│ CompanyName    │         │ OrderID (PK)    │
+│ WorkEmail          │         │ OrderDate       │
 │ Phone          │         │ TotalAmount     │
 └─────────────────┘         └─────────────────┘
                                      │ 1:N
@@ -468,7 +468,7 @@ Visual representation of database relationships.
                             │ OrderID (FK)    │
                             │ ProductID (FK)  │
                             │ Quantity        │
-                            │ UnitPrice       │
+                            │ BaseSalary       │
                             └─────────────────┘
 */
 ```
@@ -590,10 +590,10 @@ GO
 
 -- 3. Create a table using Object Explorer
 -- Right-click Tables → New → Table
--- Add columns: ID (int, Identity), Name (varchar(100)), Email (varchar(255))
+-- Add columns: ID (int, Identity), Name (varchar(100)), WorkEmail (varchar(255))
 
 -- 4. Insert data using query
-INSERT INTO TestTable (Name, Email) VALUES 
+INSERT INTO TestTable (Name, WorkEmail) VALUES 
 ('John Doe', 'john@example.com'),
 ('Jane Smith', 'jane@example.com'),
 ('Bob Johnson', 'bob@example.com');
@@ -618,7 +618,7 @@ WITH CustomerSummary AS (
     GROUP BY CustomerID
 )
 SELECT 
-    c.CustomerName,
+    c.CompanyName,
     cs.OrderCount,
     cs.TotalRevenue,
     cs.AvgOrderValue,

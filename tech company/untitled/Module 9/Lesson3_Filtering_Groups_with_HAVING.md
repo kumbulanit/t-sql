@@ -100,20 +100,20 @@ SELECT
     ) AS ProfitPerEmployee,
     
     -- DELIVERY PERFORMANCE
-    COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) AS CompletedProjects,
-    COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeProjects,
+    COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
+    COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeProjects,
     
     FORMAT(
-        COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-        NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0), 
+        COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+        NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0), 
         'N1'
     ) + '%' AS OnTimeDeliveryRate,
     
     -- STRATEGIC CLASSIFICATION
     CASE 
         WHEN SUM(p.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 2000000 
-             AND COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-                 NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) >= 90
+             AND COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+                 NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 90
         THEN '🌟 ELITE PERFORMER - Revenue + Delivery Excellence'
         WHEN (SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(p.Budget), 0) >= 30
         THEN '💎 PROFIT CHAMPION - Exceptional Margins'
@@ -128,8 +128,8 @@ SELECT
         THEN 'EXPAND: Increase headcount and capacity immediately'
         WHEN (SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(p.Budget), 0) >= 30
         THEN 'SCALE: Replicate successful model across organization'
-        WHEN COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-             NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) >= 85
+        WHEN COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+             NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 85
         THEN 'STUDY: Document best practices for organizational learning'
         ELSE 'MAINTAIN: Continue current performance level'
     END AS InvestmentRecommendation
@@ -157,8 +157,8 @@ HAVING
         OR ((SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / NULLIF(SUM(p.Budget), 0) >= 25
         
         -- OR on-time delivery rate exceeds 85%
-        OR COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-           NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) >= 85
+        OR COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+           NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 85
         
         -- OR total revenue exceeds $10M
         OR SUM(p.Budget) >= 10000000
@@ -177,8 +177,8 @@ SELECT
     
     -- CLIENT RELATIONSHIP METRICS
     COUNT(DISTINCT p.ProjectID) AS TotalProjects,
-    COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) AS CompletedProjects,
-    COUNT(CASE WHEN p.Status = 'Active' THEN 1 END) AS ActiveProjects,
+    COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
+    COUNT(CASE WHEN p.IsActive = 'Active' THEN 1 END) AS ActiveProjects,
     
     -- FINANCIAL VALUE
     FORMAT(SUM(p.Budget), 'C0') AS TotalClientValue,
@@ -211,8 +211,8 @@ SELECT
     
     -- DELIVERY PERFORMANCE FOR CLIENT
     FORMAT(
-        COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-        NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0), 
+        COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+        NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0), 
         'N1'
     ) + '%' AS ClientOnTimeRate,
     
@@ -223,8 +223,8 @@ SELECT
     CASE 
         WHEN SUM(p.Budget) >= 10000000 
              AND COUNT(p.ProjectID) >= 15
-             AND COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-                 NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) >= 85
+             AND COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+                 NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 85
         THEN '👑 STRATEGIC ENTERPRISE CLIENT - Crown Jewel'
         WHEN SUM(p.Budget) >= 5000000 
              AND (SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(p.Budget), 0) >= 25
@@ -255,8 +255,8 @@ SELECT
         WHEN (SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(p.Budget), 0) >= 30
              AND COUNT(p.ProjectID) < 5
         THEN 'UNTAPPED VALUE: High margins suggest pricing power for more services'
-        WHEN COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-             NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) >= 90
+        WHEN COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+             NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 90
         THEN 'SHOWCASE CLIENT: Excellent delivery record = Reference for new business'
         ELSE 'MAINTAIN: Continue current relationship strategy'
     END AS ExpansionStrategy
@@ -290,8 +290,8 @@ HAVING
     )
     
     -- Quality relationship requirement
-    AND COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-        NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) >= 70
+    AND COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+        NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 70
 
 ORDER BY SUM(p.Budget) DESC, AVG(p.Budget) DESC;
 ```
@@ -311,8 +311,8 @@ SELECT
     
     -- PERFORMANCE METRICS
     COUNT(p.ProjectID) AS TotalProjects,
-    COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) AS CompletedProjects,
-    COUNT(CASE WHEN p.Status = 'Cancelled' THEN 1 END) AS CancelledProjects,
+    COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
+    COUNT(CASE WHEN p.IsActive = 'Cancelled' THEN 1 END) AS CancelledProjects,
     
     -- FINANCIAL PERFORMANCE
     FORMAT(SUM(p.Budget), 'C0') AS TotalRevenue,
@@ -336,14 +336,14 @@ SELECT
     
     -- DELIVERY PROBLEMS
     FORMAT(
-        COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-        NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0), 
+        COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+        NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0), 
         'N1'
     ) + '%' AS OnTimeDeliveryRate,
     
     -- CANCELLATION RATE
     FORMAT(
-        COUNT(CASE WHEN p.Status = 'Cancelled' THEN 1 END) * 100.0 / COUNT(p.ProjectID), 
+        COUNT(CASE WHEN p.IsActive = 'Cancelled' THEN 1 END) * 100.0 / COUNT(p.ProjectID), 
         'N1'
     ) + '%' AS ProjectCancellationRate,
     
@@ -356,13 +356,13 @@ SELECT
     ) + '%' AS MajorOverrunRate,
     
     -- TIME OVERRUN ANALYSIS
-    COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate > DATEADD(MONTH, 2, p.PlannedEndDate) THEN 1 END) AS MajorDelays,
+    COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate > DATEADD(MONTH, 2, p.PlannedEndDate) THEN 1 END) AS MajorDelays,
     
     -- PROBLEM SEVERITY CLASSIFICATION
     CASE 
         -- Critical issues requiring immediate intervention
         WHEN ((SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / NULLIF(SUM(p.Budget), 0) < 5
-             AND COUNT(CASE WHEN p.Status = 'Cancelled' THEN 1 END) * 100.0 / COUNT(p.ProjectID) >= 20
+             AND COUNT(CASE WHEN p.IsActive = 'Cancelled' THEN 1 END) * 100.0 / COUNT(p.ProjectID) >= 20
         THEN '🔴 CRITICAL - Severe profitability and delivery issues'
         
         -- Major profitability concerns
@@ -370,8 +370,8 @@ SELECT
         THEN '🟠 MAJOR CONCERN - Profitability below sustainable levels'
         
         -- Delivery problems
-        WHEN COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-             NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) < 60
+        WHEN COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+             NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) < 60
         THEN '🟡 DELIVERY ISSUES - Client satisfaction at risk'
         
         -- Quality concerns
@@ -384,8 +384,8 @@ SELECT
     -- ROOT CAUSE ANALYSIS
     CASE 
         WHEN pt.ComplexityLevel >= 4 
-             AND COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-                 NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) < 60
+             AND COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+                 NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) < 60
         THEN 'COMPLEXITY MISMATCH: High complexity services need better project management'
         
         WHEN AVG(p.Budget) < 100000 
@@ -393,7 +393,7 @@ SELECT
         THEN 'PRICING PRESSURE: Small projects with low margins indicate pricing issues'
         
         WHEN c.Industry IN ('Retail', 'Manufacturing') 
-             AND COUNT(CASE WHEN p.Status = 'Cancelled' THEN 1 END) * 100.0 / COUNT(p.ProjectID) >= 15
+             AND COUNT(CASE WHEN p.IsActive = 'Cancelled' THEN 1 END) * 100.0 / COUNT(p.ProjectID) >= 15
         THEN 'INDUSTRY CHALLENGES: Traditional industries may have different needs'
         
         WHEN COUNT(CASE WHEN ISNULL(p.ActualCost, 0) > ISNULL(p.Budget, 0) * 1.2 THEN 1 END) * 100.0 / COUNT(p.ProjectID) >= 25
@@ -406,7 +406,7 @@ SELECT
     CASE 
         -- Exit strategy for severely problematic segments
         WHEN ((SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / NULLIF(SUM(p.Budget), 0) < 0
-             AND COUNT(CASE WHEN p.Status = 'Cancelled' THEN 1 END) * 100.0 / COUNT(p.ProjectID) >= 25
+             AND COUNT(CASE WHEN p.IsActive = 'Cancelled' THEN 1 END) * 100.0 / COUNT(p.ProjectID) >= 25
         THEN 'EXIT STRATEGY: Consider discontinuing this service-market combination'
         
         -- Urgent improvement needed
@@ -423,8 +423,8 @@ SELECT
         THEN 'PROCESS IMPROVEMENT: Focus on estimation accuracy and cost control'
         
         -- Delivery methodology improvement
-        WHEN COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-             NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) < 70
+        WHEN COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+             NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) < 70
         THEN 'DELIVERY IMPROVEMENT: Implement better project management practices'
         
         ELSE 'MONITOR CLOSELY: Watch for further deterioration'
@@ -434,7 +434,7 @@ SELECT
     CASE 
         WHEN ((SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / NULLIF(SUM(p.Budget), 0) < 5
         THEN 'IMMEDIATE ACTION REQUIRED'
-        WHEN COUNT(CASE WHEN p.Status = 'Cancelled' THEN 1 END) * 100.0 / COUNT(p.ProjectID) >= 20
+        WHEN COUNT(CASE WHEN p.IsActive = 'Cancelled' THEN 1 END) * 100.0 / COUNT(p.ProjectID) >= 20
         THEN 'ACTION REQUIRED WITHIN 30 DAYS'
         WHEN COUNT(CASE WHEN ISNULL(p.ActualCost, 0) > ISNULL(p.Budget, 0) * 1.2 THEN 1 END) * 100.0 / COUNT(p.ProjectID) >= 25
         THEN 'ACTION REQUIRED WITHIN 60 DAYS'
@@ -462,11 +462,11 @@ HAVING
         ((SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / NULLIF(SUM(p.Budget), 0) < 15
         
         -- OR poor delivery performance (less than 70% on-time)
-        OR COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
-           NULLIF(COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END), 0) < 70
+        OR COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
+           NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) < 70
         
         -- OR high cancellation rate (more than 15%)
-        OR COUNT(CASE WHEN p.Status = 'Cancelled' THEN 1 END) * 100.0 / COUNT(p.ProjectID) >= 15
+        OR COUNT(CASE WHEN p.IsActive = 'Cancelled' THEN 1 END) * 100.0 / COUNT(p.ProjectID) >= 15
         
         -- OR frequent major cost overruns (more than 20% of projects over 120% of budget)
         OR COUNT(CASE WHEN ISNULL(p.ActualCost, 0) > ISNULL(p.Budget, 0) * 1.2 THEN 1 END) * 100.0 / COUNT(p.ProjectID) >= 20
@@ -476,7 +476,7 @@ ORDER BY
     -- Prioritize by severity of problems
     CASE 
         WHEN ((SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / NULLIF(SUM(p.Budget), 0) < 5 THEN 1
-        WHEN COUNT(CASE WHEN p.Status = 'Cancelled' THEN 1 END) * 100.0 / COUNT(p.ProjectID) >= 20 THEN 2
+        WHEN COUNT(CASE WHEN p.IsActive = 'Cancelled' THEN 1 END) * 100.0 / COUNT(p.ProjectID) >= 20 THEN 2
         WHEN COUNT(CASE WHEN ISNULL(p.ActualCost, 0) > ISNULL(p.Budget, 0) * 1.2 THEN 1 END) * 100.0 / COUNT(p.ProjectID) >= 25 THEN 3
         ELSE 4
     END,
@@ -523,8 +523,8 @@ WITH GrowthAnalysis AS (
         AVG(p.Budget) AS OverallAvgValue,
         
         -- Quality metrics
-        COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeProjects,
-        COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) AS CompletedProjects,
+        COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeProjects,
+        COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
         
         -- Profitability
         (SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) AS TotalProfit,

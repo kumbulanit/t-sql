@@ -30,28 +30,28 @@
 SELECT 
     ProductID,
     ProductName,
-    UnitPrice,
+    BaseSalary,
     CategoryID,
     
     -- Scalar subquery for single value
     (SELECT CategoryName FROM Categories c WHERE c.CategoryID = p.CategoryID) AS CategoryName,
     
     -- Scalar subquery with aggregate
-    (SELECT AVG(UnitPrice) FROM Products p2 WHERE p2.CategoryID = p.CategoryID) AS CategoryAveragePrice,
+    (SELECT AVG(BaseSalary) FROM Products p2 WHERE p2.CategoryID = p.CategoryID) AS CategoryAveragePrice,
     
     -- Scalar subquery for calculations
-    UnitPrice - (SELECT AVG(UnitPrice) FROM Products) AS PriceDifferenceFromOverallAverage,
+    BaseSalary - (SELECT AVG(BaseSalary) FROM Products) AS PriceDifferenceFromOverallAverage,
     
     -- Conditional scalar subquery
     CASE 
-        WHEN UnitPrice > (SELECT AVG(UnitPrice) FROM Products p3 WHERE p3.CategoryID = p.CategoryID)
+        WHEN BaseSalary > (SELECT AVG(BaseSalary) FROM Products p3 WHERE p3.CategoryID = p.CategoryID)
         THEN 'Above Average'
         ELSE 'Below Average'
     END AS PriceCategory
     
 FROM Products p
 WHERE Discontinued = 0
-ORDER BY CategoryID, UnitPrice DESC;
+ORDER BY CategoryID, BaseSalary DESC;
 ```
 
 #### **Multi-Value Subqueries with IN**
@@ -59,7 +59,7 @@ ORDER BY CategoryID, UnitPrice DESC;
 -- Multi-value subqueries (return multiple values)
 SELECT 
     CustomerID,
-    CustomerName,
+    CompanyName,
     Country,
     City
 FROM Customers
@@ -75,7 +75,7 @@ WHERE CustomerID IN (
 SELECT 
     ProductID,
     ProductName,
-    UnitPrice,
+    BaseSalary,
     CategoryID
 FROM Products
 WHERE CategoryID IN (
@@ -83,7 +83,7 @@ WHERE CategoryID IN (
     SELECT CategoryID
     FROM Products
     GROUP BY CategoryID
-    HAVING AVG(UnitPrice) > 50
+    HAVING AVG(BaseSalary) > 50
 )
 AND ProductID NOT IN (
     -- Exclude products never ordered
@@ -107,12 +107,12 @@ SELECT
     -- Correlated subquery for department ranking
     (SELECT COUNT(*)
      FROM Employees e2 
-     WHERE e2.Department = e1.Department 
+     WHERE e2.DepartmentID = e1.DepartmentID 
          AND e2.BaseSalary >= e1.BaseSalary) AS DepartmentSalaryRank,
     
     -- Correlated subquery for percentage calculation
     CAST(e1.BaseSalary AS DECIMAL(10,2)) / 
-    (SELECT AVG(BaseSalary) FROM Employees e3 WHERE e3.Department = e1.Department) * 100 AS PercentOfDeptAverage,
+    (SELECT AVG(BaseSalary) FROM Employees e3 WHERE e3.DepartmentID = e1.DepartmentID) * 100 AS PercentOfDeptAverage,
     
     -- Correlated EXISTS subquery
     CASE 
@@ -130,7 +130,7 @@ ORDER BY e1.Department, e1.BaseSalary DESC;
 #### **EXISTS vs IN Performance Comparison**
 ```sql
 -- EXISTS approach (often more efficient)
-SELECT DISTINCT c.CustomerID, c.CustomerName
+SELECT DISTINCT c.CustomerID, c.CompanyName
 FROM Customers c
 WHERE EXISTS (
     SELECT 1  -- SELECT 1 is efficient, doesn't return actual values
@@ -141,7 +141,7 @@ WHERE EXISTS (
 );
 
 -- IN approach (can be less efficient with large datasets)
-SELECT c.CustomerID, c.CustomerName
+SELECT c.CustomerID, c.CompanyName
 FROM Customers c
 WHERE c.CustomerID IN (
     SELECT o.CustomerID
@@ -151,7 +151,7 @@ WHERE c.CustomerID IN (
 );
 
 -- NOT EXISTS (handles NULLs correctly)
-SELECT c.CustomerID, c.CustomerName
+SELECT c.CustomerID, c.CompanyName
 FROM Customers c
 WHERE NOT EXISTS (
     SELECT 1
@@ -162,7 +162,7 @@ WHERE NOT EXISTS (
 
 -- NOT IN (problematic with NULLs)
 -- This query may not work as expected if Orders.CustomerID contains NULLs
-SELECT c.CustomerID, c.CustomerName
+SELECT c.CustomerID, c.CompanyName
 FROM Customers c
 WHERE c.CustomerID NOT IN (
     SELECT o.CustomerID
@@ -186,7 +186,7 @@ WITH HighValueCustomers AS (
     -- CTE 1: Identify high-value customers
     SELECT 
         c.CustomerID,
-        c.CustomerName,
+        c.CompanyName,
         c.Country,
         SUM(o.TotalAmount) AS TotalPurchases,
         COUNT(o.OrderID) AS OrderCount,
@@ -194,7 +194,7 @@ WITH HighValueCustomers AS (
     FROM Customers c
     JOIN Orders o ON c.CustomerID = o.CustomerID
     WHERE o.OrderDate >= '2023-01-01'
-    GROUP BY c.CustomerID, c.CustomerName, c.Country
+    GROUP BY c.CustomerID, c.CompanyName, c.Country
     HAVING SUM(o.TotalAmount) > 10000
 ),
 ProductPerformance AS (
@@ -205,7 +205,7 @@ ProductPerformance AS (
         p.CategoryID,
         COUNT(od.OrderID) AS TimesOrdered,
         SUM(od.Quantity) AS TotalQuantitySold,
-        SUM(od.UnitPrice * od.Quantity) AS TotalRevenue
+        SUM(od.BaseSalary * od.Quantity) AS TotalRevenue
     FROM Products p
     JOIN OrderDetails od ON p.ProductID = od.ProductID
     JOIN Orders o ON od.OrderID = o.OrderID
@@ -216,20 +216,20 @@ CustomerProductMatrix AS (
     -- CTE 3: Customer-Product purchase matrix
     SELECT 
         hvc.CustomerID,
-        hvc.CustomerName,
+        hvc.CompanyName,
         pp.ProductID,
         pp.ProductName,
         SUM(od.Quantity) AS QuantityPurchased,
-        SUM(od.UnitPrice * od.Quantity) AS ProductRevenue
+        SUM(od.BaseSalary * od.Quantity) AS ProductRevenue
     FROM HighValueCustomers hvc
     JOIN Orders o ON hvc.CustomerID = o.CustomerID
     JOIN OrderDetails od ON o.OrderID = od.OrderID
     JOIN ProductPerformance pp ON od.ProductID = pp.ProductID
-    GROUP BY hvc.CustomerID, hvc.CustomerName, pp.ProductID, pp.ProductName
+    GROUP BY hvc.CustomerID, hvc.CompanyName, pp.ProductID, pp.ProductName
 )
 -- Main query using all CTEs
 SELECT 
-    cpm.CustomerName,
+    cpm.CompanyName,
     cpm.ProductName,
     cpm.QuantityPurchased,
     cpm.ProductRevenue,
@@ -240,7 +240,7 @@ SELECT
 FROM CustomerProductMatrix cpm
 JOIN HighValueCustomers hvc ON cpm.CustomerID = hvc.CustomerID
 WHERE cpm.ProductRevenue > 500  -- Only significant product purchases
-ORDER BY cpm.CustomerName, CustomerProductRank;
+ORDER BY cpm.CompanyName, CustomerProductRank;
 ```
 
 ### Recursive CTEs
@@ -356,17 +356,17 @@ SELECT
     CategoryID,
     ProductID,
     ProductName,
-    UnitPrice,
+    BaseSalary,
     CategoryRank
 FROM (
     SELECT 
         p.CategoryID,
         p.ProductID,
         p.ProductName,
-        p.UnitPrice,
-        ROW_NUMBER() OVER (PARTITION BY p.CategoryID ORDER BY p.UnitPrice DESC) AS CategoryRank,
+        p.BaseSalary,
+        ROW_NUMBER() OVER (PARTITION BY p.CategoryID ORDER BY p.BaseSalary DESC) AS CategoryRank,
         -- Calculate percentile within category
-        PERCENT_RANK() OVER (PARTITION BY p.CategoryID ORDER BY p.UnitPrice) AS PricePercentile
+        PERCENT_RANK() OVER (PARTITION BY p.CategoryID ORDER BY p.BaseSalary) AS PricePercentile
     FROM Products p
     WHERE p.Discontinued = 0
 ) AS RankedProducts
@@ -379,21 +379,21 @@ SELECT
     p1.CategoryID,
     p1.ProductID,
     p1.ProductName,
-    p1.UnitPrice
+    p1.BaseSalary
 FROM Products p1
-WHERE p1.UnitPrice >= (
+WHERE p1.BaseSalary >= (
     -- Find the 3rd highest price in the category
-    SELECT MIN(p2.UnitPrice)
+    SELECT MIN(p2.BaseSalary)
     FROM (
-        SELECT TOP 3 UnitPrice
+        SELECT TOP 3 BaseSalary
         FROM Products p3
         WHERE p3.CategoryID = p1.CategoryID
             AND p3.Discontinued = 0
-        ORDER BY UnitPrice DESC
+        ORDER BY BaseSalary DESC
     ) p2
 )
 AND p1.Discontinued = 0
-ORDER BY p1.CategoryID, p1.UnitPrice DESC;
+ORDER BY p1.CategoryID, p1.BaseSalary DESC;
 ```
 
 ### Conditional Aggregation with Subqueries
@@ -404,7 +404,7 @@ ORDER BY p1.CategoryID, p1.UnitPrice DESC;
 WITH CustomerAnalysis AS (
     SELECT 
         c.CustomerID,
-        c.CustomerName,
+        c.CompanyName,
         c.Country,
         
         -- Total orders and revenue
@@ -446,7 +446,7 @@ WITH CustomerAnalysis AS (
 )
 SELECT 
     CustomerID,
-    CustomerName,
+    CompanyName,
     Country,
     TotalOrders,
     TotalRevenue,
@@ -498,7 +498,7 @@ ORDER BY TotalRevenue DESC;
 SELECT 
     p.ProductID,
     p.ProductName,
-    p.UnitPrice,
+    p.BaseSalary,
     (SELECT c.CategoryName FROM Categories c WHERE c.CategoryID = p.CategoryID) AS CategoryName,
     (SELECT COUNT(*) FROM OrderDetails od WHERE od.ProductID = p.ProductID) AS TimesOrdered
 FROM Products p
@@ -513,7 +513,7 @@ WHERE p.ProductID IN (
 SELECT DISTINCT
     p.ProductID,
     p.ProductName,
-    p.UnitPrice,
+    p.BaseSalary,
     c.CategoryName,
     product_stats.TimesOrdered
 FROM Products p
@@ -541,7 +541,7 @@ SELECT
     e.BaseSalary,
     (SELECT COUNT(*) 
      FROM Employees e2 
-     WHERE e2.Department = e.Department 
+     WHERE e2.DepartmentID = e.DepartmentID 
          AND e2.BaseSalary > e.BaseSalary) + 1 AS DepartmentRank
 FROM Employees e
 WHERE e.IsActive = 1
@@ -553,10 +553,10 @@ SELECT
     FirstName + ' ' + LastName AS EmployeeName,
     Department,
     BaseSalary,
-    RANK() OVER (PARTITION BY Department ORDER BY BaseSalary DESC) AS DepartmentRank
+    RANK() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) AS DepartmentRank
 FROM Employees
 WHERE IsActive = 1
-ORDER BY Department, DepartmentRank;
+ORDER BY DepartmentID, DepartmentRank;
 ```
 
 ### CTE vs Subquery vs Temp Table
@@ -568,7 +568,7 @@ WITH SalesAnalysis AS (
     SELECT 
         YEAR(o.OrderDate) AS SalesYear,
         MONTH(o.OrderDate) AS SalesMonth,
-        SUM(od.UnitPrice * od.Quantity) AS MonthlySales
+        SUM(od.BaseSalary * od.Quantity) AS MonthlySales
     FROM Orders o
     JOIN OrderDetails od ON o.OrderID = od.OrderID
     WHERE o.OrderDate >= '2022-01-01'
@@ -597,7 +597,7 @@ INSERT INTO #SalesAnalysis
 SELECT 
     YEAR(o.OrderDate),
     MONTH(o.OrderDate),
-    SUM(od.UnitPrice * od.Quantity)
+    SUM(od.BaseSalary * od.Quantity)
 FROM Orders o
 JOIN OrderDetails od ON o.OrderID = od.OrderID
 WHERE o.OrderDate >= '2022-01-01'
@@ -631,19 +631,19 @@ WITH CustomerMetrics AS (
     -- Base customer metrics
     SELECT 
         c.CustomerID,
-        c.CustomerName,
+        c.CompanyName,
         c.Country,
         c.Region,
         COUNT(o.OrderID) AS TotalOrders,
-        SUM(od.UnitPrice * od.Quantity) AS TotalRevenue,
-        AVG(od.UnitPrice * od.Quantity) AS AverageOrderValue,
+        SUM(od.BaseSalary * od.Quantity) AS TotalRevenue,
+        AVG(od.BaseSalary * od.Quantity) AS AverageOrderValue,
         MIN(o.OrderDate) AS FirstOrderDate,
         MAX(o.OrderDate) AS LastOrderDate,
         DATEDIFF(DAY, MIN(o.OrderDate), MAX(o.OrderDate)) AS CustomerLifespanDays
     FROM Customers c
     LEFT JOIN Orders o ON c.CustomerID = o.CustomerID
     LEFT JOIN OrderDetails od ON o.OrderID = od.OrderID
-    GROUP BY c.CustomerID, c.CustomerName, c.Country, c.Region
+    GROUP BY c.CustomerID, c.CompanyName, c.Country, c.Region
 ),
 RegionBenchmarks AS (
     -- Regional benchmarks for comparison
@@ -696,7 +696,7 @@ CustomerScores AS (
 )
 SELECT 
     CustomerID,
-    CustomerName,
+    CompanyName,
     Country,
     Region,
     TotalOrders,
