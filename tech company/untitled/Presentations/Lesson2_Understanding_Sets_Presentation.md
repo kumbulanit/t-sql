@@ -49,7 +49,7 @@
 -- Employee IDs (as a set)
 {101, 102, 103, 104, 105}
 
--- Salary Ranges (as a set)
+-- BaseSalary Ranges (as a set)
 {50000, 60000, 70000, 80000, 90000}
 ```
 
@@ -115,9 +115,9 @@ FROM Employees;
 SELECT * FROM Employees 
 WHERE Department IN ('IT', 'Finance');  -- Members of specified set
 
--- Salary range membership
+-- BaseSalary range membership
 SELECT * FROM Employees
-WHERE Salary BETWEEN 60000 AND 80000;   -- Members of salary range set
+WHERE BaseSalary BETWEEN 60000 AND 80000;   -- Members of salary range set
 ```
 
 ---
@@ -132,7 +132,7 @@ SELECT * FROM Employees
 WHERE Department = 'NonExistentDept';   -- Returns empty set
 
 -- Checking for empty results
-IF NOT EXISTS (SELECT * FROM Employees WHERE Salary > 200000)
+IF NOT EXISTS (SELECT * FROM Employees WHERE BaseSalary > 200000)
     PRINT 'No employees with salary > 200000 (Empty Set)';
 ```
 
@@ -175,9 +175,9 @@ SELECT EmployeeID, FirstName, LastName, 'HR' AS Source
 FROM Employees WHERE Department = 'HR';
 
 -- Union of salary ranges
-SELECT DISTINCT Salary FROM Employees WHERE Department = 'IT'
+SELECT DISTINCT BaseSalary FROM Employees WHERE Department = 'IT'
 UNION
-SELECT DISTINCT Salary FROM Employees WHERE Department = 'Finance';
+SELECT DISTINCT BaseSalary FROM Employees WHERE Department = 'Finance';
 ```
 
 **UNION vs UNION ALL**:
@@ -215,13 +215,13 @@ INTERSECT
 
 SELECT EmployeeID, FirstName, LastName
 FROM Employees 
-WHERE Salary > 70000;
+WHERE BaseSalary > 70000;
 
 -- Alternative using JOIN (common approach)
 SELECT DISTINCT e1.EmployeeID, e1.FirstName, e1.LastName
 FROM Employees e1
 INNER JOIN (
-    SELECT EmployeeID FROM Employees WHERE Salary > 70000
+    SELECT EmployeeID FROM Employees WHERE BaseSalary > 70000
 ) e2 ON e1.EmployeeID = e2.EmployeeID
 WHERE e1.Department = 'IT';
 ```
@@ -253,7 +253,7 @@ EXCEPT
 
 SELECT EmployeeID, FirstName, LastName
 FROM Employees 
-WHERE Salary > 80000;
+WHERE BaseSalary > 80000;
 
 -- Alternative using NOT EXISTS
 SELECT EmployeeID, FirstName, LastName
@@ -262,7 +262,7 @@ WHERE Department = 'IT'
   AND NOT EXISTS (
     SELECT 1 FROM Employees e2 
     WHERE e2.EmployeeID = e1.EmployeeID 
-      AND e2.Salary > 80000
+      AND e2.BaseSalary > 80000
   );
 ```
 
@@ -365,7 +365,7 @@ WHERE EXISTS (
 
 -- Range membership (continuous set)
 SELECT * FROM Employees
-WHERE Salary BETWEEN 50000 AND 80000;  -- [50000, 80000] set
+WHERE BaseSalary BETWEEN 50000 AND 80000;  -- [50000, 80000] set
 ```
 
 **Set-Based Thinking Benefits**:
@@ -500,7 +500,7 @@ GROUP BY Department;
 ```sql
 -- Good: Set-based approach
 UPDATE Employees 
-SET Salary = Salary * 1.10
+SET BaseSalary = BaseSalary * 1.10
 WHERE Department = 'IT' 
   AND PerformanceRating >= 4;
 
@@ -563,7 +563,7 @@ SELECT
     CASE 
         WHEN NOT EXISTS (
             SELECT 1 FROM Employees 
-            WHERE Department = 'IT' AND Salary < 70000
+            WHERE Department = 'IT' AND BaseSalary < 70000
         )
         THEN 'All IT employees have high salaries'
         ELSE 'Some IT employees have lower salaries'

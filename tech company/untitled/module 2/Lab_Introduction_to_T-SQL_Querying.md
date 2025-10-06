@@ -89,7 +89,7 @@ CREATE TABLE Employees (
     Email NVARCHAR(100) NOT NULL,
     DepartmentID INT NOT NULL,
     ManagerID INT NULL,
-    Salary DECIMAL(10,2) NOT NULL,
+    BaseSalary DECIMAL(10,2) NOT NULL,
     HireDate DATE NOT NULL,
     IsActive BIT NOT NULL DEFAULT 1,
     Title NVARCHAR(100) NOT NULL,
@@ -145,7 +145,7 @@ INSERT INTO Departments (DepartmentName, DepartmentCode, Budget, Location) VALUE
 ('Sales & Marketing', 'SALES', 400000, 'Building B - Floor 4');
 
 -- Insert TechCorp employees (key team members for Module 2)
-INSERT INTO Employees (FirstName, LastName, MiddleName, Email, DepartmentID, ManagerID, Salary, HireDate, Title, EmployeeType) VALUES
+INSERT INTO Employees (FirstName, LastName, MiddleName, Email, DepartmentID, ManagerID, BaseSalary, HireDate, Title, EmployeeType) VALUES
 ('Marcus', 'Johnson', 'Ray', 'marcus.johnson@techcorp.com', 1, NULL, 125000, '2019-01-15', 'Development Director', 'Full-Time'),
 ('Sarah', 'Chen', NULL, 'sarah.chen@techcorp.com', 1, 2001, 95000, '2020-03-10', 'Senior Developer', 'Full-Time'),
 ('David', 'Rodriguez', 'Luis', 'david.rodriguez@techcorp.com', 1, 2001, 88000, '2020-06-01', 'Backend Developer', 'Full-Time'),
@@ -358,7 +358,7 @@ Write queries to:
 For each query, explain the logical processing order:
 
 1. ```sql
-   SELECT DepartmentID, AVG(Salary) as AvgSalary
+   SELECT DepartmentID, AVG(BaseSalary) as AvgSalary
    FROM Employees
    WHERE IsActive = 1
    GROUP BY DepartmentID
@@ -370,7 +370,7 @@ For each query, explain the logical processing order:
    SELECT e.FirstName, e.LastName, d.DepartmentName
    FROM Employees e
    JOIN Departments d ON e.DepartmentID = d.DepartmentID
-   WHERE e.Salary > 60000
+   WHERE e.BaseSalary > 60000
    ORDER BY d.DepartmentName;
    ```
 
@@ -378,7 +378,7 @@ For each query, explain the logical processing order:
 Identify what's wrong with these queries and fix them:
 
 1. ```sql
-   SELECT FirstName + ' ' + LastName AS FullName, Salary
+   SELECT FirstName + ' ' + LastName AS FullName, BaseSalary
    FROM Employees
    WHERE FullName LIKE 'John%';
    ```

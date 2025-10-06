@@ -653,7 +653,7 @@ CREATE TABLE EncryptedData (
     PublicData NVARCHAR(100),
     -- These columns would be encrypted with Always Encrypted
     SSN CHAR(11), -- ENCRYPTED WITH (...)
-    Salary DECIMAL(10,2) -- ENCRYPTED WITH (...)
+    BaseSalary DECIMAL(10,2) -- ENCRYPTED WITH (...)
     -- Actual encryption syntax requires pre-configured keys
 );
 ```
@@ -665,7 +665,7 @@ CREATE TABLE EmployeeHistory (
     EmployeeID INT NOT NULL PRIMARY KEY,
     FirstName NVARCHAR(50) NOT NULL,
     LastName NVARCHAR(50) NOT NULL,
-    Salary DECIMAL(10,2),
+    BaseSalary DECIMAL(10,2),
     Department NVARCHAR(50),
     
     -- Required for temporal tables

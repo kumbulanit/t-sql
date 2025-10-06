@@ -67,7 +67,7 @@ SELECT
     ISNULL(e.Address, 'Address Not Provided') AS Address,
     
     -- Handle missing employment data
-    ISNULL(CAST(e.BaseSalary AS VARCHAR), 'Salary Confidential') AS SalaryDisplay,
+    ISNULL(CAST(e.BaseSalary AS VARCHAR), 'BaseSalary Confidential') AS SalaryDisplay,
     ISNULL(e.Commission, 0) AS CommissionRate,
     ISNULL(CONVERT(VARCHAR, e.HireDate, 101), 'Hire Date Unknown') AS HireDate,
     
@@ -278,7 +278,7 @@ SELECT
     ISNULL(d.DepartmentName, 'Unassigned Department') AS Department,
     COUNT(e.EmployeeID) AS TotalEmployees,
     
-    -- Salary analysis with NULL protection
+    -- BaseSalary analysis with NULL protection
     COUNT(CASE WHEN e.BaseSalary IS NOT NULL THEN 1 END) AS EmployeesWithSalaryData,
     FORMAT(AVG(ISNULL(e.BaseSalary, 0)), 'C') AS AvgSalary,
     FORMAT(MIN(ISNULL(e.BaseSalary, 0)), 'C') AS MinSalary,
@@ -516,7 +516,7 @@ SELECT
         'No Manager Found'
     ) AS ManagerInChain,
     
-    -- Salary information with multiple sources
+    -- BaseSalary information with multiple sources
     COALESCE(
         NULLIF(e.BaseSalary, 0),
         e.ContractRate * 40 * 52,  -- Convert hourly rate to annual if available
@@ -790,7 +790,7 @@ SELECT
     CASE WHEN e.FirstName IS NULL OR e.FirstName = '' THEN '❌ Missing' ELSE '✅ Present' END AS FirstName,
     CASE WHEN e.LastName IS NULL OR e.LastName = '' THEN '❌ Missing' ELSE '✅ Present' END AS LastName,
     CASE WHEN e.Email IS NULL OR e.Email = '' THEN '❌ Missing' ELSE '✅ Present' END AS Email,
-    CASE WHEN e.BaseSalary IS NULL OR e.BaseSalary = 0 THEN '❌ Missing' ELSE '✅ Present' END AS Salary,
+    CASE WHEN e.BaseSalary IS NULL OR e.BaseSalary = 0 THEN '❌ Missing' ELSE '✅ Present' END AS BaseSalary,
     CASE WHEN e.HireDate IS NULL THEN '❌ Missing' ELSE '✅ Present' END AS HireDate,
     CASE WHEN e.DepartmentID IS NULL THEN '❌ Missing' ELSE '✅ Present' END AS Department_ID,
     CASE WHEN e.DirectManagerID IS NULL THEN '❌ Missing' ELSE '✅ Present' END AS Manager,

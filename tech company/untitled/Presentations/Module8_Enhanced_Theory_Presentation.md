@@ -32,8 +32,8 @@ SELECT
     Department,
     JobTitle,
     COUNT(*) AS EmployeeCount,
-    AVG(Salary) AS AverageSalary,
-    SUM(Salary) AS TotalSalary,
+    AVG(BaseSalary) AS AverageSalary,
+    SUM(BaseSalary) AS TotalSalary,
     MIN(HireDate) AS EarliestHire,
     MAX(HireDate) AS LatestHire
 -- 1. FROM: Start with source table
@@ -45,7 +45,7 @@ WHERE IsActive = 1
 GROUP BY Department, JobTitle
 -- 4. HAVING: Filter groups (after grouping)
 HAVING COUNT(*) >= 3 
-    AND AVG(Salary) > 50000
+    AND AVG(BaseSalary) > 50000
 -- 6. ORDER BY: Sort final result set
 ORDER BY Department, AverageSalary DESC;
 ```
@@ -278,22 +278,22 @@ SELECT
     Department,
     JobTitle,
     COUNT(*) AS EmployeeCount,
-    AVG(Salary) AS AverageSalary,
-    MIN(Salary) AS MinSalary,
-    MAX(Salary) AS MaxSalary,
-    MAX(Salary) - MIN(Salary) AS SalaryRange,
-    STDEV(Salary) AS SalaryStandardDeviation
+    AVG(BaseSalary) AS AverageSalary,
+    MIN(BaseSalary) AS MinSalary,
+    MAX(BaseSalary) AS MaxSalary,
+    MAX(BaseSalary) - MIN(BaseSalary) AS SalaryRange,
+    STDEV(BaseSalary) AS SalaryStandardDeviation
 FROM Employees
 WHERE IsActive = 1
 GROUP BY Department, JobTitle
 HAVING 
     -- Multiple aggregate conditions
     COUNT(*) >= 5                               -- At least 5 employees
-    AND AVG(Salary) BETWEEN 50000 AND 150000    -- Average salary in range
-    AND MAX(Salary) - MIN(Salary) > 20000       -- Significant salary variation
-    AND STDEV(Salary) < 15000                   -- Not too much variation
+    AND AVG(BaseSalary) BETWEEN 50000 AND 150000    -- Average salary in range
+    AND MAX(BaseSalary) - MIN(BaseSalary) > 20000       -- Significant salary variation
+    AND STDEV(BaseSalary) < 15000                   -- Not too much variation
     -- Percentage-based conditions
-    AND MIN(Salary) > 0.7 * AVG(Salary)        -- Min salary at least 70% of average
+    AND MIN(BaseSalary) > 0.7 * AVG(BaseSalary)        -- Min salary at least 70% of average
 ORDER BY Department, AverageSalary DESC;
 ```
 
@@ -339,26 +339,26 @@ WITH EmployeeRankings AS (
         FirstName + ' ' + LastName AS EmployeeName,
         Department,
         JobTitle,
-        Salary,
+        BaseSalary,
         HireDate,
         
         -- Ranking functions
-        ROW_NUMBER() OVER (ORDER BY Salary DESC) AS SalaryRowNumber,
-        RANK() OVER (ORDER BY Salary DESC) AS SalaryRank,
-        DENSE_RANK() OVER (ORDER BY Salary DESC) AS SalaryDenseRank,
-        NTILE(4) OVER (ORDER BY Salary DESC) AS SalaryQuartile,
+        ROW_NUMBER() OVER (ORDER BY BaseSalary DESC) AS SalaryRowNumber,
+        RANK() OVER (ORDER BY BaseSalary DESC) AS SalaryRank,
+        DENSE_RANK() OVER (ORDER BY BaseSalary DESC) AS SalaryDenseRank,
+        NTILE(4) OVER (ORDER BY BaseSalary DESC) AS SalaryQuartile,
         
         -- Department-specific rankings
-        ROW_NUMBER() OVER (PARTITION BY Department ORDER BY Salary DESC) AS DeptSalaryRank,
+        ROW_NUMBER() OVER (PARTITION BY Department ORDER BY BaseSalary DESC) AS DeptSalaryRank,
         RANK() OVER (PARTITION BY Department ORDER BY HireDate) AS DeptSeniorityRank,
         
         -- Percentage ranking
-        PERCENT_RANK() OVER (ORDER BY Salary) AS SalaryPercentRank,
-        CUME_DIST() OVER (ORDER BY Salary) AS SalaryCumulativeDistribution,
+        PERCENT_RANK() OVER (ORDER BY BaseSalary) AS SalaryPercentRank,
+        CUME_DIST() OVER (ORDER BY BaseSalary) AS SalaryCumulativeDistribution,
         
         -- Window frame calculations
-        AVG(Salary) OVER (PARTITION BY Department) AS DeptAverageSalary,
-        SUM(Salary) OVER (PARTITION BY Department) AS DeptTotalSalary,
+        AVG(BaseSalary) OVER (PARTITION BY Department) AS DeptAverageSalary,
+        SUM(BaseSalary) OVER (PARTITION BY Department) AS DeptTotalSalary,
         COUNT(*) OVER (PARTITION BY Department) AS DeptEmployeeCount
         
     FROM Employees
@@ -367,7 +367,7 @@ WITH EmployeeRankings AS (
 SELECT 
     *,
     -- Calculated fields using window functions
-    Salary - DeptAverageSalary AS SalaryDifferenceFromDeptAvg,
+    BaseSalary - DeptAverageSalary AS SalaryDifferenceFromDeptAvg,
     CASE 
         WHEN SalaryPercentRank >= 0.9 THEN 'Top 10%'
         WHEN SalaryPercentRank >= 0.75 THEN 'Top 25%'

@@ -21,7 +21,7 @@ These exercises test your understanding of T-SQL fundamentals using **TechCorp S
 
 **Question 1.1.1**: TechCorp HR needs a comprehensive employee directory. Write a query to display all TechCorp employee information formatted for business use:
 - Full name as "LastName, FirstName MiddleInitial" (handle NULL middle names gracefully)
-- Salary formatted with currency symbol and commas for HR reports
+- BaseSalary formatted with currency symbol and commas for HR reports
 - Years of service as a whole number for recognition programs
 - Email domain only (part after @) to identify external vs company emails
 - Include department information for organizational clarity
@@ -96,12 +96,12 @@ Use appropriate set operations to create these categories.
 
 **Question 3.1.1**: Given this query, explain the logical processing order and identify any issues:
 ```sql
-SELECT d.DepartmentName, AVG(e.Salary) as AvgSal, TeamSize
+SELECT d.DepartmentName, AVG(e.BaseSalary) as AvgSal, TeamSize
 FROM Departments d
 JOIN Employees e ON d.DepartmentID = e.DepartmentID
 WHERE TeamSize > 2
 GROUP BY d.DepartmentName
-HAVING AVG(e.Salary) > 60000
+HAVING AVG(e.BaseSalary) > 60000
 ORDER BY AvgSal DESC;
 ```
 What's wrong with this query and how would you fix it?

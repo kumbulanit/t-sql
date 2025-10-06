@@ -790,7 +790,7 @@ CREATE TABLE EmployeeHistory (
     FirstName NVARCHAR(50) NOT NULL,
     LastName NVARCHAR(50) NOT NULL,
     Email NVARCHAR(100) NOT NULL,
-    Salary DECIMAL(10,2),
+    BaseSalary DECIMAL(10,2),
     DepartmentID INT,
     Position NVARCHAR(100),
     
@@ -802,7 +802,7 @@ CREATE TABLE EmployeeHistory (
 WITH (SYSTEM_VERSIONING = ON (HISTORY_TABLE = dbo.EmployeeHistory_Archive));
 
 -- Insert initial data
-INSERT INTO EmployeeHistory (EmployeeID, FirstName, LastName, Email, Salary, DepartmentID, Position)
+INSERT INTO EmployeeHistory (EmployeeID, FirstName, LastName, Email, BaseSalary, DepartmentID, Position)
 VALUES 
     (1, 'John', 'Doe', 'john.doe@company.com', 65000.00, 1, 'Developer'),
     (2, 'Jane', 'Smith', 'jane.smith@company.com', 70000.00, 2, 'Analyst'),
@@ -812,18 +812,18 @@ VALUES
 WAITFOR DELAY '00:00:02';
 
 UPDATE EmployeeHistory 
-SET Salary = 68000.00, Position = 'Senior Developer'
+SET BaseSalary = 68000.00, Position = 'Senior Developer'
 WHERE EmployeeID = 1;
 
 UPDATE EmployeeHistory 
-SET DepartmentID = 3, Salary = 72000.00
+SET DepartmentID = 3, BaseSalary = 72000.00
 WHERE EmployeeID = 2;
 
 -- Wait again and make more changes
 WAITFOR DELAY '00:00:02';
 
 UPDATE EmployeeHistory 
-SET Salary = 80000.00, Position = 'Lead Developer'
+SET BaseSalary = 80000.00, Position = 'Lead Developer'
 WHERE EmployeeID = 3;
 
 -- Query current data (standard query)
@@ -831,7 +831,7 @@ SELECT
     EmployeeID,
     FirstName + ' ' + LastName AS FullName,
     Email,
-    FORMAT(Salary, 'C') AS Salary,
+    FORMAT(BaseSalary, 'C') AS BaseSalary,
     DepartmentID,
     Position,
     ValidFrom,
@@ -844,7 +844,7 @@ DECLARE @HistoricalDate DATETIME2 = DATEADD(MINUTE, -1, SYSDATETIME());
 SELECT 
     EmployeeID,
     FirstName + ' ' + LastName AS FullName,
-    FORMAT(Salary, 'C') AS SalaryAtTime,
+    FORMAT(BaseSalary, 'C') AS SalaryAtTime,
     Position AS PositionAtTime,
     ValidFrom,
     ValidTo
@@ -854,7 +854,7 @@ FROM EmployeeHistory FOR SYSTEM_TIME AS OF @HistoricalDate;
 SELECT 
     EmployeeID,
     FirstName + ' ' + LastName AS FullName,
-    FORMAT(Salary, 'C') AS Salary,
+    FORMAT(BaseSalary, 'C') AS BaseSalary,
     Position,
     ValidFrom AS EffectiveFrom,
     ValidTo AS EffectiveTo,
@@ -873,7 +873,7 @@ DECLARE @EndDate DATETIME2 = SYSDATETIME();
 SELECT 
     EmployeeID,
     FirstName + ' ' + LastName AS FullName,
-    FORMAT(Salary, 'C') AS Salary,
+    FORMAT(BaseSalary, 'C') AS BaseSalary,
     Position,
     ValidFrom,
     ValidTo

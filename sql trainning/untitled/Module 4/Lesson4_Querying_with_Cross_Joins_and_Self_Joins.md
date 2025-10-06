@@ -144,27 +144,27 @@ A self join is a join where a table is joined with itself. This is useful for co
 │                                                                             │
 │  Find employees with same salary:                                          │
 │  ┌─────────────────────────────────────────┐                               │
-│  │ EmpID │ Name  │ Salary │ Department     │                               │
+│  │ EmpID │ Name  │ BaseSalary │ Department     │                               │
 │  ├─────────────────────────────────────────┤                               │
 │  │   1   │ John  │ 75000  │ IT             │ ◄─┐                           │
 │  │   2   │ Jane  │ 80000  │ Finance        │   │                           │
-│  │   3   │ Bob   │ 75000  │ Marketing      │ ◄─┼─ Same Salary              │
+│  │   3   │ Bob   │ 75000  │ Marketing      │ ◄─┼─ Same BaseSalary              │
 │  │   4   │ Sue   │ 90000  │ IT             │   │                           │
 │  │   5   │ Tom   │ 75000  │ HR             │ ◄─┘                           │
 │  └─────────────────────────────────────────┘                               │
 │                                                                             │
 │  Self Join Logic:                                                          │
 │  ┌─────────────────────────────────────────────────────────────────────────┤
-│  │ FROM Employees e1 JOIN Employees e2 ON e1.Salary = e2.Salary           │
+│  │ FROM Employees e1 JOIN Employees e2 ON e1.BaseSalary = e2.BaseSalary           │
 │  │                                    AND e1.EmpID < e2.EmpID             │
 │  │                    ▲                        ▲                          │
 │  │               Join Condition        Avoid Duplicates                   │
-│  │              (Same Salary)         (Compare each pair once)            │
+│  │              (Same BaseSalary)         (Compare each pair once)            │
 │  └─────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  Result Pairs:                                                             │
 │  ┌─────────────────────────────────────────┐                               │
-│  │ Employee1 │ Employee2 │ Shared Salary   │                               │
+│  │ Employee1 │ Employee2 │ Shared BaseSalary   │                               │
 │  ├─────────────────────────────────────────┤                               │
 │  │ John      │ Bob       │ $75,000         │                               │
 │  │ John      │ Tom       │ $75,000         │                               │
@@ -292,7 +292,7 @@ WHERE p.IsActive = 1
 ```sql
 -- Index the join columns for better performance
 CREATE INDEX IX_Employees_ManagerID ON Employees(ManagerID);
-CREATE INDEX IX_Employees_DepartmentID_Salary ON Employees(DepartmentID, Salary);
+CREATE INDEX IX_Employees_DepartmentID_Salary ON Employees(DepartmentID, BaseSalary);
 
 -- Use proper filtering to reduce comparison sets
 SELECT e1.FirstName, e2.FirstName

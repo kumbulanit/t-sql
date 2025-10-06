@@ -154,7 +154,7 @@ ORDER BY pm.Achievement DESC, e.BaseSalary DESC;
 
 ### Financial Data
 - Revenue ranges from $3.2M to $245M
-- Salary bands from $45K to $450K
+- BaseSalary bands from $45K to $450K
 - Budget allocations and cost center tracking
 - Multi-currency support (USD, CAD, GBP, EUR, AUD, SGD, JPY, BRL)
 

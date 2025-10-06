@@ -67,7 +67,7 @@ WITH DepartmentMetrics AS (
         d.Budget,
         d.Location,
         COUNT(DISTINCT e.EmployeeID) AS ActiveEmployees,
-        SUM(e.Salary) AS TotalSalaryCost,
+        SUM(e.BaseSalary) AS TotalSalaryCost,
         COUNT(DISTINCT ep.ProjectID) AS ActiveProjects,
         SUM(ep.HoursAllocated) AS TotalProjectHours,
         AVG(ep.HoursWorked / NULLIF(ep.HoursAllocated, 0)) AS AvgUtilizationRate,
@@ -84,7 +84,7 @@ SELECT
     FORMAT(Budget, 'C0') AS [Annual Budget],
     Location AS [Location],
     ActiveEmployees AS [Active Employees],
-    FORMAT(TotalSalaryCost, 'C0') AS [Salary Expense],
+    FORMAT(TotalSalaryCost, 'C0') AS [BaseSalary Expense],
     CAST(TotalSalaryCost * 100.0 / Budget AS DECIMAL(5,1)) AS [Budget Used %],
     ActiveProjects AS [Active Projects],
     ISNULL(TotalProjectHours, 0) AS [Total Project Hours],
@@ -120,7 +120,7 @@ SELECT
          / COUNT(es.EmployeeID) AS DECIMAL(5,1)) AS [Certification Rate %],
     
     -- Average salary of employees with this skill
-    FORMAT(AVG(e.Salary), 'C0') AS [Average Salary],
+    FORMAT(AVG(e.BaseSalary), 'C0') AS [Average BaseSalary],
     
     -- Skills gap assessment
     CASE 
@@ -137,7 +137,7 @@ SELECT
     
     -- Investment recommendation
     CASE 
-        WHEN s.MarketDemand = 'Very High' AND AVG(e.Salary) > 90000 
+        WHEN s.MarketDemand = 'Very High' AND AVG(e.BaseSalary) > 90000 
              THEN 'High Value - Retain and Expand'
         WHEN COUNT(es.EmployeeID) <= 2 AND s.MarketDemand IN ('High', 'Very High') 
              THEN 'Urgent Hiring/Training Need'
@@ -385,7 +385,7 @@ WITH DepartmentAnalysis AS (
         d.Location,
         d.IsActive AS DeptActive,
         COUNT(e.EmployeeID) AS CurrentHeadcount,
-        ISNULL(SUM(e.Salary), 0) AS TotalSalaryCost,
+        ISNULL(SUM(e.BaseSalary), 0) AS TotalSalaryCost,
         COUNT(DISTINCT proj_emp.ProjectID) AS ActiveProjectCount,
         AVG(CASE WHEN ep.HoursAllocated > 0 THEN ep.HoursWorked / ep.HoursAllocated END) AS AvgEfficiency,
         COUNT(DISTINCT es.SkillID) AS SkillsCoverage
@@ -407,7 +407,7 @@ SELECT
     FORMAT(Budget, 'C0') AS [Budget],
     Location AS [Location],
     CurrentHeadcount AS [Headcount],
-    FORMAT(TotalSalaryCost, 'C0') AS [Salary Cost],
+    FORMAT(TotalSalaryCost, 'C0') AS [BaseSalary Cost],
     
     -- Budget utilization
     CASE 
@@ -497,7 +497,7 @@ WITH EmployeeMetrics AS (
         e.EmployeeID,
         e.FirstName + ' ' + e.LastName AS EmployeeName,
         e.Title,
-        e.Salary,
+        e.BaseSalary,
         e.HireDate,
         DATEDIFF(YEAR, e.HireDate, GETDATE()) AS Tenure,
         d.DepartmentName,
@@ -517,7 +517,7 @@ WITH EmployeeMetrics AS (
     LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
     LEFT JOIN Skills s ON es.SkillID = s.SkillID
     WHERE e.IsActive = 1
-    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.Salary, 
+    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.BaseSalary, 
              e.HireDate, d.DepartmentName, d.Budget
 ),
 PerformanceScoring AS (
@@ -533,7 +533,7 @@ PerformanceScoring AS (
         
         -- ROI calculation
         CASE WHEN ProjectCount > 0 
-             THEN (Efficiency * MarketValue * SkillCount * 1000) / (Salary / 1000)
+             THEN (Efficiency * MarketValue * SkillCount * 1000) / (BaseSalary / 1000)
              ELSE 0 
         END AS ROIScore
     FROM EmployeeMetrics
@@ -542,7 +542,7 @@ SELECT
     EmployeeName AS [Employee],
     Title AS [Position],
     DepartmentName AS [Department],
-    FORMAT(Salary, 'C0') AS [Salary],
+    FORMAT(BaseSalary, 'C0') AS [BaseSalary],
     Tenure AS [Years],
     ProjectCount AS [Projects],
     SkillCount AS [Skills],
@@ -613,26 +613,26 @@ WITH OrganizationalHierarchy AS (
         emp.EmployeeID,
         emp.FirstName + ' ' + emp.LastName AS EmployeeName,
         emp.Title AS EmployeeTitle,
-        emp.Salary AS EmployeeSalary,
+        emp.BaseSalary AS EmployeeSalary,
         emp.HireDate,
         
         -- Level 1 Manager
         mgr1.EmployeeID AS Manager1ID,
         mgr1.FirstName + ' ' + mgr1.LastName AS Manager1Name,
         mgr1.Title AS Manager1Title,
-        mgr1.Salary AS Manager1Salary,
+        mgr1.BaseSalary AS Manager1Salary,
         
         -- Level 2 Manager
         mgr2.EmployeeID AS Manager2ID,
         mgr2.FirstName + ' ' + mgr2.LastName AS Manager2Name,
         mgr2.Title AS Manager2Title,
-        mgr2.Salary AS Manager2Salary,
+        mgr2.BaseSalary AS Manager2Salary,
         
         -- Level 3 Manager (Executive)
         mgr3.EmployeeID AS Manager3ID,
         mgr3.FirstName + ' ' + mgr3.LastName AS Manager3Name,
         mgr3.Title AS Manager3Title,
-        mgr3.Salary AS Manager3Salary,
+        mgr3.BaseSalary AS Manager3Salary,
         
         -- Level 4 Manager (CEO level)
         mgr4.EmployeeID AS Manager4ID,
@@ -665,10 +665,10 @@ HierarchyAnalysis AS (
             ELSE EmployeeName + ' (Top Level)'
         END AS OrganizationalPath,
         
-        -- Salary progression analysis
+        -- BaseSalary progression analysis
         CASE 
             WHEN Manager1Salary IS NOT NULL AND EmployeeSalary >= Manager1Salary 
-                 THEN 'Salary Anomaly - Employee >= Manager'
+                 THEN 'BaseSalary Anomaly - Employee >= Manager'
             WHEN Manager1Salary IS NOT NULL 
                  THEN CAST((Manager1Salary - EmployeeSalary) * 100.0 / EmployeeSalary AS DECIMAL(5,1))
             ELSE NULL
@@ -686,14 +686,14 @@ SpanOfControl AS (
 SELECT 
     ha.EmployeeName AS [Employee],
     ha.EmployeeTitle AS [Title],
-    FORMAT(ha.EmployeeSalary, 'C0') AS [Salary],
+    FORMAT(ha.EmployeeSalary, 'C0') AS [BaseSalary],
     ha.HierarchyLevel AS [Level],
     ISNULL(ha.Manager1Name, 'Top Executive') AS [Direct Manager],
     ISNULL(ha.Manager2Name, 'N/A') AS [Skip Level Manager],
     ISNULL(ha.Manager3Name, 'N/A') AS [Executive Manager],
     ISNULL(soc.DirectReports, 0) AS [Direct Reports],
     ha.OrganizationalPath AS [Org Path],
-    ISNULL(CAST(ha.SalaryGapToManager AS VARCHAR) + '%', 'N/A') AS [Salary Gap to Manager],
+    ISNULL(CAST(ha.SalaryGapToManager AS VARCHAR) + '%', 'N/A') AS [BaseSalary Gap to Manager],
     
     -- Management effectiveness
     CASE 
@@ -725,7 +725,7 @@ ORDER BY ha.HierarchyLevel, ha.Manager3Name, ha.Manager2Name, ha.Manager1Name, h
 **Answer 4.1.2**: Employee Peer Comparison and Benchmarking (Structure)
 ```sql
 -- Key elements: Self-join employees within same department
--- Compare: Salary equity, experience alignment, skills portfolio
+-- Compare: BaseSalary equity, experience alignment, skills portfolio
 -- Analyze: Performance benchmarking, career progression
 -- Recommend: Compensation adjustments, development opportunities
 ```

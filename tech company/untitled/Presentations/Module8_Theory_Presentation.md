@@ -190,14 +190,14 @@ SELECT
 -- Advanced mathematical operations
 SELECT 
     EmployeeID,
-    Salary,
+    BaseSalary,
     
     -- Compound interest calculation
-    Salary * POWER(1.03, 5) AS FiveYearProjection,
+    BaseSalary * POWER(1.03, 5) AS FiveYearProjection,
     
     -- Logarithmic calculations
-    LOG(Salary / 30000) AS SalaryLogRatio,
-    LOG10(Salary) AS SalaryLog10,
+    LOG(BaseSalary / 30000) AS SalaryLogRatio,
+    LOG10(BaseSalary) AS SalaryLog10,
     
     -- Random values for sampling
     RAND(CHECKSUM(NEWID())) AS RandomValue,
@@ -206,8 +206,8 @@ SELECT
     SIN(PI() / 6) AS SineExample,
     
     -- Statistical functions
-    SIGN(Salary - 50000) AS SalaryComparison,
-    ABS(Salary - 65000) AS SalaryDeviation
+    SIGN(BaseSalary - 50000) AS SalaryComparison,
+    ABS(BaseSalary - 65000) AS SalaryDeviation
 FROM Employees;
 ```
 
@@ -251,7 +251,7 @@ SELECT
     EmployeeID,
     FirstName,
     LastName,
-    IIF(Salary > 75000, 'High Earner', 'Standard Earner') AS EarningCategory,
+    IIF(BaseSalary > 75000, 'High Earner', 'Standard Earner') AS EarningCategory,
     
     -- CHOOSE function
     CHOOSE(MONTH(HireDate), 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -307,20 +307,20 @@ SELECT
     EmployeeID,
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     DepartmentID,
     
     -- Ranking functions
-    ROW_NUMBER() OVER (PARTITION BY DepartmentID ORDER BY Salary DESC) AS SalaryRank,
-    RANK() OVER (ORDER BY Salary DESC) AS OverallRank,
+    ROW_NUMBER() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) AS SalaryRank,
+    RANK() OVER (ORDER BY BaseSalary DESC) AS OverallRank,
     DENSE_RANK() OVER (ORDER BY YEAR(HireDate)) AS HireYearRank,
     
     -- Aggregate window functions
-    AVG(Salary) OVER (PARTITION BY DepartmentID) AS DeptAvgSalary,
-    SUM(Salary) OVER (ORDER BY EmployeeID ROWS UNBOUNDED PRECEDING) AS RunningTotal,
+    AVG(BaseSalary) OVER (PARTITION BY DepartmentID) AS DeptAvgSalary,
+    SUM(BaseSalary) OVER (ORDER BY EmployeeID ROWS UNBOUNDED PRECEDING) AS RunningTotal,
     
     -- Lead/Lag functions
-    LAG(Salary, 1, 0) OVER (ORDER BY HireDate) AS PreviousEmployeeSalary,
+    LAG(BaseSalary, 1, 0) OVER (ORDER BY HireDate) AS PreviousEmployeeSalary,
     LEAD(HireDate, 1) OVER (ORDER BY HireDate) AS NextEmployeeHireDate
 FROM Employees;
 ```
@@ -446,7 +446,7 @@ RETURNS TABLE
 AS
 RETURN
 (
-    SELECT EmployeeID, FirstName, LastName, Salary
+    SELECT EmployeeID, FirstName, LastName, BaseSalary
     FROM Employees
     WHERE DepartmentID = @DepartmentID AND IsActive = 1
 );
@@ -475,10 +475,10 @@ SELECT * FROM dbo.GetEmployeesInDepartment(1);
 ```sql
 -- Performance comparison
 -- Slow: Scalar UDF in SELECT
-SELECT EmployeeID, dbo.ComplexCalculation(Salary) FROM Employees;
+SELECT EmployeeID, dbo.ComplexCalculation(BaseSalary) FROM Employees;
 
 -- Fast: Inline calculation or computed column
-SELECT EmployeeID, Salary * 1.05 * POWER(1.03, 5) FROM Employees;
+SELECT EmployeeID, BaseSalary * 1.05 * POWER(1.03, 5) FROM Employees;
 ```
 
 ---
@@ -503,8 +503,8 @@ RETURN
         FirstName, 
         LastName,
         CASE WHEN IS_MEMBER('SalaryViewers') = 1 
-             THEN Salary 
-             ELSE NULL END AS Salary
+             THEN BaseSalary 
+             ELSE NULL END AS BaseSalary
     FROM dbo.Employees
     WHERE IsActive = 1
 );
@@ -549,7 +549,7 @@ SELECT dbo.CalculateAge(NULL) AS NullCase;
 SET STATISTICS TIME ON;
 SET STATISTICS IO ON;
 
-SELECT COUNT(*) FROM Employees WHERE dbo.ComplexFunction(Salary) > 1000000;
+SELECT COUNT(*) FROM Employees WHERE dbo.ComplexFunction(BaseSalary) > 1000000;
 
 SET STATISTICS TIME OFF;
 SET STATISTICS IO OFF;
@@ -574,13 +574,13 @@ FROM TestCases;
 SELECT 
     DepartmentID,
     COUNT(*) AS EmployeeCount,
-    AVG(Salary) AS AvgSalary,
-    STDEV(Salary) AS SalaryStdDev,
-    VAR(Salary) AS SalaryVariance,
+    AVG(BaseSalary) AS AvgSalary,
+    STDEV(BaseSalary) AS SalaryStdDev,
+    VAR(BaseSalary) AS SalaryVariance,
     
     -- Percentile functions
-    PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY Salary) AS MedianSalary,
-    PERCENTILE_DISC(0.75) WITHIN GROUP (ORDER BY Salary) AS Q3Salary,
+    PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY BaseSalary) AS MedianSalary,
+    PERCENTILE_DISC(0.75) WITHIN GROUP (ORDER BY BaseSalary) AS Q3Salary,
     
     -- String aggregation
     STRING_AGG(FirstName + ' ' + LastName, ', ') AS EmployeeList

@@ -69,7 +69,7 @@ SELECT
     e.LastName + ', ' + e.FirstName AS FullName,
     e.Department,
     e.JobTitle,
-    e.Salary,
+    e.BaseSalary,
     e.HireDate
 FROM Employees e
 ORDER BY 
@@ -85,8 +85,8 @@ ORDER BY
         WHEN 'Analyst' THEN 6
         ELSE 7
     END,
-    -- Tertiary: Salary (highest first within same job level)
-    e.Salary DESC,
+    -- Tertiary: BaseSalary (highest first within same job level)
+    e.BaseSalary DESC,
     -- Quaternary: Hire date (seniority within same salary)
     e.HireDate ASC,
     -- Final: Last name for consistent ordering
@@ -130,7 +130,7 @@ SELECT
     FirstName,
     LastName,
     MiddleName,
-    Salary
+    BaseSalary
 FROM Employees
 ORDER BY 
     -- NULLs last for ascending, first for descending
@@ -179,20 +179,20 @@ SELECT
     e.LastName,
     e.Department,
     e.JobTitle,
-    e.Salary,
+    e.BaseSalary,
     e.HireDate
 FROM Employees e
 WHERE 
     -- Parentheses for explicit precedence
     (e.Department IN ('Sales', 'Marketing', 'Customer Service')
-     AND e.Salary BETWEEN 40000 AND 80000)
+     AND e.BaseSalary BETWEEN 40000 AND 80000)
     OR 
     (e.Department = 'IT' 
      AND e.JobTitle LIKE '%Senior%'
      AND e.HireDate >= '2020-01-01')
     OR
     (e.JobTitle IN ('Manager', 'Director', 'Vice President')
-     AND e.Salary > 75000);
+     AND e.BaseSalary > 75000);
 ```
 
 ### Advanced Filtering Techniques
@@ -342,9 +342,9 @@ SELECT TOP 5 WITH TIES
     EmployeeID,
     FirstName,
     LastName,
-    Salary
+    BaseSalary
 FROM Employees
-ORDER BY Salary DESC;
+ORDER BY BaseSalary DESC;
 
 -- This might return more than 5 rows if multiple employees
 -- have the same salary as the 5th highest salary

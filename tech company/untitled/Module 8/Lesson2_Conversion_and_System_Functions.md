@@ -136,7 +136,7 @@ SELECT
     e.HireDate,
     d.DepartmentName,
     
-    -- Salary formatting for different audiences
+    -- BaseSalary formatting for different audiences
     FORMAT(e.BaseSalary, 'C', 'en-US') AS Salary_USD_Currency,
     FORMAT(e.BaseSalary, 'N0') AS Salary_Thousands_Separator,
     FORMAT(e.BaseSalary, '#,##0') AS Salary_Custom_Format,

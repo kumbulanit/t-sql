@@ -17,7 +17,7 @@ These exercises are designed to test your understanding of the core concepts cov
 
 **Question 1.1.1**: Write a query to display all employee information, but format the output to show:
 - Full name as "LastName, FirstName MiddleInitial" (handle NULL middle names)
-- Salary formatted with currency symbol and commas
+- BaseSalary formatted with currency symbol and commas
 - Years of service as a whole number
 - Email domain only (part after @)
 
@@ -90,12 +90,12 @@ Use appropriate set operations to create these categories.
 
 **Question 3.1.1**: Given this query, explain the logical processing order and identify any issues:
 ```sql
-SELECT d.DepartmentName, AVG(e.Salary) as AvgSal, TeamSize
+SELECT d.DepartmentName, AVG(e.BaseSalary) as AvgSal, TeamSize
 FROM Departments d
 JOIN Employees e ON d.DepartmentID = e.DepartmentID
 WHERE TeamSize > 2
 GROUP BY d.DepartmentName
-HAVING AVG(e.Salary) > 60000
+HAVING AVG(e.BaseSalary) > 60000
 ORDER BY AvgSal DESC;
 ```
 What's wrong with this query and how would you fix it?

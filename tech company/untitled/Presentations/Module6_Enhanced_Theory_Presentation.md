@@ -415,7 +415,7 @@ CREATE TABLE OptimizedEmployees (
     -- Numeric optimization
     Age TINYINT,                               -- 1 byte, 0-255 range sufficient
     DepartmentID SMALLINT,                     -- 2 bytes, assuming < 32K departments
-    Salary DECIMAL(10,2),                      -- Exact precision for money
+    BaseSalary DECIMAL(10,2),                      -- Exact precision for money
     
     -- Date optimization
     BirthDate DATE,                            -- 3 bytes, no time needed
@@ -430,7 +430,7 @@ CREATE TABLE OptimizedEmployees (
     
     -- Constraints for data integrity
     CONSTRAINT CK_Employees_Age CHECK (Age BETWEEN 18 AND 100),
-    CONSTRAINT CK_Employees_Salary CHECK (Salary >= 0),
+    CONSTRAINT CK_Employees_Salary CHECK (BaseSalary >= 0),
     CONSTRAINT CK_Employees_Status CHECK (EmployeeStatus BETWEEN 1 AND 5)
 );
 ```

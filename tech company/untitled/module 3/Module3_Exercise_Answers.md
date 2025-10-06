@@ -20,7 +20,7 @@ SELECT
     END + e.LastName AS [Employee Full Name],
     
     -- Formatted salary as currency
-    FORMAT(e.Salary, 'C', 'en-US') AS [Annual Salary],
+    FORMAT(e.BaseSalary, 'C', 'en-US') AS [Annual BaseSalary],
     
     -- Calculate age in years
     DATEDIFF(YEAR, e.BirthDate, GETDATE()) - 
@@ -485,8 +485,8 @@ SELECT
     COUNT(CASE WHEN emp.IsActive = 0 THEN 1 END) AS [Separated Employees],
     
     -- Financial metrics with business language
-    FORMAT(SUM(emp.Salary), 'C0') AS [Annual Payroll Expense],
-    FORMAT(AVG(emp.Salary), 'C0') AS [Average Employee Compensation],
+    FORMAT(SUM(emp.BaseSalary), 'C0') AS [Annual Payroll Expense],
+    FORMAT(AVG(emp.BaseSalary), 'C0') AS [Average Employee Compensation],
     FORMAT(SUM(dept.Budget), 'C0') AS [Total Departmental Budgets],
     
     -- Operational efficiency indicators
@@ -540,15 +540,15 @@ SELECT
                THEN 1 END) AS [Tenured Workforce],
     
     -- Compensation analysis with market terminology
-    FORMAT(AVG(emp.Salary), 'C0') AS [Average Base Compensation],
-    FORMAT(MIN(emp.Salary), 'C0') AS [Entry Level Compensation],
-    FORMAT(MAX(emp.Salary), 'C0') AS [Senior Level Compensation],
-    CAST(STDEV(emp.Salary) AS DECIMAL(10,0)) AS [Pay Equity Variance],
+    FORMAT(AVG(emp.BaseSalary), 'C0') AS [Average Base Compensation],
+    FORMAT(MIN(emp.BaseSalary), 'C0') AS [Entry Level Compensation],
+    FORMAT(MAX(emp.BaseSalary), 'C0') AS [Senior Level Compensation],
+    CAST(STDEV(emp.BaseSalary) AS DECIMAL(10,0)) AS [Pay Equity Variance],
     
     -- Performance metrics using business language
     CASE 
-        WHEN AVG(emp.Salary) >= 75000 THEN 'Above Market Compensation'
-        WHEN AVG(emp.Salary) >= 55000 THEN 'Market Competitive'
+        WHEN AVG(emp.BaseSalary) >= 75000 THEN 'Above Market Compensation'
+        WHEN AVG(emp.BaseSalary) >= 55000 THEN 'Market Competitive'
         ELSE 'Below Market - Retention Risk'
     END AS [Market Position Assessment],
     
@@ -558,7 +558,7 @@ SELECT
     
     -- Retention risk with clear classifications
     COUNT(CASE WHEN DATEDIFF(YEAR, emp.HireDate, GETDATE()) >= 3 
-                    AND emp.Salary < AVG(emp.Salary) OVER () 
+                    AND emp.BaseSalary < AVG(emp.BaseSalary) OVER () 
                THEN 1 END) AS [Flight Risk Employees],
     CASE 
         WHEN COUNT(CASE WHEN emp.TerminationDate >= DATEADD(YEAR, -1, GETDATE()) 
@@ -730,21 +730,21 @@ SELECT
     
     -- Cost center analysis with accounting terminology
     FORMAT(dept.Budget, 'C0') AS [Approved Annual Budget],
-    FORMAT(SUM(emp.Salary), 'C0') AS [Personnel Cost Allocation],
-    FORMAT(dept.Budget - SUM(emp.Salary), 'C0') AS [Non-Personnel Budget Balance],
+    FORMAT(SUM(emp.BaseSalary), 'C0') AS [Personnel Cost Allocation],
+    FORMAT(dept.Budget - SUM(emp.BaseSalary), 'C0') AS [Non-Personnel Budget Balance],
     
     -- Budget variance reporting with financial language
     CASE 
-        WHEN SUM(emp.Salary) <= dept.Budget * 0.8 THEN 'Under Budget - Capacity Available'
-        WHEN SUM(emp.Salary) <= dept.Budget THEN 'Within Budget Allocation'
+        WHEN SUM(emp.BaseSalary) <= dept.Budget * 0.8 THEN 'Under Budget - Capacity Available'
+        WHEN SUM(emp.BaseSalary) <= dept.Budget THEN 'Within Budget Allocation'
         ELSE 'Over Budget - Review Required'
     END AS [Budget Variance Status],
     
-    CAST(SUM(emp.Salary) * 100.0 / dept.Budget AS DECIMAL(5,1)) AS [Budget Utilization Rate],
+    CAST(SUM(emp.BaseSalary) * 100.0 / dept.Budget AS DECIMAL(5,1)) AS [Budget Utilization Rate],
     
     -- ROI calculations with investment terminology
     COUNT(emp.EmployeeID) AS [Human Capital Investment Count],
-    FORMAT(SUM(emp.Salary) / COUNT(emp.EmployeeID), 'C0') AS [Average Investment per FTE],
+    FORMAT(SUM(emp.BaseSalary) / COUNT(emp.EmployeeID), 'C0') AS [Average Investment per FTE],
     
     CASE 
         WHEN COUNT(DISTINCT ep.ProjectID) > 0 
@@ -754,10 +754,10 @@ SELECT
     
     -- Efficiency metrics using operational terms
     CASE 
-        WHEN SUM(emp.Salary) / COUNT(emp.EmployeeID) <= 60000 
+        WHEN SUM(emp.BaseSalary) / COUNT(emp.EmployeeID) <= 60000 
              AND COUNT(DISTINCT ep.ProjectID) >= COUNT(emp.EmployeeID) 
              THEN 'High Efficiency Operation'
-        WHEN SUM(emp.Salary) / COUNT(emp.EmployeeID) <= 75000 
+        WHEN SUM(emp.BaseSalary) / COUNT(emp.EmployeeID) <= 75000 
              THEN 'Efficient Resource Utilization'
         ELSE 'Premium Resource Investment'
     END AS [Operational Efficiency Rating],
@@ -806,26 +806,26 @@ SELECT
     emp.FirstName + ' ' + emp.LastName AS [Employee Name],
     emp.Title AS [Position],
     dept.DepartmentName AS [Department],
-    emp.Salary AS [Current Salary],
+    emp.BaseSalary AS [Current BaseSalary],
     DATEDIFF(YEAR, emp.HireDate, GETDATE()) AS [Years of Service],
     
     -- Base performance rating using multiple criteria
     CASE 
         -- Exceptional performers (high tenure + high salary + active projects)
         WHEN DATEDIFF(YEAR, emp.HireDate, GETDATE()) >= 5 
-             AND emp.Salary >= 80000 
+             AND emp.BaseSalary >= 80000 
              AND COUNT(ep.ProjectID) >= 2 
              AND AVG(ep.HoursWorked / NULLIF(ep.HoursAllocated, 0)) >= 0.9
              THEN 'Exceptional Performer'
         
         -- High performers (good tenure or salary + project success)
-        WHEN (DATEDIFF(YEAR, emp.HireDate, GETDATE()) >= 3 AND emp.Salary >= 70000)
+        WHEN (DATEDIFF(YEAR, emp.HireDate, GETDATE()) >= 3 AND emp.BaseSalary >= 70000)
              OR (COUNT(ep.ProjectID) >= 2 AND AVG(ep.HoursWorked / NULLIF(ep.HoursAllocated, 0)) >= 1.0)
              THEN 'High Performer'
         
         -- Solid contributors (meets expectations)
         WHEN DATEDIFF(YEAR, emp.HireDate, GETDATE()) >= 2 
-             AND emp.Salary >= 50000 
+             AND emp.BaseSalary >= 50000 
              AND COUNT(ep.ProjectID) >= 1
              THEN 'Solid Contributor'
         
@@ -841,21 +841,21 @@ SELECT
     CASE 
         WHEN dept.DepartmentName = 'Information Technology' THEN
             CASE 
-                WHEN emp.Salary >= 85000 AND COUNT(es.SkillID) >= 4 THEN 'IT Leadership Track'
-                WHEN emp.Salary >= 70000 AND COUNT(es.SkillID) >= 3 THEN 'Senior Technical Contributor'
+                WHEN emp.BaseSalary >= 85000 AND COUNT(es.SkillID) >= 4 THEN 'IT Leadership Track'
+                WHEN emp.BaseSalary >= 70000 AND COUNT(es.SkillID) >= 3 THEN 'Senior Technical Contributor'
                 WHEN COUNT(es.SkillID) >= 2 THEN 'Technical Professional'
                 ELSE 'Technical Development Needed'
             END
         WHEN dept.DepartmentName = 'Finance' THEN
             CASE 
-                WHEN emp.Salary >= 80000 AND DATEDIFF(YEAR, emp.HireDate, GETDATE()) >= 5 
+                WHEN emp.BaseSalary >= 80000 AND DATEDIFF(YEAR, emp.HireDate, GETDATE()) >= 5 
                      THEN 'Financial Leadership'
-                WHEN emp.Salary >= 65000 THEN 'Senior Financial Professional'
+                WHEN emp.BaseSalary >= 65000 THEN 'Senior Financial Professional'
                 ELSE 'Financial Analyst Level'
             END
         WHEN dept.DepartmentName = 'Marketing' THEN
             CASE 
-                WHEN COUNT(ep.ProjectID) >= 2 AND emp.Salary >= 75000 THEN 'Marketing Leadership'
+                WHEN COUNT(ep.ProjectID) >= 2 AND emp.BaseSalary >= 75000 THEN 'Marketing Leadership'
                 WHEN COUNT(ep.ProjectID) >= 1 THEN 'Marketing Professional'
                 ELSE 'Marketing Support'
             END
@@ -869,9 +869,9 @@ SELECT
         WHEN COUNT(ep.ProjectID) = 0 THEN 'Not Eligible - No Project Contribution'
         WHEN AVG(ep.HoursWorked / NULLIF(ep.HoursAllocated, 0)) < 0.8 
              THEN 'Not Eligible - Performance Below Standard'
-        WHEN emp.Salary >= 90000 AND DATEDIFF(YEAR, emp.HireDate, GETDATE()) >= 3 
+        WHEN emp.BaseSalary >= 90000 AND DATEDIFF(YEAR, emp.HireDate, GETDATE()) >= 3 
              THEN 'Eligible - Executive Bonus Pool'
-        WHEN emp.Salary >= 60000 AND COUNT(ep.ProjectID) >= 1 
+        WHEN emp.BaseSalary >= 60000 AND COUNT(ep.ProjectID) >= 1 
              THEN 'Eligible - Performance Bonus'
         ELSE 'Eligible - Standard Bonus'
     END AS [Bonus Eligibility],
@@ -884,7 +884,7 @@ SELECT
              THEN 'Priority: Professional Certification'
         WHEN COUNT(ep.ProjectID) < 1 AND DATEDIFF(YEAR, emp.HireDate, GETDATE()) >= 1 
              THEN 'Priority: Project Assignment'
-        WHEN emp.Salary < AVG(emp.Salary) OVER (PARTITION BY dept.DepartmentID) 
+        WHEN emp.BaseSalary < AVG(emp.BaseSalary) OVER (PARTITION BY dept.DepartmentID) 
              AND DATEDIFF(YEAR, emp.HireDate, GETDATE()) >= 3 
              THEN 'Priority: Compensation Review'
         WHEN emp.Title NOT LIKE '%Senior%' AND emp.Title NOT LIKE '%Manager%' 
@@ -898,42 +898,42 @@ LEFT JOIN EmployeeProjects ep ON emp.EmployeeID = ep.EmployeeID
 LEFT JOIN EmployeeSkills es ON emp.EmployeeID = es.EmployeeID
 WHERE emp.IsActive = 1
 GROUP BY emp.EmployeeID, emp.FirstName, emp.LastName, emp.Title, 
-         dept.DepartmentName, emp.Salary, emp.HireDate, emp.IsActive
+         dept.DepartmentName, emp.BaseSalary, emp.HireDate, emp.IsActive
 ORDER BY 
     CASE 
         WHEN CASE 
             WHEN DATEDIFF(YEAR, emp.HireDate, GETDATE()) >= 5 
-                 AND emp.Salary >= 80000 
+                 AND emp.BaseSalary >= 80000 
                  AND COUNT(ep.ProjectID) >= 2 
                  AND AVG(ep.HoursWorked / NULLIF(ep.HoursAllocated, 0)) >= 0.9
                  THEN 'Exceptional Performer'
-            WHEN (DATEDIFF(YEAR, emp.HireDate, GETDATE()) >= 3 AND emp.Salary >= 70000)
+            WHEN (DATEDIFF(YEAR, emp.HireDate, GETDATE()) >= 3 AND emp.BaseSalary >= 70000)
                  OR (COUNT(ep.ProjectID) >= 2 AND AVG(ep.HoursWorked / NULLIF(ep.HoursAllocated, 0)) >= 1.0)
                  THEN 'High Performer'
             WHEN DATEDIFF(YEAR, emp.HireDate, GETDATE()) >= 2 
-                 AND emp.Salary >= 50000 
+                 AND emp.BaseSalary >= 50000 
                  AND COUNT(ep.ProjectID) >= 1
                  THEN 'Solid Contributor'
             ELSE 'Developing Employee'
         END = 'Exceptional Performer' THEN 1
         WHEN CASE 
             WHEN DATEDIFF(YEAR, emp.HireDate, GETDATE()) >= 5 
-                 AND emp.Salary >= 80000 
+                 AND emp.BaseSalary >= 80000 
                  AND COUNT(ep.ProjectID) >= 2 
                  AND AVG(ep.HoursWorked / NULLIF(ep.HoursAllocated, 0)) >= 0.9
                  THEN 'Exceptional Performer'
-            WHEN (DATEDIFF(YEAR, emp.HireDate, GETDATE()) >= 3 AND emp.Salary >= 70000)
+            WHEN (DATEDIFF(YEAR, emp.HireDate, GETDATE()) >= 3 AND emp.BaseSalary >= 70000)
                  OR (COUNT(ep.ProjectID) >= 2 AND AVG(ep.HoursWorked / NULLIF(ep.HoursAllocated, 0)) >= 1.0)
                  THEN 'High Performer'
             WHEN DATEDIFF(YEAR, emp.HireDate, GETDATE()) >= 2 
-                 AND emp.Salary >= 50000 
+                 AND emp.BaseSalary >= 50000 
                  AND COUNT(ep.ProjectID) >= 1
                  THEN 'Solid Contributor'
             ELSE 'Developing Employee'
         END = 'High Performer' THEN 2
         ELSE 3
     END,
-    emp.Salary DESC;
+    emp.BaseSalary DESC;
 ```
 
 **Explanation**: Multi-layered CASE expressions implementing complex performance evaluation criteria, department-specific logic, and comprehensive business rules for employee assessment.
@@ -993,7 +993,7 @@ WITH EmployeeMetrics AS (
         emp.EmployeeID,
         emp.FirstName + ' ' + emp.LastName AS EmployeeName,
         emp.Title,
-        emp.Salary,
+        emp.BaseSalary,
         emp.HireDate,
         dept.DepartmentName,
         DATEDIFF(YEAR, emp.HireDate, GETDATE()) AS TenureYears,
@@ -1007,19 +1007,19 @@ WITH EmployeeMetrics AS (
     LEFT JOIN EmployeeSkills es ON emp.EmployeeID = es.EmployeeID
     WHERE emp.IsActive = 1
     GROUP BY emp.EmployeeID, emp.FirstName, emp.LastName, emp.Title, 
-             emp.Salary, emp.HireDate, dept.DepartmentName
+             emp.BaseSalary, emp.HireDate, dept.DepartmentName
 ),
 PerformanceSegmentation AS (
     SELECT *,
         -- Employee segmentation using complex CASE logic
         CASE 
-            WHEN Salary >= 85000 AND TenureYears >= 5 AND ProjectCount >= 2 
+            WHEN BaseSalary >= 85000 AND TenureYears >= 5 AND ProjectCount >= 2 
                  AND ISNULL(PerformanceRatio, 0) >= 0.9 
                  THEN 'High Performer - Star Employee'
-            WHEN (Salary >= 70000 AND TenureYears >= 3) 
+            WHEN (BaseSalary >= 70000 AND TenureYears >= 3) 
                  OR (ProjectCount >= 2 AND ISNULL(PerformanceRatio, 0) >= 1.0)
                  THEN 'High Performer - Core Contributor'
-            WHEN Salary >= 50000 AND TenureYears >= 2 AND ProjectCount >= 1
+            WHEN BaseSalary >= 50000 AND TenureYears >= 2 AND ProjectCount >= 1
                  THEN 'Medium Performer - Steady Contributor'
             WHEN TenureYears < 2 OR ProjectCount = 0
                  THEN 'Developing - Growth Potential'
@@ -1039,7 +1039,7 @@ PerformanceSegmentation AS (
             WHEN Title LIKE '%Director%' AND TenureYears >= 7 THEN 'Executive Development Track'
             WHEN (Title LIKE '%Senior%' OR Title LIKE '%Manager%') AND TenureYears >= 5 
                  THEN 'Leadership Development Track'
-            WHEN TenureYears >= 3 AND Salary >= AVG(Salary) OVER (PARTITION BY DepartmentName)
+            WHEN TenureYears >= 3 AND BaseSalary >= AVG(BaseSalary) OVER (PARTITION BY DepartmentName)
                  THEN 'Senior Professional Track'
             WHEN TenureYears >= 1 THEN 'Professional Development Track'
             ELSE 'Foundation Building Track'
@@ -1047,7 +1047,7 @@ PerformanceSegmentation AS (
         
         -- Retention risk assessment with actionable insights
         CASE 
-            WHEN TenureYears >= 5 AND Salary < AVG(Salary) OVER (PARTITION BY DepartmentName) * 0.9
+            WHEN TenureYears >= 5 AND BaseSalary < AVG(BaseSalary) OVER (PARTITION BY DepartmentName) * 0.9
                  THEN 'High Flight Risk - Compensation Below Market'
             WHEN ProjectCount = 0 AND TenureYears >= 1
                  THEN 'High Flight Risk - Lack of Engagement'
@@ -1081,7 +1081,7 @@ SELECT
     EmployeeName AS [Employee Name],
     Title AS [Current Position],
     DepartmentName AS [Business Unit],
-    FORMAT(Salary, 'C0') AS [Current Compensation],
+    FORMAT(BaseSalary, 'C0') AS [Current Compensation],
     TenureYears AS [Years of Service],
     PerformanceSegment AS [Performance Classification],
     SkillsPortfolioStatus AS [Skills Portfolio Assessment],
@@ -1116,7 +1116,7 @@ ORDER BY
         WHEN 'Developing - Growth Potential' THEN 4
         ELSE 5
     END,
-    Salary DESC;
+    BaseSalary DESC;
 ```
 
 **Explanation**: Comprehensive workforce analytics combining performance segmentation, skills analysis, career development recommendations, retention risk assessment, and ROI analysis for strategic decision-making.

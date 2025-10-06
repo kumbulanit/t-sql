@@ -11,7 +11,7 @@
 1. Create a table for storing employee information with appropriate data types for:
    - Employee ID (auto-incrementing)
    - First Name and Last Name
-   - Salary (with 2 decimal places)
+   - BaseSalary (with 2 decimal places)
    - Hire Date
    - Is Active (yes/no)
    - Profile Photo
@@ -65,7 +65,7 @@
    CREATE TABLE BadExample (
        ID NVARCHAR(100),
        Age NVARCHAR(10),
-       Salary NVARCHAR(20),
+       BaseSalary NVARCHAR(20),
        HireDate NVARCHAR(30),
        IsActive NVARCHAR(5)
    );

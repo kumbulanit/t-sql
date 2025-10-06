@@ -24,7 +24,7 @@ T-SQL stands for Transact-SQL and is Microsoft's proprietary extension of the SQ
 SELECT * FROM Employees;
 
 -- Select specific columns
-SELECT FirstName, LastName, Salary 
+SELECT FirstName, LastName, BaseSalary 
 FROM Employees;
 ```
 
@@ -33,7 +33,7 @@ FROM Employees;
 -- Filter records with conditions
 SELECT FirstName, LastName 
 FROM Employees 
-WHERE Salary > 50000;
+WHERE BaseSalary > 50000;
 ```
 
 #### 3. Basic Data Types
@@ -41,7 +41,7 @@ WHERE Salary > 50000;
 -- Common T-SQL data types
 DECLARE @Name NVARCHAR(50) = 'John Doe';
 DECLARE @Age INT = 30;
-DECLARE @Salary DECIMAL(10,2) = 75000.00;
+DECLARE @BaseSalary DECIMAL(10,2) = 75000.00;
 DECLARE @HireDate DATE = '2020-01-15';
 ```
 
@@ -70,10 +70,10 @@ FROM Employees;
 SELECT 
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     CASE 
-        WHEN Salary < 40000 THEN 'Entry Level'
-        WHEN Salary BETWEEN 40000 AND 80000 THEN 'Mid Level'
+        WHEN BaseSalary < 40000 THEN 'Entry Level'
+        WHEN BaseSalary BETWEEN 40000 AND 80000 THEN 'Mid Level'
         ELSE 'Senior Level'
     END AS SalaryCategory
 FROM Employees;
@@ -85,9 +85,9 @@ FROM Employees;
 SELECT 
     Department,
     COUNT(*) AS EmployeeCount,
-    AVG(Salary) AS AverageSalary,
-    MAX(Salary) AS MaxSalary,
-    MIN(Salary) AS MinSalary
+    AVG(BaseSalary) AS AverageSalary,
+    MAX(BaseSalary) AS MaxSalary,
+    MIN(BaseSalary) AS MinSalary
 FROM Employees
 GROUP BY Department
 HAVING COUNT(*) > 5;
@@ -102,9 +102,9 @@ WITH EmployeeSalaryRanking AS (
     SELECT 
         FirstName,
         LastName,
-        Salary,
-        RANK() OVER (ORDER BY Salary DESC) AS SalaryRank,
-        DENSE_RANK() OVER (PARTITION BY Department ORDER BY Salary DESC) AS DeptSalaryRank
+        BaseSalary,
+        RANK() OVER (ORDER BY BaseSalary DESC) AS SalaryRank,
+        DENSE_RANK() OVER (PARTITION BY Department ORDER BY BaseSalary DESC) AS DeptSalaryRank
     FROM Employees
 )
 SELECT *
@@ -118,11 +118,11 @@ WHERE SalaryRank <= 10;
 SELECT 
     FirstName,
     LastName,
-    Salary,
-    LAG(Salary) OVER (ORDER BY HireDate) AS PreviousEmployeeSalary,
-    LEAD(Salary) OVER (ORDER BY HireDate) AS NextEmployeeSalary,
-    SUM(Salary) OVER (PARTITION BY Department) AS DepartmentTotalSalary,
-    ROW_NUMBER() OVER (PARTITION BY Department ORDER BY Salary DESC) AS RowNum
+    BaseSalary,
+    LAG(BaseSalary) OVER (ORDER BY HireDate) AS PreviousEmployeeSalary,
+    LEAD(BaseSalary) OVER (ORDER BY HireDate) AS NextEmployeeSalary,
+    SUM(BaseSalary) OVER (PARTITION BY Department) AS DepartmentTotalSalary,
+    ROW_NUMBER() OVER (PARTITION BY Department ORDER BY BaseSalary DESC) AS RowNum
 FROM Employees;
 ```
 
@@ -175,7 +175,7 @@ ORDER BY Level, LastName;
 2. **Control Flow Statements**
    ```sql
    -- T-SQL IF...ELSE
-   IF @Salary > 50000
+   IF @BaseSalary > 50000
    BEGIN
        PRINT 'High salary employee';
    END

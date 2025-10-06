@@ -196,7 +196,7 @@ ORDER BY t.CreateDate DESC;
        FirstName NVARCHAR(50) NOT NULL,
        LastName NVARCHAR(50) NOT NULL,
        DeptID INT NOT NULL,
-       Salary DECIMAL(10,2),
+       BaseSalary DECIMAL(10,2),
        FOREIGN KEY (DeptID) REFERENCES Department(DeptID)
    );
    ```
@@ -325,7 +325,7 @@ INSERT INTO Department (DeptName, Budget) VALUES
 ('Research', 150000),
 ('Quality Assurance', 100000);
 
-INSERT INTO Employee (FirstName, LastName, DeptID, Salary) VALUES 
+INSERT INTO Employee (FirstName, LastName, DeptID, BaseSalary) VALUES 
 ('John', 'Smith', 1, 65000),
 ('Jane', 'Doe', 2, 55000);
 
@@ -351,7 +351,7 @@ GO
 SELECT GETDATE() as BeforeDisasterTime;
 
 -- Create more data
-INSERT INTO Employee (FirstName, LastName, DeptID, Salary) VALUES 
+INSERT INTO Employee (FirstName, LastName, DeptID, BaseSalary) VALUES 
 ('Mike', 'Johnson', 1, 70000);
 
 -- Simulate accidental data deletion (disaster)

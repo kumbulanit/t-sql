@@ -96,7 +96,7 @@ SELECT
     FirstName,
     LastName,
     HireDate,
-    Salary
+    BaseSalary
 FROM Employees;
 ```
 
@@ -128,11 +128,11 @@ SELECT
     EmployeeID,
     FirstName,
     LastName,
-    Salary,
-    Salary * 12 AS AnnualSalary,                    -- Basic calculation
-    Salary * 1.05 AS ProjectedSalary,               -- Percentage increase
-    ROUND(Salary * 0.2, 2) AS EstimatedTax,        -- Tax calculation
-    Salary + ISNULL(Bonus, 0) AS TotalCompensation -- Null handling
+    BaseSalary,
+    BaseSalary * 12 AS AnnualSalary,                    -- Basic calculation
+    BaseSalary * 1.05 AS ProjectedSalary,               -- Percentage increase
+    ROUND(BaseSalary * 0.2, 2) AS EstimatedTax,        -- Tax calculation
+    BaseSalary + ISNULL(Bonus, 0) AS TotalCompensation -- Null handling
 FROM Employees;
 ```
 
@@ -173,26 +173,26 @@ SELECT
     EmployeeID,
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     -- Simple CASE expression
     CASE 
-        WHEN Salary < 30000 THEN 'Entry Level'
-        WHEN Salary < 60000 THEN 'Mid Level'
-        WHEN Salary < 100000 THEN 'Senior Level'
+        WHEN BaseSalary < 30000 THEN 'Entry Level'
+        WHEN BaseSalary < 60000 THEN 'Mid Level'
+        WHEN BaseSalary < 100000 THEN 'Senior Level'
         ELSE 'Executive Level'
     END AS SalaryGrade,
     
     -- Searched CASE with multiple conditions
     CASE 
-        WHEN Department = 'Sales' AND Salary > 50000 THEN 'Senior Sales'
+        WHEN Department = 'Sales' AND BaseSalary > 50000 THEN 'Senior Sales'
         WHEN Department = 'Sales' THEN 'Sales Staff'
-        WHEN Department = 'IT' AND Salary > 70000 THEN 'Senior Developer'
+        WHEN Department = 'IT' AND BaseSalary > 70000 THEN 'Senior Developer'
         WHEN Department = 'IT' THEN 'Developer'
         ELSE 'Other'
     END AS RoleCategory,
     
     -- CASE in calculations
-    Salary * CASE 
+    BaseSalary * CASE 
         WHEN Department = 'Sales' THEN 1.1    -- 10% bonus for sales
         WHEN Department = 'IT' THEN 1.05      -- 5% bonus for IT
         ELSE 1.0                              -- No bonus for others
@@ -248,7 +248,7 @@ SELECT
     Department,
     COUNT(*) AS EmployeeCount,
     MIN(HireDate) AS EarliestHire,
-    MAX(Salary) AS HighestSalary
+    MAX(BaseSalary) AS HighestSalary
 FROM Employees
 GROUP BY Department;
 ```
@@ -259,8 +259,8 @@ GROUP BY Department;
 SELECT DISTINCT
     YEAR(HireDate) AS HireYear,
     CASE 
-        WHEN Salary < 50000 THEN 'Low'
-        WHEN Salary < 80000 THEN 'Medium'
+        WHEN BaseSalary < 50000 THEN 'Low'
+        WHEN BaseSalary < 80000 THEN 'Medium'
         ELSE 'High'
     END AS SalaryRange,
     Department
@@ -303,8 +303,8 @@ WHERE AnotherCondition IS NOT NULL;
 SELECT 
     FirstName AS EmployeeFirstName,        -- Standard AS syntax
     LastName EmployeeLastName,             -- Space syntax (less preferred)
-    Salary AS 'Monthly Salary',            -- Quoted alias with spaces
-    Salary * 12 AS [Annual Salary],        -- Bracketed alias
+    BaseSalary AS 'Monthly BaseSalary',            -- Quoted alias with spaces
+    BaseSalary * 12 AS [Annual BaseSalary],        -- Bracketed alias
     HireDate AS "Hire Date"                -- Double-quoted alias
 FROM Employees;
 ```
@@ -317,8 +317,8 @@ SELECT
     e.FirstName AS FirstName,              -- Clarity over brevity
     e.LastName AS LastName,
     d.DepartmentName AS Department,        -- Descriptive naming
-    e.Salary AS MonthlySalary,             -- Clear data meaning
-    e.Salary * 12 AS AnnualSalary,         -- Calculation description
+    e.BaseSalary AS MonthlySalary,             -- Clear data meaning
+    e.BaseSalary * 12 AS AnnualSalary,         -- Calculation description
     DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
@@ -407,7 +407,7 @@ SELECT DISTINCT Department, JobTitle FROM Employees;
 SELECT 
     FirstName AS First_Name,
     LastName AS Last_Name,
-    Salary AS Annual_Salary
+    BaseSalary AS Annual_Salary
 FROM Employees;
 
 -- Without AS keyword
@@ -447,9 +447,9 @@ WHERE e.Department = 'IT';
 SELECT 
     FirstName,
     LastName,
-    Salary,
-    Salary * 0.10 AS Tax_Amount,
-    Salary * 1.10 AS Gross_Pay,
+    BaseSalary,
+    BaseSalary * 0.10 AS Tax_Amount,
+    BaseSalary * 1.10 AS Gross_Pay,
     DATEDIFF(YEAR, HireDate, GETDATE()) AS Years_Employed
 FROM Employees;
 ```
@@ -494,8 +494,8 @@ END
 
 -- Searched CASE
 CASE 
-    WHEN Salary > 100000 THEN 'High'
-    WHEN Salary > 50000 THEN 'Medium'
+    WHEN BaseSalary > 100000 THEN 'High'
+    WHEN BaseSalary > 50000 THEN 'Medium'
     ELSE 'Low'
 END
 ```
@@ -531,12 +531,12 @@ FROM Employees;
 SELECT 
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     CASE 
-        WHEN Salary >= 100000 THEN 'Executive'
-        WHEN Salary >= 75000 THEN 'Senior'
-        WHEN Salary >= 50000 THEN 'Mid-Level'
-        WHEN Salary >= 30000 THEN 'Junior'
+        WHEN BaseSalary >= 100000 THEN 'Executive'
+        WHEN BaseSalary >= 75000 THEN 'Senior'
+        WHEN BaseSalary >= 50000 THEN 'Mid-Level'
+        WHEN BaseSalary >= 30000 THEN 'Junior'
         ELSE 'Entry Level'
     END AS SalaryBand
 FROM Employees;
@@ -554,11 +554,11 @@ SELECT
     FirstName,
     LastName,
     Department,
-    Salary,
+    BaseSalary,
     CASE Department
         WHEN 'IT' THEN 
             CASE 
-                WHEN Salary > 90000 THEN 'IT Senior'
+                WHEN BaseSalary > 90000 THEN 'IT Senior'
                 ELSE 'IT Standard'
             END
         WHEN 'HR' THEN 'HR Professional'
@@ -578,8 +578,8 @@ FROM Employees;
 SELECT 
     Department,
     COUNT(*) AS TotalEmployees,
-    COUNT(CASE WHEN Salary > 75000 THEN 1 END) AS HighSalaryCount,
-    AVG(CASE WHEN Salary > 75000 THEN Salary END) AS AvgHighSalary
+    COUNT(CASE WHEN BaseSalary > 75000 THEN 1 END) AS HighSalaryCount,
+    AVG(CASE WHEN BaseSalary > 75000 THEN BaseSalary END) AS AvgHighSalary
 FROM Employees
 GROUP BY Department;
 ```
@@ -619,7 +619,7 @@ FROM Employees;
 **Example:**
 ```sql
 -- Good: Specific columns, early filtering
-SELECT FirstName, LastName, Salary
+SELECT FirstName, LastName, BaseSalary
 FROM Employees 
 WHERE Department = 'IT' AND IsActive = 1;
 ```
@@ -631,7 +631,7 @@ WHERE Department = 'IT' AND IsActive = 1;
 
 ```sql
 -- Top N records
-SELECT TOP 10 * FROM Employees ORDER BY Salary DESC;
+SELECT TOP 10 * FROM Employees ORDER BY BaseSalary DESC;
 
 -- Percentage of records
 SELECT TOP 10 PERCENT * FROM Employees ORDER BY HireDate;
@@ -640,7 +640,7 @@ SELECT TOP 10 PERCENT * FROM Employees ORDER BY HireDate;
 SELECT 
     FirstName,
     LastName,
-    FORMAT(Salary, 'C') AS FormattedSalary
+    FORMAT(BaseSalary, 'C') AS FormattedSalary
 FROM Employees;
 ```
 
@@ -688,9 +688,9 @@ FROM Employees;
 SELECT 
     FirstName,
     LastName,
-    Salary,
-    ROUND(Salary * 1.05, 2) AS ProposedSalary,
-    ABS(Salary - 50000) AS SalaryDifference,
+    BaseSalary,
+    ROUND(BaseSalary * 1.05, 2) AS ProposedSalary,
+    ABS(BaseSalary - 50000) AS SalaryDifference,
     POWER(2, 3) AS PowerExample
 FROM Employees;
 ```
@@ -706,7 +706,7 @@ FROM Employees;
 SELECT 
     FirstName,
     LastName,
-    CAST(Salary AS VARCHAR(20)) AS SalaryText,
+    CAST(BaseSalary AS VARCHAR(20)) AS SalaryText,
     CONVERT(VARCHAR(10), HireDate, 101) AS USDateFormat,
     TRY_CAST(BadData AS INT) AS SafeConversion
 FROM Employees;
@@ -726,8 +726,8 @@ SELECT
     e.LastName,
     e.Department,
     CASE 
-        WHEN e.Salary > 75000 THEN 'High'
-        WHEN e.Salary > 50000 THEN 'Medium'
+        WHEN e.BaseSalary > 75000 THEN 'High'
+        WHEN e.BaseSalary > 50000 THEN 'Medium'
         ELSE 'Low'
     END AS SalaryRange
 FROM Employees e

@@ -13,11 +13,11 @@ SELECT * FROM Employees;
 ```
 
 #### Question 2: Column Selection
-**Task:** Select only FirstName, LastName, and Salary from Employees.
+**Task:** Select only FirstName, LastName, and BaseSalary from Employees.
 
 ```sql
 -- Answer 2: Column Selection
-SELECT FirstName, LastName, Salary 
+SELECT FirstName, LastName, BaseSalary 
 FROM Employees;
 ```
 
@@ -28,8 +28,8 @@ FROM Employees;
 -- Answer 3: Calculated Columns
 SELECT 
     FirstName + ' ' + LastName AS FullName,
-    Salary AS AnnualSalary,
-    Salary / 12 AS MonthlySalary
+    BaseSalary AS AnnualSalary,
+    BaseSalary / 12 AS MonthlySalary
 FROM Employees;
 ```
 
@@ -61,14 +61,14 @@ FROM Employees;
 
 ### Exercise 1.2: Filtering Data - Answers
 
-#### Question 1: Salary Filter
+#### Question 1: BaseSalary Filter
 **Task:** Find all employees with salary greater than $70,000.
 
 ```sql
--- Answer 1: Salary Filter
-SELECT FirstName, LastName, Salary
+-- Answer 1: BaseSalary Filter
+SELECT FirstName, LastName, BaseSalary
 FROM Employees
-WHERE Salary > 70000;
+WHERE BaseSalary > 70000;
 ```
 
 #### Question 2: Hire Date Filter
@@ -116,10 +116,10 @@ WHERE MiddleName IS NOT NULL;
 
 ```sql
 -- Answer 6: Range Filter
-SELECT FirstName, LastName, Salary, IsActive
+SELECT FirstName, LastName, BaseSalary, IsActive
 FROM Employees
 WHERE IsActive = 1 
-  AND Salary BETWEEN 50000 AND 80000;
+  AND BaseSalary BETWEEN 50000 AND 80000;
 ```
 
 ### Exercise 1.3: Advanced Filtering - Answers
@@ -152,9 +152,9 @@ WHERE YEAR(HireDate) IN (2021, 2022);
 
 ```sql
 -- Answer 3: Complex Logic Filter
-SELECT FirstName, LastName, Salary, DepartmentID
+SELECT FirstName, LastName, BaseSalary, DepartmentID
 FROM Employees
-WHERE Salary > 60000 
+WHERE BaseSalary > 60000 
   AND (DepartmentID = 1 OR DepartmentID = 4);
 ```
 
@@ -188,9 +188,9 @@ SELECT FirstName FROM Employees WHERE DepartmentID >= 3;
 
 ```sql
 -- Answer 2: INTERSECT Operation
-SELECT DepartmentID FROM Employees WHERE Salary > 70000
+SELECT DepartmentID FROM Employees WHERE BaseSalary > 70000
 INTERSECT
-SELECT DepartmentID FROM Employees WHERE Salary < 60000;
+SELECT DepartmentID FROM Employees WHERE BaseSalary < 60000;
 ```
 
 #### Question 3: EXCEPT Operation
@@ -291,18 +291,18 @@ WHERE ep1.ProjectID IN (
 AND e.EmployeeID != 2;
 ```
 
-#### Question 3: High-Salary Departments
+#### Question 3: High-BaseSalary Departments
 **Task:** Find departments where ALL employees earn more than $55,000.
 
 ```sql
--- Answer 3: High-Salary Departments
+-- Answer 3: High-BaseSalary Departments
 SELECT d.DepartmentName
 FROM Departments d
 WHERE NOT EXISTS (
     SELECT 1
     FROM Employees e
     WHERE e.DepartmentID = d.DepartmentID
-    AND e.Salary <= 55000
+    AND e.BaseSalary <= 55000
 )
 AND EXISTS (
     SELECT 1
@@ -365,15 +365,15 @@ WHERE ManagerID IS NULL;
 
 ### Exercise 3.2: Complex Predicates - Answers
 
-#### Question 1: Complex Salary and Department Logic
+#### Question 1: Complex BaseSalary and Department Logic
 **Task:** Find employees where (salary > $70k AND department is IT) OR (salary > $80k).
 
 ```sql
--- Answer 1: Complex Salary and Department Logic
-SELECT FirstName, LastName, Salary, DepartmentID
+-- Answer 1: Complex BaseSalary and Department Logic
+SELECT FirstName, LastName, BaseSalary, DepartmentID
 FROM Employees
-WHERE (Salary > 70000 AND DepartmentID = 1) 
-   OR (Salary > 80000);
+WHERE (BaseSalary > 70000 AND DepartmentID = 1) 
+   OR (BaseSalary > 80000);
 ```
 
 #### Question 2: Project Status and Budget Logic
@@ -398,20 +398,20 @@ WHERE Status = 'Completed'
 -- Answer 1: Logical Processing Order
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,  -- 5. SELECT
-    e.Salary,
+    e.BaseSalary,
     d.DepartmentName,
     CASE 
-        WHEN e.Salary > 70000 THEN 'High'
-        WHEN e.Salary > 50000 THEN 'Medium'
+        WHEN e.BaseSalary > 70000 THEN 'High'
+        WHEN e.BaseSalary > 50000 THEN 'Medium'
         ELSE 'Low'
     END AS SalaryCategory
 FROM Employees e                                      -- 1. FROM
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1                                  -- 2. WHERE
   AND e.HireDate >= '2020-01-01'
-GROUP BY e.FirstName, e.LastName, e.Salary, d.DepartmentName  -- 3. GROUP BY
+GROUP BY e.FirstName, e.LastName, e.BaseSalary, d.DepartmentName  -- 3. GROUP BY
 HAVING COUNT(*) > 0                                   -- 4. HAVING
-ORDER BY e.Salary DESC;                               -- 6. ORDER BY
+ORDER BY e.BaseSalary DESC;                               -- 6. ORDER BY
 ```
 
 #### Question 2: Alias Usage Demonstration
@@ -423,7 +423,7 @@ ORDER BY e.Salary DESC;                               -- 6. ORDER BY
 -- CORRECT: Using alias in ORDER BY (processed after SELECT)
 SELECT 
     FirstName + ' ' + LastName AS FullName,
-    Salary * 12 AS AnnualSalary
+    BaseSalary * 12 AS AnnualSalary
 FROM Employees
 ORDER BY FullName, AnnualSalary;
 
@@ -450,13 +450,13 @@ ORDER BY FullName;
 SELECT 
     d.DepartmentName,
     COUNT(e.EmployeeID) AS EmployeeCount,
-    AVG(e.Salary) AS AverageSalary,
+    AVG(e.BaseSalary) AS AverageSalary,
     MIN(e.HireDate) AS EarliestHireDate,
     MAX(e.HireDate) AS LatestHireDate
 FROM Employees e                                      -- 1. FROM
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1                                  -- 2. WHERE
-  AND e.Salary > 40000
+  AND e.BaseSalary > 40000
 GROUP BY d.DepartmentName                             -- 3. GROUP BY
 HAVING COUNT(e.EmployeeID) >= 2                       -- 4. HAVING
 ORDER BY AverageSalary DESC;                          -- 5. ORDER BY
@@ -469,10 +469,10 @@ ORDER BY AverageSalary DESC;                          -- 5. ORDER BY
 -- Answer 2: Subquery Processing Order
 
 -- Subquery in WHERE clause (processed during WHERE phase)
-SELECT FirstName, LastName, Salary
+SELECT FirstName, LastName, BaseSalary
 FROM Employees
-WHERE Salary > (
-    SELECT AVG(Salary) 
+WHERE BaseSalary > (
+    SELECT AVG(BaseSalary) 
     FROM Employees 
     WHERE IsActive = 1
 );
@@ -481,9 +481,9 @@ WHERE Salary > (
 SELECT 
     FirstName,
     LastName,
-    Salary,
-    (SELECT AVG(Salary) FROM Employees) AS CompanyAverageSalary,
-    Salary - (SELECT AVG(Salary) FROM Employees) AS SalaryDifference
+    BaseSalary,
+    (SELECT AVG(BaseSalary) FROM Employees) AS CompanyAverageSalary,
+    BaseSalary - (SELECT AVG(BaseSalary) FROM Employees) AS SalaryDifference
 FROM Employees
 WHERE IsActive = 1;
 
@@ -491,14 +491,14 @@ WHERE IsActive = 1;
 SELECT 
     e1.FirstName,
     e1.LastName,
-    e1.Salary,
+    e1.BaseSalary,
     (SELECT COUNT(*) 
      FROM Employees e2 
      WHERE e2.DepartmentID = e1.DepartmentID 
-       AND e2.Salary > e1.Salary) AS HigherPaidInDept
+       AND e2.BaseSalary > e1.BaseSalary) AS HigherPaidInDept
 FROM Employees e1
 WHERE e1.IsActive = 1
-ORDER BY e1.DepartmentID, e1.Salary DESC;
+ORDER BY e1.DepartmentID, e1.BaseSalary DESC;
 ```
 
 ## Additional Practice Queries - Answers
@@ -512,7 +512,7 @@ SELECT
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     d.DepartmentName,
     e.Title,
-    e.Salary,
+    e.BaseSalary,
     DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
     COALESCE(
         (SELECT COUNT(*) 
@@ -520,14 +520,14 @@ SELECT
          WHERE ep.EmployeeID = e.EmployeeID), 0
     ) AS ProjectCount,
     CASE 
-        WHEN e.Salary > 80000 THEN 'Senior Level'
-        WHEN e.Salary > 60000 THEN 'Mid Level'
+        WHEN e.BaseSalary > 80000 THEN 'Senior Level'
+        WHEN e.BaseSalary > 60000 THEN 'Mid Level'
         ELSE 'Junior Level'
     END AS SalaryLevel
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
-ORDER BY d.DepartmentName, e.Salary DESC;
+ORDER BY d.DepartmentName, e.BaseSalary DESC;
 ```
 
 #### Scenario 2: Project Resource Allocation
@@ -558,12 +558,12 @@ SELECT
     d.DepartmentName,
     d.Budget AS DepartmentBudget,
     COUNT(e.EmployeeID) AS EmployeeCount,
-    SUM(e.Salary) AS TotalSalaries,
-    AVG(e.Salary) AS AverageSalary,
-    d.Budget - SUM(e.Salary) AS BudgetRemaining,
+    SUM(e.BaseSalary) AS TotalSalaries,
+    AVG(e.BaseSalary) AS AverageSalary,
+    d.Budget - SUM(e.BaseSalary) AS BudgetRemaining,
     CASE 
-        WHEN SUM(e.Salary) > d.Budget THEN 'Over Budget'
-        WHEN SUM(e.Salary) > d.Budget * 0.9 THEN 'Near Budget Limit'
+        WHEN SUM(e.BaseSalary) > d.Budget THEN 'Over Budget'
+        WHEN SUM(e.BaseSalary) > d.Budget * 0.9 THEN 'Near Budget Limit'
         ELSE 'Within Budget'
     END AS BudgetStatus
 FROM Departments d

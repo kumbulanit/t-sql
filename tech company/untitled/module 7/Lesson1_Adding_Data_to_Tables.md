@@ -65,7 +65,7 @@ CREATE TABLE Employees (
     LastName NVARCHAR(50) NOT NULL,
     Email NVARCHAR(100) UNIQUE,
     HireDate DATE DEFAULT GETDATE(),
-    Salary DECIMAL(10,2),
+    BaseSalary DECIMAL(10,2),
     DepartmentID INT,
     ManagerID INT,
     IsActive BIT DEFAULT 1,
@@ -118,7 +118,7 @@ INSERT INTO Departments (DepartmentName, Location, Budget)
 VALUES ('Finance', 'Building A, Floor 2', 300000.00);
 
 -- INSERT with explicit column list (recommended practice)
-INSERT INTO Employees (FirstName, LastName, Email, Salary, DepartmentID)
+INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
 VALUES ('John', 'Smith', 'john.smith@company.com', 75000.00, 1);
 
 -- INSERT without column list (not recommended - fragile)
@@ -126,10 +126,10 @@ VALUES ('John', 'Smith', 'john.smith@company.com', 75000.00, 1);
 
 -- INSERT with NULL values and defaults
 INSERT INTO Employees (FirstName, LastName, Email, DepartmentID)
-VALUES ('Alice', 'Johnson', 'alice.johnson@company.com', 2);  -- Salary will be NULL, HireDate will use default
+VALUES ('Alice', 'Johnson', 'alice.johnson@company.com', 2);  -- BaseSalary will be NULL, HireDate will use default
 
 -- INSERT with explicit NULLs
-INSERT INTO Employees (FirstName, LastName, Email, Salary, DepartmentID, ManagerID)
+INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID, ManagerID)
 VALUES ('Bob', 'Wilson', 'bob.wilson@company.com', 65000.00, 1, NULL);
 
 -- Verifying the inserts
@@ -140,7 +140,7 @@ SELECT * FROM Employees ORDER BY EmployeeID;
 ### Multiple Row Inserts
 ```sql
 -- Multiple VALUES clauses (SQL Server 2008+)
-INSERT INTO Employees (FirstName, LastName, Email, Salary, DepartmentID, ManagerID)
+INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID, ManagerID)
 VALUES 
     ('Sarah', 'Davis', 'sarah.davis@company.com', 80000.00, 1, 1),
     ('Michael', 'Brown', 'michael.brown@company.com', 72000.00, 2, NULL),
@@ -165,15 +165,15 @@ SELECT COUNT(*) AS ProjectCount FROM Projects;
 ### INSERT with Calculations and Functions
 ```sql
 -- INSERT with calculated values
-INSERT INTO Employees (FirstName, LastName, Email, Salary, DepartmentID, HireDate)
+INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID, HireDate)
 VALUES 
     ('Thomas', 'Anderson', 'thomas.anderson@company.com', 
-     (SELECT AVG(Salary) * 1.1 FROM Employees WHERE DepartmentID = 1), -- 10% above IT average
+     (SELECT AVG(BaseSalary) * 1.1 FROM Employees WHERE DepartmentID = 1), -- 10% above IT average
      1, 
      DATEADD(DAY, 30, GETDATE())); -- Start date 30 days from now
 
 -- INSERT with string functions
-INSERT INTO Employees (FirstName, LastName, Email, Salary, DepartmentID)
+INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
 VALUES 
     ('Jennifer', 'Williams-Jones', 
      LOWER('Jennifer') + '.' + LOWER(REPLACE('Williams-Jones', '-', '')) + '@company.com',
@@ -204,19 +204,19 @@ CREATE TABLE EmployeeBackup (
     FirstName NVARCHAR(50),
     LastName NVARCHAR(50),
     Email NVARCHAR(100),
-    Salary DECIMAL(10,2),
+    BaseSalary DECIMAL(10,2),
     DepartmentName NVARCHAR(100),
     BackupDate DATETIME2 DEFAULT SYSDATETIME()
 );
 
 -- INSERT...SELECT with JOIN
-INSERT INTO EmployeeBackup (EmployeeID, FirstName, LastName, Email, Salary, DepartmentName)
+INSERT INTO EmployeeBackup (EmployeeID, FirstName, LastName, Email, BaseSalary, DepartmentName)
 SELECT 
     e.EmployeeID,
     e.FirstName,
     e.LastName,
     e.Email,
-    e.Salary,
+    e.BaseSalary,
     d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
@@ -241,8 +241,8 @@ SELECT
     d.DepartmentID,
     d.DepartmentName,
     COUNT(e.EmployeeID) AS EmployeeCount,
-    AVG(e.Salary) AS AverageSalary,
-    SUM(e.Salary) AS TotalSalary
+    AVG(e.BaseSalary) AS AverageSalary,
+    SUM(e.BaseSalary) AS TotalSalary
 FROM Departments d
 LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID
 WHERE e.IsActive = 1 OR e.IsActive IS NULL
@@ -272,21 +272,21 @@ SELECT
     e.EmployeeID,
     e.FirstName,
     e.LastName,
-    e.Salary,
-    RANK() OVER (PARTITION BY d.DepartmentName ORDER BY e.Salary DESC) AS SalaryRank,
+    e.BaseSalary,
+    RANK() OVER (PARTITION BY d.DepartmentName ORDER BY e.BaseSalary DESC) AS SalaryRank,
     d.DepartmentName,
     CASE 
-        WHEN RANK() OVER (PARTITION BY d.DepartmentName ORDER BY e.Salary DESC) = 1 THEN 'Top Performer'
-        WHEN RANK() OVER (PARTITION BY d.DepartmentName ORDER BY e.Salary DESC) <= 2 THEN 'High Performer'
-        WHEN e.Salary > (SELECT AVG(Salary) FROM Employees WHERE DepartmentID = e.DepartmentID) THEN 'Above Average'
+        WHEN RANK() OVER (PARTITION BY d.DepartmentName ORDER BY e.BaseSalary DESC) = 1 THEN 'Top Performer'
+        WHEN RANK() OVER (PARTITION BY d.DepartmentName ORDER BY e.BaseSalary DESC) <= 2 THEN 'High Performer'
+        WHEN e.BaseSalary > (SELECT AVG(BaseSalary) FROM Employees WHERE DepartmentID = e.DepartmentID) THEN 'Above Average'
         ELSE 'Standard'
     END AS PerformanceCategory
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1 
-  AND e.Salary IS NOT NULL
-  AND (RANK() OVER (PARTITION BY d.DepartmentName ORDER BY e.Salary DESC) <= 2 
-       OR e.Salary > (SELECT AVG(Salary) FROM Employees WHERE DepartmentID = e.DepartmentID));
+  AND e.BaseSalary IS NOT NULL
+  AND (RANK() OVER (PARTITION BY d.DepartmentName ORDER BY e.BaseSalary DESC) <= 2 
+       OR e.BaseSalary > (SELECT AVG(BaseSalary) FROM Employees WHERE DepartmentID = e.DepartmentID));
 
 SELECT * FROM HighPerformers ORDER BY DepartmentName, SalaryRank;
 
@@ -343,7 +343,7 @@ DECLARE @InsertedEmployees TABLE (
 );
 
 -- INSERT with OUTPUT clause
-INSERT INTO Employees (FirstName, LastName, Email, Salary, DepartmentID)
+INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
 OUTPUT 
     inserted.EmployeeID,
     inserted.FirstName + ' ' + inserted.LastName AS FullName,
@@ -367,7 +367,7 @@ CREATE TABLE InsertLog (
     InsertedDate DATETIME2 DEFAULT SYSDATETIME()
 );
 
-INSERT INTO Employees (FirstName, LastName, Email, Salary, DepartmentID)
+INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
 OUTPUT 
     'Employees' AS TableName,
     'INSERT' AS Action,
@@ -411,13 +411,13 @@ SELECT
     p.ProjectID,
     e.EmployeeID,
     CASE 
-        WHEN e.Salary >= 80000 THEN 'Senior Developer'
-        WHEN e.Salary >= 70000 THEN 'Developer'
+        WHEN e.BaseSalary >= 80000 THEN 'Senior Developer'
+        WHEN e.BaseSalary >= 70000 THEN 'Developer'
         ELSE 'Junior Developer'
     END AS Role,
     CASE 
-        WHEN e.Salary >= 80000 THEN 75.00
-        WHEN e.Salary >= 70000 THEN 50.00
+        WHEN e.BaseSalary >= 80000 THEN 75.00
+        WHEN e.BaseSalary >= 70000 THEN 50.00
         ELSE 25.00
     END AS AllocationPercentage
 FROM Projects p
@@ -437,13 +437,13 @@ SELECT * FROM @NewAssignments ORDER BY ProjectName, Role DESC;
 -- Demonstrate constraint violations and error handling
 BEGIN TRY
     -- This will succeed
-    INSERT INTO Employees (FirstName, LastName, Email, Salary, DepartmentID)
+    INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
     VALUES ('Valid', 'Employee', 'valid.employee@company.com', 65000.00, 1);
     
     PRINT 'First insert succeeded';
     
     -- This will fail due to duplicate email (UNIQUE constraint)
-    INSERT INTO Employees (FirstName, LastName, Email, Salary, DepartmentID)
+    INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
     VALUES ('Duplicate', 'Email', 'valid.employee@company.com', 70000.00, 2);
     
     PRINT 'This should not print - duplicate email insert';
@@ -460,7 +460,7 @@ END CATCH;
 -- INSERT with foreign key constraint handling
 BEGIN TRY
     -- This will fail due to invalid DepartmentID (foreign key constraint)
-    INSERT INTO Employees (FirstName, LastName, Email, Salary, DepartmentID)
+    INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
     VALUES ('Invalid', 'Department', 'invalid.dept@company.com', 65000.00, 999);
     
 END TRY
@@ -468,7 +468,7 @@ BEGIN CATCH
     PRINT 'Foreign key violation: ' + ERROR_MESSAGE();
     
     -- Handle the error by using a valid department
-    INSERT INTO Employees (FirstName, LastName, Email, Salary, DepartmentID)
+    INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
     VALUES ('Corrected', 'Employee', 'corrected.employee@company.com', 65000.00, 1);
     
     PRINT 'Corrected insert completed successfully';
@@ -482,7 +482,7 @@ CREATE PROCEDURE InsertEmployeeWithValidation
     @FirstName NVARCHAR(50),
     @LastName NVARCHAR(50),
     @Email NVARCHAR(100),
-    @Salary DECIMAL(10,2),
+    @BaseSalary DECIMAL(10,2),
     @DepartmentID INT
 AS
 BEGIN
@@ -516,9 +516,9 @@ BEGIN
         SET @ValidationPassed = 0;
     END
     
-    IF @Salary IS NOT NULL AND (@Salary < 0 OR @Salary > 1000000)
+    IF @BaseSalary IS NOT NULL AND (@BaseSalary < 0 OR @BaseSalary > 1000000)
     BEGIN
-        SET @ErrorMessage = @ErrorMessage + 'Salary must be between 0 and 1,000,000. ';
+        SET @ErrorMessage = @ErrorMessage + 'BaseSalary must be between 0 and 1,000,000. ';
         SET @ValidationPassed = 0;
     END
     
@@ -531,8 +531,8 @@ BEGIN
     -- If validation passed, insert the record
     IF @ValidationPassed = 1
     BEGIN
-        INSERT INTO Employees (FirstName, LastName, Email, Salary, DepartmentID)
-        VALUES (@FirstName, @LastName, @Email, @Salary, @DepartmentID);
+        INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
+        VALUES (@FirstName, @LastName, @Email, @BaseSalary, @DepartmentID);
         
         PRINT 'Employee inserted successfully. EmployeeID: ' + CAST(SCOPE_IDENTITY() AS VARCHAR(10));
     END
@@ -753,7 +753,7 @@ CREATE TABLE EmployeePerformanceRanking (
     EmployeeID INT,
     EmployeeName NVARCHAR(101),
     DepartmentName NVARCHAR(100),
-    Salary DECIMAL(10,2),
+    BaseSalary DECIMAL(10,2),
     DepartmentRank INT,
     OverallRank INT,
     SalaryPercentile DECIMAL(5,2),
@@ -763,36 +763,36 @@ CREATE TABLE EmployeePerformanceRanking (
 );
 
 INSERT INTO EmployeePerformanceRanking (
-    EmployeeID, EmployeeName, DepartmentName, Salary, 
+    EmployeeID, EmployeeName, DepartmentName, BaseSalary, 
     DepartmentRank, OverallRank, SalaryPercentile, SalaryQuartile, AboveAverage
 )
 SELECT 
     e.EmployeeID,
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     d.DepartmentName,
-    e.Salary,
+    e.BaseSalary,
     -- Department-specific ranking
-    ROW_NUMBER() OVER (PARTITION BY d.DepartmentName ORDER BY e.Salary DESC) AS DepartmentRank,
+    ROW_NUMBER() OVER (PARTITION BY d.DepartmentName ORDER BY e.BaseSalary DESC) AS DepartmentRank,
     -- Overall ranking
-    ROW_NUMBER() OVER (ORDER BY e.Salary DESC) AS OverallRank,
-    -- Salary percentile
-    CAST(PERCENT_RANK() OVER (ORDER BY e.Salary) * 100 AS DECIMAL(5,2)) AS SalaryPercentile,
-    -- Salary quartile
-    NTILE(4) OVER (ORDER BY e.Salary) AS SalaryQuartile,
+    ROW_NUMBER() OVER (ORDER BY e.BaseSalary DESC) AS OverallRank,
+    -- BaseSalary percentile
+    CAST(PERCENT_RANK() OVER (ORDER BY e.BaseSalary) * 100 AS DECIMAL(5,2)) AS SalaryPercentile,
+    -- BaseSalary quartile
+    NTILE(4) OVER (ORDER BY e.BaseSalary) AS SalaryQuartile,
     -- Above average flag
     CASE 
-        WHEN e.Salary > AVG(e.Salary) OVER() THEN 1
+        WHEN e.BaseSalary > AVG(e.BaseSalary) OVER() THEN 1
         ELSE 0
     END AS AboveAverage
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE e.IsActive = 1 AND e.Salary IS NOT NULL;
+WHERE e.IsActive = 1 AND e.BaseSalary IS NOT NULL;
 
 -- View performance rankings
 SELECT 
     EmployeeName,
     DepartmentName,
-    FORMAT(Salary, 'C') AS FormattedSalary,
+    FORMAT(BaseSalary, 'C') AS FormattedSalary,
     DepartmentRank,
     OverallRank,
     SalaryPercentile,
@@ -815,7 +815,7 @@ ORDER BY OverallRank;
 
 -- 1. Always specify column list (maintainable and safe)
 -- GOOD
-INSERT INTO Employees (FirstName, LastName, Email, Salary, DepartmentID)
+INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
 VALUES ('Best', 'Practice', 'best.practice@company.com', 75000.00, 1);
 
 -- AVOID (fragile if table structure changes)
@@ -832,7 +832,7 @@ BEGIN TRY
     
     SET @NewDeptID = SCOPE_IDENTITY();
     
-    INSERT INTO Employees (FirstName, LastName, Email, Salary, DepartmentID)
+    INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
     VALUES ('Research', 'Director', 'research.director@company.com', 95000.00, @NewDeptID);
     
     COMMIT TRANSACTION;
@@ -848,7 +848,7 @@ END CATCH;
 -- Enable identity insert for specific scenarios
 SET IDENTITY_INSERT Employees ON;
 
-INSERT INTO Employees (EmployeeID, FirstName, LastName, Email, Salary, DepartmentID)
+INSERT INTO Employees (EmployeeID, FirstName, LastName, Email, BaseSalary, DepartmentID)
 VALUES (1000, 'Specific', 'ID', 'specific.id@company.com', 80000.00, 1);
 
 SET IDENTITY_INSERT Employees OFF;
@@ -926,7 +926,7 @@ IF NOT EXISTS (
     WHERE Email = 'unique.email@company.com'
 )
 BEGIN
-    INSERT INTO Employees (FirstName, LastName, Email, Salary, DepartmentID)
+    INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID)
     VALUES ('Unique', 'User', 'unique.email@company.com', 70000.00, 1);
 END
 ELSE

@@ -102,17 +102,17 @@ SELECT
     e1.EmployeeID,
     e1.FirstName + ' ' + e1.LastName AS EmployeeName,
     e1.Department,
-    e1.Salary,
+    e1.BaseSalary,
     
     -- Correlated subquery for department ranking
     (SELECT COUNT(*)
      FROM Employees e2 
      WHERE e2.Department = e1.Department 
-         AND e2.Salary >= e1.Salary) AS DepartmentSalaryRank,
+         AND e2.BaseSalary >= e1.BaseSalary) AS DepartmentSalaryRank,
     
     -- Correlated subquery for percentage calculation
-    CAST(e1.Salary AS DECIMAL(10,2)) / 
-    (SELECT AVG(Salary) FROM Employees e3 WHERE e3.Department = e1.Department) * 100 AS PercentOfDeptAverage,
+    CAST(e1.BaseSalary AS DECIMAL(10,2)) / 
+    (SELECT AVG(BaseSalary) FROM Employees e3 WHERE e3.Department = e1.Department) * 100 AS PercentOfDeptAverage,
     
     -- Correlated EXISTS subquery
     CASE 
@@ -124,7 +124,7 @@ SELECT
     
 FROM Employees e1
 WHERE e1.IsActive = 1
-ORDER BY e1.Department, e1.Salary DESC;
+ORDER BY e1.Department, e1.BaseSalary DESC;
 ```
 
 #### **EXISTS vs IN Performance Comparison**
@@ -256,7 +256,7 @@ WITH EmployeeHierarchy AS (
         JobTitle,
         ManagerID,
         Department,
-        Salary,
+        BaseSalary,
         0 AS Level,  -- Top level
         CAST(FirstName + ' ' + LastName AS NVARCHAR(MAX)) AS HierarchyPath
     FROM Employees
@@ -271,7 +271,7 @@ WITH EmployeeHierarchy AS (
         e.JobTitle,
         e.ManagerID,
         e.Department,
-        e.Salary,
+        e.BaseSalary,
         eh.Level + 1,
         eh.HierarchyPath + ' > ' + e.FirstName + ' ' + e.LastName
     FROM Employees e
@@ -283,7 +283,7 @@ SELECT
     REPLICATE('  ', Level) + EmployeeName AS IndentedName,  -- Visual hierarchy
     JobTitle,
     Department,
-    Salary,
+    BaseSalary,
     HierarchyPath,
     -- Calculate span of control
     (SELECT COUNT(*) FROM Employees e WHERE e.ManagerID = eh.EmployeeID) AS DirectReports,
@@ -538,11 +538,11 @@ SELECT
     e.EmployeeID,
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     e.Department,
-    e.Salary,
+    e.BaseSalary,
     (SELECT COUNT(*) 
      FROM Employees e2 
      WHERE e2.Department = e.Department 
-         AND e2.Salary > e.Salary) + 1 AS DepartmentRank
+         AND e2.BaseSalary > e.BaseSalary) + 1 AS DepartmentRank
 FROM Employees e
 WHERE e.IsActive = 1
 ORDER BY e.Department, DepartmentRank;
@@ -552,8 +552,8 @@ SELECT
     EmployeeID,
     FirstName + ' ' + LastName AS EmployeeName,
     Department,
-    Salary,
-    RANK() OVER (PARTITION BY Department ORDER BY Salary DESC) AS DepartmentRank
+    BaseSalary,
+    RANK() OVER (PARTITION BY Department ORDER BY BaseSalary DESC) AS DepartmentRank
 FROM Employees
 WHERE IsActive = 1
 ORDER BY Department, DepartmentRank;

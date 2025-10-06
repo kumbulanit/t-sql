@@ -60,7 +60,7 @@ ORDER BY TABLE_NAME, ORDINAL_POSITION;
 - Employee records (50+ employees)
 - Department information (5 departments)
 - Project assignments and history
-- Salary and performance data
+- BaseSalary and performance data
 
 ---
 
@@ -86,8 +86,8 @@ SELECT FirstName, LastName, Department FROM Employees;
 SELECT 
     FirstName,
     LastName,
-    Salary,
-    Salary * 12 AS AnnualSalary
+    BaseSalary,
+    BaseSalary * 12 AS AnnualSalary
 FROM Employees;
 
 -- Select literal values
@@ -125,7 +125,7 @@ SELECT
     LastName,          -- Last name first
     FirstName,         -- Then first name
     Department,        -- Department context
-    Salary            -- Financial information last
+    BaseSalary            -- Financial information last
 FROM Employees;
 
 -- Include only necessary columns for performance
@@ -189,14 +189,14 @@ SELECT
     EmployeeID AS [Employee ID],
     FirstName AS [First Name],
     LastName AS [Last Name],
-    Salary AS [Annual Salary],
+    BaseSalary AS [Annual BaseSalary],
     Department AS [Department Name]
 FROM Employees;
 
 -- Calculated columns with aliases
 SELECT 
     FirstName + ' ' + LastName AS [Full Name],
-    Salary / 12 AS [Monthly Salary],
+    BaseSalary / 12 AS [Monthly BaseSalary],
     YEAR(HireDate) AS [Hire Year],
     DATEDIFF(YEAR, HireDate, GETDATE()) AS [Years of Service]
 FROM Employees;
@@ -206,7 +206,7 @@ SELECT
     EmployeeID AS ID,
     FirstName + ' ' + LastName AS Name,
     Department AS Dept,
-    FORMAT(Salary, 'C') AS Compensation
+    FORMAT(BaseSalary, 'C') AS Compensation
 FROM Employees;
 ```
 
@@ -228,9 +228,9 @@ SELECT * FROM Employees
 WHERE Department = 'Information Technology';
 
 -- Numeric comparisons
-SELECT FirstName, LastName, Salary
+SELECT FirstName, LastName, BaseSalary
 FROM Employees 
-WHERE Salary > 70000;
+WHERE BaseSalary > 70000;
 
 -- Date comparisons
 SELECT FirstName, LastName, HireDate
@@ -247,7 +247,7 @@ WHERE LastName LIKE 'Smith%';
 ```sql
 -- AND operator
 SELECT * FROM Employees 
-WHERE Department = 'IT' AND Salary > 75000;
+WHERE Department = 'IT' AND BaseSalary > 75000;
 
 -- OR operator
 SELECT * FROM Employees 
@@ -256,7 +256,7 @@ WHERE Department = 'IT' OR Department = 'Finance';
 -- Complex conditions with parentheses
 SELECT * FROM Employees 
 WHERE (Department = 'IT' OR Department = 'Finance') 
-  AND Salary > 60000;
+  AND BaseSalary > 60000;
 ```
 
 ---
@@ -267,19 +267,19 @@ WHERE (Department = 'IT' OR Department = 'Finance')
 **Comparison Operator Examples**:
 ```sql
 -- Equality and inequality
-SELECT * FROM Employees WHERE Salary = 75000;      -- Equal
-SELECT * FROM Employees WHERE Salary <> 75000;     -- Not equal
-SELECT * FROM Employees WHERE Salary != 75000;     -- Not equal (alternative)
+SELECT * FROM Employees WHERE BaseSalary = 75000;      -- Equal
+SELECT * FROM Employees WHERE BaseSalary <> 75000;     -- Not equal
+SELECT * FROM Employees WHERE BaseSalary != 75000;     -- Not equal (alternative)
 
 -- Range comparisons
-SELECT * FROM Employees WHERE Salary > 60000;      -- Greater than
-SELECT * FROM Employees WHERE Salary >= 60000;     -- Greater than or equal
-SELECT * FROM Employees WHERE Salary < 80000;      -- Less than
-SELECT * FROM Employees WHERE Salary <= 80000;     -- Less than or equal
+SELECT * FROM Employees WHERE BaseSalary > 60000;      -- Greater than
+SELECT * FROM Employees WHERE BaseSalary >= 60000;     -- Greater than or equal
+SELECT * FROM Employees WHERE BaseSalary < 80000;      -- Less than
+SELECT * FROM Employees WHERE BaseSalary <= 80000;     -- Less than or equal
 
 -- Range operations
 SELECT * FROM Employees 
-WHERE Salary BETWEEN 60000 AND 80000;              -- Inclusive range
+WHERE BaseSalary BETWEEN 60000 AND 80000;              -- Inclusive range
 
 -- Set membership
 SELECT * FROM Employees 
@@ -329,23 +329,23 @@ SELECT * FROM Employees WHERE LastName LIKE '[^S]%';   -- Doesn't start with S
 **Basic Sorting**:
 ```sql
 -- Single column sorting
-SELECT FirstName, LastName, Salary 
+SELECT FirstName, LastName, BaseSalary 
 FROM Employees 
 ORDER BY LastName;                    -- Ascending (default)
 
-SELECT FirstName, LastName, Salary 
+SELECT FirstName, LastName, BaseSalary 
 FROM Employees 
-ORDER BY Salary DESC;                 -- Descending
+ORDER BY BaseSalary DESC;                 -- Descending
 
 -- Multiple column sorting
-SELECT FirstName, LastName, Department, Salary 
+SELECT FirstName, LastName, Department, BaseSalary 
 FROM Employees 
 ORDER BY Department, LastName, FirstName;  -- Multiple levels
 
 -- Mixed sorting directions
-SELECT FirstName, LastName, Department, Salary 
+SELECT FirstName, LastName, Department, BaseSalary 
 FROM Employees 
-ORDER BY Department ASC, Salary DESC;      -- Department A-Z, Salary high-low
+ORDER BY Department ASC, BaseSalary DESC;      -- Department A-Z, BaseSalary high-low
 ```
 
 **Advanced Sorting**:
@@ -354,15 +354,15 @@ ORDER BY Department ASC, Salary DESC;      -- Department A-Z, Salary high-low
 SELECT 
     FirstName,
     LastName,
-    Salary,
-    Salary * 12 AS AnnualSalary
+    BaseSalary,
+    BaseSalary * 12 AS AnnualSalary
 FROM Employees 
 ORDER BY AnnualSalary DESC;
 
 -- Sort by column position (not recommended)
-SELECT FirstName, LastName, Salary 
+SELECT FirstName, LastName, BaseSalary 
 FROM Employees 
-ORDER BY 3 DESC;                      -- Sort by 3rd column (Salary)
+ORDER BY 3 DESC;                      -- Sort by 3rd column (BaseSalary)
 ```
 
 ---
@@ -376,10 +376,10 @@ ORDER BY 3 DESC;                      -- Sort by 3rd column (Salary)
 SELECT 
     FirstName,
     LastName,
-    Salary,
-    Salary * 1.10 AS SalaryWithRaise,      -- 10% increase
-    Salary / 12 AS MonthlySalary,          -- Monthly amount
-    Salary * 0.15 AS EstimatedTax          -- 15% tax estimate
+    BaseSalary,
+    BaseSalary * 1.10 AS SalaryWithRaise,      -- 10% increase
+    BaseSalary / 12 AS MonthlySalary,          -- Monthly amount
+    BaseSalary * 0.15 AS EstimatedTax          -- 15% tax estimate
 FROM Employees;
 
 -- Date calculations
@@ -420,9 +420,9 @@ FROM Employees;
 
 -- Decimal operations
 SELECT 
-    Salary,
-    CAST(Salary AS INT) AS SalaryRounded,
-    ROUND(Salary / 12, 2) AS MonthlySalary
+    BaseSalary,
+    CAST(BaseSalary AS INT) AS SalaryRounded,
+    ROUND(BaseSalary / 12, 2) AS MonthlySalary
 FROM Employees;
 ```
 
@@ -461,22 +461,22 @@ FROM Employees;
 -- Multiple AND conditions
 SELECT * FROM Employees 
 WHERE Department = 'IT' 
-  AND Salary > 70000 
+  AND BaseSalary > 70000 
   AND YEAR(HireDate) >= 2020;
 
 -- OR conditions with precedence
 SELECT * FROM Employees 
 WHERE (Department = 'IT' OR Department = 'Finance') 
-  AND Salary > 65000;
+  AND BaseSalary > 65000;
 
 -- NOT operator usage
 SELECT * FROM Employees 
-WHERE NOT (Department = 'HR' OR Salary < 50000);
+WHERE NOT (Department = 'HR' OR BaseSalary < 50000);
 
 -- Complex business logic
 SELECT * FROM Employees 
-WHERE (Department = 'IT' AND Salary > 75000)
-   OR (Department = 'Finance' AND Salary > 70000)
+WHERE (Department = 'IT' AND BaseSalary > 75000)
+   OR (Department = 'Finance' AND BaseSalary > 70000)
    OR (Department = 'HR' AND YEAR(HireDate) < 2020);
 ```
 
@@ -497,10 +497,10 @@ WHERE (Department = 'IT' AND Salary > 75000)
 SELECT 
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     CASE 
-        WHEN Salary > 80000 THEN 'High'
-        WHEN Salary > 60000 THEN 'Medium'
+        WHEN BaseSalary > 80000 THEN 'High'
+        WHEN BaseSalary > 60000 THEN 'Medium'
         ELSE 'Entry Level'
     END AS SalaryCategory
 FROM Employees;
@@ -525,9 +525,9 @@ FROM Employees;
 SELECT 
     FirstName + ' ' + LastName AS FullName,
     CASE 
-        WHEN Department = 'IT' AND Salary > 75000 THEN 'Senior IT Professional'
+        WHEN Department = 'IT' AND BaseSalary > 75000 THEN 'Senior IT Professional'
         WHEN Department = 'IT' THEN 'IT Professional'
-        WHEN Salary > 80000 THEN 'Senior Professional'
+        WHEN BaseSalary > 80000 THEN 'Senior Professional'
         ELSE 'Professional'
     END AS JobLevel
 FROM Employees;
@@ -584,10 +584,10 @@ SELECT COUNT(*) AS ITEmployees FROM Employees WHERE Department = 'IT';
 -- Statistical analysis
 SELECT 
     COUNT(*) AS EmployeeCount,
-    AVG(Salary) AS AverageSalary,
-    MIN(Salary) AS MinimumSalary,
-    MAX(Salary) AS MaximumSalary,
-    SUM(Salary) AS TotalPayroll
+    AVG(BaseSalary) AS AverageSalary,
+    MIN(BaseSalary) AS MinimumSalary,
+    MAX(BaseSalary) AS MaximumSalary,
+    SUM(BaseSalary) AS TotalPayroll
 FROM Employees
 WHERE Department = 'IT';
 
@@ -633,9 +633,9 @@ SELECT * FROM Employees WHERE MiddleName IS NULL;
 **Logic Errors**:
 ```sql
 -- Mistake: Incorrect operator precedence
--- SELECT * FROM Employees WHERE Department = 'IT' OR 'Finance' AND Salary > 70000;
+-- SELECT * FROM Employees WHERE Department = 'IT' OR 'Finance' AND BaseSalary > 70000;
 -- Correct:
-SELECT * FROM Employees WHERE (Department = 'IT' OR Department = 'Finance') AND Salary > 70000;
+SELECT * FROM Employees WHERE (Department = 'IT' OR Department = 'Finance') AND BaseSalary > 70000;
 ```
 
 **Debugging Techniques**:
@@ -656,7 +656,7 @@ SELECT
     FirstName + ' ' + LastName AS NewHire,
     Department,
     HireDate,
-    Salary
+    BaseSalary
 FROM Employees 
 WHERE YEAR(HireDate) = YEAR(GETDATE())
 ORDER BY HireDate DESC;
@@ -665,14 +665,14 @@ ORDER BY HireDate DESC;
 SELECT 
     FirstName + ' ' + LastName AS Employee,
     Department,
-    Salary,
+    BaseSalary,
     CASE 
-        WHEN Salary > 80000 THEN 'Retention Priority'
+        WHEN BaseSalary > 80000 THEN 'Retention Priority'
         ELSE 'Standard'
     END AS RetentionCategory
 FROM Employees 
 WHERE Department IN ('IT', 'Finance')
-ORDER BY Salary DESC;
+ORDER BY BaseSalary DESC;
 ```
 
 **Financial Analysis**:
@@ -681,12 +681,12 @@ ORDER BY Salary DESC;
 SELECT 
     Department,
     COUNT(*) AS HeadCount,
-    AVG(Salary) AS AvgSalary,
-    SUM(Salary) AS TotalCost,
-    FORMAT(SUM(Salary), 'C') AS FormattedCost
+    AVG(BaseSalary) AS AvgSalary,
+    SUM(BaseSalary) AS TotalCost,
+    FORMAT(SUM(BaseSalary), 'C') AS FormattedCost
 FROM Employees 
 GROUP BY Department
-ORDER BY SUM(Salary) DESC;
+ORDER BY SUM(BaseSalary) DESC;
 ```
 
 ---
@@ -711,17 +711,17 @@ SELECT
     e.EmployeeID AS ID,
     e.FirstName + ' ' + e.LastName AS [Full Name],
     e.Department,
-    FORMAT(e.Salary, 'C') AS [Formatted Salary],
+    FORMAT(e.BaseSalary, 'C') AS [Formatted BaseSalary],
     DATEDIFF(YEAR, e.HireDate, GETDATE()) AS [Years of Service],
     CASE 
-        WHEN e.Salary > 80000 THEN 'Senior Level'
-        WHEN e.Salary > 60000 THEN 'Mid Level'
+        WHEN e.BaseSalary > 80000 THEN 'Senior Level'
+        WHEN e.BaseSalary > 60000 THEN 'Mid Level'
         ELSE 'Entry Level'
     END AS [Career Level]
 FROM Employees e
 WHERE e.Department IN ('IT', 'Finance') 
-  AND e.Salary > 50000
-ORDER BY e.Department, e.Salary DESC;
+  AND e.BaseSalary > 50000
+ORDER BY e.Department, e.BaseSalary DESC;
 ```
 
 ---

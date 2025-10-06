@@ -66,9 +66,9 @@ ORDER BY columns;
 SELECT TOP (5) 
     FirstName,
     LastName,
-    Salary
+    BaseSalary
 FROM Employees
-ORDER BY Salary DESC;
+ORDER BY BaseSalary DESC;
 
 -- Get top 10 most recent orders
 SELECT TOP (10)
@@ -86,9 +86,9 @@ ORDER BY OrderDate DESC;
 SELECT TOP (10) PERCENT
     FirstName,
     LastName,
-    Salary
+    BaseSalary
 FROM Employees
-ORDER BY Salary DESC;
+ORDER BY BaseSalary DESC;
 
 -- Get top 5% of orders by value
 SELECT TOP (5) PERCENT
@@ -147,9 +147,9 @@ FETCH FIRST m ROWS ONLY;
 │                        OFFSET-FETCH vs TOP Comparison                      │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  Original Data (Ordered by Salary DESC):                                   │
+│  Original Data (Ordered by BaseSalary DESC):                                   │
 │  ┌─────┬─────────────────┬─────────┐                                        │
-│  │ Row │      Name       │ Salary  │                                        │
+│  │ Row │      Name       │ BaseSalary  │                                        │
 │  ├─────┼─────────────────┼─────────┤                                        │
 │  │  1  │ Smith, John     │ $95,000 │                                        │
 │  │  2  │ Johnson, Sarah  │ $92,000 │                                        │
@@ -165,7 +165,7 @@ FETCH FIRST m ROWS ONLY;
 │                                                                             │
 │  TOP 3:                              OFFSET 3 FETCH NEXT 3:                │
 │  ┌─────┬─────────────────┬─────────┐ ┌─────┬─────────────────┬─────────┐    │
-│  │ Row │      Name       │ Salary  │ │ Row │      Name       │ Salary  │    │
+│  │ Row │      Name       │ BaseSalary  │ │ Row │      Name       │ BaseSalary  │    │
 │  ├─────┼─────────────────┼─────────┤ ├─────┼─────────────────┼─────────┤    │
 │  │  1  │ Smith, John     │ $95,000 │ │  4  │ Davis, Lisa     │ $85,000 │    │
 │  │  2  │ Johnson, Sarah  │ $92,000 │ │  5  │ Wilson, Tom     │ $82,000 │    │
@@ -221,7 +221,7 @@ FETCH FIRST m ROWS ONLY;
 SELECT 
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     HireDate
 FROM Employees
 ORDER BY LastName, FirstName
@@ -232,7 +232,7 @@ FETCH NEXT 10 ROWS ONLY;
 SELECT 
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     HireDate
 FROM Employees
 ORDER BY LastName, FirstName
@@ -243,7 +243,7 @@ FETCH NEXT 10 ROWS ONLY;
 SELECT 
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     HireDate
 FROM Employees
 ORDER BY LastName, FirstName
@@ -256,7 +256,7 @@ FETCH NEXT 10 ROWS ONLY;
 -- Parameterized pagination function
 DECLARE @PageNumber INT = 3;        -- Page to retrieve (1-based)
 DECLARE @PageSize INT = 15;         -- Records per page
-DECLARE @SortColumn NVARCHAR(50) = 'Salary';
+DECLARE @SortColumn NVARCHAR(50) = 'BaseSalary';
 DECLARE @SortDirection NVARCHAR(4) = 'DESC';
 
 -- Calculate offset
@@ -267,15 +267,15 @@ SELECT
     FirstName,
     LastName,
     Title,
-    Salary,
+    BaseSalary,
     HireDate,
     DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 ORDER BY 
-    CASE WHEN @SortColumn = 'Salary' AND @SortDirection = 'ASC' THEN Salary END ASC,
-    CASE WHEN @SortColumn = 'Salary' AND @SortDirection = 'DESC' THEN Salary END DESC,
+    CASE WHEN @SortColumn = 'BaseSalary' AND @SortDirection = 'ASC' THEN BaseSalary END ASC,
+    CASE WHEN @SortColumn = 'BaseSalary' AND @SortDirection = 'DESC' THEN BaseSalary END DESC,
     CASE WHEN @SortColumn = 'Name' AND @SortDirection = 'ASC' THEN LastName END ASC,
     CASE WHEN @SortColumn = 'Name' AND @SortDirection = 'DESC' THEN LastName END DESC,
     CASE WHEN @SortColumn = 'HireDate' AND @SortDirection = 'ASC' THEN HireDate END ASC,
@@ -291,7 +291,7 @@ SELECT
     e.FirstName,
     e.LastName,
     e.Title,
-    e.Salary,
+    e.BaseSalary,
     d.DepartmentName,
     COUNT(ep.ProjectID) AS ActiveProjects
 FROM Employees e
@@ -299,10 +299,10 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.Status = 'Active'
 WHERE e.IsActive = 1
-GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.Salary, d.DepartmentName
+GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.BaseSalary, d.DepartmentName
 ORDER BY 
     ActiveProjects DESC,      -- Most active employees first
-    Salary DESC,              -- Then by salary
+    BaseSalary DESC,              -- Then by salary
     LastName,                 -- Then alphabetically
     FirstName
 OFFSET 20 ROWS
@@ -319,7 +319,7 @@ WITH EmployeeData AS (
         e.FirstName,
         e.LastName,
         e.Title,
-        e.Salary,
+        e.BaseSalary,
         d.DepartmentName,
         COUNT(*) OVER() AS TotalRecords
     FROM Employees e
@@ -335,7 +335,7 @@ SELECT
     FirstName,
     LastName,
     Title,
-    Salary,
+    BaseSalary,
     DepartmentName,
     TotalRecords,
     CEILING(CAST(TotalRecords AS FLOAT) / 10) AS TotalPages,
@@ -355,13 +355,13 @@ WITH RankedEmployees AS (
     SELECT 
         FirstName,
         LastName,
-        Salary,
+        BaseSalary,
         HireDate,
-        ROW_NUMBER() OVER (ORDER BY Salary DESC, EmployeeID) AS RowNum
+        ROW_NUMBER() OVER (ORDER BY BaseSalary DESC, EmployeeID) AS RowNum
     FROM Employees
     WHERE IsActive = 1
 )
-SELECT FirstName, LastName, Salary, HireDate
+SELECT FirstName, LastName, BaseSalary, HireDate
 FROM RankedEmployees
 WHERE RowNum BETWEEN 101 AND 110;  -- Much faster than OFFSET 100
 
@@ -370,13 +370,13 @@ WHERE RowNum BETWEEN 101 AND 110;  -- Much faster than OFFSET 100
 SELECT TOP (10)
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     EmployeeID
 FROM Employees
 WHERE IsActive = 1
-  AND (Salary < @LastSalary 
-       OR (Salary = @LastSalary AND EmployeeID > @LastEmployeeID))
-ORDER BY Salary DESC, EmployeeID;
+  AND (BaseSalary < @LastSalary 
+       OR (BaseSalary = @LastSalary AND EmployeeID > @LastEmployeeID))
+ORDER BY BaseSalary DESC, EmployeeID;
 ```
 
 ### TOP with Complex Business Logic
@@ -388,7 +388,7 @@ WITH EmployeePerformance AS (
         e.FirstName,
         e.LastName,
         e.Title,
-        e.Salary,
+        e.BaseSalary,
         d.DepartmentName,
         COUNT(ep.ProjectID) AS ProjectCount,
         AVG(ep.HoursWorked / NULLIF(ep.HoursAllocated, 0)) AS AvgEfficiency,
@@ -400,8 +400,8 @@ WITH EmployeePerformance AS (
                   WHEN AVG(ep.HoursWorked / NULLIF(ep.HoursAllocated, 0)) >= 1.0 THEN 15
                   ELSE 5 END) +
             (CASE WHEN COUNT(es.SkillID) >= 5 THEN 20 ELSE COUNT(es.SkillID) * 4 END) +
-            (CASE WHEN e.Salary >= 80000 THEN 15 
-                  WHEN e.Salary >= 60000 THEN 10 
+            (CASE WHEN e.BaseSalary >= 80000 THEN 15 
+                  WHEN e.BaseSalary >= 60000 THEN 10 
                   ELSE 5 END)
         ) AS PerformanceScore
     FROM Employees e
@@ -409,20 +409,20 @@ WITH EmployeePerformance AS (
     LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
     WHERE e.IsActive = 1
-    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.Salary, d.DepartmentName
+    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.BaseSalary, d.DepartmentName
 )
 -- Top 10 performers overall
 SELECT TOP (10)
     FirstName + ' ' + LastName AS EmployeeName,
     Title,
     DepartmentName,
-    FORMAT(Salary, 'C') AS FormattedSalary,
+    FORMAT(BaseSalary, 'C') AS FormattedSalary,
     ProjectCount,
     CAST(AvgEfficiency * 100 AS DECIMAL(5,1)) AS EfficiencyPercent,
     SkillCount,
     PerformanceScore
 FROM EmployeePerformance
-ORDER BY PerformanceScore DESC, Salary DESC;
+ORDER BY PerformanceScore DESC, BaseSalary DESC;
 ```
 
 ## Pagination Patterns and Best Practices
@@ -481,7 +481,7 @@ WITH FilteredEmployees AS (
         e.FirstName,
         e.LastName,
         e.Title,
-        e.Salary,
+        e.BaseSalary,
         e.HireDate,
         d.DepartmentName
     FROM Employees e
@@ -492,7 +492,7 @@ WITH FilteredEmployees AS (
            OR e.LastName LIKE '%' + @SearchTerm + '%'
            OR e.Title LIKE '%' + @SearchTerm + '%')
       AND (@DepartmentFilter IS NULL OR e.DepartmentID = @DepartmentFilter)
-      AND e.Salary >= @MinSalary
+      AND e.BaseSalary >= @MinSalary
 ),
 PaginatedResults AS (
     SELECT *,
@@ -505,7 +505,7 @@ SELECT
     FirstName,
     LastName,
     Title,
-    FORMAT(Salary, 'C') AS FormattedSalary,
+    FORMAT(BaseSalary, 'C') AS FormattedSalary,
     HireDate,
     DepartmentName,
     TotalRecords,
@@ -525,23 +525,23 @@ ORDER BY RowNum;
 SELECT TOP (5)
     d.DepartmentName,
     COUNT(e.EmployeeID) AS EmployeeCount,
-    FORMAT(AVG(e.Salary), 'C0') AS AvgSalary,
-    FORMAT(MAX(e.Salary), 'C0') AS MaxSalary
+    FORMAT(AVG(e.BaseSalary), 'C0') AS AvgSalary,
+    FORMAT(MAX(e.BaseSalary), 'C0') AS MaxSalary
 FROM Departments d
 INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
 WHERE e.IsActive = 1
 GROUP BY d.DepartmentName
-ORDER BY AVG(e.Salary) DESC;
+ORDER BY AVG(e.BaseSalary) DESC;
 
 -- Bottom 10% performers need development
 SELECT TOP (10) PERCENT
     FirstName + ' ' + LastName AS EmployeeName,
     Title,
-    Salary,
+    BaseSalary,
     'Requires development plan' AS ActionRequired
 FROM Employees
 WHERE IsActive = 1
-ORDER BY Salary ASC, HireDate DESC;
+ORDER BY BaseSalary ASC, HireDate DESC;
 ```
 
 ### Data Sampling
@@ -551,7 +551,7 @@ SELECT TOP (100)
     FirstName,
     LastName,
     DepartmentName,
-    Salary
+    BaseSalary
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
@@ -564,7 +564,7 @@ WITH RankedEmployees AS (
     FROM Employees
     WHERE IsActive = 1
 )
-SELECT FirstName, LastName, Salary
+SELECT FirstName, LastName, BaseSalary
 FROM RankedEmployees
 WHERE RowNum % 10 = 1;  -- Every 10th record
 ```
@@ -574,34 +574,34 @@ WHERE RowNum % 10 = 1;  -- Every 10th record
 ### Performance Optimization
 ```sql
 -- Good: Use specific ORDER BY for consistent results
-SELECT TOP (10) FirstName, LastName, Salary
+SELECT TOP (10) FirstName, LastName, BaseSalary
 FROM Employees
-ORDER BY Salary DESC, EmployeeID;  -- Include unique column for ties
+ORDER BY BaseSalary DESC, EmployeeID;  -- Include unique column for ties
 
 -- Good: Index supporting ORDER BY
-CREATE INDEX IX_Employees_Salary_ID ON Employees (Salary DESC, EmployeeID);
+CREATE INDEX IX_Employees_Salary_ID ON Employees (BaseSalary DESC, EmployeeID);
 
 -- Good: Filter before TOP/OFFSET-FETCH
-SELECT TOP (50) FirstName, LastName, Salary
+SELECT TOP (50) FirstName, LastName, BaseSalary
 FROM Employees
 WHERE IsActive = 1 AND DepartmentID IN (1, 2, 3)
-ORDER BY Salary DESC;
+ORDER BY BaseSalary DESC;
 ```
 
 ### Consistent Pagination
 ```sql
 -- Always include a unique column in ORDER BY for deterministic results
-SELECT FirstName, LastName, Salary
+SELECT FirstName, LastName, BaseSalary
 FROM Employees
-ORDER BY Salary DESC, EmployeeID  -- EmployeeID ensures deterministic ordering
+ORDER BY BaseSalary DESC, EmployeeID  -- EmployeeID ensures deterministic ordering
 OFFSET 20 ROWS
 FETCH NEXT 10 ROWS ONLY;
 
 -- Handle ties appropriately
 SELECT TOP (10) WITH TIES
-    FirstName, LastName, Salary
+    FirstName, LastName, BaseSalary
 FROM Employees
-ORDER BY Salary DESC;  -- Includes all employees tied at 10th place salary
+ORDER BY BaseSalary DESC;  -- Includes all employees tied at 10th place salary
 ```
 
 ## Summary

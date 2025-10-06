@@ -38,14 +38,14 @@ SELECT
     COUNT(DISTINCT JobLevelID) AS UniqueLevels,
     
     -- Financial aggregates
-    SUM(Salary) AS TotalPayroll,
-    AVG(Salary) AS AverageSalary,
-    MIN(Salary) AS MinimumSalary,
-    MAX(Salary) AS MaximumSalary,
+    SUM(BaseSalary) AS TotalPayroll,
+    AVG(BaseSalary) AS AverageSalary,
+    MIN(BaseSalary) AS MinimumSalary,
+    MAX(BaseSalary) AS MaximumSalary,
     
     -- Statistical measures
-    STDEV(Salary) AS SalaryStandardDeviation,
-    VAR(Salary) AS SalaryVariance
+    STDEV(BaseSalary) AS SalaryStandardDeviation,
+    VAR(BaseSalary) AS SalaryVariance
 FROM Employees
 WHERE IsActive = 1
 GROUP BY DepartmentID;
@@ -87,7 +87,7 @@ HAVING COUNT(*) >= 5;  -- Minimum sample size for statistical significance
 SELECT 
     Department,
     COUNT(*) AS EmployeeCount,
-    AVG(Salary) AS AvgSalary
+    AVG(BaseSalary) AS AvgSalary
 FROM Employees
 GROUP BY Department;
 
@@ -96,7 +96,7 @@ SELECT
     Department,
     JobLevel,
     COUNT(*) AS EmployeeCount,
-    AVG(Salary) AS AvgSalary,
+    AVG(BaseSalary) AS AvgSalary,
     AVG(DATEDIFF(YEAR, HireDate, GETDATE())) AS AvgTenure
 FROM Employees
 GROUP BY Department, JobLevel
@@ -128,7 +128,7 @@ SELECT
     ISNULL(Department, 'ALL DEPARTMENTS') AS Department,
     ISNULL(JobLevel, 'ALL LEVELS') AS JobLevel,
     COUNT(*) AS EmployeeCount,
-    AVG(Salary) AS AvgSalary
+    AVG(BaseSalary) AS AvgSalary
 FROM Employees
 GROUP BY CUBE(Department, JobLevel);
 ```
@@ -143,14 +143,14 @@ GROUP BY CUBE(Department, JobLevel);
 SELECT 
     DepartmentID,
     COUNT(*) AS EmployeeCount,
-    AVG(Salary) AS AvgSalary,
-    SUM(Salary) AS TotalPayroll,
+    AVG(BaseSalary) AS AvgSalary,
+    SUM(BaseSalary) AS TotalPayroll,
     MAX(HireDate) AS MostRecentHire
 FROM Employees
 WHERE IsActive = 1
 GROUP BY DepartmentID
 HAVING COUNT(*) >= 10                    -- Departments with at least 10 employees
-    AND AVG(Salary) > 60000              -- Above-average compensation
+    AND AVG(BaseSalary) > 60000              -- Above-average compensation
     AND MAX(HireDate) >= DATEADD(YEAR, -2, GETDATE())  -- Recent hiring activity
 ORDER BY AvgSalary DESC;
 ```
@@ -195,23 +195,23 @@ SELECT
     FirstName,
     LastName,
     DepartmentID,
-    Salary,
+    BaseSalary,
     
     -- Department-level aggregates
-    AVG(Salary) OVER (PARTITION BY DepartmentID) AS DeptAvgSalary,
+    AVG(BaseSalary) OVER (PARTITION BY DepartmentID) AS DeptAvgSalary,
     COUNT(*) OVER (PARTITION BY DepartmentID) AS DeptEmployeeCount,
-    SUM(Salary) OVER (PARTITION BY DepartmentID) AS DeptTotalPayroll,
+    SUM(BaseSalary) OVER (PARTITION BY DepartmentID) AS DeptTotalPayroll,
     
     -- Running totals and rankings
-    SUM(Salary) OVER (ORDER BY EmployeeID ROWS UNBOUNDED PRECEDING) AS RunningPayrollTotal,
-    ROW_NUMBER() OVER (PARTITION BY DepartmentID ORDER BY Salary DESC) AS DeptSalaryRank,
+    SUM(BaseSalary) OVER (ORDER BY EmployeeID ROWS UNBOUNDED PRECEDING) AS RunningPayrollTotal,
+    ROW_NUMBER() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) AS DeptSalaryRank,
     
     -- Comparative analysis
-    Salary - AVG(Salary) OVER (PARTITION BY DepartmentID) AS SalaryDifference,
-    (Salary * 100.0) / SUM(Salary) OVER (PARTITION BY DepartmentID) AS PayrollPercentage
+    BaseSalary - AVG(BaseSalary) OVER (PARTITION BY DepartmentID) AS SalaryDifference,
+    (BaseSalary * 100.0) / SUM(BaseSalary) OVER (PARTITION BY DepartmentID) AS PayrollPercentage
 FROM Employees
 WHERE IsActive = 1
-ORDER BY DepartmentID, Salary DESC;
+ORDER BY DepartmentID, BaseSalary DESC;
 ```
 
 ---
@@ -260,21 +260,21 @@ SELECT
     DepartmentID,
     
     -- Conditional counts
-    COUNT(CASE WHEN Salary > 75000 THEN 1 END) AS HighEarners,
+    COUNT(CASE WHEN BaseSalary > 75000 THEN 1 END) AS HighEarners,
     COUNT(CASE WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 5 THEN 1 END) AS Veterans,
     COUNT(CASE WHEN PerformanceRating >= 4 THEN 1 END) AS HighPerformers,
     
     -- Conditional sums
-    SUM(CASE WHEN JobLevel = 'Manager' THEN Salary ELSE 0 END) AS ManagerPayroll,
-    SUM(CASE WHEN JobLevel = 'Individual Contributor' THEN Salary ELSE 0 END) AS ICPayroll,
+    SUM(CASE WHEN JobLevel = 'Manager' THEN BaseSalary ELSE 0 END) AS ManagerPayroll,
+    SUM(CASE WHEN JobLevel = 'Individual Contributor' THEN BaseSalary ELSE 0 END) AS ICPayroll,
     
     -- Conditional averages
-    AVG(CASE WHEN PerformanceRating >= 4 THEN Salary END) AS HighPerformerAvgSalary,
-    AVG(CASE WHEN PerformanceRating < 3 THEN Salary END) AS LowPerformerAvgSalary,
+    AVG(CASE WHEN PerformanceRating >= 4 THEN BaseSalary END) AS HighPerformerAvgSalary,
+    AVG(CASE WHEN PerformanceRating < 3 THEN BaseSalary END) AS LowPerformerAvgSalary,
     
     -- Complex business calculations
     (COUNT(CASE WHEN PerformanceRating >= 4 THEN 1 END) * 100.0) / COUNT(*) AS HighPerformerPercent,
-    (SUM(CASE WHEN JobLevel = 'Manager' THEN Salary ELSE 0 END) * 100.0) / SUM(Salary) AS ManagerPayrollPercent
+    (SUM(CASE WHEN JobLevel = 'Manager' THEN BaseSalary ELSE 0 END) * 100.0) / SUM(BaseSalary) AS ManagerPayrollPercent
 FROM Employees
 WHERE IsActive = 1
 GROUP BY DepartmentID
@@ -320,13 +320,13 @@ ORDER BY TotalRevenue DESC;
 -- Optimized aggregation strategies
 -- 1. Use covering indexes
 CREATE INDEX IX_Employees_Covering ON Employees (DepartmentID, IsActive) 
-INCLUDE (Salary, HireDate, PerformanceRating);
+INCLUDE (BaseSalary, HireDate, PerformanceRating);
 
 -- 2. Filter early with WHERE
 SELECT 
     DepartmentID,
     COUNT(*) AS EmployeeCount,
-    AVG(Salary) AS AvgSalary
+    AVG(BaseSalary) AS AvgSalary
 FROM Employees
 WHERE IsActive = 1  -- Filter applied before grouping
     AND HireDate >= '2020-01-01'
@@ -484,8 +484,8 @@ WITH ExecutiveSummary AS (
         'Department Performance' AS MetricCategory,
         d.DepartmentName AS Dimension,
         COUNT(e.EmployeeID) AS Volume,
-        AVG(e.Salary) AS AvgValue,
-        SUM(e.Salary) AS TotalValue,
+        AVG(e.BaseSalary) AS AvgValue,
+        SUM(e.BaseSalary) AS TotalValue,
         NULL AS CompletionRate
     FROM Departments d
         LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID AND e.IsActive = 1
@@ -549,20 +549,20 @@ SELECT
     COUNT(*) AS TotalRecords,
     COUNT(FirstName) AS RecordsWithFirstName,
     COUNT(Email) AS RecordsWithEmail,
-    COUNT(Salary) AS RecordsWithSalary,
+    COUNT(BaseSalary) AS RecordsWithSalary,
     
     -- Quality percentages
     (COUNT(FirstName) * 100.0) / COUNT(*) AS FirstNameCompleteness,
     (COUNT(Email) * 100.0) / COUNT(*) AS EmailCompleteness,
-    (COUNT(Salary) * 100.0) / COUNT(*) AS SalaryCompleteness,
+    (COUNT(BaseSalary) * 100.0) / COUNT(*) AS SalaryCompleteness,
     
     -- Value validation
     COUNT(CASE WHEN Email LIKE '%@%.%' THEN 1 END) AS ValidEmails,
-    COUNT(CASE WHEN Salary > 0 AND Salary <= 1000000 THEN 1 END) AS ReasonableSalaries,
+    COUNT(CASE WHEN BaseSalary > 0 AND BaseSalary <= 1000000 THEN 1 END) AS ReasonableSalaries,
     COUNT(CASE WHEN LEN(FirstName) >= 2 THEN 1 END) AS ValidFirstNames,
     
     -- Outlier detection
-    COUNT(CASE WHEN Salary > (SELECT AVG(Salary) + 3 * STDEV(Salary) FROM Employees WHERE IsActive = 1) THEN 1 END) AS SalaryOutliers
+    COUNT(CASE WHEN BaseSalary > (SELECT AVG(BaseSalary) + 3 * STDEV(BaseSalary) FROM Employees WHERE IsActive = 1) THEN 1 END) AS SalaryOutliers
 FROM Employees
 WHERE IsActive = 1;
 ```
@@ -593,8 +593,8 @@ BEGIN
         COUNT(DISTINCT p.ProjectID) AS ActiveProjects,
         
         -- Financial metrics
-        SUM(e.Salary) AS TotalPayroll,
-        AVG(e.Salary) AS AvgSalary,
+        SUM(e.BaseSalary) AS TotalPayroll,
+        AVG(e.BaseSalary) AS AvgSalary,
         SUM(p.Budget) AS TotalProjectRevenue,
         AVG(p.Budget) AS AvgProjectBudget,
         
@@ -679,9 +679,9 @@ CREATE VIEW vw_ExecutiveDashboard AS
 SELECT 
     Department,
     COUNT(*) AS EmployeeCount,
-    AVG(Salary) AS AvgSalary,
-    SUM(Salary) AS TotalPayroll,
-    STDEV(Salary) AS SalaryStdDev
+    AVG(BaseSalary) AS AvgSalary,
+    SUM(BaseSalary) AS TotalPayroll,
+    STDEV(BaseSalary) AS SalaryStdDev
 FROM Employees
 WHERE IsActive = 1
 GROUP BY DepartmentID, Department;

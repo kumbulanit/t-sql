@@ -741,7 +741,7 @@ WITH DataQualityAssessment AS (
             END +
             CASE 
                 WHEN e.BaseSalary IS NULL OR e.BaseSalary <= 0 
-                THEN 'Salary: Review with compensation team; '
+                THEN 'BaseSalary: Review with compensation team; '
                 ELSE ''
             END +
             CASE 

@@ -19,7 +19,7 @@ CREATE TABLE Employees (
     Phone NVARCHAR(20) NULL,
     DepartmentID INT NOT NULL,
     ManagerID INT NULL,
-    Salary DECIMAL(10,2) NOT NULL,
+    BaseSalary DECIMAL(10,2) NOT NULL,
     HireDate DATE NOT NULL,
     TerminationDate DATE NULL,
     IsActive BIT NOT NULL DEFAULT 1,
@@ -100,7 +100,7 @@ INSERT INTO Departments (DepartmentName, DepartmentCode, Budget, Location, CostC
 ('Operations', 'OPS', 600000, 'Building B - Floor 2', 'CC005'),
 ('Research & Development', 'RND', 800000, 'Building C - Floor 1', 'CC006');
 
-INSERT INTO Employees (FirstName, LastName, MiddleName, Email, Phone, DepartmentID, ManagerID, Salary, HireDate, Title, City, State, BirthDate, EmergencyContact) VALUES
+INSERT INTO Employees (FirstName, LastName, MiddleName, Email, Phone, DepartmentID, ManagerID, BaseSalary, HireDate, Title, City, State, BirthDate, EmergencyContact) VALUES
 ('John', 'Smith', 'Michael', 'john.smith@company.com', '555-0101', 1, NULL, 95000, '2020-01-15', 'IT Director', 'Seattle', 'WA', '1985-03-12', 'Jane Smith'),
 ('Sarah', 'Johnson', NULL, 'sarah.johnson@company.com', '555-0102', 1, 1, 75000, '2021-03-10', 'Senior Developer', 'Seattle', 'WA', '1990-07-22', 'Mike Johnson'),
 ('Mike', 'Davis', 'Robert', 'mike.davis@company.com', '555-0103', 1, 1, 65000, '2021-06-01', 'Developer', 'Bellevue', 'WA', '1992-11-08', 'Lisa Davis'),
@@ -180,7 +180,7 @@ Write queries to:
 
 1. **All Employee Information**: Select all columns from the Employees table.
 
-2. **Specific Columns**: Select only FirstName, LastName, Title, and Salary from Employees.
+2. **Specific Columns**: Select only FirstName, LastName, Title, and BaseSalary from Employees.
 
 3. **Department Information**: Select DepartmentName, Budget, and Location from Departments.
 
@@ -357,7 +357,7 @@ Write queries to:
 Create a comprehensive query that includes:
 - Employee demographics with proper aliases
 - Service tenure categorization using CASE
-- Salary position analysis within department
+- BaseSalary position analysis within department
 - Project involvement summary
 - Performance indicators using complex business rules
 - Professional presentation with meaningful column names

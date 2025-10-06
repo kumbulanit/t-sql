@@ -48,9 +48,9 @@ A predicate is a logical expression that returns TRUE, FALSE, or UNKNOWN (due to
 ### Comparison Operators
 ```sql
 -- Equal to
-SELECT FirstName, LastName, Salary
+SELECT FirstName, LastName, BaseSalary
 FROM Employees
-WHERE Salary = 75000;
+WHERE BaseSalary = 75000;
 
 -- Not equal to (two forms)
 SELECT FirstName, LastName, DepartmentID
@@ -61,22 +61,22 @@ WHERE DepartmentID != 3;  -- or <> 3
 SELECT FirstName, LastName, HireDate
 FROM Employees
 WHERE HireDate > '2020-01-01'
-  AND Salary < 100000;
+  AND BaseSalary < 100000;
 
 -- Greater/Less than or equal to
-SELECT FirstName, LastName, Salary
+SELECT FirstName, LastName, BaseSalary
 FROM Employees
-WHERE Salary >= 50000
-  AND Salary <= 80000;
+WHERE BaseSalary >= 50000
+  AND BaseSalary <= 80000;
 ```
 
 ### BETWEEN Predicate
 ```sql
 -- Range filtering with BETWEEN (inclusive)
-SELECT FirstName, LastName, Salary
+SELECT FirstName, LastName, BaseSalary
 FROM Employees
-WHERE Salary BETWEEN 50000 AND 80000;
--- Equivalent to: Salary >= 50000 AND Salary <= 80000
+WHERE BaseSalary BETWEEN 50000 AND 80000;
+-- Equivalent to: BaseSalary >= 50000 AND BaseSalary <= 80000
 
 -- Date ranges
 SELECT FirstName, LastName, HireDate
@@ -84,10 +84,10 @@ FROM Employees
 WHERE HireDate BETWEEN '2020-01-01' AND '2022-12-31';
 
 -- NOT BETWEEN
-SELECT FirstName, LastName, Salary
+SELECT FirstName, LastName, BaseSalary
 FROM Employees
-WHERE Salary NOT BETWEEN 40000 AND 60000;
--- Equivalent to: Salary < 40000 OR Salary > 60000
+WHERE BaseSalary NOT BETWEEN 40000 AND 60000;
+-- Equivalent to: BaseSalary < 40000 OR BaseSalary > 60000
 ```
 
 ### IN Predicate
@@ -156,9 +156,9 @@ WHERE FirstName LIKE '[^A-M]%';   -- Does NOT start with A through M
 ### Combining Predicates with Logical Operators
 ```sql
 -- AND operator (all conditions must be true)
-SELECT FirstName, LastName, Salary, DepartmentID
+SELECT FirstName, LastName, BaseSalary, DepartmentID
 FROM Employees
-WHERE Salary > 70000
+WHERE BaseSalary > 70000
   AND DepartmentID = 1
   AND HireDate >= '2020-01-01';
 
@@ -167,12 +167,12 @@ SELECT FirstName, LastName, Title
 FROM Employees
 WHERE Title LIKE '%Manager%'
    OR Title LIKE '%Director%'
-   OR Salary > 90000;
+   OR BaseSalary > 90000;
 
 -- Complex combinations with parentheses
-SELECT FirstName, LastName, Salary, DepartmentID
+SELECT FirstName, LastName, BaseSalary, DepartmentID
 FROM Employees
-WHERE (Salary > 80000 OR Title LIKE '%Senior%')
+WHERE (BaseSalary > 80000 OR Title LIKE '%Senior%')
   AND DepartmentID IN (1, 2, 3)
   AND HireDate >= '2019-01-01';
 ```
@@ -189,9 +189,9 @@ FROM Employees
 WHERE ManagerID IS NOT NULL;
 
 -- Combining NULL checks with other conditions
-SELECT FirstName, LastName, Salary, MiddleName
+SELECT FirstName, LastName, BaseSalary, MiddleName
 FROM Employees
-WHERE Salary > 60000
+WHERE BaseSalary > 60000
   AND (MiddleName IS NOT NULL OR FirstName LIKE 'J%');
 ```
 
@@ -263,7 +263,7 @@ WHERE EXISTS (
 │  └─────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  Practical Example:                                                        │
-│  WHERE (Salary > 80000 OR Title LIKE '%Senior%') AND DepartmentID = 1     │
+│  WHERE (BaseSalary > 80000 OR Title LIKE '%Senior%') AND DepartmentID = 1     │
 │         └─────────── OR ──────────┘           └── AND ──┘                 │
 │                                                                             │
 │  Evaluation Order: Parentheses → AND → OR (left to right)                 │
@@ -278,7 +278,7 @@ SELECT
     e.FirstName,
     e.LastName,
     e.Title,
-    e.Salary,
+    e.BaseSalary,
     d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
@@ -288,10 +288,10 @@ WHERE
     
     -- Department-specific criteria
     AND (
-        (d.DepartmentName = 'IT' AND e.Salary >= 70000)
-        OR (d.DepartmentName = 'Finance' AND e.Salary >= 65000)
-        OR (d.DepartmentName = 'Sales' AND (e.Title LIKE '%Manager%' OR e.Salary >= 60000))
-        OR (d.DepartmentName NOT IN ('IT', 'Finance', 'Sales') AND e.Salary >= 50000)
+        (d.DepartmentName = 'IT' AND e.BaseSalary >= 70000)
+        OR (d.DepartmentName = 'Finance' AND e.BaseSalary >= 65000)
+        OR (d.DepartmentName = 'Sales' AND (e.Title LIKE '%Manager%' OR e.BaseSalary >= 60000))
+        OR (d.DepartmentName NOT IN ('IT', 'Finance', 'Sales') AND e.BaseSalary >= 50000)
     )
     
     -- Experience criteria
@@ -311,16 +311,16 @@ WHERE
 SELECT 
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsOfService,
-    Salary / DATEDIFF(YEAR, HireDate, GETDATE()) AS SalaryPerYear
+    BaseSalary / DATEDIFF(YEAR, HireDate, GETDATE()) AS SalaryPerYear
 FROM Employees
 WHERE 
     -- Filter by calculated tenure
     DATEDIFF(YEAR, HireDate, GETDATE()) BETWEEN 3 AND 10
     
     -- Filter by calculated salary efficiency
-    AND Salary / DATEDIFF(YEAR, HireDate, GETDATE()) > 15000
+    AND BaseSalary / DATEDIFF(YEAR, HireDate, GETDATE()) > 15000
     
     -- Filter by name length
     AND LEN(FirstName + LastName) <= 20
@@ -335,14 +335,14 @@ WHERE
 SELECT 
     e.FirstName,
     e.LastName,
-    e.Salary,
+    e.BaseSalary,
     d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE 
     -- Above average salary in their department
-    e.Salary > (
-        SELECT AVG(e2.Salary)
+    e.BaseSalary > (
+        SELECT AVG(e2.BaseSalary)
         FROM Employees e2
         WHERE e2.DepartmentID = e.DepartmentID
           AND e2.IsActive = 1
@@ -359,8 +359,8 @@ WHERE
     )
     
     -- Not the highest paid in department (leave room for growth)
-    AND e.Salary < (
-        SELECT MAX(e3.Salary)
+    AND e.BaseSalary < (
+        SELECT MAX(e3.BaseSalary)
         FROM Employees e3
         WHERE e3.DepartmentID = e.DepartmentID
           AND e3.IsActive = 1
@@ -378,7 +378,7 @@ WHERE
 │  SARGABLE (Search ARGument ABLE) - Can use indexes efficiently:            │
 │  ┌─────────────────────────────────────────────────────────────────────────┤
 │  │ ✅ WHERE LastName = 'Smith'                                             │
-│  │ ✅ WHERE Salary > 50000                                                 │
+│  │ ✅ WHERE BaseSalary > 50000                                                 │
 │  │ ✅ WHERE HireDate BETWEEN '2020-01-01' AND '2022-12-31'                │
 │  │ ✅ WHERE DepartmentID IN (1, 2, 3)                                      │
 │  │ ✅ WHERE LastName LIKE 'Smith%'  (leading chars specified)             │
@@ -388,7 +388,7 @@ WHERE
 │  NON-SARGABLE - Cannot use indexes efficiently:                            │
 │  ┌─────────────────────────────────────────────────────────────────────────┤
 │  │ ❌ WHERE UPPER(LastName) = 'SMITH'       (function on column)           │
-│  │ ❌ WHERE Salary * 1.1 > 55000            (expression on column)         │
+│  │ ❌ WHERE BaseSalary * 1.1 > 55000            (expression on column)         │
 │  │ ❌ WHERE YEAR(HireDate) = 2021           (function on column)           │
 │  │ ❌ WHERE LastName LIKE '%Smith'          (leading wildcard)             │
 │  │ ❌ WHERE SUBSTRING(Email, 1, 5) = 'admin' (function on column)          │
@@ -405,8 +405,8 @@ WHERE
 │  │ Use:        WHERE LastName = 'Smith'                                   │
 │  │             (or create computed column with index)                      │
 │  │                                                                         │
-│  │ Instead of: WHERE Salary * 1.1 > 55000                                 │
-│  │ Use:        WHERE Salary > 55000 / 1.1                                 │
+│  │ Instead of: WHERE BaseSalary * 1.1 > 55000                                 │
+│  │ Use:        WHERE BaseSalary > 55000 / 1.1                                 │
 │  │                                                                         │
 │  └─────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
@@ -417,7 +417,7 @@ WHERE
 ```sql
 -- Create indexes to support common filtering patterns
 CREATE INDEX IX_Employees_Active_Salary 
-ON Employees (IsActive, Salary) 
+ON Employees (IsActive, BaseSalary) 
 WHERE IsActive = 1;
 
 CREATE INDEX IX_Employees_Department_HireDate 
@@ -427,9 +427,9 @@ CREATE INDEX IX_Employees_LastName_FirstName
 ON Employees (LastName, FirstName);
 
 -- These queries will use indexes efficiently
-SELECT FirstName, LastName, Salary
+SELECT FirstName, LastName, BaseSalary
 FROM Employees
-WHERE IsActive = 1 AND Salary > 70000;  -- Uses IX_Employees_Active_Salary
+WHERE IsActive = 1 AND BaseSalary > 70000;  -- Uses IX_Employees_Active_Salary
 
 SELECT FirstName, LastName
 FROM Employees
@@ -488,7 +488,7 @@ SELECT
     e.FirstName,
     e.LastName,
     e.Title,
-    e.Salary,
+    e.BaseSalary,
     d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
@@ -509,7 +509,7 @@ WHERE
          
         -- Sales: High performers or managers
         OR (d.DepartmentName = 'Sales' 
-            AND (e.Salary >= 75000 OR e.Title LIKE '%Manager%'))
+            AND (e.BaseSalary >= 75000 OR e.Title LIKE '%Manager%'))
             
         -- Finance: Certified professionals
         OR (d.DepartmentName = 'Finance' 
@@ -523,7 +523,7 @@ WHERE
             
         -- Other departments: standard criteria
         OR (d.DepartmentName NOT IN ('IT', 'Sales', 'Finance') 
-            AND e.Salary >= 50000 
+            AND e.BaseSalary >= 50000 
             AND DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 1)
     );
 ```

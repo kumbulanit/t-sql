@@ -42,7 +42,7 @@ CREATE TABLE Employees (
     Phone NVARCHAR(20) NULL,
     DepartmentID INT NULL,
     ManagerID INT NULL,
-    Salary DECIMAL(10,2) NOT NULL,
+    BaseSalary DECIMAL(10,2) NOT NULL,
     HireDate DATE NOT NULL,
     TerminationDate DATE NULL,
     IsActive BIT NOT NULL DEFAULT 1,
@@ -150,7 +150,7 @@ INSERT INTO Departments (DepartmentName, DepartmentCode, Budget, Location, CostC
 ('Sales', 'SALES', 700000, 'Building B - Floor 3', 'CC007'),
 ('Customer Support', 'CS', 350000, 'Building A - Floor 1', 'CC008');
 
-INSERT INTO Employees (FirstName, LastName, MiddleName, Email, Phone, DepartmentID, ManagerID, Salary, HireDate, Title, EmployeeType, City, State, BirthDate, EmergencyContact) VALUES
+INSERT INTO Employees (FirstName, LastName, MiddleName, Email, Phone, DepartmentID, ManagerID, BaseSalary, HireDate, Title, EmployeeType, City, State, BirthDate, EmergencyContact) VALUES
 ('John', 'Smith', 'Michael', 'john.smith@company.com', '555-0101', 1, NULL, 120000, '2019-01-15', 'IT Director', 'Full-Time', 'Seattle', 'WA', '1985-03-12', 'Jane Smith'),
 ('Sarah', 'Johnson', NULL, 'sarah.johnson@company.com', '555-0102', 1, 1, 95000, '2020-03-10', 'Senior Developer', 'Full-Time', 'Seattle', 'WA', '1990-07-22', 'Mike Johnson'),
 ('Mike', 'Davis', 'Robert', 'mike.davis@company.com', '555-0103', 1, 1, 85000, '2021-06-01', 'Developer', 'Full-Time', 'Bellevue', 'WA', '1992-11-08', 'Lisa Davis'),
@@ -253,7 +253,7 @@ Create a comprehensive employee report showing:
 - Employee full name and title
 - Department name and location
 - Manager name (if applicable)
-- Salary and hire date
+- BaseSalary and hire date
 - Only include active employees
 - Order by department, then by salary descending
 
@@ -381,12 +381,12 @@ Create a multi-level hierarchy report showing:
 - Organizational path from employee to top executive
 - Span of control and management efficiency
 - Hierarchy depth analysis
-- Salary progression through levels
+- BaseSalary progression through levels
 
 **Question 4.1.2**: Employee Comparison and Benchmarking
 Develop peer comparison analysis:
 - Compare employees within same department
-- Salary equity analysis
+- BaseSalary equity analysis
 - Experience vs compensation alignment
 - Skills portfolio comparisons
 - Performance and development recommendations

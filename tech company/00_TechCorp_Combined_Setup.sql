@@ -291,6 +291,7 @@ CREATE TABLE Employees (
     MiddleName NVARCHAR(50) NULL,
     JobTitle NVARCHAR(100) NOT NULL,
     ReportsToEmployeeID INT NULL,
+    ManagerID INT NULL, -- Alias for ReportsToEmployeeID for training compatibility
     HireDate DATE NOT NULL,
     TerminationDate DATE NULL,
     BaseSalary DECIMAL(10,2) NOT NULL,
@@ -319,7 +320,8 @@ CREATE TABLE Employees (
     FOREIGN KEY (DepartmentID) REFERENCES Departments(DepartmentID),
     FOREIGN KEY (JobLevelID) REFERENCES JobLevels(JobLevelID),
     FOREIGN KEY (CountryID) REFERENCES Countries(CountryID),
-    FOREIGN KEY (ReportsToEmployeeID) REFERENCES Employees(EmployeeID)
+    FOREIGN KEY (ReportsToEmployeeID) REFERENCES Employees(EmployeeID),
+    FOREIGN KEY (ManagerID) REFERENCES Employees(EmployeeID)
 );
 
 PRINT 'Core tables created successfully.';
@@ -602,6 +604,23 @@ INSERT INTO Employees (CompanyID, DepartmentID, JobLevelID, EmployeeNumber, Firs
 PRINT 'Leadership employees populated successfully.';
 
 -- =============================================
+-- STEP 8.5: SYNCHRONIZE MANAGERID WITH REPORTSTOID
+-- =============================================
+PRINT 'Step 8.5: Synchronizing ManagerID fields for training compatibility...';
+
+-- Update ManagerID to match ReportsToEmployeeID for all employees
+UPDATE Employees 
+SET ManagerID = ReportsToEmployeeID;
+
+-- Update department managers (some examples)
+UPDATE Departments SET ManagerEmployeeID = 3001 WHERE DepartmentID = 2001; -- Sarah Johnson manages Engineering
+UPDATE Departments SET ManagerEmployeeID = 3003 WHERE DepartmentID = 2002; -- Jennifer Davis manages Sales  
+UPDATE Departments SET ManagerEmployeeID = 3004 WHERE DepartmentID = 2006; -- David Rodriguez manages Development
+UPDATE Departments SET ManagerEmployeeID = 3006 WHERE DepartmentID = 2014; -- Robert Thompson manages Investment Banking
+
+PRINT 'ManagerID fields synchronized successfully.';
+
+-- =============================================
 -- STEP 9: ADVANCED TABLES CREATION
 -- =============================================
 PRINT 'Step 9: Creating advanced tables...';
@@ -753,6 +772,7 @@ CREATE TABLE Projects (
     ProjectName NVARCHAR(200) NOT NULL,
     ProjectCode NVARCHAR(20) NOT NULL UNIQUE,
     ProjectTypeID INT NOT NULL,
+    ProjectManagerID INT NULL, -- Project manager (references Employees)
     StartDate DATE NOT NULL,
     EndDate DATE NULL,
     Budget DECIMAL(12,2) NULL,
@@ -762,7 +782,8 @@ CREATE TABLE Projects (
     IsActive BIT NOT NULL DEFAULT 1,
     CreatedDate DATETIME2(3) NOT NULL DEFAULT SYSDATETIME(),
     FOREIGN KEY (CompanyID) REFERENCES Companies(CompanyID),
-    FOREIGN KEY (ProjectTypeID) REFERENCES ProjectTypes(ProjectTypeID)
+    FOREIGN KEY (ProjectTypeID) REFERENCES ProjectTypes(ProjectTypeID),
+    FOREIGN KEY (ProjectManagerID) REFERENCES Employees(EmployeeID)
 );
 
 -- Employee Skills junction table
@@ -828,6 +849,19 @@ CREATE TABLE TimeTracking (
 );
 
 PRINT 'Advanced tables created successfully.';
+
+-- =============================================
+-- STEP 9.5: ADD MISSING FOREIGN KEY CONSTRAINTS
+-- =============================================
+PRINT 'Step 9.5: Adding missing foreign key constraints...';
+
+-- Add foreign key constraint for Departments.ManagerEmployeeID
+-- (This must be done after Employees table is created due to circular reference)
+ALTER TABLE Departments 
+ADD CONSTRAINT FK_Departments_ManagerEmployeeID 
+FOREIGN KEY (ManagerEmployeeID) REFERENCES Employees(EmployeeID);
+
+PRINT 'Missing foreign key constraints added successfully.';
 
 -- =============================================
 -- STEP 10: SKILLS DATA
@@ -899,34 +933,34 @@ PRINT 'Skills data populated successfully.';
 -- =============================================
 PRINT 'Step 11: Populating projects data...';
 
-INSERT INTO Projects (CompanyID, ProjectName, ProjectCode, ProjectTypeID, StartDate, EndDate, 
+INSERT INTO Projects (CompanyID, ProjectName, ProjectCode, ProjectTypeID, ProjectManagerID, StartDate, EndDate, 
     Budget, Status, Priority, Description) VALUES
 
 -- TechCorp Solutions Projects
-(1001, 'Customer Portal Redesign', 'TC-2024-001', 1, '2024-01-15', '2024-06-30', 
+(1001, 'Customer Portal Redesign', 'TC-2024-001', 1, 3002, '2024-01-15', '2024-06-30', 
     850000.00, 'Active', 'High', 'Complete redesign of customer-facing web portal with modern UI/UX'),
     
-(1001, 'API Integration Platform', 'TC-2024-002', 2, '2024-03-01', '2024-08-15', 
+(1001, 'API Integration Platform', 'TC-2024-002', 2, 3002, '2024-03-01', '2024-08-15', 
     1200000.00, 'Active', 'High', 'Unified API platform for third-party integrations'),
     
-(1001, 'Data Analytics Dashboard', 'TC-2024-003', 3, '2024-02-01', '2024-05-30', 
+(1001, 'Data Analytics Dashboard', 'TC-2024-003', 3, 3001, '2024-02-01', '2024-05-30', 
     650000.00, 'Completed', 'Medium', 'Executive dashboard for business intelligence and reporting'),
 
 -- CloudTech Innovations Projects
-(1002, 'Cloud Migration Phase 2', 'CT-2024-001', 4, '2024-01-10', '2024-07-31', 
+(1002, 'Cloud Migration Phase 2', 'CT-2024-001', 4, 3005, '2024-01-10', '2024-07-31', 
     950000.00, 'Active', 'High', 'Migration of legacy systems to Azure cloud platform'),
     
-(1002, 'DevOps Automation', 'CT-2024-002', 1, '2024-04-01', '2024-09-30', 
+(1002, 'DevOps Automation', 'CT-2024-002', 1, 3005, '2024-04-01', '2024-09-30', 
     420000.00, 'Active', 'Medium', 'Automated CI/CD pipeline implementation'),
 
 -- Global Finance Corp Projects
-(1004, 'Risk Management System', 'GF-2024-001', 1, '2024-01-05', '2024-12-31', 
+(1004, 'Risk Management System', 'GF-2024-001', 1, 3007, '2024-01-05', '2024-12-31', 
     2500000.00, 'Active', 'Critical', 'Next-generation risk assessment and management platform'),
     
-(1004, 'Regulatory Compliance Upgrade', 'GF-2024-002', 1, '2024-02-15', '2024-08-30', 
+(1004, 'Regulatory Compliance Upgrade', 'GF-2024-002', 1, 3006, '2024-02-15', '2024-08-30', 
     1800000.00, 'Active', 'High', 'System upgrades for new financial regulations compliance'),
     
-(1004, 'Trading Platform Enhancement', 'GF-2024-003', 1, '2024-03-01', '2024-10-15', 
+(1004, 'Trading Platform Enhancement', 'GF-2024-003', 1, 3007, '2024-03-01', '2024-10-15', 
     3200000.00, 'Active', 'High', 'Performance improvements and new features for trading platform');
 
 PRINT 'Projects data populated successfully.';

@@ -117,7 +117,7 @@ Complete organizational hierarchy and management analysis:
 - All employees and their reporting relationships
 - Management span of control analysis
 - Employees without proper management structure
-- Salary progression through hierarchy levels
+- BaseSalary progression through hierarchy levels
 - Organizational efficiency indicators
 - Management development opportunities
 
@@ -172,7 +172,7 @@ Build a comprehensive organizational structure analysis:
 - Employee hierarchy up to 4 management levels
 - Organizational path from employee to CEO
 - Span of control analysis for each manager
-- Salary progression and equity analysis through levels
+- BaseSalary progression and equity analysis through levels
 - Management effectiveness indicators
 - Succession planning depth assessment
 - Organizational optimization recommendations
@@ -180,7 +180,7 @@ Build a comprehensive organizational structure analysis:
 **Question 4.1.2**: Employee Peer Comparison and Benchmarking
 Create a sophisticated peer analysis system:
 - Compare employees within same department and level
-- Salary equity analysis with experience adjustment
+- BaseSalary equity analysis with experience adjustment
 - Skills portfolio comparison and gaps
 - Project performance benchmarking
 - Career progression rate analysis

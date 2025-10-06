@@ -49,7 +49,7 @@ Create a table that demonstrates proper numeric data type selection.
 -- 1. EmployeeID: Auto-incrementing integer, primary key
 -- 2. Age: Supports ages 0-150
 -- 3. DepartmentCode: Supports codes 1-9999
--- 4. Salary: Supports salaries up to $999,999.99 with exact precision
+-- 4. BaseSalary: Supports salaries up to $999,999.99 with exact precision
 -- 5. BonusPercentage: Supports percentages like 12.5% (stored as 0.125)
 -- 6. CommissionRate: Supports rates up to 99.9999% with high precision
 -- 7. YearsOfService: Supports 0-50 years
@@ -71,9 +71,9 @@ CREATE TABLE Employees (
 ### Task 1.2: Insert and Validate Numeric Data
 ```sql
 -- TODO: Insert the following employee records:
--- 1. John Smith, Age 35, Dept 1001, Salary $75,000, Bonus 15%, Commission 5.25%, 8 years service, Score 87.5
--- 2. Jane Doe, Age 29, Dept 2050, Salary $92,500.50, Bonus 12.5%, Commission 7.1234%, 5 years service, Score 94.25
--- 3. Bob Johnson, Age 42, Dept 1500, Salary $65,750.75, Bonus 10%, Commission 3.8956%, 12 years service, Score 78.9
+-- 1. John Smith, Age 35, Dept 1001, BaseSalary $75,000, Bonus 15%, Commission 5.25%, 8 years service, Score 87.5
+-- 2. Jane Doe, Age 29, Dept 2050, BaseSalary $92,500.50, Bonus 12.5%, Commission 7.1234%, 5 years service, Score 94.25
+-- 3. Bob Johnson, Age 42, Dept 1500, BaseSalary $65,750.75, Bonus 10%, Commission 3.8956%, 12 years service, Score 78.9
 
 -- Your solution here
 
@@ -91,11 +91,11 @@ CREATE TABLE Employees (
 ### Task 1.3: Numeric Calculations and Conversions
 ```sql
 -- TODO: Create a query that calculates:
--- 1. Annual bonus amount (Salary * BonusPercentage)
--- 2. Monthly commission potential (Salary * CommissionRate / 12)
--- 3. Total annual compensation (Salary + Bonus)
+-- 1. Annual bonus amount (BaseSalary * BonusPercentage)
+-- 2. Monthly commission potential (BaseSalary * CommissionRate / 12)
+-- 3. Total annual compensation (BaseSalary + Bonus)
 -- 4. Average performance score per department
--- 5. Salary range (min and max) per department
+-- 5. BaseSalary range (min and max) per department
 
 -- Your solution here
 

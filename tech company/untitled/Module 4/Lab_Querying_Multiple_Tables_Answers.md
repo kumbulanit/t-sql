@@ -14,7 +14,7 @@ SELECT
     e.LastName,
     e.Title,
     d.DepartmentName,
-    e.Salary
+    e.BaseSalary
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 ORDER BY d.DepartmentName, e.LastName;
@@ -62,14 +62,14 @@ ORDER BY d.DepartmentName, e.LastName, p.ProjectName;
 
 ### Task 1.2: Inner Join with Filtering - Answers
 
-#### Question 1: High-Salary Employees with Projects
+#### Question 1: High-BaseSalary Employees with Projects
 **Task:** Find employees earning more than $70,000 who are assigned to projects.
 
 ```sql
--- Answer 1: High-Salary Employees with Projects
+-- Answer 1: High-BaseSalary Employees with Projects
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
-    e.Salary,
+    e.BaseSalary,
     d.DepartmentName,
     p.ProjectName,
     ep.Role,
@@ -78,9 +78,9 @@ FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-WHERE e.Salary > 70000
+WHERE e.BaseSalary > 70000
   AND e.IsActive = 1
-ORDER BY e.Salary DESC;
+ORDER BY e.BaseSalary DESC;
 ```
 
 #### Question 2: Active Projects with Team Members
@@ -118,7 +118,7 @@ ORDER BY p.ProjectName, ep.Role, e.LastName;
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     e.Title,
-    e.Salary,
+    e.BaseSalary,
     COALESCE(d.DepartmentName, 'No Department Assigned') AS DepartmentName,
     COALESCE(d.DepartmentCode, 'N/A') AS DepartmentCode
 FROM Employees e
@@ -158,8 +158,8 @@ SELECT
     d.DepartmentCode,
     d.Budget,
     COALESCE(COUNT(e.EmployeeID), 0) AS EmployeeCount,
-    COALESCE(AVG(e.Salary), 0) AS AverageSalary,
-    COALESCE(SUM(e.Salary), 0) AS TotalPayroll
+    COALESCE(AVG(e.BaseSalary), 0) AS AverageSalary,
+    COALESCE(SUM(e.BaseSalary), 0) AS TotalPayroll
 FROM Employees e
 RIGHT JOIN Departments d ON e.DepartmentID = d.DepartmentID AND e.IsActive = 1
 GROUP BY d.DepartmentID, d.DepartmentName, d.DepartmentCode, d.Budget
@@ -198,7 +198,7 @@ ORDER BY p.Status, p.ProjectName;
 SELECT 
     COALESCE(e.FirstName + ' ' + e.LastName, 'No Employee') AS EmployeeName,
     COALESCE(d.DepartmentName, 'No Department') AS DepartmentName,
-    e.Salary,
+    e.BaseSalary,
     d.Budget,
     CASE 
         WHEN e.EmployeeID IS NULL THEN 'Department with no employees'
@@ -265,14 +265,14 @@ ORDER BY d.DepartmentName, p.ProjectName;
 SELECT 
     emp.FirstName + ' ' + emp.LastName AS EmployeeName,
     emp.Title AS EmployeeTitle,
-    emp.Salary AS EmployeeSalary,
+    emp.BaseSalary AS EmployeeSalary,
     COALESCE(mgr.FirstName + ' ' + mgr.LastName, 'No Manager') AS ManagerName,
     COALESCE(mgr.Title, 'N/A') AS ManagerTitle,
-    COALESCE(mgr.Salary, 0) AS ManagerSalary,
+    COALESCE(mgr.BaseSalary, 0) AS ManagerSalary,
     CASE 
         WHEN mgr.EmployeeID IS NULL THEN 'Top Level'
-        WHEN emp.Salary > mgr.Salary THEN 'Earns more than manager'
-        WHEN emp.Salary = mgr.Salary THEN 'Same salary as manager'
+        WHEN emp.BaseSalary > mgr.BaseSalary THEN 'Earns more than manager'
+        WHEN emp.BaseSalary = mgr.BaseSalary THEN 'Same salary as manager'
         ELSE 'Earns less than manager'
     END AS SalaryComparison
 FROM Employees emp
@@ -290,7 +290,7 @@ SELECT
     e1.FirstName + ' ' + e1.LastName AS Employee1,
     e2.FirstName + ' ' + e2.LastName AS Employee2,
     d.DepartmentName,
-    ABS(e1.Salary - e2.Salary) AS SalaryDifference,
+    ABS(e1.BaseSalary - e2.BaseSalary) AS SalaryDifference,
     CASE 
         WHEN e1.ManagerID = e2.ManagerID THEN 'Same Manager'
         ELSE 'Different Manager'
@@ -354,7 +354,7 @@ ORDER BY HierarchyPath;
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     e.Title,
-    e.Salary,
+    e.BaseSalary,
     d.DepartmentName,
     COALESCE(mgr.FirstName + ' ' + mgr.LastName, 'No Manager') AS ManagerName,
     COALESCE(COUNT(DISTINCT ep.ProjectID), 0) AS ProjectsAssigned,
@@ -368,7 +368,7 @@ LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 LEFT JOIN Employees sub ON e.EmployeeID = sub.ManagerID AND sub.IsActive = 1
 WHERE e.IsActive = 1
 GROUP BY 
-    e.EmployeeID, e.FirstName, e.LastName, e.Title, e.Salary,
+    e.EmployeeID, e.FirstName, e.LastName, e.Title, e.BaseSalary,
     d.DepartmentName, mgr.FirstName, mgr.LastName
 ORDER BY d.DepartmentName, e.LastName;
 ```
@@ -411,21 +411,21 @@ ORDER BY p.Budget DESC, e.LastName;
 SELECT 
     d.DepartmentName,
     COUNT(e.EmployeeID) AS EmployeeCount,
-    AVG(e.Salary) AS DeptAvgSalary,
+    AVG(e.BaseSalary) AS DeptAvgSalary,
     comp.CompanyAvgSalary,
-    AVG(e.Salary) - comp.CompanyAvgSalary AS SalaryVariance,
-    SUM(e.Salary) AS DeptTotalPayroll,
+    AVG(e.BaseSalary) - comp.CompanyAvgSalary AS SalaryVariance,
+    SUM(e.BaseSalary) AS DeptTotalPayroll,
     d.Budget AS DeptBudget,
-    d.Budget - SUM(e.Salary) AS BudgetRemaining,
+    d.Budget - SUM(e.BaseSalary) AS BudgetRemaining,
     CASE 
-        WHEN AVG(e.Salary) > comp.CompanyAvgSalary THEN 'Above Average'
-        WHEN AVG(e.Salary) = comp.CompanyAvgSalary THEN 'At Average'
+        WHEN AVG(e.BaseSalary) > comp.CompanyAvgSalary THEN 'Above Average'
+        WHEN AVG(e.BaseSalary) = comp.CompanyAvgSalary THEN 'At Average'
         ELSE 'Below Average'
     END AS PerformanceCategory
 FROM Departments d
 LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID AND e.IsActive = 1
 CROSS JOIN (
-    SELECT AVG(Salary) AS CompanyAvgSalary
+    SELECT AVG(BaseSalary) AS CompanyAvgSalary
     FROM Employees
     WHERE IsActive = 1
 ) comp

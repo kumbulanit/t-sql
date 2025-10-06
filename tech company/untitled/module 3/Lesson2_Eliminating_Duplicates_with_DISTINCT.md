@@ -43,9 +43,9 @@ FROM Employees
 ORDER BY Title;
 
 -- Find all unique salary amounts
-SELECT DISTINCT Salary
+SELECT DISTINCT BaseSalary
 FROM Employees
-ORDER BY Salary DESC;
+ORDER BY BaseSalary DESC;
 
 -- Find all hire years
 SELECT DISTINCT YEAR(HireDate) AS HireYear
@@ -95,8 +95,8 @@ SELECT DISTINCT DepartmentID, Title FROM Employees;  -- Unique dept/title combin
 -- Unique salary ranges
 SELECT DISTINCT 
     CASE 
-        WHEN Salary < 50000 THEN 'Low'
-        WHEN Salary BETWEEN 50000 AND 80000 THEN 'Medium'
+        WHEN BaseSalary < 50000 THEN 'Low'
+        WHEN BaseSalary BETWEEN 50000 AND 80000 THEN 'Medium'
         ELSE 'High'
     END AS SalaryRange
 FROM Employees;
@@ -185,8 +185,8 @@ ORDER BY SkillSet;
 -- Find distinct salary ranks within each department
 SELECT DISTINCT
     DepartmentID,
-    DENSE_RANK() OVER (PARTITION BY DepartmentID ORDER BY Salary DESC) AS SalaryRank,
-    Salary
+    DENSE_RANK() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) AS SalaryRank,
+    BaseSalary
 FROM Employees
 ORDER BY DepartmentID, SalaryRank;
 
@@ -247,9 +247,9 @@ WITH DistinctAnalysis AS (
         DepartmentID,
         YEAR(HireDate) AS HireYear,
         CASE 
-            WHEN Salary < 50000 THEN 'Entry'
-            WHEN Salary BETWEEN 50000 AND 75000 THEN 'Mid'
-            WHEN Salary BETWEEN 75001 AND 100000 THEN 'Senior'
+            WHEN BaseSalary < 50000 THEN 'Entry'
+            WHEN BaseSalary BETWEEN 50000 AND 75000 THEN 'Mid'
+            WHEN BaseSalary BETWEEN 75001 AND 100000 THEN 'Senior'
             ELSE 'Executive'
         END AS SalaryTier,
         CASE 
@@ -285,7 +285,7 @@ SELECT
         WHEN ss.DistinctSalaryTiers >= 3 AND ss.DistinctRoleTypes >= 2 
              THEN 'Diverse Department'
         WHEN ss.DistinctSalaryTiers = 1 
-             THEN 'Homogeneous Salary Structure'
+             THEN 'Homogeneous BaseSalary Structure'
         ELSE 'Moderate Diversity'
     END AS DiversityProfile
 FROM SummaryStats ss
@@ -310,7 +310,7 @@ GROUP BY DepartmentID;
 SELECT 
     DepartmentID,
     COUNT(*) AS EmployeeCount,
-    AVG(Salary) AS AvgSalary
+    AVG(BaseSalary) AS AvgSalary
 FROM Employees
 GROUP BY DepartmentID;
 ```
@@ -439,7 +439,7 @@ FROM Employees;
 SELECT DISTINCT 
     UPPER(FirstName),
     LOWER(LastName),
-    FORMAT(Salary, 'C')
+    FORMAT(BaseSalary, 'C')
 FROM Employees;
 -- Multiple functions can impact performance
 ```
@@ -491,8 +491,8 @@ HAVING COUNT(*) > 1;
 -- Market analysis: distinct customer segments
 SELECT DISTINCT
     CASE 
-        WHEN Salary < 40000 THEN 'Budget Conscious'
-        WHEN Salary BETWEEN 40000 AND 80000 THEN 'Middle Market'
+        WHEN BaseSalary < 40000 THEN 'Budget Conscious'
+        WHEN BaseSalary BETWEEN 40000 AND 80000 THEN 'Middle Market'
         ELSE 'Premium'
     END AS MarketSegment,
     CASE 

@@ -158,7 +158,7 @@ FROM Employees;
 **Numeric Types**:
 ```sql
 DECLARE @EmployeeID INT = 100;
-DECLARE @Salary DECIMAL(10,2) = 75000.50;
+DECLARE @BaseSalary DECIMAL(10,2) = 75000.50;
 DECLARE @BonusRate FLOAT = 0.15;
 DECLARE @IsActive BIT = 1;
 ```
@@ -203,7 +203,7 @@ SELECT
     FirstName,
     LastName,
     Department,
-    Salary
+    BaseSalary
 FROM Employees
 WHERE Department = 'Information Technology'
 ORDER BY LastName;
@@ -229,13 +229,13 @@ DECLARE @AverageSalary MONEY;
 
 -- Variable assignment
 SET @EmployeeCount = (SELECT COUNT(*) FROM Employees);
-SELECT @AverageSalary = AVG(Salary) FROM Employees;
+SELECT @AverageSalary = AVG(BaseSalary) FROM Employees;
 
 -- Variable usage
 SELECT *
 FROM Employees
 WHERE Department = @DepartmentName
-  AND Salary > @AverageSalary;
+  AND BaseSalary > @AverageSalary;
 ```
 
 **Parameter Usage in Procedures**:
@@ -256,17 +256,17 @@ END;
 **Arithmetic Operators**:
 ```sql
 SELECT 
-    Salary,
-    Salary * 1.10 AS SalaryWithRaise,      -- Multiplication
-    Salary + 5000 AS SalaryPlusBonus,      -- Addition
-    Salary / 12 AS MonthlySalary,          -- Division
-    Salary % 1000 AS SalaryRemainder       -- Modulo
+    BaseSalary,
+    BaseSalary * 1.10 AS SalaryWithRaise,      -- Multiplication
+    BaseSalary + 5000 AS SalaryPlusBonus,      -- Addition
+    BaseSalary / 12 AS MonthlySalary,          -- Division
+    BaseSalary % 1000 AS SalaryRemainder       -- Modulo
 FROM Employees;
 ```
 
 **Comparison Operators**:
 ```sql
-WHERE Salary > 50000              -- Greater than
+WHERE BaseSalary > 50000              -- Greater than
   AND HireDate <= '2023-01-01'    -- Less than or equal
   AND Department <> 'HR'          -- Not equal
   AND EmployeeID BETWEEN 100 AND 200  -- Range
@@ -307,9 +307,9 @@ FROM Employees;
 ```sql
 SELECT 
     COUNT(*) AS TotalEmployees,
-    AVG(Salary) AS AverageSalary,
+    AVG(BaseSalary) AS AverageSalary,
     MIN(HireDate) AS EarliestHire,
-    MAX(Salary) AS HighestSalary
+    MAX(BaseSalary) AS HighestSalary
 FROM Employees;
 ```
 
@@ -333,10 +333,10 @@ SELECT
     EmployeeID,          -- Unique employee identifier
     FirstName,           -- Employee first name
     LastName,            -- Employee last name
-    Salary               -- Annual salary in USD
+    BaseSalary               -- Annual salary in USD
 FROM Employees
 WHERE Department = 'IT'  -- Filter for IT department only
-  AND Salary > 70000;    -- High salary threshold
+  AND BaseSalary > 70000;    -- High salary threshold
 ```
 
 **Documentation Standards**:
@@ -355,10 +355,10 @@ WHERE Department = 'IT'  -- Filter for IT department only
 BEGIN TRY
     -- Potentially error-prone code
     UPDATE Employees 
-    SET Salary = Salary * 1.10
+    SET BaseSalary = BaseSalary * 1.10
     WHERE Department = 'IT';
     
-    PRINT 'Salary update completed successfully';
+    PRINT 'BaseSalary update completed successfully';
 END TRY
 BEGIN CATCH
     -- Error handling code
@@ -478,10 +478,10 @@ SELECT
     emp.EmployeeID,
     emp.FirstName + ' ' + emp.LastName AS FullName,
     emp.Department,
-    emp.Salary,
+    emp.BaseSalary,
     CASE 
-        WHEN emp.Salary > 80000 THEN 'High'
-        WHEN emp.Salary > 60000 THEN 'Medium'
+        WHEN emp.BaseSalary > 80000 THEN 'High'
+        WHEN emp.BaseSalary > 60000 THEN 'Medium'
         ELSE 'Entry Level'
     END AS SalaryGrade
 FROM Employees emp
@@ -494,8 +494,8 @@ WHERE emp.IsActive = 1;
 SELECT 
     Department,
     COUNT(*) AS EmployeeCount,
-    AVG(Salary) AS AverageSalary,
-    SUM(Salary) AS TotalPayroll
+    AVG(BaseSalary) AS AverageSalary,
+    SUM(BaseSalary) AS TotalPayroll
 FROM Employees
 GROUP BY Department
 ORDER BY TotalPayroll DESC;

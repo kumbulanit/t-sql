@@ -87,7 +87,7 @@ Or run individual scripts in this exact order:
 - **Advanced**: Performance metrics and analytics data
 
 ### **Realistic Business Scenarios**
-- **Salary ranges**: $25K (interns) to $485K (VPs)
+- **BaseSalary ranges**: $25K (interns) to $485K (VPs)
 - **Geographic diversity**: 12 countries with coordinates
 - **Industry variety**: 12 sectors with risk levels
 - **Skill tracking**: 35+ skills across 8 categories

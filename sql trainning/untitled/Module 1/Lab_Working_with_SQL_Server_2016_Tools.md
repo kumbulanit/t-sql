@@ -215,7 +215,7 @@ CREATE TABLE EmployeeInfo (
     Name nvarchar(100) NOT NULL,
     Position nvarchar(100) NOT NULL,
     Department nvarchar(50) NOT NULL,
-    Salary decimal(10,2) NOT NULL,
+    BaseSalary decimal(10,2) NOT NULL,
     
     -- System versioning columns
     ValidFrom datetime2 GENERATED ALWAYS AS ROW START NOT NULL,
@@ -224,7 +224,7 @@ CREATE TABLE EmployeeInfo (
 ) WITH (SYSTEM_VERSIONING = ON (HISTORY_TABLE = dbo.EmployeeInfo_History));
 
 -- Insert and update data to see temporal features
-INSERT INTO EmployeeInfo (EmployeeID, Name, Position, Department, Salary)
+INSERT INTO EmployeeInfo (EmployeeID, Name, Position, Department, BaseSalary)
 VALUES 
 (1, 'John Smith', 'Developer', 'IT', 75000),
 (2, 'Jane Doe', 'Manager', 'Sales', 85000);
@@ -233,7 +233,7 @@ VALUES
 WAITFOR DELAY '00:00:02';
 
 UPDATE EmployeeInfo 
-SET Salary = 80000, Position = 'Senior Developer'
+SET BaseSalary = 80000, Position = 'Senior Developer'
 WHERE EmployeeID = 1;
 
 -- Query temporal data
@@ -241,7 +241,7 @@ SELECT
     EmployeeID, 
     Name, 
     Position, 
-    Salary, 
+    BaseSalary, 
     ValidFrom, 
     ValidTo
 FROM EmployeeInfo 
@@ -474,7 +474,7 @@ CREATE TABLE HR.Employees (
     HireDate date NOT NULL,
     DepartmentID int,
     ManagerID int,
-    Salary decimal(10,2),
+    BaseSalary decimal(10,2),
     
     CONSTRAINT FK_Employee_Manager FOREIGN KEY (ManagerID) 
         REFERENCES HR.Employees(EmployeeID)
@@ -535,7 +535,7 @@ AS SNAPSHOT OF ArchitectureDemo;
 
 -- Test data modification and snapshot comparison
 USE ArchitectureDemo;
-INSERT INTO HR.Employees (FirstName, LastName, Email, HireDate, Salary)
+INSERT INTO HR.Employees (FirstName, LastName, Email, HireDate, BaseSalary)
 VALUES 
 ('John', 'Doe', 'john.doe@company.com', '2024-01-15', 65000),
 ('Jane', 'Smith', 'jane.smith@company.com', '2024-02-01', 70000);
@@ -707,7 +707,7 @@ GO
 DECLARE @Counter int = 1;
 WHILE @Counter <= 1000
 BEGIN
-    INSERT INTO HR.Employees (FirstName, LastName, Email, HireDate, Salary)
+    INSERT INTO HR.Employees (FirstName, LastName, Email, HireDate, BaseSalary)
     VALUES 
     (
         'Employee' + CAST(@Counter as varchar(10)),
@@ -728,15 +728,15 @@ SELECT
     EmployeeID,
     FirstName,
     LastName,
-    Salary
+    BaseSalary
 FROM HR.Employees
-WHERE Salary BETWEEN 60000 AND 80000
+WHERE BaseSalary BETWEEN 60000 AND 80000
     AND HireDate >= '2023-01-01'
-ORDER BY Salary DESC;
+ORDER BY BaseSalary DESC;
 
 -- Create covering index
 CREATE INDEX IX_Employees_Salary_HireDate_Covering
-ON HR.Employees (Salary, HireDate)
+ON HR.Employees (BaseSalary, HireDate)
 INCLUDE (FirstName, LastName);
 
 -- Test 2: Same query with index
@@ -744,11 +744,11 @@ SELECT
     EmployeeID,
     FirstName,
     LastName,
-    Salary
+    BaseSalary
 FROM HR.Employees
-WHERE Salary BETWEEN 60000 AND 80000
+WHERE BaseSalary BETWEEN 60000 AND 80000
     AND HireDate >= '2023-01-01'
-ORDER BY Salary DESC;
+ORDER BY BaseSalary DESC;
 
 SET STATISTICS IO OFF;
 SET STATISTICS TIME OFF;

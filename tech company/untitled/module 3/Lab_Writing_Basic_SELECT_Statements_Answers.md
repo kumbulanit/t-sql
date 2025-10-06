@@ -13,11 +13,11 @@ SELECT * FROM Employees;
 ```
 
 #### Question 2: Select Specific Columns
-**Task:** Select only FirstName, LastName, and Salary from Employees.
+**Task:** Select only FirstName, LastName, and BaseSalary from Employees.
 
 ```sql
 -- Answer 2: Select Specific Columns
-SELECT FirstName, LastName, Salary
+SELECT FirstName, LastName, BaseSalary
 FROM Employees;
 ```
 
@@ -30,9 +30,9 @@ SELECT
     FirstName,
     LastName,
     FirstName + ' ' + LastName AS FullName,
-    Salary,
-    Salary * 0.10 AS AnnualBonus,
-    Salary + (Salary * 0.10) AS TotalCompensation
+    BaseSalary,
+    BaseSalary * 0.10 AS AnnualBonus,
+    BaseSalary + (BaseSalary * 0.10) AS TotalCompensation
 FROM Employees;
 ```
 
@@ -80,13 +80,13 @@ FROM Employees;
 -- Answer 3: Numeric Operations
 SELECT 
     FirstName + ' ' + LastName AS EmployeeName,
-    Salary,
-    Salary / 12 AS MonthlySalary,
-    Salary / 52 AS WeeklySalary,
-    Salary / 2080 AS HourlySalary,
-    ROUND(Salary / 12, 2) AS MonthlySalaryRounded,
-    CEILING(Salary / 1000) AS SalaryInThousandsCeiling,
-    FLOOR(Salary / 1000) AS SalaryInThousandsFloor
+    BaseSalary,
+    BaseSalary / 12 AS MonthlySalary,
+    BaseSalary / 52 AS WeeklySalary,
+    BaseSalary / 2080 AS HourlySalary,
+    ROUND(BaseSalary / 12, 2) AS MonthlySalaryRounded,
+    CEILING(BaseSalary / 1000) AS SalaryInThousandsCeiling,
+    FLOOR(BaseSalary / 1000) AS SalaryInThousandsFloor
 FROM Employees;
 ```
 
@@ -186,9 +186,9 @@ SELECT
     FirstName AS [First Name],
     LastName AS [Last Name],
     FirstName + ' ' + LastName AS [Full Name],
-    Salary AS [Annual Salary],
-    Salary / 12 AS [Monthly Salary],
-    Salary / 52 AS [Weekly Salary],
+    BaseSalary AS [Annual BaseSalary],
+    BaseSalary / 12 AS [Monthly BaseSalary],
+    BaseSalary / 52 AS [Weekly BaseSalary],
     DATEDIFF(YEAR, HireDate, GETDATE()) AS [Years of Service],
     HireDate AS [Date Hired]
 FROM Employees;
@@ -201,14 +201,14 @@ FROM Employees;
 -- Answer 2: Aliases with Special Characters
 SELECT 
     FirstName + ' ' + LastName AS "Employee Name",
-    Salary AS "Annual Salary ($)",
-    CAST(Salary / 12 AS DECIMAL(10,2)) AS "Monthly Salary ($)",
+    BaseSalary AS "Annual BaseSalary ($)",
+    CAST(BaseSalary / 12 AS DECIMAL(10,2)) AS "Monthly BaseSalary ($)",
     Title AS "Job Position",
     CASE 
-        WHEN Salary > 80000 THEN 'High'
-        WHEN Salary > 60000 THEN 'Medium'
+        WHEN BaseSalary > 80000 THEN 'High'
+        WHEN BaseSalary > 60000 THEN 'Medium'
         ELSE 'Low'
-    END AS "Salary Category"
+    END AS "BaseSalary Category"
 FROM Employees;
 ```
 
@@ -222,7 +222,7 @@ FROM Employees;
 SELECT 
     e.FirstName,
     e.LastName,
-    e.Salary,
+    e.BaseSalary,
     d.DepartmentName,
     d.Budget
 FROM Employees e
@@ -269,22 +269,22 @@ ORDER BY mgr.LastName, emp.LastName;
 
 ### Task 4.1: Simple CASE Expressions - Answers
 
-#### Question 1: Salary Categories
+#### Question 1: BaseSalary Categories
 **Task:** Categorize employees based on salary ranges.
 
 ```sql
--- Answer 1: Salary Categories
+-- Answer 1: BaseSalary Categories
 SELECT 
     FirstName + ' ' + LastName AS EmployeeName,
-    Salary,
+    BaseSalary,
     CASE 
-        WHEN Salary >= 90000 THEN 'Executive'
-        WHEN Salary >= 70000 THEN 'Senior'
-        WHEN Salary >= 50000 THEN 'Mid-Level'
+        WHEN BaseSalary >= 90000 THEN 'Executive'
+        WHEN BaseSalary >= 70000 THEN 'Senior'
+        WHEN BaseSalary >= 50000 THEN 'Mid-Level'
         ELSE 'Entry-Level'
     END AS SalaryCategory
 FROM Employees
-ORDER BY Salary DESC;
+ORDER BY BaseSalary DESC;
 ```
 
 #### Question 2: Employment Status
@@ -309,20 +309,20 @@ ORDER BY EmploymentStatus, LastName;
 
 ### Task 4.2: CASE with Aggregations - Answers
 
-#### Question 1: Department Salary Analysis
+#### Question 1: Department BaseSalary Analysis
 **Task:** Analyze salary distribution by department using CASE.
 
 ```sql
--- Answer 1: Department Salary Analysis
+-- Answer 1: Department BaseSalary Analysis
 SELECT 
     d.DepartmentName,
     COUNT(*) AS TotalEmployees,
-    SUM(CASE WHEN e.Salary >= 80000 THEN 1 ELSE 0 END) AS HighSalaryCount,
-    SUM(CASE WHEN e.Salary BETWEEN 50000 AND 79999 THEN 1 ELSE 0 END) AS MidSalaryCount,
-    SUM(CASE WHEN e.Salary < 50000 THEN 1 ELSE 0 END) AS LowSalaryCount,
-    AVG(e.Salary) AS AverageSalary,
-    SUM(CASE WHEN e.Salary >= 80000 THEN e.Salary ELSE 0 END) AS HighSalaryTotal,
-    SUM(CASE WHEN e.Salary < 50000 THEN e.Salary ELSE 0 END) AS LowSalaryTotal
+    SUM(CASE WHEN e.BaseSalary >= 80000 THEN 1 ELSE 0 END) AS HighSalaryCount,
+    SUM(CASE WHEN e.BaseSalary BETWEEN 50000 AND 79999 THEN 1 ELSE 0 END) AS MidSalaryCount,
+    SUM(CASE WHEN e.BaseSalary < 50000 THEN 1 ELSE 0 END) AS LowSalaryCount,
+    AVG(e.BaseSalary) AS AverageSalary,
+    SUM(CASE WHEN e.BaseSalary >= 80000 THEN e.BaseSalary ELSE 0 END) AS HighSalaryTotal,
+    SUM(CASE WHEN e.BaseSalary < 50000 THEN e.BaseSalary ELSE 0 END) AS LowSalaryTotal
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
@@ -356,31 +356,31 @@ FROM Projects;
 SELECT 
     FirstName + ' ' + LastName AS EmployeeName,
     Title,
-    Salary,
+    BaseSalary,
     DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsOfService,
     CASE 
         WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 10 THEN
             CASE 
-                WHEN Salary >= 90000 THEN 'Senior Executive'
-                WHEN Salary >= 70000 THEN 'Senior Professional'
+                WHEN BaseSalary >= 90000 THEN 'Senior Executive'
+                WHEN BaseSalary >= 70000 THEN 'Senior Professional'
                 ELSE 'Senior Staff'
             END
         WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 5 THEN
             CASE 
-                WHEN Salary >= 80000 THEN 'Mid-Level Executive'
-                WHEN Salary >= 60000 THEN 'Mid-Level Professional'
+                WHEN BaseSalary >= 80000 THEN 'Mid-Level Executive'
+                WHEN BaseSalary >= 60000 THEN 'Mid-Level Professional'
                 ELSE 'Mid-Level Staff'
             END
         ELSE
             CASE 
-                WHEN Salary >= 70000 THEN 'Junior Executive'
-                WHEN Salary >= 50000 THEN 'Junior Professional'
+                WHEN BaseSalary >= 70000 THEN 'Junior Executive'
+                WHEN BaseSalary >= 50000 THEN 'Junior Professional'
                 ELSE 'Junior Staff'
             END
     END AS EmployeeClassification
 FROM Employees
 WHERE IsActive = 1
-ORDER BY YearsOfService DESC, Salary DESC;
+ORDER BY YearsOfService DESC, BaseSalary DESC;
 ```
 
 #### Question 2: Performance Rating
@@ -391,14 +391,14 @@ ORDER BY YearsOfService DESC, Salary DESC;
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     e.Title,
-    e.Salary,
+    e.BaseSalary,
     COALESCE(ep.ProjectCount, 0) AS ProjectCount,
     COALESCE(ep.AvgHoursWorked, 0) AS AvgHoursWorked,
     CASE 
         WHEN COALESCE(ep.ProjectCount, 0) = 0 THEN 'No Projects Assigned'
         WHEN COALESCE(ep.ProjectCount, 0) >= 3 AND COALESCE(ep.AvgHoursWorked, 0) >= 40 THEN
             CASE 
-                WHEN e.Salary >= 80000 THEN 'Outstanding - High Performer'
+                WHEN e.BaseSalary >= 80000 THEN 'Outstanding - High Performer'
                 ELSE 'Outstanding - Rising Star'
             END
         WHEN COALESCE(ep.ProjectCount, 0) >= 2 AND COALESCE(ep.AvgHoursWorked, 0) >= 30 THEN 'Exceeds Expectations'
@@ -442,7 +442,7 @@ SELECT
     END AS FormattedPhone,
     d.DepartmentName + ' (' + d.DepartmentCode + ')' AS Department,
     e.Title,
-    FORMAT(e.Salary, 'C', 'en-US') AS FormattedSalary,
+    FORMAT(e.BaseSalary, 'C', 'en-US') AS FormattedSalary,
     FORMAT(e.HireDate, 'MMMM dd, yyyy') AS FormattedHireDate,
     CASE 
         WHEN e.City IS NOT NULL AND e.State IS NOT NULL THEN e.City + ', ' + e.State
@@ -534,15 +534,15 @@ SELECT
     d.DepartmentName AS Department,
     d.DepartmentCode AS [Dept Code],
     COUNT(e.EmployeeID) AS [Active Employees],
-    FORMAT(AVG(e.Salary), 'C0', 'en-US') AS [Avg Salary],
-    FORMAT(SUM(e.Salary), 'C0', 'en-US') AS [Total Payroll],
+    FORMAT(AVG(e.BaseSalary), 'C0', 'en-US') AS [Avg BaseSalary],
+    FORMAT(SUM(e.BaseSalary), 'C0', 'en-US') AS [Total Payroll],
     FORMAT(d.Budget, 'C0', 'en-US') AS [Dept Budget],
-    FORMAT(d.Budget - SUM(e.Salary), 'C0', 'en-US') AS [Budget Remaining],
-    CAST(((d.Budget - SUM(e.Salary)) * 100.0 / d.Budget) AS DECIMAL(5,1)) AS [Budget % Remaining],
+    FORMAT(d.Budget - SUM(e.BaseSalary), 'C0', 'en-US') AS [Budget Remaining],
+    CAST(((d.Budget - SUM(e.BaseSalary)) * 100.0 / d.Budget) AS DECIMAL(5,1)) AS [Budget % Remaining],
     CASE 
-        WHEN SUM(e.Salary) > d.Budget THEN 'OVER BUDGET'
-        WHEN SUM(e.Salary) > d.Budget * 0.95 THEN 'CRITICAL'
-        WHEN SUM(e.Salary) > d.Budget * 0.85 THEN 'WARNING'
+        WHEN SUM(e.BaseSalary) > d.Budget THEN 'OVER BUDGET'
+        WHEN SUM(e.BaseSalary) > d.Budget * 0.95 THEN 'CRITICAL'
+        WHEN SUM(e.BaseSalary) > d.Budget * 0.85 THEN 'WARNING'
         ELSE 'GOOD'
     END AS [Budget Status],
     COALESCE(mgr.FirstName + ' ' + mgr.LastName, 'No Manager') AS [Department Manager],
@@ -558,7 +558,7 @@ LEFT JOIN Employees mgr ON d.ManagerID = mgr.EmployeeID
 GROUP BY 
     d.DepartmentID, d.DepartmentName, d.DepartmentCode, d.Budget, 
     d.Location, mgr.FirstName, mgr.LastName
-ORDER BY SUM(e.Salary) DESC;
+ORDER BY SUM(e.BaseSalary) DESC;
 ```
 
 ## Key Learning Points Summary

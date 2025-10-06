@@ -311,7 +311,7 @@ SELECT
     d.DepartmentName,
     d.Location,
     COUNT(e.EmployeeID) AS EmployeeCount,
-    AVG(e.Salary) AS AverageSalary
+    AVG(e.BaseSalary) AS AverageSalary
 FROM Departments d
 LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID
 GROUP BY d.DepartmentID, d.DepartmentName, d.Location
@@ -324,15 +324,15 @@ ORDER BY EmployeeCount DESC;
 SELECT 
     e.FirstName,
     e.LastName,
-    e.Salary,
+    e.BaseSalary,
     d.DepartmentName,
     d.Location
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE d.DepartmentName IN ('IT', 'Finance')
-  AND e.Salary > 60000
+  AND e.BaseSalary > 60000
   AND e.HireDate >= '2020-01-01'
-ORDER BY e.Salary DESC;
+ORDER BY e.BaseSalary DESC;
 ```
 
 ## Advanced Examples
@@ -345,7 +345,7 @@ WITH EmployeeSummary AS (
         e.EmployeeID,
         e.FirstName + ' ' + e.LastName AS EmployeeName,
         e.Title,
-        e.Salary,
+        e.BaseSalary,
         e.HireDate,
         d.DepartmentName,
         d.Location,
@@ -359,7 +359,7 @@ WITH EmployeeSummary AS (
     LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.Status = 'Active'
     WHERE e.IsActive = 1
-    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.Salary, 
+    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.BaseSalary, 
              e.HireDate, d.DepartmentName, d.Location, mgr.FirstName, mgr.LastName
 )
 SELECT 
@@ -368,7 +368,7 @@ SELECT
     DepartmentName,
     Location,
     ManagerName,
-    FORMAT(Salary, 'C') AS FormattedSalary,
+    FORMAT(BaseSalary, 'C') AS FormattedSalary,
     DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsOfService,
     ActiveProjects,
     TotalHoursAllocated,
@@ -385,7 +385,7 @@ SELECT
         ELSE 'Junior Rate'
     END AS RateCategory
 FROM EmployeeSummary
-ORDER BY DepartmentName, Salary DESC;
+ORDER BY DepartmentName, BaseSalary DESC;
 ```
 
 ### Advanced Join Patterns
@@ -486,7 +486,7 @@ WHERE e.DepartmentID = d.DepartmentID;
 SELECT e.FirstName, e.LastName, d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE e.Salary > 50000;
+WHERE e.BaseSalary > 50000;
 
 -- Also good: Filter in ON clause to affect join behavior
 SELECT e.FirstName, e.LastName, d.DepartmentName

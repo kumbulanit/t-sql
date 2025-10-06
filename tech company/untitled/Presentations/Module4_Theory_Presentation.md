@@ -601,13 +601,13 @@ ON YEAR(e.HireDate) = YEAR(p.StartDate)
 SELECT e.FirstName, d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE e.Salary > 50000;  -- Filter condition
+WHERE e.BaseSalary > 50000;  -- Filter condition
 
 -- Incorrect: filtering in JOIN for INNER JOIN
 SELECT e.FirstName, d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
-                        AND e.Salary > 50000;
+                        AND e.BaseSalary > 50000;
 ```
 
 **OUTER JOINs**: Filter placement affects results significantly
@@ -670,7 +670,7 @@ WHERE p.ProjectName IS NOT NULL  -- May eliminate intended results
 SELECT 
     d.DepartmentName,
     COUNT(e.EmployeeID) AS EmployeeCount,
-    AVG(e.Salary) AS AverageSalary,
+    AVG(e.BaseSalary) AS AverageSalary,
     MAX(e.HireDate) AS MostRecentHire
 FROM Departments d
 LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID

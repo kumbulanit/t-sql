@@ -83,7 +83,7 @@ SELECT
     LastName,
     Email,
     DepartmentID,
-    Salary,
+    BaseSalary,
     HireDate
 FROM Employees;
 ```
@@ -91,14 +91,14 @@ FROM Employees;
 ### 2. Select Specific Columns
 ```sql
 -- Basic column selection
-SELECT FirstName, LastName, Salary
+SELECT FirstName, LastName, BaseSalary
 FROM Employees;
 
 -- With consistent formatting
 SELECT 
     FirstName,
     LastName,
-    Salary
+    BaseSalary
 FROM Employees;
 ```
 
@@ -109,12 +109,12 @@ SELECT
     LastName,
     FirstName,
     Email,
-    Salary
+    BaseSalary
 FROM Employees;
 
 -- Same data, different presentation
 SELECT 
-    Salary,
+    BaseSalary,
     LastName,
     FirstName
 FROM Employees;
@@ -135,9 +135,9 @@ FROM Employees;
 SELECT 
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     100 AS BonusPercent,
-    Salary * 1.1 AS SalaryWithBonus
+    BaseSalary * 1.1 AS SalaryWithBonus
 FROM Employees;
 ```
 
@@ -149,21 +149,21 @@ FROM Employees;
 SELECT 
     FirstName,
     LastName,
-    Salary,
-    Salary / 12 AS MonthlySalary,
-    Salary * 0.15 AS EstimatedTax,
-    Salary - (Salary * 0.15) AS NetAnnualSalary
+    BaseSalary,
+    BaseSalary / 12 AS MonthlySalary,
+    BaseSalary * 0.15 AS EstimatedTax,
+    BaseSalary - (BaseSalary * 0.15) AS NetAnnualSalary
 FROM Employees;
 
 -- More complex calculations
 SELECT 
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     CASE 
-        WHEN Salary > 80000 THEN Salary * 0.08
-        WHEN Salary > 60000 THEN Salary * 0.06
-        ELSE Salary * 0.04
+        WHEN BaseSalary > 80000 THEN BaseSalary * 0.08
+        WHEN BaseSalary > 60000 THEN BaseSalary * 0.06
+        ELSE BaseSalary * 0.04
     END AS BonusAmount
 FROM Employees;
 ```
@@ -174,20 +174,20 @@ FROM Employees;
 SELECT 
     FirstName + ' ' + LastName AS FullName,
     Email,
-    Salary
+    BaseSalary
 FROM Employees;
 
 -- Handling NULL values in concatenation
 SELECT 
     FirstName + ' ' + ISNULL(MiddleName + ' ', '') + LastName AS FullName,
     Email,
-    Salary
+    BaseSalary
 FROM Employees;
 
 -- Using CONCAT function (SQL Server 2012+)
 SELECT 
     CONCAT(FirstName, ' ', LastName) AS FullName,
-    CONCAT('$', FORMAT(Salary, 'N0')) AS FormattedSalary
+    CONCAT('$', FORMAT(BaseSalary, 'N0')) AS FormattedSalary
 FROM Employees;
 ```
 
@@ -220,19 +220,19 @@ FROM Employees;
 SELECT 
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     DepartmentID
 FROM Employees
-WHERE Salary > 70000;
+WHERE BaseSalary > 70000;
 
 -- Multiple conditions
 SELECT 
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     HireDate
 FROM Employees
-WHERE Salary > 60000 
+WHERE BaseSalary > 60000 
   AND HireDate >= '2020-01-01';
 
 -- String filtering
@@ -253,15 +253,15 @@ WHERE FirstName LIKE 'J%'
 SELECT 
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     HireDate,
     -- Performance rating based on tenure and salary
     CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 5 AND Salary >= 80000 
+        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 5 AND BaseSalary >= 80000 
              THEN 'Senior High Performer'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 3 AND Salary >= 65000 
+        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 3 AND BaseSalary >= 65000 
              THEN 'Experienced Contributor'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 1 AND Salary >= 50000 
+        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 1 AND BaseSalary >= 50000 
              THEN 'Developing Professional'
         WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 1 
              THEN 'New Hire'
@@ -270,10 +270,10 @@ SELECT
     -- Projected salary growth
     CASE 
         WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 2 
-             THEN Salary * 1.05
+             THEN BaseSalary * 1.05
         WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 5 
-             THEN Salary * 1.03
-        ELSE Salary * 1.02
+             THEN BaseSalary * 1.03
+        ELSE BaseSalary * 1.02
     END AS ProjectedSalary
 FROM Employees;
 ```
@@ -343,26 +343,26 @@ FROM Employees;
 SELECT 
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     DepartmentID,
     HireDate,
     -- Compensation analysis
     CASE 
-        WHEN DepartmentID = 1 AND Salary < 70000 THEN 'IT: Below Market'
-        WHEN DepartmentID = 1 AND Salary >= 70000 THEN 'IT: Competitive'
-        WHEN DepartmentID = 2 AND Salary < 60000 THEN 'HR: Below Market'
-        WHEN DepartmentID = 2 AND Salary >= 60000 THEN 'HR: Competitive'
-        WHEN DepartmentID = 3 AND Salary < 65000 THEN 'Finance: Below Market'
-        WHEN DepartmentID = 3 AND Salary >= 65000 THEN 'Finance: Competitive'
+        WHEN DepartmentID = 1 AND BaseSalary < 70000 THEN 'IT: Below Market'
+        WHEN DepartmentID = 1 AND BaseSalary >= 70000 THEN 'IT: Competitive'
+        WHEN DepartmentID = 2 AND BaseSalary < 60000 THEN 'HR: Below Market'
+        WHEN DepartmentID = 2 AND BaseSalary >= 60000 THEN 'HR: Competitive'
+        WHEN DepartmentID = 3 AND BaseSalary < 65000 THEN 'Finance: Below Market'
+        WHEN DepartmentID = 3 AND BaseSalary >= 65000 THEN 'Finance: Competitive'
         ELSE 'Other Department'
     END AS CompensationAnalysis,
     -- Risk assessment
     CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) > 10 AND Salary < 75000 
+        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) > 10 AND BaseSalary < 75000 
              THEN 'High Flight Risk - Long Tenure, Low Pay'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 1 AND Salary > 90000 
+        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 1 AND BaseSalary > 90000 
              THEN 'New High Investment'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) BETWEEN 2 AND 5 AND Salary BETWEEN 60000 AND 80000 
+        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) BETWEEN 2 AND 5 AND BaseSalary BETWEEN 60000 AND 80000 
              THEN 'Stable Contributor'
         ELSE 'Standard Risk Profile'
     END AS RiskAssessment,
@@ -395,13 +395,13 @@ SELECT
     e.FirstName,
     e.LastName,
     e.Email,
-    e.Salary
+    e.BaseSalary
 FROM Employees e
 WHERE e.IsActive = 1
 ORDER BY e.LastName, e.FirstName;
 
 -- Avoid: Inconsistent formatting
--- SELECT FirstName,LastName,Email,Salary FROM Employees WHERE IsActive=1;
+-- SELECT FirstName,LastName,Email,BaseSalary FROM Employees WHERE IsActive=1;
 ```
 
 ### 3. Use Meaningful Column Names
@@ -409,13 +409,13 @@ ORDER BY e.LastName, e.FirstName;
 -- Good: Clear, descriptive names
 SELECT 
     FirstName + ' ' + LastName AS EmployeeFullName,
-    Salary / 12 AS MonthlySalary,
+    BaseSalary / 12 AS MonthlySalary,
     DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsOfService
 FROM Employees;
 
 -- Avoid: Unclear abbreviations
 -- SELECT FirstName + ' ' + LastName AS Name,
---        Salary / 12 AS Sal,
+--        BaseSalary / 12 AS Sal,
 --        DATEDIFF(YEAR, HireDate, GETDATE()) AS Yrs
 -- FROM Employees;
 ```
@@ -443,13 +443,13 @@ FROM Employees;
 SELECT 
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     -- Calculate annual bonus based on performance tier
     CASE 
-        WHEN Salary >= 90000 THEN Salary * 0.15  -- Executive level: 15%
-        WHEN Salary >= 70000 THEN Salary * 0.10  -- Senior level: 10%
-        WHEN Salary >= 50000 THEN Salary * 0.05  -- Mid level: 5%
-        ELSE Salary * 0.02                       -- Entry level: 2%
+        WHEN BaseSalary >= 90000 THEN BaseSalary * 0.15  -- Executive level: 15%
+        WHEN BaseSalary >= 70000 THEN BaseSalary * 0.10  -- Senior level: 10%
+        WHEN BaseSalary >= 50000 THEN BaseSalary * 0.05  -- Mid level: 5%
+        ELSE BaseSalary * 0.02                       -- Entry level: 2%
     END AS AnnualBonus,
     -- Determine eligibility for stock options (must be employed 2+ years)
     CASE 
@@ -497,7 +497,7 @@ FROM Employees;
 SELECT 
     FirstName,
     LastName,
-    Salary / WorkHours AS HourlyRate  -- WorkHours might be 0
+    BaseSalary / WorkHours AS HourlyRate  -- WorkHours might be 0
 FROM Employees;
 
 -- Correct: Check for zero before division
@@ -505,7 +505,7 @@ SELECT
     FirstName,
     LastName,
     CASE 
-        WHEN WorkHours > 0 THEN Salary / WorkHours
+        WHEN WorkHours > 0 THEN BaseSalary / WorkHours
         ELSE NULL
     END AS HourlyRate
 FROM Employees;
@@ -530,7 +530,7 @@ SELECT
     FirstName,
     LastName,
     UPPER(FirstName) AS UpperFirstName,  -- Function applied to each row
-    Salary
+    BaseSalary
 FROM Employees;
 
 -- Sometimes better to handle formatting in application layer
@@ -547,7 +547,7 @@ SELECT
     FirstName,
     LastName,
     CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 5 AND Salary >= 80000 
+        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 5 AND BaseSalary >= 80000 
              THEN 'Senior High Performer'
         -- ... more complex logic
     END AS PerformanceRating

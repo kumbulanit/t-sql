@@ -13,7 +13,7 @@ CREATE TABLE Employees_DataTypes (
     EmployeeID INT IDENTITY(1,1) PRIMARY KEY,
     FirstName NVARCHAR(50) NOT NULL,
     LastName NVARCHAR(50) NOT NULL,
-    Salary DECIMAL(10,2) NOT NULL,
+    BaseSalary DECIMAL(10,2) NOT NULL,
     HireDate DATE NOT NULL,
     IsActive BIT NOT NULL DEFAULT 1,
     ProfilePhoto VARBINARY(MAX) NULL
@@ -223,7 +223,7 @@ SELECT
 CREATE TABLE BadExample (
     ID NVARCHAR(100),     -- Should be INT IDENTITY
     Age NVARCHAR(10),     -- Should be TINYINT
-    Salary NVARCHAR(20),  -- Should be DECIMAL(10,2)
+    BaseSalary NVARCHAR(20),  -- Should be DECIMAL(10,2)
     HireDate NVARCHAR(30),-- Should be DATE
     IsActive NVARCHAR(5)  -- Should be BIT
 );
@@ -232,7 +232,7 @@ CREATE TABLE BadExample (
 CREATE TABLE GoodExample (
     ID INT IDENTITY(1,1) PRIMARY KEY,
     Age TINYINT CHECK (Age BETWEEN 16 AND 120),
-    Salary DECIMAL(10,2) CHECK (Salary >= 0),
+    BaseSalary DECIMAL(10,2) CHECK (BaseSalary >= 0),
     HireDate DATE,
     IsActive BIT NOT NULL DEFAULT 1
 );
@@ -248,7 +248,7 @@ INSERT INTO BadExample VALUES
 ('3', 'Invalid', 'Not a number', 'Invalid Date', 'Maybe');
 
 -- Safe migration with error handling
-INSERT INTO GoodExample (Age, Salary, HireDate, IsActive)
+INSERT INTO GoodExample (Age, BaseSalary, HireDate, IsActive)
 SELECT 
     CASE 
         WHEN ISNUMERIC(Age) = 1 AND CAST(Age AS INT) BETWEEN 16 AND 120 
@@ -256,8 +256,8 @@ SELECT
         ELSE NULL 
     END,
     CASE 
-        WHEN ISNUMERIC(Salary) = 1 
-        THEN CAST(Salary AS DECIMAL(10,2)) 
+        WHEN ISNUMERIC(BaseSalary) = 1 
+        THEN CAST(BaseSalary AS DECIMAL(10,2)) 
         ELSE NULL 
     END,
     CASE 
@@ -283,7 +283,7 @@ WITH StorageCalculation AS (
         -- Bad design storage per row
         100 * 2 +    -- ID: NVARCHAR(100) = 200 bytes max
         10 * 2 +     -- Age: NVARCHAR(10) = 20 bytes max  
-        20 * 2 +     -- Salary: NVARCHAR(20) = 40 bytes max
+        20 * 2 +     -- BaseSalary: NVARCHAR(20) = 40 bytes max
         30 * 2 +     -- HireDate: NVARCHAR(30) = 60 bytes max
         5 * 2        -- IsActive: NVARCHAR(5) = 10 bytes max
         as BadDesignMaxBytes,
@@ -291,7 +291,7 @@ WITH StorageCalculation AS (
         -- Good design storage per row
         4 +          -- ID: INT = 4 bytes
         1 +          -- Age: TINYINT = 1 byte
-        9 +          -- Salary: DECIMAL(10,2) = 9 bytes
+        9 +          -- BaseSalary: DECIMAL(10,2) = 9 bytes
         3 +          -- HireDate: DATE = 3 bytes
         1            -- IsActive: BIT = 1 byte (approximately)
         as GoodDesignBytes

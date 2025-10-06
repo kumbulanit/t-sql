@@ -56,7 +56,7 @@ SELECT
     e.Title AS [Position],
     d.DepartmentName AS [Department],
     d.Location AS [Office Location],
-    FORMAT(e.Salary, 'C') AS [Annual Salary]
+    FORMAT(e.BaseSalary, 'C') AS [Annual BaseSalary]
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 ORDER BY d.DepartmentName, e.LastName;
@@ -68,15 +68,15 @@ ORDER BY d.DepartmentName, e.LastName;
 SELECT 
     e.FirstName,
     e.LastName,
-    e.Salary,
+    e.BaseSalary,
     e.HireDate,
     d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE d.DepartmentName = 'Information Technology'
-  AND e.Salary >= 70000
+  AND e.BaseSalary >= 70000
   AND e.HireDate >= '2020-01-01'
-ORDER BY e.Salary DESC;
+ORDER BY e.BaseSalary DESC;
 ```
 
 ## Intermediate Examples
@@ -107,10 +107,10 @@ SELECT
     d.DepartmentName AS [Department],
     d.Location AS [Location],
     COUNT(e.EmployeeID) AS [Employee Count],
-    FORMAT(AVG(e.Salary), 'C0') AS [Average Salary],
-    FORMAT(MIN(e.Salary), 'C0') AS [Minimum Salary],
-    FORMAT(MAX(e.Salary), 'C0') AS [Maximum Salary],
-    FORMAT(SUM(e.Salary), 'C0') AS [Total Department Payroll]
+    FORMAT(AVG(e.BaseSalary), 'C0') AS [Average BaseSalary],
+    FORMAT(MIN(e.BaseSalary), 'C0') AS [Minimum BaseSalary],
+    FORMAT(MAX(e.BaseSalary), 'C0') AS [Maximum BaseSalary],
+    FORMAT(SUM(e.BaseSalary), 'C0') AS [Total Department Payroll]
 FROM Departments d
 INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
 WHERE e.IsActive = 1
@@ -149,7 +149,7 @@ SELECT
     e.FirstName + ' ' + e.LastName AS [Employee Name],
     e.Title,
     d.DepartmentName,
-    e.Salary,
+    e.BaseSalary,
     COUNT(ep.ProjectID) AS [Active Projects],
     AVG(ep.HoursWorked / NULLIF(ep.HoursAllocated, 0) * 100) AS [Avg Completion %]
 FROM Employees e
@@ -160,9 +160,9 @@ WHERE e.IsActive = 1
   AND p.Status IN ('In Progress', 'Planning')
   AND d.DepartmentName IN ('Information Technology', 'Research & Development')
   AND e.HireDate >= '2019-01-01'
-GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, d.DepartmentName, e.Salary
+GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, d.DepartmentName, e.BaseSalary
 HAVING COUNT(ep.ProjectID) >= 1
-ORDER BY [Avg Completion %] DESC, e.Salary DESC;
+ORDER BY [Avg Completion %] DESC, e.BaseSalary DESC;
 ```
 
 ## Advanced Examples
@@ -194,7 +194,7 @@ SELECT
     e.FirstName + ' ' + e.LastName AS [Employee Name],
     e.Title AS [Position],
     d.DepartmentName AS [Department],
-    FORMAT(e.Salary, 'C0') AS [Salary],
+    FORMAT(e.BaseSalary, 'C0') AS [BaseSalary],
     DATEDIFF(YEAR, e.HireDate, GETDATE()) AS [Years of Service],
     
     -- Project performance metrics
@@ -219,11 +219,11 @@ SELECT
     
     -- Value assessment
     CASE 
-        WHEN e.Salary <= 60000 AND ISNULL(pp.TotalProjectRevenue, 0) >= e.Salary * 2 
+        WHEN e.BaseSalary <= 60000 AND ISNULL(pp.TotalProjectRevenue, 0) >= e.BaseSalary * 2 
              THEN 'High Value Employee'
-        WHEN ISNULL(pp.TotalProjectRevenue, 0) >= e.Salary * 1.5 
+        WHEN ISNULL(pp.TotalProjectRevenue, 0) >= e.BaseSalary * 1.5 
              THEN 'Strong ROI'
-        WHEN ISNULL(pp.TotalProjectRevenue, 0) >= e.Salary 
+        WHEN ISNULL(pp.TotalProjectRevenue, 0) >= e.BaseSalary 
              THEN 'Positive ROI'
         ELSE 'Investment Development'
     END AS [Value Assessment]
@@ -248,25 +248,25 @@ SELECT
     e.FirstName + ' ' + e.LastName AS [Employee Name],
     e.Title,
     d.DepartmentName,
-    FORMAT(e.Salary, 'C0') AS [Salary],
+    FORMAT(e.BaseSalary, 'C0') AS [BaseSalary],
     
     -- Ranking within department
-    RANK() OVER (PARTITION BY d.DepartmentID ORDER BY e.Salary DESC) AS [Dept Salary Rank],
+    RANK() OVER (PARTITION BY d.DepartmentID ORDER BY e.BaseSalary DESC) AS [Dept BaseSalary Rank],
     DENSE_RANK() OVER (PARTITION BY d.DepartmentID ORDER BY e.HireDate) AS [Dept Seniority Rank],
     
     -- Department statistics
-    FORMAT(AVG(e.Salary) OVER (PARTITION BY d.DepartmentID), 'C0') AS [Dept Avg Salary],
+    FORMAT(AVG(e.BaseSalary) OVER (PARTITION BY d.DepartmentID), 'C0') AS [Dept Avg BaseSalary],
     COUNT(e.EmployeeID) OVER (PARTITION BY d.DepartmentID) AS [Dept Employee Count],
     
-    -- Salary analysis
-    FORMAT(e.Salary - AVG(e.Salary) OVER (PARTITION BY d.DepartmentID), 'C0') AS [Salary vs Dept Avg],
+    -- BaseSalary analysis
+    FORMAT(e.BaseSalary - AVG(e.BaseSalary) OVER (PARTITION BY d.DepartmentID), 'C0') AS [BaseSalary vs Dept Avg],
     CASE 
-        WHEN e.Salary > AVG(e.Salary) OVER (PARTITION BY d.DepartmentID) * 1.2 
+        WHEN e.BaseSalary > AVG(e.BaseSalary) OVER (PARTITION BY d.DepartmentID) * 1.2 
              THEN 'Above Average'
-        WHEN e.Salary < AVG(e.Salary) OVER (PARTITION BY d.DepartmentID) * 0.8 
+        WHEN e.BaseSalary < AVG(e.BaseSalary) OVER (PARTITION BY d.DepartmentID) * 0.8 
              THEN 'Below Average'
         ELSE 'Average Range'
-    END AS [Salary Position],
+    END AS [BaseSalary Position],
     
     -- Project involvement
     COUNT(ep.ProjectID) AS [Current Projects],
@@ -280,9 +280,9 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.Status = 'In Progress'
 WHERE e.IsActive = 1
-GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.Salary, 
+GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.BaseSalary, 
          e.HireDate, d.DepartmentID, d.DepartmentName
-ORDER BY d.DepartmentName, [Dept Salary Rank];
+ORDER BY d.DepartmentName, [Dept BaseSalary Rank];
 ```
 
 ### Complex Business Intelligence with Inner Joins
@@ -466,7 +466,7 @@ CREATE INDEX IX_Projects_Status ON Projects(Status);
 -- Covering index for common query patterns
 CREATE INDEX IX_Employees_Covering 
 ON Employees(DepartmentID, IsActive) 
-INCLUDE (FirstName, LastName, Title, Salary, HireDate);
+INCLUDE (FirstName, LastName, Title, BaseSalary, HireDate);
 ```
 
 ### 2. Efficient Join Conditions

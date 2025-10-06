@@ -67,12 +67,12 @@ FROM Employees;
 SELECT 
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     CASE 
-        WHEN Salary < 40000 THEN 'Entry Level'
-        WHEN Salary BETWEEN 40000 AND 70000 THEN 'Mid Level'
-        WHEN Salary BETWEEN 70001 AND 100000 THEN 'Senior Level'
-        WHEN Salary > 100000 THEN 'Executive Level'
+        WHEN BaseSalary < 40000 THEN 'Entry Level'
+        WHEN BaseSalary BETWEEN 40000 AND 70000 THEN 'Mid Level'
+        WHEN BaseSalary BETWEEN 70001 AND 100000 THEN 'Senior Level'
+        WHEN BaseSalary > 100000 THEN 'Executive Level'
         ELSE 'Unclassified'
     END AS SalaryCategory
 FROM Employees;
@@ -98,11 +98,11 @@ FROM Employees;
 SELECT 
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     CASE 
-        WHEN Salary >= 90000 THEN Salary * 0.15
-        WHEN Salary >= 70000 THEN Salary * 0.10
-        WHEN Salary >= 50000 THEN Salary * 0.05
+        WHEN BaseSalary >= 90000 THEN BaseSalary * 0.15
+        WHEN BaseSalary >= 70000 THEN BaseSalary * 0.10
+        WHEN BaseSalary >= 50000 THEN BaseSalary * 0.05
         ELSE 1000
     END AS BonusAmount,
     CASE 
@@ -172,16 +172,16 @@ FROM Employees;
 SELECT 
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     DepartmentID,
     Title
 FROM Employees
 WHERE 
     CASE 
-        WHEN DepartmentID = 1 THEN Salary >= 70000  -- IT requires higher salary
-        WHEN DepartmentID = 2 THEN Salary >= 50000  -- HR standard salary
-        WHEN DepartmentID = 3 THEN Salary >= 60000  -- Finance requires higher salary
-        ELSE Salary >= 45000                        -- Other departments
+        WHEN DepartmentID = 1 THEN BaseSalary >= 70000  -- IT requires higher salary
+        WHEN DepartmentID = 2 THEN BaseSalary >= 50000  -- HR standard salary
+        WHEN DepartmentID = 3 THEN BaseSalary >= 60000  -- Finance requires higher salary
+        ELSE BaseSalary >= 45000                        -- Other departments
     END = 1;
 
 -- Complex conditional WHERE logic
@@ -202,15 +202,15 @@ WHERE
 SELECT 
     DepartmentID,
     COUNT(*) AS TotalEmployees,
-    COUNT(CASE WHEN Salary >= 70000 THEN 1 END) AS HighSalaryEmployees,
+    COUNT(CASE WHEN BaseSalary >= 70000 THEN 1 END) AS HighSalaryEmployees,
     COUNT(CASE WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 5 THEN 1 END) AS VeteranEmployees,
     SUM(CASE 
-        WHEN DepartmentID = 1 THEN Salary * 1.1  -- IT gets 10% bonus
-        WHEN DepartmentID = 4 THEN Salary * 1.05 -- Marketing gets 5% bonus
-        ELSE Salary
+        WHEN DepartmentID = 1 THEN BaseSalary * 1.1  -- IT gets 10% bonus
+        WHEN DepartmentID = 4 THEN BaseSalary * 1.05 -- Marketing gets 5% bonus
+        ELSE BaseSalary
     END) AS AdjustedSalaryTotal,
     AVG(CASE 
-        WHEN IsActive = 1 THEN Salary 
+        WHEN IsActive = 1 THEN BaseSalary 
         ELSE NULL 
     END) AS ActiveEmployeeAvgSalary
 FROM Employees
@@ -225,27 +225,27 @@ GROUP BY DepartmentID;
 SELECT 
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     DepartmentID,
     HireDate,
     CASE 
         WHEN DepartmentID = 1 THEN  -- IT Department
             CASE 
-                WHEN Salary >= 90000 THEN 'IT Senior Architect'
-                WHEN Salary >= 70000 THEN 'IT Senior Developer'
-                WHEN Salary >= 50000 THEN 'IT Developer'
+                WHEN BaseSalary >= 90000 THEN 'IT Senior Architect'
+                WHEN BaseSalary >= 70000 THEN 'IT Senior Developer'
+                WHEN BaseSalary >= 50000 THEN 'IT Developer'
                 ELSE 'IT Junior'
             END
         WHEN DepartmentID = 2 THEN  -- HR Department
             CASE 
-                WHEN Salary >= 80000 THEN 'HR Director'
-                WHEN Salary >= 60000 THEN 'HR Manager'
+                WHEN BaseSalary >= 80000 THEN 'HR Director'
+                WHEN BaseSalary >= 60000 THEN 'HR Manager'
                 ELSE 'HR Specialist'
             END
         WHEN DepartmentID = 3 THEN  -- Finance Department
             CASE 
-                WHEN Salary >= 85000 THEN 'Finance Director'
-                WHEN Salary >= 65000 THEN 'Senior Analyst'
+                WHEN BaseSalary >= 85000 THEN 'Finance Director'
+                WHEN BaseSalary >= 65000 THEN 'Senior Analyst'
                 ELSE 'Financial Analyst'
             END
         ELSE 'Other Department Role'
@@ -253,13 +253,13 @@ SELECT
     CASE 
         WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 10 THEN
             CASE 
-                WHEN Salary >= 100000 THEN 'Senior Executive Track'
-                WHEN Salary >= 80000 THEN 'Senior Management Track'
+                WHEN BaseSalary >= 100000 THEN 'Senior Executive Track'
+                WHEN BaseSalary >= 80000 THEN 'Senior Management Track'
                 ELSE 'Senior Individual Contributor'
             END
         WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 5 THEN
             CASE 
-                WHEN Salary >= 80000 THEN 'Management Track'
+                WHEN BaseSalary >= 80000 THEN 'Management Track'
                 ELSE 'Senior Contributor'
             END
         ELSE 'Developing Professional'
@@ -273,7 +273,7 @@ FROM Employees;
 SELECT 
     e.FirstName,
     e.LastName,
-    e.Salary,
+    e.BaseSalary,
     e.DepartmentID,
     e.HireDate,
     e.Title,
@@ -281,7 +281,7 @@ SELECT
     CASE 
         WHEN e.IsActive = 0 THEN 'Not Eligible - Inactive'
         WHEN DATEDIFF(MONTH, e.HireDate, GETDATE()) < 6 THEN 'Not Eligible - Tenure'
-        WHEN e.DepartmentID = 1 AND e.Salary < 60000 THEN 'Not Eligible - IT Salary Threshold'
+        WHEN e.DepartmentID = 1 AND e.BaseSalary < 60000 THEN 'Not Eligible - IT BaseSalary Threshold'
         WHEN e.DepartmentID = 3 AND e.Title NOT LIKE '%Analyst%' AND e.Title NOT LIKE '%Manager%' 
              THEN 'Not Eligible - Finance Role Requirement'
         WHEN EXISTS (
@@ -301,16 +301,16 @@ SELECT
                     WHERE ep.EmployeeID = e.EmployeeID 
                     AND p.Status = 'Completed'
                     AND ep.HoursWorked <= ep.HoursAllocated
-                ) THEN e.Salary * 0.15  -- Project completion bonus
-                ELSE e.Salary * 0.08    -- Standard IT bonus
+                ) THEN e.BaseSalary * 0.15  -- Project completion bonus
+                ELSE e.BaseSalary * 0.08    -- Standard IT bonus
             END
         WHEN e.DepartmentID = 4 THEN  -- Marketing Department
             CASE 
                 WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 3 
-                     AND e.Salary >= 60000 THEN e.Salary * 0.12
-                ELSE e.Salary * 0.06
+                     AND e.BaseSalary >= 60000 THEN e.BaseSalary * 0.12
+                ELSE e.BaseSalary * 0.06
             END
-        ELSE e.Salary * 0.05  -- Standard bonus for other departments
+        ELSE e.BaseSalary * 0.05  -- Standard bonus for other departments
     END AS CalculatedBonus
 FROM Employees e;
 ```
@@ -321,25 +321,25 @@ FROM Employees e;
 SELECT 
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     DepartmentID,
     CASE 
-        WHEN RANK() OVER (PARTITION BY DepartmentID ORDER BY Salary DESC) = 1 
+        WHEN RANK() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) = 1 
              THEN 'Department Top Earner'
-        WHEN RANK() OVER (PARTITION BY DepartmentID ORDER BY Salary DESC) <= 3 
+        WHEN RANK() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) <= 3 
              THEN 'Department Top 3'
-        WHEN PERCENT_RANK() OVER (PARTITION BY DepartmentID ORDER BY Salary) >= 0.75 
+        WHEN PERCENT_RANK() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary) >= 0.75 
              THEN 'Department Top Quartile'
-        WHEN PERCENT_RANK() OVER (PARTITION BY DepartmentID ORDER BY Salary) >= 0.5 
+        WHEN PERCENT_RANK() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary) >= 0.5 
              THEN 'Department Above Median'
         ELSE 'Department Below Median'
     END AS SalaryPosition,
     CASE 
-        WHEN Salary > AVG(Salary) OVER (PARTITION BY DepartmentID) * 1.2 
+        WHEN BaseSalary > AVG(BaseSalary) OVER (PARTITION BY DepartmentID) * 1.2 
              THEN 'Significantly Above Dept Average'
-        WHEN Salary > AVG(Salary) OVER (PARTITION BY DepartmentID) 
+        WHEN BaseSalary > AVG(BaseSalary) OVER (PARTITION BY DepartmentID) 
              THEN 'Above Department Average'
-        WHEN Salary < AVG(Salary) OVER (PARTITION BY DepartmentID) * 0.8 
+        WHEN BaseSalary < AVG(BaseSalary) OVER (PARTITION BY DepartmentID) * 0.8 
              THEN 'Significantly Below Dept Average'
         ELSE 'Near Department Average'
     END AS SalaryComparison
@@ -411,20 +411,20 @@ FROM Employees;
 SELECT 
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     CASE 
-        WHEN Salary > 100000 THEN 'Executive'      -- Most specific first
-        WHEN Salary > 80000 THEN 'Senior'
-        WHEN Salary > 60000 THEN 'Mid-Level'
-        WHEN Salary > 40000 THEN 'Entry-Level'
+        WHEN BaseSalary > 100000 THEN 'Executive'      -- Most specific first
+        WHEN BaseSalary > 80000 THEN 'Senior'
+        WHEN BaseSalary > 60000 THEN 'Mid-Level'
+        WHEN BaseSalary > 40000 THEN 'Entry-Level'
         ELSE 'Intern'                              -- Catch-all last
     END AS Level
 FROM Employees;
 
 -- Problematic: Wrong order can cause incorrect results
 -- CASE 
---     WHEN Salary > 40000 THEN 'Entry-Level'  -- This catches everyone > 40k!
---     WHEN Salary > 80000 THEN 'Senior'       -- This will never execute
+--     WHEN BaseSalary > 40000 THEN 'Entry-Level'  -- This catches everyone > 40k!
+--     WHEN BaseSalary > 80000 THEN 'Senior'       -- This will never execute
 --     ELSE 'Intern'
 -- END
 ```
@@ -436,16 +436,16 @@ SELECT
     FirstName,
     LastName,
     CASE 
-        WHEN Salary > 80000 THEN 'High'
-        WHEN Salary > 50000 THEN 'Medium'
+        WHEN BaseSalary > 80000 THEN 'High'
+        WHEN BaseSalary > 50000 THEN 'Medium'
         ELSE 'Low'
     END AS SalaryLevel
 FROM Employees;
 
 -- Problematic: Mixed data types
 -- CASE 
---     WHEN Salary > 80000 THEN 'High'    -- String
---     WHEN Salary > 50000 THEN 1         -- Integer
+--     WHEN BaseSalary > 80000 THEN 'High'    -- String
+--     WHEN BaseSalary > 50000 THEN 1         -- Integer
 --     ELSE NULL                          -- NULL
 -- END
 ```
@@ -457,11 +457,11 @@ FROM Employees;
 
 -- Instead of repeating this complex CASE in multiple queries:
 CASE 
-    WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 10 AND Salary >= 100000 
+    WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 10 AND BaseSalary >= 100000 
          AND DepartmentID IN (1, 3, 4) 
          AND Title LIKE '%Senior%' OR Title LIKE '%Manager%' 
          THEN 'Executive Track'
-    WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 5 AND Salary >= 70000 
+    WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 5 AND BaseSalary >= 70000 
          THEN 'Management Track'
     ELSE 'Individual Contributor'
 END
@@ -498,20 +498,20 @@ FROM Employees;
 ```sql
 -- Problem: Overlapping conditions
 SELECT 
-    Salary,
+    BaseSalary,
     CASE 
-        WHEN Salary > 50000 THEN 'Above 50k'    -- This catches 80k salaries
-        WHEN Salary > 80000 THEN 'Above 80k'    -- This never executes!
+        WHEN BaseSalary > 50000 THEN 'Above 50k'    -- This catches 80k salaries
+        WHEN BaseSalary > 80000 THEN 'Above 80k'    -- This never executes!
         ELSE 'Below 50k'
     END AS Range
 FROM Employees;
 
 -- Solution: Order from highest to lowest
 SELECT 
-    Salary,
+    BaseSalary,
     CASE 
-        WHEN Salary > 80000 THEN 'Above 80k'
-        WHEN Salary > 50000 THEN 'Above 50k'
+        WHEN BaseSalary > 80000 THEN 'Above 80k'
+        WHEN BaseSalary > 50000 THEN 'Above 50k'
         ELSE 'Below 50k'
     END AS Range
 FROM Employees;
@@ -522,8 +522,8 @@ FROM Employees;
 -- Problem: Mixed return types cause conversion issues
 SELECT 
     CASE 
-        WHEN Salary > 80000 THEN Salary      -- Returns number
-        WHEN Salary > 50000 THEN 'Medium'    -- Returns string
+        WHEN BaseSalary > 80000 THEN BaseSalary      -- Returns number
+        WHEN BaseSalary > 50000 THEN 'Medium'    -- Returns string
         ELSE NULL                            -- Returns NULL
     END AS Result
 FROM Employees;
@@ -531,9 +531,9 @@ FROM Employees;
 -- Solution: Consistent return types
 SELECT 
     CASE 
-        WHEN Salary > 80000 THEN CAST(Salary AS VARCHAR)
-        WHEN Salary > 50000 THEN 'Medium Salary'
-        ELSE 'Low Salary'
+        WHEN BaseSalary > 80000 THEN CAST(BaseSalary AS VARCHAR)
+        WHEN BaseSalary > 50000 THEN 'Medium BaseSalary'
+        ELSE 'Low BaseSalary'
     END AS Result
 FROM Employees;
 ```
@@ -545,16 +545,16 @@ FROM Employees;
 -- Single query with CASE (generally more efficient)
 SELECT 
     DepartmentID,
-    COUNT(CASE WHEN Salary > 70000 THEN 1 END) AS HighSalary,
-    COUNT(CASE WHEN Salary BETWEEN 40000 AND 70000 THEN 1 END) AS MidSalary,
-    COUNT(CASE WHEN Salary < 40000 THEN 1 END) AS LowSalary
+    COUNT(CASE WHEN BaseSalary > 70000 THEN 1 END) AS HighSalary,
+    COUNT(CASE WHEN BaseSalary BETWEEN 40000 AND 70000 THEN 1 END) AS MidSalary,
+    COUNT(CASE WHEN BaseSalary < 40000 THEN 1 END) AS LowSalary
 FROM Employees
 GROUP BY DepartmentID;
 
 -- vs. Multiple separate queries (less efficient)
--- SELECT DepartmentID, COUNT(*) FROM Employees WHERE Salary > 70000 GROUP BY DepartmentID;
--- SELECT DepartmentID, COUNT(*) FROM Employees WHERE Salary BETWEEN 40000 AND 70000 GROUP BY DepartmentID;
--- SELECT DepartmentID, COUNT(*) FROM Employees WHERE Salary < 40000 GROUP BY DepartmentID;
+-- SELECT DepartmentID, COUNT(*) FROM Employees WHERE BaseSalary > 70000 GROUP BY DepartmentID;
+-- SELECT DepartmentID, COUNT(*) FROM Employees WHERE BaseSalary BETWEEN 40000 AND 70000 GROUP BY DepartmentID;
+-- SELECT DepartmentID, COUNT(*) FROM Employees WHERE BaseSalary < 40000 GROUP BY DepartmentID;
 ```
 
 ### 2. Simple vs. Searched CASE Performance

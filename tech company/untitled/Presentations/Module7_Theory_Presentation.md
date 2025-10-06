@@ -55,11 +55,11 @@ INSERT INTO Employees
 VALUES (4001, 'John', 'Smith', 'john.smith@techcorp.com', '2023-01-15', 75000);
 
 -- Specific columns (recommended)
-INSERT INTO Employees (FirstName, LastName, Email, HireDate, Salary)
+INSERT INTO Employees (FirstName, LastName, Email, HireDate, BaseSalary)
 VALUES ('John', 'Smith', 'john.smith@techcorp.com', '2023-01-15', 75000);
 
 -- With DEFAULT and NULL values
-INSERT INTO Employees (FirstName, LastName, Email, HireDate, Salary, IsActive)
+INSERT INTO Employees (FirstName, LastName, Email, HireDate, BaseSalary, IsActive)
 VALUES ('Jane', 'Doe', 'jane.doe@techcorp.com', DEFAULT, 65000, DEFAULT);
 ```
 
@@ -92,7 +92,7 @@ SELECT SCOPE_IDENTITY() AS NewEmployeeID;
 
 ```sql
 -- Multiple VALUES
-INSERT INTO Employees (FirstName, LastName, DepartmentID, Salary)
+INSERT INTO Employees (FirstName, LastName, DepartmentID, BaseSalary)
 VALUES 
     ('John', 'Smith', 1, 75000),
     ('Jane', 'Doe', 2, 80000),
@@ -108,8 +108,8 @@ WHERE IsActive = 1;
 WITH NewHires AS (
     SELECT * FROM StagingEmployees WHERE ProcessDate = CAST(GETDATE() AS DATE)
 )
-INSERT INTO Employees (FirstName, LastName, DepartmentID, Salary)
-SELECT FirstName, LastName, DepartmentID, Salary FROM NewHires;
+INSERT INTO Employees (FirstName, LastName, DepartmentID, BaseSalary)
+SELECT FirstName, LastName, DepartmentID, BaseSalary FROM NewHires;
 ```
 
 ---
@@ -124,9 +124,9 @@ SET column1 = value1,
     column2 = value2
 WHERE condition;
 
--- Example: Salary increase
+-- Example: BaseSalary increase
 UPDATE Employees
-SET Salary = Salary * 1.05,
+SET BaseSalary = BaseSalary * 1.05,
     LastModified = GETDATE()
 WHERE DepartmentID = 1
     AND IsActive = 1;
@@ -142,7 +142,7 @@ WHERE DepartmentID = 1
 ```sql
 -- UPDATE with INNER JOIN
 UPDATE e
-SET e.Salary = e.Salary * (1 + d.BonusMultiplier),
+SET e.BaseSalary = e.BaseSalary * (1 + d.BonusMultiplier),
     e.LastModified = GETDATE()
 FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
@@ -151,8 +151,8 @@ WHERE e.PerformanceRating >= 4
 
 -- UPDATE with subquery
 UPDATE Employees
-SET Salary = (
-    SELECT AVG(Salary) * 1.1
+SET BaseSalary = (
+    SELECT AVG(BaseSalary) * 1.1
     FROM Employees e2
     WHERE e2.DepartmentID = Employees.DepartmentID
       AND e2.IsActive = 1
@@ -170,9 +170,9 @@ WHERE PerformanceRating >= 4;
 UPDATE Employees
 SET SalaryBand = 
     CASE 
-        WHEN Salary >= 100000 THEN 'Executive'
-        WHEN Salary >= 75000 THEN 'Senior'
-        WHEN Salary >= 50000 THEN 'Mid-Level'
+        WHEN BaseSalary >= 100000 THEN 'Executive'
+        WHEN BaseSalary >= 75000 THEN 'Senior'
+        WHEN BaseSalary >= 50000 THEN 'Mid-Level'
         ELSE 'Junior'
     END,
     LastReviewDate = GETDATE()
@@ -252,7 +252,7 @@ WHERE EmployeeID = @EmployeeID;
 
 -- Views for active data only
 CREATE VIEW ActiveEmployees AS
-SELECT EmployeeID, FirstName, LastName, Email, Salary
+SELECT EmployeeID, FirstName, LastName, Email, BaseSalary
 FROM Employees
 WHERE IsActive = 1;
 
@@ -318,12 +318,12 @@ WHEN MATCHED AND source.LastModified > target.LastModified THEN
         FirstName = source.FirstName,
         LastName = source.LastName,
         Email = source.Email,
-        Salary = source.Salary,
+        BaseSalary = source.BaseSalary,
         LastModified = source.LastModified
 WHEN NOT MATCHED BY TARGET THEN
-    INSERT (EmployeeID, FirstName, LastName, Email, Salary, LastModified)
+    INSERT (EmployeeID, FirstName, LastName, Email, BaseSalary, LastModified)
     VALUES (source.EmployeeID, source.FirstName, source.LastName, 
-            source.Email, source.Salary, source.LastModified)
+            source.Email, source.BaseSalary, source.LastModified)
 WHEN NOT MATCHED BY SOURCE AND target.IsActive = 1 THEN
     UPDATE SET IsActive = 0, TerminationDate = GETDATE();
 ```
@@ -335,17 +335,17 @@ WHEN NOT MATCHED BY SOURCE AND target.IsActive = 1 THEN
 
 ```sql
 -- INSERT with OUTPUT
-INSERT INTO Employees (FirstName, LastName, DepartmentID, Salary)
+INSERT INTO Employees (FirstName, LastName, DepartmentID, BaseSalary)
 OUTPUT INSERTED.EmployeeID, INSERTED.FirstName, INSERTED.LastName
 VALUES ('John', 'Smith', 1, 75000);
 
 -- UPDATE with OUTPUT
 UPDATE Employees
-SET Salary = Salary * 1.05
+SET BaseSalary = BaseSalary * 1.05
 OUTPUT 
     DELETED.EmployeeID,
-    DELETED.Salary AS OldSalary,
-    INSERTED.Salary AS NewSalary,
+    DELETED.BaseSalary AS OldSalary,
+    INSERTED.BaseSalary AS NewSalary,
     GETDATE() AS UpdateTime
 WHERE DepartmentID = 1;
 
@@ -402,7 +402,7 @@ END CATCH
 SELECT * FROM Employees WITH (NOLOCK);  -- Read uncommitted
 
 UPDATE Employees WITH (ROWLOCK)
-SET Salary = 75000
+SET BaseSalary = 75000
 WHERE EmployeeID = 1001;
 
 -- Avoiding deadlocks
@@ -468,7 +468,7 @@ END CATCH
 -- Requires values during INSERT/UPDATE
 
 -- Example with constraint violation handling
-INSERT INTO Employees (FirstName, LastName, Email, DepartmentID, Salary)
+INSERT INTO Employees (FirstName, LastName, Email, DepartmentID, BaseSalary)
 VALUES ('John', 'Smith', 'existing@email.com', 1, -50000);  -- May violate constraints
 ```
 
@@ -484,15 +484,15 @@ CREATE PROCEDURE sp_AddEmployee
     @LastName NVARCHAR(50),
     @Email NVARCHAR(100),
     @DepartmentID INT,
-    @Salary MONEY,
+    @BaseSalary MONEY,
     @NewEmployeeID INT OUTPUT
 AS
 BEGIN
     SET NOCOUNT ON;
     
     BEGIN TRY
-        INSERT INTO Employees (FirstName, LastName, Email, DepartmentID, Salary)
-        VALUES (@FirstName, @LastName, @Email, @DepartmentID, @Salary);
+        INSERT INTO Employees (FirstName, LastName, Email, DepartmentID, BaseSalary)
+        VALUES (@FirstName, @LastName, @Email, @DepartmentID, @BaseSalary);
         
         SET @NewEmployeeID = SCOPE_IDENTITY();
         
@@ -543,9 +543,9 @@ END
 
 ```sql
 -- Input validation before DML
-IF @Salary < 0 OR @Salary > 1000000
+IF @BaseSalary < 0 OR @BaseSalary > 1000000
 BEGIN
-    RAISERROR('Salary must be between 0 and 1,000,000', 16, 1);
+    RAISERROR('BaseSalary must be between 0 and 1,000,000', 16, 1);
     RETURN;
 END
 
@@ -571,10 +571,10 @@ END
 
 ```sql
 -- Mistake 1: Missing WHERE clause
-UPDATE Employees SET Salary = 100000;  -- Updates ALL employees!
+UPDATE Employees SET BaseSalary = 100000;  -- Updates ALL employees!
 
 -- Mistake 2: Incorrect JOIN in UPDATE/DELETE
-UPDATE e SET Salary = 50000
+UPDATE e SET BaseSalary = 50000
 FROM Employees e, Departments d  -- Cartesian product!
 
 -- Mistake 3: Not handling NULLs
@@ -584,7 +584,7 @@ UPDATE Employees SET FullName = FirstName + ' ' + LastName;  -- NULL if MiddleNa
 -- Multiple related operations without proper transaction control
 
 -- Mistake 5: Not using parameterized queries (SQL injection risk)
-EXEC('UPDATE Employees SET Salary = ' + @UserInput);  -- Dangerous!
+EXEC('UPDATE Employees SET BaseSalary = ' + @UserInput);  -- Dangerous!
 ```
 
 ---

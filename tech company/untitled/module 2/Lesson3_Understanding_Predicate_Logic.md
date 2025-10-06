@@ -68,7 +68,7 @@ Unlike binary logic (TRUE/FALSE), SQL uses three-valued logic:
 #### 1. Comparison Predicates
 ```sql
 -- Basic comparison operators
-SELECT * FROM Employees WHERE Salary > 50000;        -- Greater than
+SELECT * FROM Employees WHERE BaseSalary > 50000;        -- Greater than
 SELECT * FROM Employees WHERE Age <= 30;             -- Less than or equal
 SELECT * FROM Employees WHERE Department = 'IT';     -- Equal
 SELECT * FROM Employees WHERE Department != 'HR';    -- Not equal
@@ -79,11 +79,11 @@ SELECT * FROM Employees WHERE Department <> 'HR';    -- Not equal (alternative)
 ```sql
 -- Range checking
 SELECT * FROM Employees 
-WHERE Salary BETWEEN 40000 AND 80000;
+WHERE BaseSalary BETWEEN 40000 AND 80000;
 
 -- Equivalent to:
 SELECT * FROM Employees 
-WHERE Salary >= 40000 AND Salary <= 80000;
+WHERE BaseSalary >= 40000 AND BaseSalary <= 80000;
 
 -- Date ranges
 SELECT * FROM Orders 
@@ -158,17 +158,17 @@ WHERE NOT EXISTS (
 -- AND, OR, NOT operators with proper grouping
 SELECT * FROM Employees 
 WHERE (Department = 'IT' OR Department = 'Engineering')
-  AND Salary > 60000
+  AND BaseSalary > 60000
   AND HireDate >= '2020-01-01';
 
 -- De Morgan's Laws application
 -- NOT (A AND B) is equivalent to (NOT A) OR (NOT B)
 SELECT * FROM Employees 
-WHERE NOT (Department = 'HR' AND Salary < 40000);
+WHERE NOT (Department = 'HR' AND BaseSalary < 40000);
 
 -- Equivalent to:
 SELECT * FROM Employees 
-WHERE Department != 'HR' OR Salary >= 40000;
+WHERE Department != 'HR' OR BaseSalary >= 40000;
 ```
 
 ### Advanced Examples
@@ -179,16 +179,16 @@ WHERE Department != 'HR' OR Salary >= 40000;
 SELECT 
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     CASE 
-        WHEN Salary IS NULL THEN 'No Salary Data'
-        WHEN Salary < 30000 THEN 'Entry Level'
-        WHEN Salary BETWEEN 30000 AND 60000 THEN 'Mid Level'
-        WHEN Salary BETWEEN 60001 AND 100000 THEN 'Senior Level'
+        WHEN BaseSalary IS NULL THEN 'No BaseSalary Data'
+        WHEN BaseSalary < 30000 THEN 'Entry Level'
+        WHEN BaseSalary BETWEEN 30000 AND 60000 THEN 'Mid Level'
+        WHEN BaseSalary BETWEEN 60001 AND 100000 THEN 'Senior Level'
         ELSE 'Executive Level'
     END AS SalaryCategory,
     CASE 
-        WHEN Department = 'Sales' AND Salary > 80000 THEN 'Top Sales Performer'
+        WHEN Department = 'Sales' AND BaseSalary > 80000 THEN 'Top Sales Performer'
         WHEN Department = 'IT' AND DATEDIFF(YEAR, HireDate, GETDATE()) > 5 THEN 'Senior IT Professional'
         WHEN Age < 25 AND Department = 'Marketing' THEN 'Young Marketing Talent'
         ELSE 'Standard Employee'
@@ -262,7 +262,7 @@ NULL  AND NULL  = NULL
 -- Example demonstrating NULL behavior
 SELECT *
 FROM Employees
-WHERE (Salary > 50000) AND (MiddleName IS NOT NULL);
+WHERE (BaseSalary > 50000) AND (MiddleName IS NOT NULL);
 ```
 
 ### OR Truth Table
@@ -317,7 +317,7 @@ SELECT *
 FROM Employees
 WHERE (@SearchName IS NULL OR FirstName LIKE '%' + @SearchName + '%')
   AND (@SearchDept IS NULL OR Department = @SearchDept)
-  AND (@MinSalary IS NULL OR Salary >= @MinSalary);
+  AND (@MinSalary IS NULL OR BaseSalary >= @MinSalary);
 ```
 
 ### 2. Date Range Predicates
@@ -367,13 +367,13 @@ WHERE Price > (
 ### 1. Sargable Predicates
 ```sql
 -- Sargable (Search ARGument ABLE) - can use indexes efficiently
-SELECT * FROM Employees WHERE Salary > 50000;
+SELECT * FROM Employees WHERE BaseSalary > 50000;
 SELECT * FROM Employees WHERE LastName = 'Smith';
 SELECT * FROM Employees WHERE HireDate >= '2023-01-01';
 
 -- Non-sargable - cannot use indexes efficiently
 SELECT * FROM Employees WHERE YEAR(HireDate) = 2023;  -- Function on column
-SELECT * FROM Employees WHERE Salary * 1.1 > 55000;   -- Expression on column
+SELECT * FROM Employees WHERE BaseSalary * 1.1 > 55000;   -- Expression on column
 SELECT * FROM Employees WHERE LastName LIKE '%smith'; -- Leading wildcard
 ```
 
@@ -428,7 +428,7 @@ WHERE ISNULL(MiddleName, '') LIKE '%' + ISNULL(@SearchMiddleName, '') + '%';
 SELECT *
 FROM Employees
 WHERE (Department = 'IT' OR Department = 'Engineering')
-  AND (Salary > 60000)
+  AND (BaseSalary > 60000)
   AND (HireDate >= '2020-01-01' OR Title LIKE '%Senior%');
 ```
 

@@ -189,7 +189,7 @@ FROM Colors CROSS JOIN Sizes;
 -- Mathematical: σ(condition)(R)
 -- Selects tuples that satisfy the condition
 SELECT * FROM Employees
-WHERE Department = 'Sales' AND Salary > 50000;
+WHERE Department = 'Sales' AND BaseSalary > 50000;
 
 -- Result: Subset of employees meeting the criteria
 ```
@@ -239,7 +239,7 @@ CREATE TABLE Employees (
     FirstName nvarchar(50) NOT NULL, -- Required attribute
     LastName nvarchar(50) NOT NULL,  -- Required attribute
     DepartmentID int,                -- Foreign key reference
-    Salary decimal(10,2),            -- Optional attribute
+    BaseSalary decimal(10,2),            -- Optional attribute
     HireDate date DEFAULT GETDATE()  -- Default value
 );
 ```

@@ -239,7 +239,7 @@ SELECT
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     e.Title,
     e.Email,
-    FORMAT(e.Salary, 'C0') AS Salary,
+    FORMAT(e.BaseSalary, 'C0') AS BaseSalary,
     
     -- Department info (might be NULL)
     ISNULL(d.DepartmentName, 'Unassigned') AS Department,
@@ -268,7 +268,7 @@ LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.Status = 'In Progress'
 LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
 WHERE e.IsActive = 1
-GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.Email, e.Salary,
+GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.Email, e.BaseSalary,
          d.DepartmentID, d.DepartmentName, d.Location,
          mgr.FirstName, mgr.LastName
 ORDER BY IntegrationStatus, d.DepartmentName, e.LastName;
@@ -423,8 +423,8 @@ WITH DepartmentMetrics AS (
         d.Budget,
         d.Location,
         COUNT(e.EmployeeID) AS EmployeeCount,
-        AVG(e.Salary) AS AvgSalary,
-        SUM(e.Salary) AS TotalSalaries,
+        AVG(e.BaseSalary) AS AvgSalary,
+        SUM(e.BaseSalary) AS TotalSalaries,
         COUNT(DISTINCT ep.ProjectID) AS ActiveProjects,
         SUM(ep.HoursAllocated) AS TotalHoursAllocated,
         SUM(ep.HoursWorked) AS TotalHoursWorked
@@ -452,7 +452,7 @@ SELECT
     
     -- Staffing metrics
     ISNULL(dm.EmployeeCount, 0) AS [Current Headcount],
-    FORMAT(ISNULL(dm.AvgSalary, 0), 'C0') AS [Average Salary],
+    FORMAT(ISNULL(dm.AvgSalary, 0), 'C0') AS [Average BaseSalary],
     FORMAT(ISNULL(dm.TotalSalaries, 0), 'C0') AS [Total Payroll],
     
     -- Project engagement

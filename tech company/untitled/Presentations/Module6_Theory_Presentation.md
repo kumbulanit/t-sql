@@ -65,7 +65,7 @@ DECIMAL(precision, scale)
 NUMERIC(precision, scale)
 
 -- Examples
-Salary DECIMAL(10,2)      -- Up to 99,999,999.99
+BaseSalary DECIMAL(10,2)      -- Up to 99,999,999.99
 Percentage DECIMAL(5,4)   -- Up to 9.9999
 Price DECIMAL(8,2)        -- Up to 999,999.99
 
@@ -315,7 +315,7 @@ ConfigData XML(ConfigSchema)  -- With schema validation
 ```sql
 -- CAST (ANSI standard)
 SELECT 
-    CAST(Salary AS VARCHAR(20)) AS SalaryText,
+    CAST(BaseSalary AS VARCHAR(20)) AS SalaryText,
     CAST('2023-01-01' AS DATE) AS ConvertedDate,
     CAST(3.14159 AS DECIMAL(10,2)) AS RoundedValue
 
@@ -429,8 +429,8 @@ SELECT
     SQRT(16) AS SquareRoot,          -- 4
     
     -- Precision considerations
-    Salary * 1.05 AS RaisedSalary,
-    CAST(Salary * 1.05 AS DECIMAL(10,2)) AS PreciseRaise
+    BaseSalary * 1.05 AS RaisedSalary,
+    CAST(BaseSalary * 1.05 AS DECIMAL(10,2)) AS PreciseRaise
 FROM Employees;
 ```
 

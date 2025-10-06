@@ -18,7 +18,7 @@ CREATE TABLE Employees (
     Email NVARCHAR(100) NOT NULL,
     DepartmentID INT NOT NULL,
     ManagerID INT NULL,
-    Salary DECIMAL(10,2) NOT NULL,
+    BaseSalary DECIMAL(10,2) NOT NULL,
     HireDate DATE NOT NULL,
     IsActive BIT NOT NULL DEFAULT 1,
     Title NVARCHAR(100) NOT NULL
@@ -63,7 +63,7 @@ INSERT INTO Departments (DepartmentName, Budget, ManagerID) VALUES
 ('Operations', 400000, NULL);
 
 -- Insert sample employees
-INSERT INTO Employees (FirstName, LastName, MiddleName, Email, DepartmentID, ManagerID, Salary, HireDate, Title) VALUES
+INSERT INTO Employees (FirstName, LastName, MiddleName, Email, DepartmentID, ManagerID, BaseSalary, HireDate, Title) VALUES
 ('John', 'Smith', 'Michael', 'john.smith@company.com', 1, NULL, 95000, '2020-01-15', 'IT Director'),
 ('Sarah', 'Johnson', NULL, 'sarah.johnson@company.com', 1, 1, 75000, '2021-03-10', 'Senior Developer'),
 ('Mike', 'Davis', 'Robert', 'mike.davis@company.com', 1, 1, 65000, '2021-06-01', 'Developer'),
@@ -104,7 +104,7 @@ Write queries to:
 
 1. **Basic Selection**: Select all columns from the Employees table.
 
-2. **Column Selection**: Select only FirstName, LastName, and Salary from Employees.
+2. **Column Selection**: Select only FirstName, LastName, and BaseSalary from Employees.
 
 3. **Calculated Columns**: Create a query that shows:
    - Full name (FirstName + LastName)
@@ -218,7 +218,7 @@ Write queries to:
 For each query, explain the logical processing order:
 
 1. ```sql
-   SELECT DepartmentID, AVG(Salary) as AvgSalary
+   SELECT DepartmentID, AVG(BaseSalary) as AvgSalary
    FROM Employees
    WHERE IsActive = 1
    GROUP BY DepartmentID
@@ -230,7 +230,7 @@ For each query, explain the logical processing order:
    SELECT e.FirstName, e.LastName, d.DepartmentName
    FROM Employees e
    JOIN Departments d ON e.DepartmentID = d.DepartmentID
-   WHERE e.Salary > 60000
+   WHERE e.BaseSalary > 60000
    ORDER BY d.DepartmentName;
    ```
 
@@ -238,7 +238,7 @@ For each query, explain the logical processing order:
 Identify what's wrong with these queries and fix them:
 
 1. ```sql
-   SELECT FirstName + ' ' + LastName AS FullName, Salary
+   SELECT FirstName + ' ' + LastName AS FullName, BaseSalary
    FROM Employees
    WHERE FullName LIKE 'John%';
    ```

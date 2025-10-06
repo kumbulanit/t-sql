@@ -407,7 +407,7 @@ SELECT
     -- Simple active/inactive status
     IIF(e.IsActive = 1, 'Active Employee', 'Former Employee') AS EmploymentStatus,
     
-    -- Salary level indicator
+    -- BaseSalary level indicator
     IIF(e.BaseSalary >= 100000, 'Senior Level', 'Junior-Mid Level') AS SalaryLevel,
     
     -- Years of service category
@@ -462,7 +462,7 @@ SELECT
         'N1'
     ) + '%' AS HighSalaryPercentage,
     
-    -- Salary statistics with conditional logic
+    -- BaseSalary statistics with conditional logic
     AVG(IIF(e.BaseSalary >= 100000, e.BaseSalary, NULL)) AS AvgHighSalary,
     AVG(IIF(e.BaseSalary < 100000, e.BaseSalary, NULL)) AS AvgStandardSalary,
     

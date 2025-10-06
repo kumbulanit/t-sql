@@ -30,14 +30,14 @@ ORDER BY sort_columns;
 #### 1. Basic SELECT with WHERE
 ```sql
 -- Written order
-SELECT FirstName, LastName, Salary
+SELECT FirstName, LastName, BaseSalary
 FROM Employees
 WHERE Department = 'IT';
 
 -- Logical processing:
 -- 1. FROM Employees (get all rows from Employees table)
 -- 2. WHERE Department = 'IT' (filter rows)
--- 3. SELECT FirstName, LastName, Salary (project columns)
+-- 3. SELECT FirstName, LastName, BaseSalary (project columns)
 ```
 
 #### 2. SELECT with GROUP BY
@@ -58,7 +58,7 @@ GROUP BY Department;
 #### 3. SELECT with HAVING
 ```sql
 -- Written order
-SELECT Department, AVG(Salary) AS AvgSalary
+SELECT Department, AVG(BaseSalary) AS AvgSalary
 FROM Employees
 WHERE IsActive = 1
 GROUP BY Department
@@ -69,7 +69,7 @@ HAVING COUNT(*) >= 5;
 -- 2. WHERE IsActive = 1 (filter rows before grouping)
 -- 3. GROUP BY Department (create groups)
 -- 4. HAVING COUNT(*) >= 5 (filter groups)
--- 5. SELECT Department, AVG(Salary) (project results)
+-- 5. SELECT Department, AVG(BaseSalary) (project results)
 ```
 
 ### Intermediate Examples
@@ -79,22 +79,22 @@ HAVING COUNT(*) >= 5;
 -- Written order
 SELECT 
     Department,
-    AVG(Salary) AS AvgSalary,
+    AVG(BaseSalary) AS AvgSalary,
     COUNT(*) AS EmployeeCount
 FROM Employees
 WHERE HireDate >= '2020-01-01'
   AND IsActive = 1
 GROUP BY Department
 HAVING COUNT(*) >= 3
-ORDER BY AVG(Salary) DESC;
+ORDER BY AVG(BaseSalary) DESC;
 
 -- Logical processing order:
 -- 1. FROM Employees (start with source table)
 -- 2. WHERE HireDate >= '2020-01-01' AND IsActive = 1 (filter rows)
 -- 3. GROUP BY Department (group remaining rows)
 -- 4. HAVING COUNT(*) >= 3 (filter groups with less than 3 employees)
--- 5. SELECT Department, AVG(Salary), COUNT(*) (calculate aggregates)
--- 6. ORDER BY AVG(Salary) DESC (sort final results)
+-- 5. SELECT Department, AVG(BaseSalary), COUNT(*) (calculate aggregates)
+-- 6. ORDER BY AVG(BaseSalary) DESC (sort final results)
 ```
 
 #### 2. Understanding Column Aliases
@@ -102,21 +102,21 @@ ORDER BY AVG(Salary) DESC;
 -- This works - alias can be used in ORDER BY
 SELECT 
     FirstName + ' ' + LastName AS FullName,
-    Salary
+    BaseSalary
 FROM Employees
 ORDER BY FullName;
 
 -- This doesn't work - alias not available in WHERE
 SELECT 
     FirstName + ' ' + LastName AS FullName,
-    Salary
+    BaseSalary
 FROM Employees
 WHERE FullName LIKE 'John%';  -- ERROR: Invalid column name 'FullName'
 
 -- Correct approach
 SELECT 
     FirstName + ' ' + LastName AS FullName,
-    Salary
+    BaseSalary
 FROM Employees
 WHERE FirstName + ' ' + LastName LIKE 'John%';
 ```
@@ -132,7 +132,7 @@ FROM (
     -- This subquery is processed completely first
     SELECT 
         Department,
-        AVG(Salary) AS AvgSalary
+        AVG(BaseSalary) AS AvgSalary
     FROM Employees
     WHERE IsActive = 1
     GROUP BY Department
@@ -151,10 +151,10 @@ ORDER BY e.AvgSalary DESC;
 SELECT 
     FirstName,
     LastName,
-    Salary,
+    BaseSalary,
     Department,
-    AVG(Salary) OVER (PARTITION BY Department) AS DeptAvgSalary,
-    ROW_NUMBER() OVER (PARTITION BY Department ORDER BY Salary DESC) AS SalaryRank
+    AVG(BaseSalary) OVER (PARTITION BY Department) AS DeptAvgSalary,
+    ROW_NUMBER() OVER (PARTITION BY Department ORDER BY BaseSalary DESC) AS SalaryRank
 FROM Employees
 WHERE IsActive = 1
 ORDER BY Department, SalaryRank;
@@ -174,7 +174,7 @@ WITH DepartmentStats AS (
     SELECT 
         Department,
         COUNT(*) AS EmployeeCount,
-        AVG(Salary) AS AvgSalary
+        AVG(BaseSalary) AS AvgSalary
     FROM Employees
     WHERE IsActive = 1
     GROUP BY Department
@@ -195,11 +195,11 @@ SELECT
     hpd.AvgSalary,
     e.FirstName,
     e.LastName,
-    e.Salary
+    e.BaseSalary
 FROM HighPerformingDepts hpd
 INNER JOIN Employees e ON hpd.Department = e.Department
-WHERE e.Salary > hpd.AvgSalary * 0.8
-ORDER BY hpd.Department, e.Salary DESC;
+WHERE e.BaseSalary > hpd.AvgSalary * 0.8
+ORDER BY hpd.Department, e.BaseSalary DESC;
 ```
 
 #### 3. Multiple Table Operations
@@ -235,22 +235,22 @@ ORDER BY d.DepartmentName, e.LastName;
 ```sql
 -- WRONG: Trying to use alias in WHERE clause
 SELECT 
-    Salary * 1.1 AS IncreasedSalary
+    BaseSalary * 1.1 AS IncreasedSalary
 FROM Employees
 WHERE IncreasedSalary > 50000;  -- Error!
 
 -- CORRECT: Use the expression directly
 SELECT 
-    Salary * 1.1 AS IncreasedSalary
+    BaseSalary * 1.1 AS IncreasedSalary
 FROM Employees
-WHERE Salary * 1.1 > 50000;
+WHERE BaseSalary * 1.1 > 50000;
 
 -- ALTERNATIVE: Use a subquery or CTE
 WITH EmployeeWithIncrease AS (
     SELECT 
         FirstName,
         LastName,
-        Salary * 1.1 AS IncreasedSalary
+        BaseSalary * 1.1 AS IncreasedSalary
     FROM Employees
 )
 SELECT *
@@ -306,7 +306,7 @@ GROUP BY Department;
 -- Good: Filter early in WHERE clause
 SELECT 
     Department,
-    AVG(Salary) AS AvgSalary
+    AVG(BaseSalary) AS AvgSalary
 FROM Employees
 WHERE IsActive = 1          -- Reduces rows before grouping
   AND HireDate >= '2020-01-01'
@@ -315,11 +315,11 @@ GROUP BY Department;
 -- Less efficient: Late filtering in HAVING
 SELECT 
     Department,
-    AVG(Salary) AS AvgSalary
+    AVG(BaseSalary) AS AvgSalary
 FROM Employees
 GROUP BY Department
 HAVING AVG(CASE WHEN IsActive = 1 AND HireDate >= '2020-01-01' 
-               THEN Salary END) IS NOT NULL;
+               THEN BaseSalary END) IS NOT NULL;
 ```
 
 ### 2. Index Usage
@@ -328,7 +328,7 @@ HAVING AVG(CASE WHEN IsActive = 1 AND HireDate >= '2020-01-01'
 SELECT *
 FROM Employees
 WHERE DepartmentID = 5      -- Can use index on DepartmentID
-  AND Salary > 50000;       -- Can use index on Salary
+  AND BaseSalary > 50000;       -- Can use index on BaseSalary
 
 -- Functions in WHERE prevent index usage
 SELECT *
@@ -347,13 +347,13 @@ WHERE HireDate >= '2023-01-01'
 -- ORDER BY is processed last, so it works on final result set
 -- Consider covering indexes for ORDER BY columns
 CREATE INDEX IX_Employees_Dept_Salary 
-ON Employees (Department, Salary DESC);
+ON Employees (Department, BaseSalary DESC);
 
 -- This query can benefit from the above index
-SELECT FirstName, LastName, Salary
+SELECT FirstName, LastName, BaseSalary
 FROM Employees
 WHERE Department = 'IT'
-ORDER BY Salary DESC;
+ORDER BY BaseSalary DESC;
 ```
 
 ## Practical Applications
@@ -383,12 +383,12 @@ HAVING COUNT(*) >= 5;
 SELECT 
     Department,
     COUNT(*) AS EmployeeCount,
-    AVG(Salary) AS AvgSalary
+    AVG(BaseSalary) AS AvgSalary
 FROM Employees
 WHERE IsActive = 1
 GROUP BY Department
 HAVING COUNT(*) >= 5
-ORDER BY AVG(Salary) DESC;
+ORDER BY AVG(BaseSalary) DESC;
 ```
 
 ### 2. Query Optimization Strategy

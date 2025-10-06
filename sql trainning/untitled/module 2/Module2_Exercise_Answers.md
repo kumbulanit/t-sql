@@ -17,7 +17,7 @@ SELECT
         WHEN MiddleName IS NOT NULL THEN ' ' + LEFT(MiddleName, 1) + '.'
         ELSE ''
     END AS FullName,
-    FORMAT(Salary, 'C', 'en-US') AS FormattedSalary,
+    FORMAT(BaseSalary, 'C', 'en-US') AS FormattedSalary,
     DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsOfService,
     SUBSTRING(Email, CHARINDEX('@', Email) + 1, LEN(Email)) AS EmailDomain
 FROM Employees
@@ -26,19 +26,19 @@ ORDER BY LastName, FirstName;
 
 **Explanation**: Uses CASE for NULL handling, FORMAT for currency display, DATEDIFF for tenure calculation, and string functions for email parsing.
 
-**Answer 1.1.2**: Employee Salary Categorization
+**Answer 1.1.2**: Employee BaseSalary Categorization
 ```sql
 SELECT 
     FirstName + ' ' + LastName AS EmployeeName,
-    Salary,
+    BaseSalary,
     CASE 
-        WHEN Salary < 55000 THEN 'Entry Level'
-        WHEN Salary BETWEEN 55000 AND 75000 THEN 'Mid Level'
-        WHEN Salary BETWEEN 75001 AND 90000 THEN 'Senior Level'
+        WHEN BaseSalary < 55000 THEN 'Entry Level'
+        WHEN BaseSalary BETWEEN 55000 AND 75000 THEN 'Mid Level'
+        WHEN BaseSalary BETWEEN 75001 AND 90000 THEN 'Senior Level'
         ELSE 'Executive'
     END AS SalaryCategory
 FROM Employees
-ORDER BY Salary DESC;
+ORDER BY BaseSalary DESC;
 ```
 
 **Explanation**: Uses CASE statement with BETWEEN for range categorization, ordered by salary for easy verification.
@@ -114,7 +114,7 @@ ORDER BY eb1.PotentialEmail;
 
 ### 2.1 Set Operations Solutions
 
-**Answer 2.1.1**: Departments by Budget or Salary Criteria
+**Answer 2.1.1**: Departments by Budget or BaseSalary Criteria
 ```sql
 SELECT DepartmentName, 'High Budget' AS Reason
 FROM Departments
@@ -122,14 +122,14 @@ WHERE Budget > 300000
 
 UNION
 
-SELECT d.DepartmentName, 'High Average Salary' AS Reason
+SELECT d.DepartmentName, 'High Average BaseSalary' AS Reason
 FROM Departments d
 WHERE d.DepartmentID IN (
     SELECT e.DepartmentID
     FROM Employees e
     WHERE e.IsActive = 1
     GROUP BY e.DepartmentID
-    HAVING AVG(e.Salary) > 70000
+    HAVING AVG(e.BaseSalary) > 70000
 )
 ORDER BY DepartmentName;
 ```
@@ -268,17 +268,17 @@ WHERE NOT EXISTS (
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     e.HireDate,
-    e.Salary,
+    e.BaseSalary,
     d.DepartmentName,
     e.MiddleName,
     e.Title
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
-  AND (e.HireDate > '2020-12-31' OR e.Salary > 80000)
+  AND (e.HireDate > '2020-12-31' OR e.BaseSalary > 80000)
   AND d.Budget > 200000
   AND (e.MiddleName IS NULL OR e.Title LIKE '%Director%')
-ORDER BY e.Salary DESC;
+ORDER BY e.BaseSalary DESC;
 ```
 
 **Explanation**: Complex AND/OR logic with NULL handling and pattern matching, demonstrating predicate precedence.
@@ -292,8 +292,8 @@ WHERE EXISTS (
     SELECT 1
     FROM Employees e1
     WHERE e1.DepartmentID = d.DepartmentID
-      AND e1.Salary > (
-          SELECT AVG(e2.Salary)
+      AND e1.BaseSalary > (
+          SELECT AVG(e2.BaseSalary)
           FROM Employees e2
           WHERE e2.DepartmentID = d.DepartmentID
       )
@@ -307,7 +307,7 @@ AND EXISTS (
 )
 AND d.Budget > (
     -- Budget justified by employee cost
-    SELECT SUM(e.Salary) * 1.5  -- 50% overhead assumption
+    SELECT SUM(e.BaseSalary) * 1.5  -- 50% overhead assumption
     FROM Employees e
     WHERE e.DepartmentID = d.DepartmentID
 );
@@ -375,14 +375,14 @@ WHERE d.Budget > 300000
 -- CORRECTED VERSION:
 SELECT 
     d.DepartmentName, 
-    AVG(e.Salary) as AvgSal,
+    AVG(e.BaseSalary) as AvgSal,
     COUNT(*) as TeamSize
 FROM Departments d
 JOIN Employees e ON d.DepartmentID = e.DepartmentID
 WHERE e.IsActive = 1  -- Use actual column in WHERE
 GROUP BY d.DepartmentName
 HAVING COUNT(*) > 2   -- Use HAVING for aggregate conditions
-   AND AVG(e.Salary) > 60000
+   AND AVG(e.BaseSalary) > 60000
 ORDER BY AvgSal DESC;
 ```
 
@@ -448,13 +448,13 @@ ORDER BY ProjectCount DESC;
 SELECT 
     d.DepartmentName,
     COUNT(*) AS EmployeeCount,
-    AVG(e.Salary) AS AvgSalary
+    AVG(e.BaseSalary) AS AvgSalary
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.HireDate > '2020-12-31'  -- WHERE: filters individual rows before grouping
   AND e.IsActive = 1             -- WHERE: row-level filter
 GROUP BY d.DepartmentName
-HAVING AVG(e.Salary) > 65000;    -- HAVING: filters groups after aggregation
+HAVING AVG(e.BaseSalary) > 65000;    -- HAVING: filters groups after aggregation
 
 -- EXPLANATION OF FILTER PLACEMENT:
 -- WHERE filters are applied to individual rows BEFORE grouping
@@ -463,7 +463,7 @@ HAVING AVG(e.Salary) > 65000;    -- HAVING: filters groups after aggregation
 -- These filters reduce the dataset before expensive grouping operations
 
 -- HAVING filters are applied to grouped results AFTER aggregation
--- - AVG(e.Salary) > 65000: filters departments based on calculated average
+-- - AVG(e.BaseSalary) > 65000: filters departments based on calculated average
 -- This filter can only work after the GROUP BY creates department groups
 ```
 
@@ -486,8 +486,8 @@ WITH DepartmentMetrics AS (
         d.DepartmentName,
         d.Budget,
         COUNT(e.EmployeeID) AS EmployeeCount,
-        AVG(e.Salary) AS AvgSalary,
-        SUM(e.Salary) AS TotalSalaryCost,
+        AVG(e.BaseSalary) AS AvgSalary,
+        SUM(e.BaseSalary) AS TotalSalaryCost,
         COUNT(DISTINCT ep.ProjectID) AS ProjectCount
     FROM Departments d
     LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID AND e.IsActive = 1
@@ -522,7 +522,7 @@ DepartmentRanking AS (
             WHEN dm.EmployeeCount = 0 THEN 'No Active Employees'
             WHEN dm.ProjectCount = 0 THEN 'No Project Assignments'
             WHEN ISNULL(ru.UtilizationPercent, 0) < 70 THEN 'Low Utilization'
-            WHEN dm.TotalSalaryCost > dm.Budget * 0.8 THEN 'High Salary Burden'
+            WHEN dm.TotalSalaryCost > dm.Budget * 0.8 THEN 'High BaseSalary Burden'
             ELSE 'Good Performance'
         END AS AttentionFlag
     FROM DepartmentMetrics dm
@@ -551,7 +551,7 @@ WITH EmployeeMetrics AS (
         e.EmployeeID,
         e.FirstName + ' ' + e.LastName AS EmployeeName,
         e.Title,
-        e.Salary,
+        e.BaseSalary,
         e.HireDate,
         d.DepartmentName,
         DATEDIFF(MONTH, e.HireDate, GETDATE()) AS TenureMonths,
@@ -561,15 +561,15 @@ WITH EmployeeMetrics AS (
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     WHERE e.IsActive = 1
-    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.Salary, 
+    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.BaseSalary, 
              e.HireDate, d.DepartmentName
 ),
 DepartmentBenchmarks AS (
     SELECT 
         DepartmentName,
-        AVG(Salary) AS DeptAvgSalary,
+        AVG(BaseSalary) AS DeptAvgSalary,
         AVG(TenureMonths) AS DeptAvgTenure,
-        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY Salary) 
+        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY BaseSalary) 
             OVER (PARTITION BY DepartmentName) AS Salary75thPercentile
     FROM EmployeeMetrics
     GROUP BY DepartmentName
@@ -581,19 +581,19 @@ CareerAnalysis AS (
         db.DeptAvgTenure,
         db.Salary75thPercentile,
         CASE 
-            WHEN em.Salary >= db.Salary75thPercentile THEN 'High Performer'
-            WHEN em.Salary >= db.DeptAvgSalary THEN 'Above Average'
+            WHEN em.BaseSalary >= db.Salary75thPercentile THEN 'High Performer'
+            WHEN em.BaseSalary >= db.DeptAvgSalary THEN 'Above Average'
             ELSE 'Below Average'
         END AS SalaryPosition,
         CASE 
-            WHEN em.TenureMonths >= 36 AND em.Salary < db.DeptAvgSalary THEN 'Promotion Candidate'
+            WHEN em.TenureMonths >= 36 AND em.BaseSalary < db.DeptAvgSalary THEN 'Promotion Candidate'
             WHEN em.TenureMonths >= 24 AND em.ProjectCount >= 2 THEN 'Development Ready'
             WHEN em.TenureMonths < 12 THEN 'New Employee'
             ELSE 'Stable'
         END AS CareerStage,
         CASE 
             WHEN em.Title NOT LIKE '%Senior%' AND em.TenureMonths >= 36 
-                 AND em.Salary >= db.DeptAvgSalary THEN 'Senior Role Transition'
+                 AND em.BaseSalary >= db.DeptAvgSalary THEN 'Senior Role Transition'
             WHEN em.Title NOT LIKE '%Manager%' AND em.Title NOT LIKE '%Director%' 
                  AND em.TenureMonths >= 60 AND em.ProjectCount >= 3 THEN 'Leadership Track'
             WHEN em.ProjectCount = 0 AND em.TenureMonths >= 6 THEN 'Project Assignment Needed'
@@ -606,7 +606,7 @@ SELECT
     EmployeeName,
     Title,
     DepartmentName,
-    FORMAT(Salary, 'C0') AS CurrentSalary,
+    FORMAT(BaseSalary, 'C0') AS CurrentSalary,
     TenureMonths,
     ProjectCount,
     SalaryPosition,

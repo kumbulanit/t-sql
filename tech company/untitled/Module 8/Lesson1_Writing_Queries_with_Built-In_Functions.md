@@ -506,7 +506,7 @@ WHERE p.IsActive = 1
 ORDER BY ProfitMarginPercent DESC;
 
 -- Lab 8.3.2: Employee Compensation Analysis
--- Business scenario: Salary statistics and compensation benchmarking
+-- Business scenario: BaseSalary statistics and compensation benchmarking
 
 SELECT 
     d.DepartmentName,

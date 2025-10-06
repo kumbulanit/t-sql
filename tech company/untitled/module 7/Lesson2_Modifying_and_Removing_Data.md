@@ -68,7 +68,7 @@ The UPDATE and DELETE statements are essential for maintaining data accuracy and
 -- First, let's ensure we have sufficient test data
 
 -- Add more employees for UPDATE examples
-INSERT INTO Employees (FirstName, LastName, Email, Salary, DepartmentID, ManagerID)
+INSERT INTO Employees (FirstName, LastName, Email, BaseSalary, DepartmentID, ManagerID)
 VALUES 
     ('Robert', 'Johnson', 'robert.johnson@company.com', 72000.00, 1, NULL),
     ('Maria', 'Garcia', 'maria.garcia@company.com', 68000.00, 2, NULL),
@@ -108,7 +108,7 @@ SELECT
     EmployeeID,
     FirstName + ' ' + LastName AS FullName,
     Email,
-    FORMAT(Salary, 'C') AS FormattedSalary,
+    FORMAT(BaseSalary, 'C') AS FormattedSalary,
     DepartmentID,
     ManagerID,
     HireDate,
@@ -129,14 +129,14 @@ WHERE EmployeeID = 1;
 -- Multiple column update
 UPDATE Employees 
 SET 
-    Salary = 78000.00,
+    BaseSalary = 78000.00,
     ModifiedDate = SYSDATETIME()
 WHERE EmployeeID = 1;
 
 -- Update with calculations
 UPDATE Employees 
 SET 
-    Salary = Salary * 1.05,  -- 5% raise
+    BaseSalary = BaseSalary * 1.05,  -- 5% raise
     ModifiedDate = SYSDATETIME()
 WHERE DepartmentID = 1 AND IsActive = 1;
 
@@ -150,10 +150,10 @@ WHERE Email IS NULL OR Email = '';
 -- Update with conditional logic
 UPDATE Employees 
 SET 
-    Salary = CASE 
-        WHEN Salary < 70000 THEN Salary * 1.08  -- 8% raise for lower salaries
-        WHEN Salary < 80000 THEN Salary * 1.05  -- 5% raise for mid salaries
-        ELSE Salary * 1.03                      -- 3% raise for higher salaries
+    BaseSalary = CASE 
+        WHEN BaseSalary < 70000 THEN BaseSalary * 1.08  -- 8% raise for lower salaries
+        WHEN BaseSalary < 80000 THEN BaseSalary * 1.05  -- 5% raise for mid salaries
+        ELSE BaseSalary * 1.03                      -- 3% raise for higher salaries
     END,
     ModifiedDate = SYSDATETIME()
 WHERE IsActive = 1;
@@ -162,19 +162,19 @@ WHERE IsActive = 1;
 SELECT 
     EmployeeID,
     FirstName + ' ' + LastName AS FullName,
-    FORMAT(Salary, 'C') AS FormattedSalary,
+    FORMAT(BaseSalary, 'C') AS FormattedSalary,
     Email,
     ModifiedDate
 FROM Employees
 WHERE IsActive = 1
-ORDER BY Salary DESC;
+ORDER BY BaseSalary DESC;
 ```
 
 ### UPDATE with WHERE Clause Variations
 ```sql
 -- Update based on date ranges
 UPDATE Employees 
-SET Salary = Salary * 1.02  -- 2% cost of living adjustment
+SET BaseSalary = BaseSalary * 1.02  -- 2% cost of living adjustment
 WHERE HireDate <= DATEADD(YEAR, -1, GETDATE())  -- Employees hired more than 1 year ago
   AND IsActive = 1;
 
@@ -190,14 +190,14 @@ WHERE ManagerID IS NULL
 -- Update with subquery conditions
 UPDATE Employees 
 SET 
-    Salary = Salary * 1.10,  -- 10% raise for high performers
+    BaseSalary = BaseSalary * 1.10,  -- 10% raise for high performers
     ModifiedDate = SYSDATETIME()
 WHERE EmployeeID IN (
     SELECT EmployeeID 
     FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    WHERE e.Salary > (
-        SELECT AVG(Salary) 
+    WHERE e.BaseSalary > (
+        SELECT AVG(BaseSalary) 
         FROM Employees 
         WHERE DepartmentID = e.DepartmentID AND IsActive = 1
     )
@@ -224,10 +224,10 @@ WHERE NOT EXISTS (
 -- Update employee salaries based on department budget
 UPDATE e
 SET 
-    Salary = CASE 
-        WHEN d.Budget > 400000 THEN e.Salary * 1.06  -- High budget dept: 6% raise
-        WHEN d.Budget > 200000 THEN e.Salary * 1.04  -- Medium budget: 4% raise
-        ELSE e.Salary * 1.02                         -- Low budget: 2% raise
+    BaseSalary = CASE 
+        WHEN d.Budget > 400000 THEN e.BaseSalary * 1.06  -- High budget dept: 6% raise
+        WHEN d.Budget > 200000 THEN e.BaseSalary * 1.04  -- Medium budget: 4% raise
+        ELSE e.BaseSalary * 1.02                         -- Low budget: 2% raise
     END,
     ModifiedDate = SYSDATETIME()
 FROM Employees e
@@ -244,7 +244,7 @@ INNER JOIN (
     SELECT 
         DepartmentID,
         EmployeeID,
-        ROW_NUMBER() OVER (PARTITION BY DepartmentID ORDER BY Salary DESC) as rn
+        ROW_NUMBER() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) as rn
     FROM Employees
     WHERE IsActive = 1
 ) emp ON d.DepartmentID = emp.DepartmentID AND emp.rn = 1;
@@ -253,7 +253,7 @@ INNER JOIN (
 SELECT 
     d.DepartmentName,
     e.FirstName + ' ' + e.LastName AS ManagerName,
-    FORMAT(e.Salary, 'C') AS ManagerSalary
+    FORMAT(e.BaseSalary, 'C') AS ManagerSalary
 FROM Departments d
 LEFT JOIN Employees e ON d.ManagerID = e.EmployeeID;
 ```
@@ -263,10 +263,10 @@ LEFT JOIN Employees e ON d.ManagerID = e.EmployeeID;
 -- Complex update involving multiple tables
 UPDATE e
 SET 
-    Salary = CASE 
-        WHEN mgr.Salary IS NOT NULL AND e.Salary > mgr.Salary * 0.9 
-            THEN mgr.Salary * 0.85  -- Cap at 85% of manager salary
-        ELSE e.Salary
+    BaseSalary = CASE 
+        WHEN mgr.BaseSalary IS NOT NULL AND e.BaseSalary > mgr.BaseSalary * 0.9 
+            THEN mgr.BaseSalary * 0.85  -- Cap at 85% of manager salary
+        ELSE e.BaseSalary
     END,
     ModifiedDate = SYSDATETIME()
 FROM Employees e
@@ -305,7 +305,7 @@ FROM Projects p
 INNER JOIN (
     SELECT 
         ep.ProjectID,
-        SUM(e.Salary * (ep.AllocationPercentage / 100.0) * 
+        SUM(e.BaseSalary * (ep.AllocationPercentage / 100.0) * 
             DATEDIFF(MONTH, ep.StartDate, ISNULL(ep.EndDate, DATEADD(MONTH, 6, ep.StartDate))) / 12.0
         ) AS TotalEmployeeCost
     FROM EmployeeProjects ep
@@ -351,16 +351,16 @@ DECLARE @SalaryChanges TABLE (
 -- Update salaries and capture the changes
 UPDATE Employees
 SET 
-    Salary = Salary * 1.07,  -- 7% across-the-board raise
+    BaseSalary = BaseSalary * 1.07,  -- 7% across-the-board raise
     ModifiedDate = SYSDATETIME()
 OUTPUT 
     inserted.EmployeeID,
     inserted.FirstName + ' ' + inserted.LastName,
-    deleted.Salary,
-    inserted.Salary,
-    CAST(((inserted.Salary - deleted.Salary) / deleted.Salary) * 100 AS DECIMAL(5,2))
+    deleted.BaseSalary,
+    inserted.BaseSalary,
+    CAST(((inserted.BaseSalary - deleted.BaseSalary) / deleted.BaseSalary) * 100 AS DECIMAL(5,2))
 INTO @SalaryChanges
-WHERE IsActive = 1 AND Salary IS NOT NULL;
+WHERE IsActive = 1 AND BaseSalary IS NOT NULL;
 
 -- Process the captured changes
 INSERT INTO SalaryHistory (EmployeeID, PreviousSalary, NewSalary, EffectiveDate, ChangeReason)
@@ -398,7 +398,7 @@ UPDATE Employees
 SET 
     IsActive = CASE 
         WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 30 THEN 0  -- Retirement eligibility
-        WHEN Salary IS NULL THEN 0  -- Invalid employee data
+        WHEN BaseSalary IS NULL THEN 0  -- Invalid employee data
         ELSE IsActive
     END,
     ModifiedDate = SYSDATETIME()
@@ -410,8 +410,8 @@ OUTPUT
     CASE 
         WHEN deleted.IsActive = 1 AND inserted.IsActive = 0 AND DATEDIFF(YEAR, inserted.HireDate, GETDATE()) >= 30 
             THEN 'Retirement Eligibility'
-        WHEN deleted.IsActive = 1 AND inserted.IsActive = 0 AND inserted.Salary IS NULL 
-            THEN 'Invalid Salary Data'
+        WHEN deleted.IsActive = 1 AND inserted.IsActive = 0 AND inserted.BaseSalary IS NULL 
+            THEN 'Invalid BaseSalary Data'
         ELSE 'No Change'
     END
 INTO @StatusChanges
@@ -495,7 +495,7 @@ CREATE TABLE EmployeeTemp AS
 SELECT * FROM Employees;
 
 -- Add test data that's safe to delete
-INSERT INTO EmployeeTemp (FirstName, LastName, Email, Salary, DepartmentID, IsActive)
+INSERT INTO EmployeeTemp (FirstName, LastName, Email, BaseSalary, DepartmentID, IsActive)
 VALUES 
     ('Test', 'User1', 'test.user1@company.com', 50000.00, 1, 0),
     ('Test', 'User2', 'test.user2@company.com', 50000.00, 1, 0),
@@ -558,7 +558,7 @@ WHERE IsActive = 0 AND Email LIKE '%test%';
 
 -- Delete employees with NULL salaries (data quality cleanup)
 DELETE FROM EmployeeTemp 
-WHERE Salary IS NULL;
+WHERE BaseSalary IS NULL;
 
 -- Delete old temporary records
 DELETE FROM EmployeeTemp 
@@ -567,7 +567,7 @@ WHERE CreatedDate < DATEADD(DAY, -30, GETDATE())
 
 -- Delete based on salary range
 DELETE FROM EmployeeTemp 
-WHERE Salary < 30000 AND IsActive = 0;
+WHERE BaseSalary < 30000 AND IsActive = 0;
 
 -- Verify remaining records
 SELECT 
@@ -720,17 +720,17 @@ OUTPUT
     'ID:' + CAST(deleted.EmployeeID AS VARCHAR(10)) + 
     ',Name:' + deleted.FirstName + ' ' + deleted.LastName +
     ',Email:' + ISNULL(deleted.Email, 'NULL') +
-    ',Salary:' + ISNULL(CAST(deleted.Salary AS VARCHAR(20)), 'NULL') +
+    ',BaseSalary:' + ISNULL(CAST(deleted.BaseSalary AS VARCHAR(20)), 'NULL') +
     ',Dept:' + CAST(deleted.DepartmentID AS VARCHAR(10)) +
     ',Active:' + CAST(deleted.IsActive AS VARCHAR(1)),
     CASE 
         WHEN deleted.IsActive = 0 THEN 'Inactive employee cleanup'
-        WHEN deleted.Salary IS NULL THEN 'Data quality - NULL salary'
+        WHEN deleted.BaseSalary IS NULL THEN 'Data quality - NULL salary'
         WHEN deleted.Email IS NULL OR deleted.Email = '' THEN 'Data quality - missing email'
         ELSE 'General cleanup'
     END
 INTO @DeletedData
-WHERE IsActive = 0 OR Salary IS NULL OR Email IS NULL OR Email = '';
+WHERE IsActive = 0 OR BaseSalary IS NULL OR Email IS NULL OR Email = '';
 
 -- Log all deletions to audit table
 INSERT INTO DeletionAudit (TableName, DeletedRecordID, DeletedData, DeletionReason)
@@ -834,7 +834,7 @@ SELECT
     FirstName,
     LastName,
     Email,
-    Salary,
+    BaseSalary,
     DepartmentID,
     ManagerID,
     HireDate,
@@ -988,8 +988,8 @@ INCLUDE (EmployeeID, FirstName, LastName);
 
 -- Index for salary-based updates
 CREATE INDEX IX_Employees_Salary_IsActive 
-ON Employees (Salary, IsActive) 
-WHERE Salary IS NOT NULL;
+ON Employees (BaseSalary, IsActive) 
+WHERE BaseSalary IS NOT NULL;
 
 -- Demonstrate index usage impact
 SET STATISTICS IO ON;
@@ -1024,7 +1024,7 @@ BEGIN
     -- Validation
     IF @SalaryIncreasePercent <= 0 OR @SalaryIncreasePercent > 50
     BEGIN
-        PRINT 'Error: Salary increase must be between 0 and 50 percent';
+        PRINT 'Error: BaseSalary increase must be between 0 and 50 percent';
         RETURN;
     END
     
@@ -1047,22 +1047,22 @@ BEGIN
         INSERT INTO @EmployeesBeforeUpdate (EmployeeID, OldSalary, NewSalary)
         SELECT 
             EmployeeID,
-            Salary,
-            Salary * (1 + @SalaryIncreasePercent / 100.0)
+            BaseSalary,
+            BaseSalary * (1 + @SalaryIncreasePercent / 100.0)
         FROM Employees
         WHERE DepartmentID = @DepartmentID 
           AND IsActive = 1 
-          AND Salary IS NOT NULL;
+          AND BaseSalary IS NOT NULL;
         
         -- Perform the update
         UPDATE e
         SET 
-            Salary = Salary * (1 + @SalaryIncreasePercent / 100.0),
+            BaseSalary = BaseSalary * (1 + @SalaryIncreasePercent / 100.0),
             ModifiedDate = SYSDATETIME()
         FROM Employees e
         WHERE e.DepartmentID = @DepartmentID 
           AND e.IsActive = 1 
-          AND e.Salary IS NOT NULL;
+          AND e.BaseSalary IS NOT NULL;
         
         SET @UpdatedCount = @@ROWCOUNT;
         
@@ -1129,7 +1129,7 @@ WHERE DepartmentID = 1 AND IsActive = 1;
 
 -- Then perform the UPDATE
 UPDATE Employees 
-SET Salary = Salary * 1.03
+SET BaseSalary = BaseSalary * 1.03
 WHERE DepartmentID = 1 AND IsActive = 1;
 
 -- ✓ 2. Use transactions for important operations
@@ -1179,7 +1179,7 @@ WHERE tp.name = 'Employees';
 -- ✓ 7. Use proper error handling
 BEGIN TRY
     -- DML operations
-    UPDATE Employees SET Salary = Salary * 1.05 WHERE DepartmentID = 1;
+    UPDATE Employees SET BaseSalary = BaseSalary * 1.05 WHERE DepartmentID = 1;
 END TRY
 BEGIN CATCH
     PRINT 'Error: ' + ERROR_MESSAGE();
