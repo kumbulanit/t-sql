@@ -810,6 +810,9 @@ CREATE TABLE EmployeeProjects (
     StartDate DATE NOT NULL,
     EndDate DATE NULL,
     AllocationPercentage DECIMAL(5,2) NOT NULL DEFAULT 100.00,
+    HoursWorked DECIMAL(8,2) NOT NULL DEFAULT 0,
+    HoursAllocated DECIMAL(8,2) NOT NULL DEFAULT 0, -- Keep for backward compatibility
+    HourlyRate DECIMAL(8,2) NULL,
     IsActive BIT NOT NULL DEFAULT 1,
     FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID),
     FOREIGN KEY (ProjectID) REFERENCES Projects(ProjectID)
@@ -964,6 +967,46 @@ INSERT INTO Projects (CompanyID, ProjectName, ProjectCode, ProjectTypeID, Projec
     3200000.00, 'Active', 'High', 'Performance improvements and new features for trading platform');
 
 PRINT 'Projects data populated successfully.';
+
+-- =============================================
+-- STEP 11.5: EMPLOYEE PROJECTS AND TIME TRACKING DATA
+-- =============================================
+PRINT 'Step 11.5: Populating employee project assignments and time tracking...';
+
+-- Insert Employee Project assignments
+INSERT INTO EmployeeProjects (EmployeeID, ProjectID, Role, StartDate, AllocationPercentage, HoursWorked, HoursAllocated, HourlyRate) VALUES
+-- TechCorp Solutions project assignments
+(3001, 5001, 'Project Sponsor', '2024-01-15', 25.00, 45.50, 160.00, 200.00),
+(3002, 5001, 'Technical Lead', '2024-01-15', 75.00, 185.25, 240.00, 150.00),
+(3002, 5002, 'Technical Lead', '2024-03-01', 80.00, 95.75, 120.00, 150.00),
+(3003, 5001, 'Sales Coordinator', '2024-01-20', 15.00, 22.00, 80.00, 125.00),
+
+-- CloudTech Innovations project assignments
+(3004, 5004, 'Project Manager', '2024-01-10', 90.00, 215.50, 280.00, 175.00),
+(3005, 5004, 'Technical Lead', '2024-01-15', 85.00, 198.75, 260.00, 160.00),
+(3005, 5005, 'DevOps Lead', '2024-04-01', 70.00, 48.25, 100.00, 160.00),
+
+-- Global Finance Corp project assignments  
+(3006, 5006, 'Executive Sponsor', '2024-01-05', 20.00, 35.50, 150.00, 250.00),
+(3007, 5006, 'Technical Director', '2024-01-10', 85.00, 245.75, 320.00, 180.00),
+(3006, 5007, 'Compliance Lead', '2024-02-15', 60.00, 125.00, 180.00, 250.00),
+(3007, 5008, 'Platform Architect', '2024-03-01', 75.00, 89.50, 140.00, 180.00);
+
+-- Insert Time Tracking entries
+INSERT INTO TimeTracking (EmployeeID, ProjectID, WorkDate, HoursWorked, ActivityType, Description, BillableHours, HourlyRate, IsApproved) VALUES
+-- Recent time entries for active projects
+(3002, 5001, '2024-10-01', 8.50, 'Development', 'Portal redesign - user authentication module', 8.00, 150.00, 1),
+(3002, 5001, '2024-10-02', 7.25, 'Development', 'Portal redesign - UI components', 7.25, 150.00, 1),
+(3002, 5002, '2024-10-03', 8.00, 'Architecture', 'API platform design review', 8.00, 150.00, 1),
+(3005, 5004, '2024-10-01', 8.75, 'Cloud Migration', 'Azure infrastructure setup', 8.75, 160.00, 1),
+(3005, 5004, '2024-10-02', 7.50, 'Cloud Migration', 'Data migration testing', 7.50, 160.00, 1),
+(3007, 5006, '2024-10-01', 8.00, 'System Design', 'Risk management architecture', 8.00, 180.00, 1),
+(3007, 5008, '2024-10-02', 6.50, 'Development', 'Trading platform enhancement', 6.50, 180.00, 1),
+(3001, 5001, '2024-10-01', 4.00, 'Project Management', 'Stakeholder meeting and planning', 4.00, 200.00, 1),
+(3004, 5004, '2024-10-01', 8.25, 'Project Management', 'Cloud migration coordination', 8.25, 175.00, 1),
+(3006, 5007, '2024-10-02', 6.00, 'Compliance Review', 'Regulatory requirements analysis', 6.00, 250.00, 1);
+
+PRINT 'Employee project assignments and time tracking data populated successfully.';
 
 -- =============================================
 -- STEP 12: CUSTOMERS DATA
