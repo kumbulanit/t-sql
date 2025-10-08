@@ -138,15 +138,16 @@ CREATE TABLE Categories (
 -- 3. Products table with computed columns
 -- Requirements:
 -- - ProductID: Auto-incrementing primary key
--- - CategoryID: Foreign key to Categories
+-- - CompanyID: Foreign key to Companies
 -- - ProductName: Required, max 200 characters
+-- - ProductCode: Unique product code, max 20 characters
+-- - ProductCategory: Product category string, max 50 characters
 -- - Description: Optional, large text field
--- - BaseSalary: Required, currency with 2 decimal places
--- - UnitsInStock: Default to 0
--- - ReorderLevel: Default to 10
--- - IsDiscontinued: Default to false
--- - SKU: Computed as 'PRD' + zero-padded ProductID (5 digits)
--- - StockIsActive: Computed based on UnitsInStock vs ReorderLevel
+-- - UnitPrice: Required, currency with 2 decimal places
+-- - Cost: Optional cost price
+-- - StockQuantity: Default to 0
+-- - MinStockLevel: Default to 0
+-- - IsActive: Default to true
 -- - CreatedDate: Auto-populated
 
 CREATE TABLE Products (
@@ -981,9 +982,9 @@ CREATE TABLE OrderItems (
     OrderID INT NOT NULL,
     ProductID INT NOT NULL,
     Quantity INT NOT NULL,
-    BaseSalary DECIMAL(10,2) NOT NULL,
+    UnitPrice DECIMAL(10,2) NOT NULL,
     DiscountAmount DECIMAL(10,2) DEFAULT 0.00,
-    LineTotal AS ((Quantity * BaseSalary) - DiscountAmount) PERSISTED,
+    LineTotal AS ((Quantity * UnitPrice) - DiscountAmount) PERSISTED,
     FOREIGN KEY (OrderID) REFERENCES Orders(OrderID),
     FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
 );

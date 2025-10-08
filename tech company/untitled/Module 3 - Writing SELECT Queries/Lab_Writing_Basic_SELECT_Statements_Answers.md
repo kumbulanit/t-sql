@@ -1,5 +1,19 @@
 # Lab Answers: Writing Basic SELECT Statements
 
+## 📚 **Beginner's Guide to SELECT Statements**
+
+Welcome to Module 3! In this lab, you'll learn the foundation of SQL querying - the SELECT statement. We'll start with the simplest queries and gradually build your skills.
+
+### 🎯 **Learning Objectives**
+By the end of this lab, you will be able to:
+1. Write basic SELECT statements to retrieve data
+2. Select specific columns instead of all columns
+3. Create calculated columns with expressions
+4. Use string, date, and numeric functions
+5. Understand when and how to use DISTINCT
+
+---
+
 ## Exercise 1: Simple SELECT Statements - Answers
 
 ### Task 1.1: Basic SELECT Operations - Answers
@@ -7,19 +21,44 @@
 #### Question 1: Select All Employees
 **Task:** Write a query to select all columns from the Employees table.
 
+**💡 Beginner Tip:** The asterisk (*) is a wildcard that means "all columns"
+
 ```sql
 -- Answer 1: Select All Employees
+-- Step 1: Use SELECT to specify what data you want
+-- Step 2: Use * to get all columns  
+-- Step 3: Use FROM to specify which table
 SELECT * FROM Employees;
+
+-- 📊 Expected Result: Shows all employee records with all available columns
+-- ⚠️ Note: In production, avoid SELECT * for performance reasons
 ```
 
-#### Question 2: Select Specific Columns
+**🔍 What this query does:**
+- Retrieves every column and every row from the Employees table
+- Shows you the complete structure of your data
+- Great for exploring a new table
+
+#### Question 2: Select Specific Columns  
 **Task:** Select only FirstName, LastName, and BaseSalary from Employees.
+
+**💡 Beginner Tip:** List specific column names separated by commas for better performance and clarity
 
 ```sql
 -- Answer 2: Select Specific Columns
+-- Step 1: List the exact columns you need (separated by commas)
+-- Step 2: This is more efficient than SELECT *
 SELECT FirstName, LastName, BaseSalary
 FROM Employees;
+
+-- 📊 Expected Result: Shows only the 3 specified columns for all employees
+-- ✅ Best Practice: Always specify columns when you know what you need
 ```
+
+**🔍 What this query does:**
+- Retrieves only the specified columns (FirstName, LastName, BaseSalary)
+- Reduces network traffic and improves performance
+- Makes your query intent clear to other developers
 
 #### Question 3: Select with Calculated Columns
 **Task:** Create calculated columns for full name and annual bonus (10% of BaseSalary).
@@ -101,7 +140,7 @@ FROM Employees;
 -- Answer 1: Distinct Departments
 SELECT DISTINCT DepartmentID
 FROM Employees
-ORDER BY DepartmentIDID;
+ORDER BY DepartmentID;
 ```
 
 #### Question 2: Distinct Cities
@@ -120,9 +159,9 @@ ORDER BY City;
 
 ```sql
 -- Answer 3: Distinct Job Titles
-SELECT DISTINCT Title
+SELECT DISTINCT JobTitle
 FROM Employees
-ORDER BY Title;
+ORDER BY JobTitle;
 ```
 
 ### Task 2.2: DISTINCT with Multiple Columns - Answers
@@ -132,10 +171,10 @@ ORDER BY Title;
 
 ```sql
 -- Answer 1: Distinct City-State Combinations
-SELECT DISTINCT City, State
+SELECT DISTINCT City, StateProvince
 FROM Employees
-WHERE City IS NOT NULL AND State IS NOT NULL
-ORDER BY State, City;
+WHERE City IS NOT NULL AND StateProvince IS NOT NULL
+ORDER BY StateProvince, City;
 ```
 
 #### Question 2: Distinct Department-Title Combinations
@@ -145,10 +184,10 @@ ORDER BY State, City;
 -- Answer 2: Distinct Department-Title Combinations
 SELECT DISTINCT 
     d.DepartmentName,
-    e.Title
+    e.JobTitle
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-ORDER BY d.DepartmentName, e.Title;
+ORDER BY d.DepartmentName, e.JobTitle;
 ```
 
 ### Task 2.3: DISTINCT vs GROUP BY - Answers
@@ -164,13 +203,13 @@ SELECT
     DepartmentID,
     COUNT(*) AS EmployeeCount
 FROM Employees
-GROUP BY DepartmentIDID
-ORDER BY DepartmentIDID;
+GROUP BY DepartmentID
+ORDER BY DepartmentID;
 
 -- Using DISTINCT (just for unique values)
 SELECT DISTINCT DepartmentID
 FROM Employees
-ORDER BY DepartmentIDID;
+ORDER BY DepartmentID;
 ```
 
 ## Exercise 3: Column and Table Aliases - Answers

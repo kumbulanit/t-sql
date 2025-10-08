@@ -135,12 +135,12 @@ ORDER BY d.Budget DESC;
 ```sql
 SELECT 
     e.FirstName + ' ' + e.LastName AS [Employee Name],
-    e.Title AS [Position],
+    e.JobTitle AS [Position],
     
     -- Complete address
     CASE 
-        WHEN e.City IS NOT NULL AND e.State IS NOT NULL 
-        THEN e.City + ', ' + e.State
+        WHEN e.City IS NOT NULL AND e.StateProvince IS NOT NULL 
+        THEN e.City + ', ' + e.StateProvince
         WHEN e.City IS NOT NULL THEN e.City
         ELSE 'Location Not Available'
     END AS [Location],
@@ -281,21 +281,21 @@ ORDER BY [Uniqueness Percentage] ASC;
 WITH LocationAnalysis AS (
     SELECT DISTINCT 
         e.City,
-        e.State,
-        e.City + ', ' + e.State AS [Full Location]
+        e.StateProvince,
+        e.City + ', ' + e.StateProvince AS [Full Location]
     FROM Employees e
-    WHERE e.City IS NOT NULL AND e.State IS NOT NULL
+    WHERE e.City IS NOT NULL AND e.StateProvince IS NOT NULL
 ),
 LocationStats AS (
     SELECT 
-        la.State,
+        la.StateProvince,
         la.City,
         la.[Full Location],
         COUNT(e.EmployeeID) AS [Employee Count]
     FROM LocationAnalysis la
-    LEFT JOIN Employees e ON la.City = e.City AND la.State = e.State
+    LEFT JOIN Employees e ON la.City = e.City AND la.StateProvince = e.StateProvince
     WHERE e.IsActive = 1
-    GROUP BY la.State, la.City, la.[Full Location]
+    GROUP BY la.StateProvince, la.City, la.[Full Location]
 )
 SELECT 
     [Full Location] AS [Employee Location],
@@ -429,29 +429,29 @@ ORDER BY
 ```sql
 SELECT DISTINCT
     d.DepartmentName AS [Department],
-    e.Title AS [Position Title],
-    COUNT(e.EmployeeID) OVER (PARTITION BY d.DepartmentID, e.Title) AS [Position Count],
+    e.JobTitle AS [Position Title],
+    COUNT(e.EmployeeID) OVER (PARTITION BY d.DepartmentID, e.JobTitle) AS [Position Count],
     COUNT(e.EmployeeID) OVER (PARTITION BY d.DepartmentID) AS [Department Size],
-    COUNT(DISTINCT e.Title) OVER (PARTITION BY d.DepartmentID) AS [Unique Positions],
+    COUNT(DISTINCT e.JobTitle) OVER (PARTITION BY d.DepartmentID) AS [Unique Positions],
     CASE 
-        WHEN COUNT(DISTINCT e.Title) OVER (PARTITION BY d.DepartmentID) >= 5 
+        WHEN COUNT(DISTINCT e.JobTitle) OVER (PARTITION BY d.DepartmentID) >= 5 
              THEN 'Complex Hierarchy'
-        WHEN COUNT(DISTINCT e.Title) OVER (PARTITION BY d.DepartmentID) BETWEEN 3 AND 4 
+        WHEN COUNT(DISTINCT e.JobTitle) OVER (PARTITION BY d.DepartmentID) BETWEEN 3 AND 4 
              THEN 'Moderate Hierarchy'
-        WHEN COUNT(DISTINCT e.Title) OVER (PARTITION BY d.DepartmentID) <= 2 
+        WHEN COUNT(DISTINCT e.JobTitle) OVER (PARTITION BY d.DepartmentID) <= 2 
              THEN 'Flat Structure'
         ELSE 'Undefined Structure'
     END AS [Organizational Complexity],
     CASE 
-        WHEN e.Title LIKE '%Director%' THEN 'Executive Level'
-        WHEN e.Title LIKE '%Manager%' THEN 'Management Level'
-        WHEN e.Title LIKE '%Senior%' THEN 'Senior Individual Contributor'
+        WHEN e.JobTitle LIKE '%Director%' THEN 'Executive Level'
+        WHEN e.JobTitle LIKE '%Manager%' THEN 'Management Level'
+        WHEN e.JobTitle LIKE '%Senior%' THEN 'Senior Individual Contributor'
         ELSE 'Individual Contributor'
     END AS [Hierarchy Level],
     CASE 
-        WHEN COUNT(e.EmployeeID) OVER (PARTITION BY d.DepartmentID, e.Title) > 3 
+        WHEN COUNT(e.EmployeeID) OVER (PARTITION BY d.DepartmentID, e.JobTitle) > 3 
              THEN 'Multiple Incumbents'
-        WHEN COUNT(e.EmployeeID) OVER (PARTITION BY d.DepartmentID, e.Title) = 1 
+        WHEN COUNT(e.EmployeeID) OVER (PARTITION BY d.DepartmentID, e.JobTitle) = 1 
              THEN 'Single Incumbent'
         ELSE 'Dual Coverage'
     END AS [Position Coverage]
@@ -460,12 +460,12 @@ INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
 WHERE e.IsActive = 1
 ORDER BY d.DepartmentName, 
          CASE 
-             WHEN e.Title LIKE '%Director%' THEN 1
-             WHEN e.Title LIKE '%Manager%' THEN 2
-             WHEN e.Title LIKE '%Senior%' THEN 3
+             WHEN e.JobTitle LIKE '%Director%' THEN 1
+             WHEN e.JobTitle LIKE '%Manager%' THEN 2
+             WHEN e.JobTitle LIKE '%Senior%' THEN 3
              ELSE 4
          END,
-         e.Title;
+         e.JobTitle;
 ```
 
 **Explanation**: Organizational analysis using window functions, hierarchy classification logic, and structural complexity assessment.

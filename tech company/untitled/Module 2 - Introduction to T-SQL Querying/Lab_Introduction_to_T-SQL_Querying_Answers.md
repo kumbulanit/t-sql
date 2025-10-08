@@ -86,7 +86,7 @@ WHERE HireDate > '2021-01-01';
 
 ```sql
 -- Answer 3: Department Filter
-SELECT FirstName, LastName, Title, DepartmentID
+SELECT FirstName, LastName, JobTitle, DepartmentID
 FROM Employees
 WHERE DepartmentID = 1;
 ```

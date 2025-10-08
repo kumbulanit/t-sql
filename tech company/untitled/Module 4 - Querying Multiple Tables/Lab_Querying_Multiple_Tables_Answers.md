@@ -12,7 +12,7 @@
 SELECT 
     e.FirstName,
     e.LastName,
-    e.Title,
+    e.JobTitle,
     d.DepartmentName,
     e.BaseSalary
 FROM Employees e
@@ -31,7 +31,7 @@ SELECT
     ep.Role,
     ep.HoursAllocated,
     ep.HoursWorked,
-    p.IsActive AS ProjectIsActive
+    p.Status AS ProjectStatus
 FROM Employees e
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
@@ -101,7 +101,7 @@ FROM Projects p
 INNER JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
 INNER JOIN Employees e ON ep.EmployeeID = e.EmployeeID
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE p.IsActive = 'In Progress'
+WHERE p.Status = 'In Progress'
   AND e.IsActive = 1
 ORDER BY p.ProjectName, ep.Role, e.LastName;
 ```
@@ -117,7 +117,7 @@ ORDER BY p.ProjectName, ep.Role, e.LastName;
 -- Answer 1: All Employees with Department Information
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
-    e.Title,
+    e.JobTitle,
     e.BaseSalary,
     COALESCE(d.DepartmentName, 'No Department Assigned') AS DepartmentName,
     COALESCE(d.DepartmentCode, 'N/A') AS DepartmentCode
@@ -134,7 +134,7 @@ ORDER BY d.DepartmentName, e.LastName;
 -- Answer 2: All Employees with Project Assignments
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
-    e.Title,
+    e.JobTitle,
     COALESCE(p.ProjectName, 'No Project Assigned') AS ProjectName,
     COALESCE(ep.Role, 'N/A') AS ProjectRole,
     COALESCE(ep.HoursAllocated, 0) AS HoursAllocated,

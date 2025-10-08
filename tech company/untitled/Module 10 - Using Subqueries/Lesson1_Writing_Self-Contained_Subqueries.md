@@ -15,12 +15,17 @@ Self-contained subqueries are independent queries nested within another SQL stat
 
 **Key Tables for Subquery Examples:**
 ```sql
-Employees: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, ManagerID, HireDate, IsActive
+Employees: EmployeeID, FirstName, LastName, JobTitle, BaseSalary, DepartmentID, ManagerID, HireDate, IsActive
 Departments: DepartmentID, DepartmentName, Budget, IsActive
-Projects: ProjectID, ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
+Projects: ProjectID, ProjectName, Budget, ProjectManagerID, StartDate, EndDate, Status
 Customers: CustomerID, CompanyName, IndustryID, IsActive
 Orders: OrderID, CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
 ```
+
+**🎯 Beginner's Key:** 
+- **JobTitle** (not Title) - Employee's position in company
+- **Status** (not IsActive) - Project status like 'Active', 'Completed', 'On Hold'
+- **IsActive** - Binary indicator (1/0) for employee/customer active status
 
 ## What are Self-Contained Subqueries?
 

@@ -298,16 +298,16 @@ Run these validation queries to check your understanding:
 -- Validation 1: Check UNION vs UNION ALL understanding
 SELECT 'UNION removes duplicates' AS Concept, COUNT(*) AS ResultCount
 FROM (
-    SELECT DepartmentID FROM Employees WHERE IsActive = 1
+    SELECT DepartmentID FROM Employees e WHERE e.IsActive = 1
     UNION
-    SELECT DepartmentID FROM Employees WHERE IsActive = 1
+    SELECT DepartmentID FROM Employees e WHERE e.IsActive = 1
 ) AS union_result
 
 UNION ALL
 
 SELECT 'UNION ALL keeps duplicates' AS Concept, COUNT(*) AS ResultCount
 FROM (
-    SELECT DepartmentID FROM Employees WHERE IsActive = 1
+    SELECT DepartmentID FROM Employees e WHERE e.IsActive = 1
     UNION ALL
     SELECT DepartmentID FROM Employees WHERE IsActive = 1
 ) AS union_all_result;
@@ -321,12 +321,12 @@ UNION ALL
 
 SELECT 'Employees Without Recent Projects' AS Metric, COUNT(*) AS Count
 FROM (
-    SELECT EmployeeID FROM Employees WHERE IsActive = 1
+    SELECT EmployeeID FROM Employees e WHERE e.IsActive = 1
     EXCEPT
     SELECT DISTINCT EmployeeID 
-    FROM EmployeeProjects 
-    WHERE IsActive = 1 
-    AND StartDate >= DATEADD(MONTH, -6, GETDATE())
+    FROM EmployeeProjects ep
+    WHERE ep.IsActive = 1 
+    AND ep.StartDate >= DATEADD(MONTH, -6, GETDATE())
 ) AS without_projects;
 
 -- Validation 3: INTERSECT operation verification
