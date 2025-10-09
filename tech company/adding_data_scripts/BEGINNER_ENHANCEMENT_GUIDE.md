@@ -16,19 +16,19 @@
 
 #### 2. **Step-by-Step Code Breakdown** 
 ```sql
--- Step 1: Calculate company average salary (Inner query)
-SELECT AVG(BaseSalary) FROM Employees WHERE IsActive = 1
+-- Step 1: Calculate company average BaseSalary (Inner query)
+SELECT AVG(e.BaseSalary) FROM Employees WHERE IsActive = 1
 
 -- Step 2: Use that average to filter employees (Outer query)  
 SELECT FirstName, LastName, JobTitle, BaseSalary
 FROM Employees 
-WHERE BaseSalary > (SELECT AVG(BaseSalary) FROM Employees WHERE IsActive = 1)
+WHERE BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees WHERE IsActive = 1)
 ```
 
 #### 3. **Beginner Explanations**
 ```markdown
 **🎯 Beginner's Breakdown:**
-- **Subquery (inner):** Calculates one number - the average salary
+- **Subquery (inner):** Calculates one number - the average BaseSalary
 - **Main query (outer):** Uses that number to find employees above average  
 - **Execution order:** Inner query runs first, then outer query
 - **Think of it like:** "First find the average, then find who beats it"
@@ -38,9 +38,9 @@ WHERE BaseSalary > (SELECT AVG(BaseSalary) FROM Employees WHERE IsActive = 1)
 ```markdown
 **Expected Output:** 
 - List of employees with above-average salaries
-- Typically 40-60% of workforce depending on salary distribution
-- Columns: Name, Position, Actual Salary Amount
-- Sorted by salary (highest first) for easy review
+- Typically 40-60% of workforce depending on BaseSalary distribution
+- Columns: Name, Position, Actual BaseSalary Amount
+- Sorted by BaseSalary (highest first) for easy review
 ```
 
 #### 5. **Common Pitfalls & Tips**
@@ -59,10 +59,10 @@ WHERE BaseSalary > (SELECT AVG(BaseSalary) FROM Employees WHERE IsActive = 1)
 #### 6. **Practical Applications**
 ```markdown
 **Real-World Uses:**
-- 💰 **HR:** Salary analysis and compensation planning
+- 💰 **HR:** BaseSalary analysis and compensation planning
 - 📊 **Management:** Performance benchmarking  
 - 🎯 **Recruiting:** Market positioning for job offers
-- 📈 **Analytics:** Department cost analysis
+- 📈 **Analytics:** d.DepartmentName cost analysis
 ```
 
 ## 🏆 MODULES REQUIRING ENHANCEMENT PRIORITY:

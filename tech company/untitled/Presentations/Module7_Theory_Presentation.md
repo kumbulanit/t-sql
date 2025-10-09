@@ -152,7 +152,7 @@ WHERE e.PerformanceRating >= 4
 -- UPDATE with subquery
 UPDATE Employees
 SET BaseSalary = (
-    SELECT AVG(BaseSalary) * 1.1
+    SELECT AVG(e.BaseSalary) * 1.1
     FROM Employees e2
     WHERE e2.DepartmentID = Employees.DepartmentID
       AND e2.IsActive = 1

@@ -97,7 +97,7 @@ SELECT
     LastName,
     HireDate,
     BaseSalary
-FROM Employees;
+FROM Employees e;
 ```
 
 **Benefits**:
@@ -109,7 +109,7 @@ FROM Employees;
 #### **Wildcard Selection (Use Cautiously)**
 ```sql
 -- Sometimes Appropriate: Exploratory queries, views with same structure
-SELECT * FROM Employees;
+SELECT * FROM Employees e;
 
 -- More Controlled: Using table aliases
 SELECT e.* FROM Employees e;
@@ -133,7 +133,7 @@ SELECT
     BaseSalary * 1.05 AS ProjectedSalary,               -- Percentage increase
     ROUND(BaseSalary * 0.2, 2) AS EstimatedTax,        -- Tax calculation
     BaseSalary + ISNULL(Bonus, 0) AS TotalCompensation -- Null handling
-FROM Employees;
+FROM Employees e;
 ```
 
 #### **String Operations**
@@ -143,9 +143,9 @@ SELECT
     FirstName + ' ' + LastName AS FullName,              -- Concatenation
     UPPER(FirstName) AS FirstNameUpper,                   -- Case conversion
     LEFT(FirstName, 1) + '.' AS FirstInitial,            -- Substring extraction
-    FirstName + ' (' + Department + ')' AS NameWithDept,  -- Complex concatenation
+    FirstName + ' (' + d.DepartmentName + ')' AS NameWithDept,  -- Complex concatenation
     CONCAT(FirstName, ' ', LastName) AS FullNameConcat   -- CONCAT function (handles nulls)
-FROM Employees;
+FROM Employees e;
 ```
 
 #### **Date/Time Calculations**
@@ -164,7 +164,7 @@ SELECT
         THEN 'Senior Employee'
         ELSE 'Junior Employee'
     END AS EmployeeLevel
-FROM Employees;
+FROM Employees e;
 ```
 
 #### **Conditional Expressions with CASE**
@@ -197,7 +197,7 @@ SELECT
         WHEN d.DepartmentName = 'Engineering' THEN 1.05      -- 5% bonus for IT
         ELSE 1.0                              -- No bonus for others
     END AS AdjustedSalary
-FROM Employees;
+FROM Employees e;
 ```
 
 ---
@@ -216,18 +216,18 @@ FROM Employees;
 #### **Basic DISTINCT Usage**
 ```sql
 -- Single column DISTINCT
-SELECT DISTINCT Department 
-FROM Employees;
+SELECT DISTINCT d.DepartmentName 
+FROM Employees e;
 
 -- Multiple column DISTINCT (unique combinations)
-SELECT DISTINCT Department, JobTitle
-FROM Employees;
+SELECT DISTINCT d.DepartmentName, JobTitle
+FROM Employees e;
 
 -- DISTINCT with calculations
 SELECT DISTINCT 
-    Department,
+    d.DepartmentName,
     YEAR(HireDate) AS HireYear
-FROM Employees;
+FROM Employees e;
 ```
 
 ### Advanced DISTINCT Patterns
@@ -235,20 +235,19 @@ FROM Employees;
 #### **DISTINCT vs GROUP BY Performance**
 ```sql
 -- DISTINCT approach
-SELECT DISTINCT Department
-FROM Employees;
+SELECT DISTINCT d.DepartmentName
+FROM Employees e;
 
 -- GROUP BY approach (often faster)
-SELECT Department
+SELECT d.DepartmentName
 FROM Employees
 GROUP BY DepartmentID;
 
 -- GROUP BY with aggregates (more informative)
-SELECT 
-    Department,
+SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount,
     MIN(HireDate) AS EarliestHire,
-    MAX(BaseSalary) AS HighestSalary
+    MAX(e.BaseSalary) AS HighestBaseSalary
 FROM Employees
 GROUP BY DepartmentID;
 ```
@@ -263,7 +262,7 @@ SELECT DISTINCT
         WHEN BaseSalary < 80000 THEN 'Medium'
         ELSE 'High'
     END AS SalaryRange,
-    Department
+    d.DepartmentName
 FROM Employees
 WHERE HireDate >= '2020-01-01'
 ORDER BY HireYear, SalaryRange, Department;
@@ -306,7 +305,7 @@ SELECT
     BaseSalary AS 'Monthly BaseSalary',            -- Quoted alias with spaces
     BaseSalary * 12 AS [Annual BaseSalary],        -- Bracketed alias
     HireDate AS "Hire Date"                -- Double-quoted alias
-FROM Employees;
+FROM Employees e;
 ```
 
 #### **Professional Alias Conventions**
@@ -316,7 +315,7 @@ SELECT
     e.EmployeeID AS EmpID,                 -- Meaningful abbreviation
     e.FirstName AS FirstName,              -- Clarity over brevity
     e.LastName AS LastName,
-    d.DepartmentName AS Department,        -- Descriptive naming
+    d.DepartmentName AS DepartmentName,        -- Descriptive naming
     e.BaseSalary AS MonthlySalary,             -- Clear data meaning
     e.BaseSalary * 12 AS AnnualSalary,         -- Calculation description
     DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService
@@ -374,10 +373,10 @@ INNER JOIN Orders ord ON cust.CustomerID = ord.CustomerID;
 ```
 
 -- With DISTINCT (unique values only)
-SELECT DISTINCT Department FROM Employees;
+SELECT DISTINCT d.DepartmentName FROM Employees;
 
 -- DISTINCT with multiple columns
-SELECT DISTINCT Department, JobTitle FROM Employees;
+SELECT DISTINCT d.DepartmentName, JobTitle FROM Employees;
 ```
 
 **Important**: DISTINCT applies to the entire row, not individual columns
@@ -408,13 +407,13 @@ SELECT
     FirstName AS First_Name,
     LastName AS Last_Name,
     BaseSalary AS Annual_Salary
-FROM Employees;
+FROM Employees e;
 
 -- Without AS keyword
 SELECT 
     FirstName First_Name,
     LastName Last_Name
-FROM Employees;
+FROM Employees e;
 ```
 
 **Benefits**: Improved readability, custom column headers
@@ -433,6 +432,7 @@ WHERE d.DepartmentName = 'Engineering';
 -- With alias (concise)
 SELECT e.FirstName, e.LastName
 FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE d.DepartmentName = 'Engineering';
 ```
 
@@ -451,7 +451,7 @@ SELECT
     BaseSalary * 0.10 AS Tax_Amount,
     BaseSalary * 1.10 AS Gross_Pay,
     DATEDIFF(YEAR, HireDate, GETDATE()) AS Years_Employed
-FROM Employees;
+FROM Employees e;
 ```
 
 **Common Calculations**: Mathematical operations, date differences, string concatenation
@@ -466,13 +466,13 @@ FROM Employees;
 SELECT 
     FirstName + ' ' + LastName AS FullName,
     'Employee: ' + FirstName AS Greeting
-FROM Employees;
+FROM Employees e;
 
 -- Using CONCAT function (SQL Server 2012+)
 SELECT 
     CONCAT(FirstName, ' ', LastName) AS FullName,
     CONCAT('Employee: ', FirstName) AS Greeting
-FROM Employees;
+FROM Employees e;
 ```
 
 ---
@@ -486,7 +486,7 @@ FROM Employees;
 
 ```sql
 -- Simple CASE
-CASE Department
+CASE d.DepartmentName
     WHEN 'IT' THEN 'Technology'
     WHEN 'HR' THEN 'Human Resources'
     ELSE 'Other'
@@ -509,15 +509,15 @@ END
 SELECT 
     FirstName,
     LastName,
-    Department,
-    CASE Department
+    d.DepartmentName,
+    CASE d.DepartmentName
         WHEN 'IT' THEN 'Information Technology'
         WHEN 'HR' THEN 'Human Resources'
         WHEN 'FIN' THEN 'Finance'
         WHEN 'MKT' THEN 'Marketing'
         ELSE 'Other Department'
-    END AS DepartmentName
-FROM Employees;
+    END AS d.DepartmentName
+FROM Employees e;
 ```
 
 **Use When**: Comparing single column to multiple specific values
@@ -539,7 +539,7 @@ SELECT
         WHEN BaseSalary >= 30000 THEN 'Junior'
         ELSE 'Entry Level'
     END AS SalaryBand
-FROM Employees;
+FROM Employees e;
 ```
 
 **Use When**: Complex conditions involving multiple columns or ranges
@@ -553,9 +553,9 @@ FROM Employees;
 SELECT 
     FirstName,
     LastName,
-    Department,
+    d.DepartmentName,
     BaseSalary,
-    CASE Department
+    CASE d.DepartmentName
         WHEN 'IT' THEN 
             CASE 
                 WHEN BaseSalary > 90000 THEN 'IT Senior'
@@ -564,7 +564,7 @@ SELECT
         WHEN 'HR' THEN 'HR Professional'
         ELSE 'General Employee'
     END AS EmployeeCategory
-FROM Employees;
+FROM Employees e;
 ```
 
 **Use Carefully**: Can become complex and hard to maintain
@@ -575,8 +575,7 @@ FROM Employees;
 **Conditional Aggregation**
 
 ```sql
-SELECT 
-    Department,
+SELECT d.DepartmentName,
     COUNT(*) AS TotalEmployees,
     COUNT(CASE WHEN BaseSalary > 75000 THEN 1 END) AS HighSalaryCount,
     AVG(CASE WHEN BaseSalary > 75000 THEN BaseSalary END) AS AvgHighSalary
@@ -599,7 +598,7 @@ SELECT
         WHEN MiddleName IS NULL THEN FirstName + ' ' + LastName
         ELSE FirstName + ' ' + MiddleName + ' ' + LastName
     END AS FullName
-FROM Employees;
+FROM Employees e;
 ```
 
 **Remember**: CASE returns NULL if no conditions match and no ELSE clause exists
@@ -641,7 +640,7 @@ SELECT
     FirstName,
     LastName,
     FORMAT(BaseSalary, 'C') AS FormattedSalary
-FROM Employees;
+FROM Employees e;
 ```
 
 ---
@@ -656,7 +655,7 @@ SELECT
     LEN(FirstName) AS FirstNameLength,
     SUBSTRING(FirstName, 1, 1) AS FirstInitial,
     LTRIM(RTRIM(FirstName)) AS TrimmedName
-FROM Employees;
+FROM Employees e;
 ```
 
 **Common Functions**: UPPER, LOWER, LEN, SUBSTRING, TRIM, LEFT, RIGHT
@@ -674,7 +673,7 @@ SELECT
     YEAR(HireDate) AS HireYear,
     DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsEmployed,
     DATEADD(YEAR, 1, HireDate) AS FirstAnniversary
-FROM Employees;
+FROM Employees e;
 ```
 
 **Common Functions**: GETDATE, YEAR, MONTH, DAY, DATEDIFF, DATEADD
@@ -692,7 +691,7 @@ SELECT
     ROUND(BaseSalary * 1.05, 2) AS ProposedSalary,
     ABS(BaseSalary - 50000) AS SalaryDifference,
     POWER(2, 3) AS PowerExample
-FROM Employees;
+FROM Employees e;
 ```
 
 **Common Functions**: ROUND, ABS, CEILING, FLOOR, POWER, SQRT
@@ -709,7 +708,7 @@ SELECT
     CAST(BaseSalary AS VARCHAR(20)) AS SalaryText,
     CONVERT(VARCHAR(10), HireDate, 101) AS USDateFormat,
     TRY_CAST(BadData AS INT) AS SafeConversion
-FROM Employees;
+FROM Employees e;
 ```
 
 **Use CAST**: ANSI standard, portable
@@ -724,13 +723,14 @@ FROM Employees;
 SELECT 
     e.FirstName,
     e.LastName,
-    e.Department,
+    e.DepartmentName,
     CASE 
         WHEN e.BaseSalary > 75000 THEN 'High'
         WHEN e.BaseSalary > 50000 THEN 'Medium'
         ELSE 'Low'
     END AS SalaryRange
 FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
     AND e.HireDate >= '2020-01-01'
 ORDER BY e.LastName, e.FirstName;

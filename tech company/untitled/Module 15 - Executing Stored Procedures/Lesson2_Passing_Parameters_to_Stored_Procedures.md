@@ -120,7 +120,7 @@ BEGIN
     -- Parameter validation
     IF @MinSalary IS NOT NULL AND @MaxSalary IS NOT NULL AND @MinSalary > @MaxSalary
     BEGIN
-        RAISERROR('Minimum salary cannot be greater than maximum salary.', 16, 1);
+        RAISERROR('Minimum BaseSalary cannot be greater than maximum BaseSalary.', 16, 1);
         RETURN -1;
     END
     
@@ -203,21 +203,21 @@ BEGIN
         ManagerName,
         SalaryBand,
         RelevanceScore
-    FROM EmployeeSearchResults
+    FROM Employees eearchResults
     ORDER BY 
         CASE 
             WHEN @SortColumn = 'LastName' AND @SortDirection = 'ASC' THEN LastName
             WHEN @SortColumn = 'FirstName' AND @SortDirection = 'ASC' THEN FirstName
             WHEN @SortColumn = 'HireDate' AND @SortDirection = 'ASC' THEN CAST(HireDate AS VARCHAR)
-            WHEN @SortColumn = 'Salary' AND @SortDirection = 'ASC' THEN CAST(BaseSalary AS VARCHAR)
-            WHEN @SortColumn = 'Department' AND @SortDirection = 'ASC' THEN DepartmentName
+            WHEN @SortColumn = 'BaseSalary' AND @SortDirection = 'ASC' THEN CAST(BaseSalary AS VARCHAR)
+            WHEN @SortColumn = 'Department' AND @SortDirection = 'ASC' THEN d.DepartmentName
         END ASC,
         CASE 
             WHEN @SortColumn = 'LastName' AND @SortDirection = 'DESC' THEN LastName
             WHEN @SortColumn = 'FirstName' AND @SortDirection = 'DESC' THEN FirstName
             WHEN @SortColumn = 'HireDate' AND @SortDirection = 'DESC' THEN CAST(HireDate AS VARCHAR)
-            WHEN @SortColumn = 'Salary' AND @SortDirection = 'DESC' THEN CAST(BaseSalary AS VARCHAR)
-            WHEN @SortColumn = 'Department' AND @SortDirection = 'DESC' THEN DepartmentName
+            WHEN @SortColumn = 'BaseSalary' AND @SortDirection = 'DESC' THEN CAST(BaseSalary AS VARCHAR)
+            WHEN @SortColumn = 'Department' AND @SortDirection = 'DESC' THEN d.DepartmentName
         END DESC,
         RelevanceScore DESC,
         LastName, FirstName;
@@ -226,15 +226,15 @@ BEGIN
 END;
 
 -- Example executions with various parameter combinations
--- Basic department search
+-- Basic d.DepartmentName search
 EXEC sp_SearchEmployeesAdvanced @DepartmentID = 2001;
 
--- Salary range search with location filter
+-- BaseSalary range search with location filter
 EXEC sp_SearchEmployeesAdvanced 
     @MinSalary = 60000, 
     @MaxSalary = 100000, 
     @LocationFilter = 'New York',
-    @SortColumn = 'Salary',
+    @SortColumn = 'BaseSalary',
     @SortDirection = 'DESC';
 
 -- Job title pattern search with date range
@@ -335,9 +335,10 @@ BEGIN
             SELECT 
                 e.DepartmentID,
                 COUNT(*) AS EmployeeCount,
-                SUM(e.BaseSalary) AS TotalSalaryCost,
-                AVG(e.BaseSalary) AS AverageSalary
+                SUM(e.BaseSalary) AS TotalBaseSalaryCost,
+                AVG(e.BaseSalary) AS AverageBaseSalary
             FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
             WHERE e.IsActive = 1
             GROUP BY e.DepartmentID
         ) employee_data ON d.DepartmentID = employee_data.DepartmentID
@@ -379,18 +380,18 @@ BEGIN
     -- Final result set based on grouping level parameter
     SELECT 
         CASE @GroupingLevel
-            WHEN 'Department' THEN DepartmentName
+            WHEN 'Department' THEN d.DepartmentName
             WHEN 'Location' THEN Location
-            WHEN 'Both' THEN Location + ' - ' + DepartmentName
+            WHEN 'Both' THEN Location + ' - ' + d.DepartmentName
         END AS GroupingCategory,
         CASE @GroupingLevel
-            WHEN 'Department' THEN DepartmentName
+            WHEN 'Department' THEN d.DepartmentName
             WHEN 'Location' THEN 'Multiple Departments'
-            WHEN 'Both' THEN DepartmentName
+            WHEN 'Both' THEN d.DepartmentName
         END AS DetailLevel,
         CASE @GroupingLevel
             WHEN 'Location' THEN NULL
-            ELSE DepartmentName
+            ELSE d.DepartmentName
         END AS DepartmentName,
         CASE @GroupingLevel
             WHEN 'Department' THEN NULL
@@ -398,7 +399,7 @@ BEGIN
         END AS Location,
         -- Aggregated metrics based on grouping
         SUM(EmployeeCount) AS TotalEmployees,
-        FORMAT(SUM(TotalSalaryCost), 'C') AS TotalSalaryCost,
+        FORMAT(SUM(TotalSalaryCost), 'C') AS TotalBaseSalaryCost,
         FORMAT(AVG(AverageSalary), 'C') AS AverageSalaryAcrossGroup,
         FORMAT(SUM(BudgetAmount), 'C') AS TotalBudget,
         -- Conditional metrics based on parameters
@@ -424,13 +425,13 @@ BEGIN
     FROM DepartmentFinancials
     GROUP BY 
         CASE @GroupingLevel
-            WHEN 'Department' THEN DepartmentName
+            WHEN 'Department' THEN d.DepartmentName
             WHEN 'Location' THEN Location
-            WHEN 'Both' THEN Location + ' - ' + DepartmentName
+            WHEN 'Both' THEN Location + ' - ' + d.DepartmentName
         END,
         CASE @GroupingLevel
             WHEN 'Location' THEN NULL
-            ELSE DepartmentName
+            ELSE d.DepartmentName
         END,
         CASE @GroupingLevel
             WHEN 'Department' THEN NULL
@@ -444,7 +445,7 @@ BEGIN
 END;
 
 -- Example executions with different parameter combinations
--- Basic department analysis
+-- Basic d.DepartmentName analysis
 EXEC sp_AnalyzeDepartmentFinancials @DepartmentID = 2001;
 
 -- Date range analysis with project data only
@@ -516,12 +517,12 @@ BEGIN
         RETURN -1;
     END
     
-    -- Validate department exists if specified
+    -- Validate d.DepartmentName exists if specified
     IF @DepartmentID IS NOT NULL AND NOT EXISTS (
         SELECT 1 FROM Departments WHERE DepartmentID = @DepartmentID AND IsActive = 1
     )
     BEGIN
-        SET @StatusMessage = 'Error: Department ID ' + CAST(@DepartmentID AS VARCHAR) + ' does not exist or is inactive.';
+        SET @StatusMessage = 'Error: d.DepartmentName ID ' + CAST(@DepartmentID AS VARCHAR) + ' does not exist or is inactive.';
         RETURN -2;
     END
     
@@ -539,7 +540,7 @@ BEGIN
     WHERE d.IsActive = 1
       AND (@DepartmentID IS NULL OR e.DepartmentID = @DepartmentID);
     
-    -- Calculate median salary using a more complex query
+    -- Calculate median BaseSalary using a more complex query
     WITH SalaryRanked AS (
         SELECT 
             BaseSalary,
@@ -551,7 +552,7 @@ BEGIN
           AND d.IsActive = 1
           AND (@DepartmentID IS NULL OR e.DepartmentID = @DepartmentID)
     )
-    SELECT @MedianSalary = AVG(BaseSalary)
+    SELECT @MedianSalary = AVG(e.BaseSalary)
     FROM SalaryRanked
     WHERE RowAsc IN (RowDesc, RowDesc - 1, RowDesc + 1);
     
@@ -592,7 +593,7 @@ BEGIN
     IF @DepartmentID IS NOT NULL
     BEGIN
         DECLARE @DeptName VARCHAR(100);
-        SELECT @DeptName = DepartmentName FROM Departments WHERE DepartmentID = @DepartmentID;
+        SELECT @DeptName = d.DepartmentName FROM Departments WHERE DepartmentID = @DepartmentID;
         SET @StatusMessage = @StatusMessage + ' in ' + @DeptName + ' department';
     END
     SET @StatusMessage = @StatusMessage + ' over ' + CAST(@AnalysisPeriodMonths AS VARCHAR) + ' month period.';
@@ -615,7 +616,7 @@ DECLARE
     @Status VARCHAR(500),
     @ReturnCode INT;
 
--- Execute procedure for IT department
+-- Execute procedure for IT d.DepartmentName
 EXEC @ReturnCode = sp_CalculateEmployeeStatistics 
     @DepartmentID = 2001,
     @AnalysisPeriodMonths = 12,
@@ -637,7 +638,7 @@ SELECT
     @Status AS StatusMessage,
     @TotalEmps AS TotalEmployees,
     @ActiveEmps AS ActiveEmployees,
-    FORMAT(@AvgSalary, 'C') AS AverageSalary,
+    FORMAT(@AvgSalary, 'C') AS AverageBaseSalary,
     FORMAT(@MedianSalary, 'C') AS MedianSalary,
     FORMAT(@MinSalary, 'C') AS MinimumSalary,
     FORMAT(@MaxSalary, 'C') AS MaximumSalary,
@@ -971,7 +972,7 @@ BEGIN
     ELSE IF @TeamLeadershipScore >= 90
         SET @RecommendedActions = @RecommendedActions + 'Strong leadership - consider senior management roles. ';
     
-    -- Compare to department peers
+    -- Compare to d.DepartmentName peers
     DECLARE @DeptAvgRating DECIMAL(5,2);
     
     -- This would typically call the same procedure recursively for all dept employees
@@ -1014,11 +1015,11 @@ BEGIN
     
     SET @ComparisonToPeers = 
         CASE 
-            WHEN @OverallRating > @DeptAvgRating + 10 THEN 'Significantly above department average'
-            WHEN @OverallRating > @DeptAvgRating + 5 THEN 'Above department average'
-            WHEN @OverallRating > @DeptAvgRating - 5 THEN 'At department average'
-            WHEN @OverallRating > @DeptAvgRating - 10 THEN 'Below department average'
-            ELSE 'Significantly below department average'
+            WHEN @OverallRating > @DeptAvgRating + 10 THEN 'Significantly above d.DepartmentName average'
+            WHEN @OverallRating > @DeptAvgRating + 5 THEN 'Above d.DepartmentName average'
+            WHEN @OverallRating > @DeptAvgRating - 5 THEN 'At d.DepartmentName average'
+            WHEN @OverallRating > @DeptAvgRating - 10 THEN 'Below d.DepartmentName average'
+            ELSE 'Significantly below d.DepartmentName average'
         END + ' (Dept Avg: ' + CAST(ROUND(@DeptAvgRating, 1) AS VARCHAR) + ')';
     
     RETURN 0;  -- Success

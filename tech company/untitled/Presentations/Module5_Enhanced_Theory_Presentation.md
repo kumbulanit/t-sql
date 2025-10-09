@@ -67,14 +67,15 @@ ORDER BY Value COLLATE SQL_Latin1_General_CP1_CI_AS; -- Case-insensitive
 SELECT 
     e.EmployeeID,
     e.LastName + ', ' + e.FirstName AS FullName,
-    e.Department,
+    e.DepartmentName,
     e.JobTitle,
     e.BaseSalary,
     e.HireDate
 FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 ORDER BY 
-    -- Primary: Department (alphabetical)
-    e.Department,
+    -- Primary: d.DepartmentName (alphabetical)
+    e.DepartmentName,
     -- Secondary: Job level (custom order using CASE)
     CASE e.JobTitle
         WHEN 'CEO' THEN 1
@@ -177,14 +178,15 @@ SELECT
     e.EmployeeID,
     e.FirstName,
     e.LastName,
-    e.Department,
+    e.DepartmentName,
     e.JobTitle,
     e.BaseSalary,
     e.HireDate
 FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE 
     -- Parentheses for explicit precedence
-    (e.Department IN ('Sales', 'Marketing', 'Customer Service')
+    (e.d.DepartmentName IN ('Sales', 'Marketing', 'Customer Service')
      AND e.BaseSalary BETWEEN 40000 AND 80000)
     OR 
     (d.DepartmentName = 'Engineering' 
@@ -558,9 +560,10 @@ SELECT
     e.FirstName,
     e.LastName,
     e.JobTitle,
-    e.Department,
+    e.DepartmentName,
     e.HireDate
 FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE 
     -- Most selective filter first
     e.d.DepartmentName = 'Sales'

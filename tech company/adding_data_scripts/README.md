@@ -11,7 +11,7 @@ These scripts build the database step by step:
 - `02_TechCorp_Table_Creation.sql` - Creates all table structures
 - `03_TechCorp_Lookup_Data.sql` - Populates lookup tables (Countries, Industries, etc.)
 - `04_TechCorp_Companies_Data.sql` - Adds company data
-- `05_TechCorp_Departments_Data.sql` - Adds department data
+- `05_TechCorp_Departments_Data.sql` - Adds d.DepartmentName data
 - `06_TechCorp_Employees_Leadership.sql` - Adds leadership employees
 - `07_TechCorp_Employees_Regular.sql` - Adds regular employees
 - `08_TechCorp_Advanced_Tables.sql` - Creates advanced tables (Skills, Projects, etc.)

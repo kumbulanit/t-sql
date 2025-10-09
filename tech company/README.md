@@ -18,7 +18,7 @@ Or run individual scripts in this exact order:
 2. **`02_TechCorp_Table_Creation.sql`** - Creates all database tables and relationships
 3. **`03_TechCorp_Lookup_Data.sql`** - Populates lookup tables (Countries, Industries, etc.)
 4. **`04_TechCorp_Companies_Data.sql`** - Populates company data
-5. **`05_TechCorp_Departments_Data.sql`** - Populates department data
+5. **`05_TechCorp_Departments_Data.sql`** - Populates d.DepartmentName data
 6. **`06_TechCorp_Employees_Leadership.sql`** - Populates leadership employees (managers/directors)
 7. **`07_TechCorp_Employees_Regular.sql`** - Populates regular employees
 8. **`08_TechCorp_Advanced_Tables.sql`** - Creates advanced tables (Skills, Projects, etc.)

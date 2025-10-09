@@ -49,7 +49,7 @@ AND e.EmployeeID IN (
     ORDER BY EmployeeID DESC
 )
 
-ORDER BY DepartmentName, EmployeeName;
+ORDER BY d.DepartmentName, EmployeeName;
 ```
 
 **Business Logic**: This query combines current employees with recent former employees, providing HR with a comprehensive contact list for company-wide communications.
@@ -179,16 +179,16 @@ ORDER BY activity_log.EmployeeName, activity_log.ActivityDate;
 
 **Business Logic**: This query creates a comprehensive activity log that captures all employee activities, preserving duplicates for accurate activity tracking and performance analysis.
 
-#### Task 2.2 Solution: Department Budget Allocation Analysis
+#### Task 2.2 Solution: d.DepartmentName Budget Allocation Analysis
 
 ```sql
--- Department budget allocation analysis using UNION ALL
+-- d.DepartmentName budget allocation analysis using UNION ALL
 WITH BudgetAllocations AS (
-    -- Salary Allocations
+    -- BaseSalary Allocations
     SELECT 
         d.DepartmentID,
         d.DepartmentName,
-        'Salary' AS AllocationType,
+        'BaseSalary' AS AllocationType,
         SUM(e.BaseSalary) AS Amount,
         'Q1 2024' AS Period,
         COUNT(e.EmployeeID) AS AllocationCount
@@ -220,7 +220,7 @@ WITH BudgetAllocations AS (
         d.DepartmentID,
         d.DepartmentName,
         'Operational' AS AllocationType,
-        d.Budget * 0.15 AS Amount, -- 15% of department budget
+        d.Budget * 0.15 AS Amount, -- 15% of d.DepartmentName budget
         'Q1 2024' AS Period,
         1 AS AllocationCount
     FROM Departments d
@@ -243,8 +243,7 @@ WITH BudgetAllocations AS (
     GROUP BY d.DepartmentID, d.DepartmentName
 )
 
-SELECT 
-    ba.DepartmentName,
+SELECT ba.d.DepartmentName,
     ba.AllocationType,
     ba.Amount,
     ba.Period,
@@ -252,8 +251,8 @@ SELECT
     SUM(ba.Amount) OVER (PARTITION BY ba.DepartmentID) AS TotalDepartmentAllocation,
     FORMAT(ba.Amount / SUM(ba.Amount) OVER (PARTITION BY ba.DepartmentID) * 100, 'N1') + '%' AS AllocationPercentage,
     CASE 
-        WHEN ba.AllocationType = 'Salary' AND ba.Amount / SUM(ba.Amount) OVER (PARTITION BY ba.DepartmentID) > 0.7 
-            THEN 'High Salary Dependency'
+        WHEN ba.AllocationType = 'BaseSalary' AND ba.Amount / SUM(ba.Amount) OVER (PARTITION BY ba.DepartmentID) > 0.7 
+            THEN 'High BaseSalary Dependency'
         WHEN ba.AllocationType = 'Project' AND ba.Amount / SUM(ba.Amount) OVER (PARTITION BY ba.DepartmentID) > 0.4 
             THEN 'Project Heavy'
         ELSE 'Balanced Allocation'
@@ -498,7 +497,7 @@ FROM (
     FROM EmployeeDepartmentProjects edp
     INNER JOIN Departments d1 ON edp.HomeDepartmentID = d1.DepartmentID
     INNER JOIN Departments d2 ON edp.ProjectDepartmentID = d2.DepartmentID
-    WHERE d1.DepartmentName < d2.DepartmentName -- Avoid duplicates
+    WHERE d1.d.DepartmentName < d2.d.DepartmentName -- Avoid duplicates
 ) AS dept_pairs
 GROUP BY dept_pairs.Department1, dept_pairs.Department2
 ORDER BY TotalCollaborationHours DESC;

@@ -1,19 +1,5 @@
 # Lab Answers: Writing Basic SELECT Statements
 
-## 📚 **Beginner's Guide to SELECT Statements**
-
-Welcome to Module 3! In this lab, you'll learn the foundation of SQL querying - the SELECT statement. We'll start with the simplest queries and gradually build your skills.
-
-### 🎯 **Learning Objectives**
-By the end of this lab, you will be able to:
-1. Write basic SELECT statements to retrieve data
-2. Select specific columns instead of all columns
-3. Create calculated columns with expressions
-4. Use string, date, and numeric functions
-5. Understand when and how to use DISTINCT
-
----
-
 ## Exercise 1: Simple SELECT Statements - Answers
 
 ### Task 1.1: Basic SELECT Operations - Answers
@@ -21,44 +7,35 @@ By the end of this lab, you will be able to:
 #### Question 1: Select All Employees
 **Task:** Write a query to select all columns from the Employees table.
 
-**💡 Beginner Tip:** The asterisk (*) is a wildcard that means "all columns"
-
 ```sql
 -- Answer 1: Select All Employees
--- Step 1: Use SELECT to specify what data you want
--- Step 2: Use * to get all columns  
--- Step 3: Use FROM to specify which table
-SELECT * FROM Employees;
-
--- 📊 Expected Result: Shows all employee records with all available columns
--- ⚠️ Note: In production, avoid SELECT * for performance reasons
+SELECT * FROM Employees e;
 ```
 
-**🔍 What this query does:**
-- Retrieves every column and every row from the Employees table
-- Shows you the complete structure of your data
-- Great for exploring a new table
+**Beginner Explanation:**
+- `SELECT *` means "select ALL columns" (the asterisk * is a wildcard)
+- `FROM Employees` specifies which table to get data from
+- This returns every row and every column in the Employees table
+- **Tip:** Use SELECT * carefully - it can return a lot of data!
 
-#### Question 2: Select Specific Columns  
+**Expected Result:** All employee records with columns like EmployeeID, FirstName, LastName, JobTitle, BaseSalary, HireDate, etc.
+
+#### Question 2: Select Specific Columns
 **Task:** Select only FirstName, LastName, and BaseSalary from Employees.
-
-**💡 Beginner Tip:** List specific column names separated by commas for better performance and clarity
 
 ```sql
 -- Answer 2: Select Specific Columns
--- Step 1: List the exact columns you need (separated by commas)
--- Step 2: This is more efficient than SELECT *
 SELECT FirstName, LastName, BaseSalary
-FROM Employees;
-
--- 📊 Expected Result: Shows only the 3 specified columns for all employees
--- ✅ Best Practice: Always specify columns when you know what you need
+FROM Employees e;
 ```
 
-**🔍 What this query does:**
-- Retrieves only the specified columns (FirstName, LastName, BaseSalary)
-- Reduces network traffic and improves performance
-- Makes your query intent clear to other developers
+**Beginner Explanation:**
+- Instead of *, we list specific column names separated by commas
+- This gives us only the columns we need, making results cleaner and faster
+- Column order in SELECT determines display order
+- **Best Practice:** Only select columns you actually need
+
+**Expected Result:** A focused list showing just employee names and their salaries
 
 #### Question 3: Select with Calculated Columns
 **Task:** Create calculated columns for full name and annual bonus (10% of BaseSalary).
@@ -72,8 +49,25 @@ SELECT
     BaseSalary,
     BaseSalary * 0.10 AS AnnualBonus,
     BaseSalary + (BaseSalary * 0.10) AS TotalCompensation
-FROM Employees;
+FROM Employees e;
 ```
+
+**Beginner Explanation:**
+
+- **String Concatenation:** `FirstName + ' ' + LastName` combines two text columns with a space
+- **Mathematical Operations:** `BaseSalary * 0.10` multiplies BaseSalary by 10% (0.10 = 10%)
+- **Column Aliases:** `AS FullName` gives our calculated column a friendly name
+- **Parentheses:** Use `()` to control order of operations, just like in math
+- **Multiple Calculations:** You can create several calculated columns in one query
+
+**Step-by-Step Breakdown:**
+1. Show original FirstName and LastName
+2. Combine them into FullName
+3. Show the original BaseSalary
+4. Calculate 10% bonus
+5. Calculate total compensation (BaseSalary + bonus)
+
+**Expected Result:** Each employee with their name, BaseSalary, bonus amount, and total compensation
 
 ### Task 1.2: Working with Different Data Types - Answers
 
@@ -91,7 +85,7 @@ SELECT
     LEFT(FirstName, 3) AS FirstThreeChars,
     RIGHT(LastName, 3) AS LastThreeChars,
     SUBSTRING(WorkEmail, 1, CHARINDEX('@', WorkEmail) - 1) AS EmailUsername
-FROM Employees;
+FROM Employees e;
 ```
 
 #### Question 2: Date Operations
@@ -109,7 +103,7 @@ SELECT
     YEAR(HireDate) AS HireYear,
     MONTH(HireDate) AS HireMonth,
     FORMAT(HireDate, 'MMMM dd, yyyy') AS FormattedHireDate
-FROM Employees;
+FROM Employees e;
 ```
 
 #### Question 3: Numeric Operations
@@ -126,7 +120,7 @@ SELECT
     ROUND(BaseSalary / 12, 2) AS MonthlySalaryRounded,
     CEILING(BaseSalary / 1000) AS SalaryInThousandsCeiling,
     FLOOR(BaseSalary / 1000) AS SalaryInThousandsFloor
-FROM Employees;
+FROM Employees e;
 ```
 
 ## Exercise 2: Using DISTINCT - Answers
@@ -134,13 +128,13 @@ FROM Employees;
 ### Task 2.1: Eliminating Duplicates - Answers
 
 #### Question 1: Distinct Departments
-**Task:** Get a list of unique department IDs from the Employees table.
+**Task:** Get a list of unique d.DepartmentName IDs from the Employees table.
 
 ```sql
 -- Answer 1: Distinct Departments
 SELECT DISTINCT DepartmentID
 FROM Employees
-ORDER BY DepartmentID;
+ORDER BY DepartmentIDID;
 ```
 
 #### Question 2: Distinct Cities
@@ -159,9 +153,9 @@ ORDER BY City;
 
 ```sql
 -- Answer 3: Distinct Job Titles
-SELECT DISTINCT JobTitle
+SELECT DISTINCT Title
 FROM Employees
-ORDER BY JobTitle;
+ORDER BY Title;
 ```
 
 ### Task 2.2: DISTINCT with Multiple Columns - Answers
@@ -171,14 +165,14 @@ ORDER BY JobTitle;
 
 ```sql
 -- Answer 1: Distinct City-State Combinations
-SELECT DISTINCT City, StateProvince
+SELECT DISTINCT City, State
 FROM Employees
-WHERE City IS NOT NULL AND StateProvince IS NOT NULL
-ORDER BY StateProvince, City;
+WHERE City IS NOT NULL AND State IS NOT NULL
+ORDER BY State, City;
 ```
 
 #### Question 2: Distinct Department-Title Combinations
-**Task:** Get unique combinations of department and job title.
+**Task:** Get unique combinations of d.DepartmentName and job title.
 
 ```sql
 -- Answer 2: Distinct Department-Title Combinations
@@ -192,24 +186,24 @@ ORDER BY d.DepartmentName, e.JobTitle;
 
 ### Task 2.3: DISTINCT vs GROUP BY - Answers
 
-#### Question 1: Count of Employees by Department
+#### Question 1: Count of Employees by d.DepartmentName
 **Task:** Compare DISTINCT with GROUP BY for counting.
 
 ```sql
--- Answer 1: Count of Employees by Department
+-- Answer 1: Count of Employees by d.DepartmentName
 
 -- Using GROUP BY (preferred for aggregations)
 SELECT 
     DepartmentID,
     COUNT(*) AS EmployeeCount
 FROM Employees
-GROUP BY DepartmentID
-ORDER BY DepartmentID;
+GROUP BY DepartmentIDID
+ORDER BY DepartmentIDID;
 
 -- Using DISTINCT (just for unique values)
 SELECT DISTINCT DepartmentID
 FROM Employees
-ORDER BY DepartmentID;
+ORDER BY DepartmentIDID;
 ```
 
 ## Exercise 3: Column and Table Aliases - Answers
@@ -230,7 +224,7 @@ SELECT
     BaseSalary / 52 AS [Weekly BaseSalary],
     DATEDIFF(YEAR, HireDate, GETDATE()) AS [Years of Service],
     HireDate AS [Date Hired]
-FROM Employees;
+FROM Employees e;
 ```
 
 #### Question 2: Aliases with Special Characters
@@ -248,7 +242,7 @@ SELECT
         WHEN BaseSalary > 60000 THEN 'Medium'
         ELSE 'Low'
     END AS "BaseSalary Category"
-FROM Employees;
+FROM Employees e;
 ```
 
 ### Task 3.2: Table Aliases - Answers
@@ -348,18 +342,17 @@ ORDER BY EmploymentIsActive, LastName;
 
 ### Task 4.2: CASE with Aggregations - Answers
 
-#### Question 1: Department BaseSalary Analysis
-**Task:** Analyze BaseSalary distribution by department using CASE.
+#### Question 1: d.DepartmentName BaseSalary Analysis
+**Task:** Analyze BaseSalary distribution by d.DepartmentName using CASE.
 
 ```sql
--- Answer 1: Department BaseSalary Analysis
-SELECT 
-    d.DepartmentName,
+-- Answer 1: d.DepartmentName BaseSalary Analysis
+SELECT d.DepartmentName,
     COUNT(*) AS TotalEmployees,
     SUM(CASE WHEN e.BaseSalary >= 80000 THEN 1 ELSE 0 END) AS HighSalaryCount,
     SUM(CASE WHEN e.BaseSalary BETWEEN 50000 AND 79999 THEN 1 ELSE 0 END) AS MidSalaryCount,
     SUM(CASE WHEN e.BaseSalary < 50000 THEN 1 ELSE 0 END) AS LowSalaryCount,
-    AVG(e.BaseSalary) AS AverageSalary,
+    AVG(e.BaseSalary) AS AverageBaseSalary,
     SUM(CASE WHEN e.BaseSalary >= 80000 THEN e.BaseSalary ELSE 0 END) AS HighSalaryTotal,
     SUM(CASE WHEN e.BaseSalary < 50000 THEN e.BaseSalary ELSE 0 END) AS LowSalaryTotal
 FROM Employees e
@@ -373,15 +366,15 @@ ORDER BY AverageSalary DESC;
 **Task:** Summarize project statuses using CASE.
 
 ```sql
--- Answer 2: Project IsActive Summary
+-- Answer 2: Project Status Summary
 SELECT 
     COUNT(*) AS TotalProjects,
-    SUM(CASE WHEN IsActive = 'Completed' THEN 1 ELSE 0 END) AS CompletedProjects,
-    SUM(CASE WHEN IsActive = 'In Progress' THEN 1 ELSE 0 END) AS InProgressProjects,
-    SUM(CASE WHEN IsActive = 'On Hold' THEN 1 ELSE 0 END) AS OnHoldProjects,
-    SUM(CASE WHEN IsActive = 'Cancelled' THEN 1 ELSE 0 END) AS CancelledProjects,
-    AVG(CASE WHEN IsActive = 'Completed' THEN Budget ELSE NULL END) AS AvgCompletedBudget,
-    AVG(CASE WHEN IsActive = 'In Progress' THEN Budget ELSE NULL END) AS AvgInProgressBudget
+    SUM(CASE WHEN Status = 'Completed' THEN 1 ELSE 0 END) AS CompletedProjects,
+    SUM(CASE WHEN Status = 'In Progress' THEN 1 ELSE 0 END) AS InProgressProjects,
+    SUM(CASE WHEN Status = 'On Hold' THEN 1 ELSE 0 END) AS OnHoldProjects,
+    SUM(CASE WHEN Status = 'Cancelled' THEN 1 ELSE 0 END) AS CancelledProjects,
+    AVG(CASE WHEN Status = 'Completed' THEN Budget ELSE NULL END) AS AvgCompletedBudget,
+    AVG(CASE WHEN Status = 'In Progress' THEN Budget ELSE NULL END) AS AvgInProgressBudget
 FROM Projects;
 ```
 
@@ -429,7 +422,7 @@ ORDER BY YearsOfService DESC, BaseSalary DESC;
 -- Answer 2: Performance Rating
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
-    e.Title,
+    e.JobTitle,
     e.BaseSalary,
     COALESCE(ep.ProjectCount, 0) AS ProjectCount,
     COALESCE(ep.AvgHoursWorked, 0) AS AvgHoursWorked,
@@ -479,8 +472,8 @@ SELECT
             '(' + LEFT(e.Phone, 3) + ') ' + SUBSTRING(e.Phone, 4, 3) + '-' + RIGHT(e.Phone, 4)
         ELSE 'No Phone Listed'
     END AS FormattedPhone,
-    d.DepartmentName + ' (' + d.DepartmentCode + ')' AS Department,
-    e.Title,
+    d.DepartmentName + ' (' + d.DepartmentCode + ')' AS DepartmentName,
+    e.JobTitle,
     FORMAT(e.BaseSalary, 'C', 'en-US') AS FormattedSalary,
     FORMAT(e.HireDate, 'MMMM dd, yyyy') AS FormattedHireDate,
     CASE 
@@ -564,13 +557,12 @@ ORDER BY CompletenessPercentage DESC;
 
 ### Task 5.3: Executive Summary Report - Answers
 
-#### Question 1: Department Summary Dashboard
-**Task:** Create an executive summary of department performance.
+#### Question 1: d.DepartmentName Summary Dashboard
+**Task:** Create an executive summary of d.DepartmentName performance.
 
 ```sql
--- Answer 1: Department Summary Dashboard
-SELECT 
-    d.DepartmentName AS Department,
+-- Answer 1: d.DepartmentName Summary Dashboard
+SELECT d.DepartmentName AS DepartmentName,
     d.DepartmentCode AS [Dept Code],
     COUNT(e.EmployeeID) AS [Active Employees],
     FORMAT(AVG(e.BaseSalary), 'C0', 'en-US') AS [Avg BaseSalary],

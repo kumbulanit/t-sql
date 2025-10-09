@@ -41,7 +41,7 @@ USE TechCorpDB;
 
 -- Exercise 1.1a: How many employees work at TechCorp?
 SELECT COUNT(*) AS TotalEmployees 
-FROM Employees;
+FROM Employees e;
 
 -- Exercise 1.1b: How many projects does TechCorp have?
 SELECT COUNT(*) AS TotalProjects
@@ -66,7 +66,7 @@ Try writing these counting queries yourself:
 -- Challenge 1.2a: Count how many different job levels exist
 -- Hint: Use COUNT(*) and the Employees table, look at JobLevel column
 SELECT COUNT(DISTINCT JobLevel) AS NumberOfJobLevels
-FROM Employees;
+FROM Employees e;
 
 -- Challenge 1.2b: Count projects that have started (StartDate is not null)  
 -- Hint: Use WHERE StartDate IS NOT NULL
@@ -82,17 +82,17 @@ WHERE StartDate IS NOT NULL;
 **Goal**: Practice adding up salaries and budgets.
 
 ```sql
--- Exercise 2.1a: What's the total salary expense for all employees?
-SELECT SUM(Salary) AS TotalPayroll
-FROM Employees;
+-- Exercise 2.1a: What's the total BaseSalary expense for all employees?
+SELECT SUM(e.BaseSalary) AS TotalPayroll
+FROM Employees e;
 
 -- Exercise 2.1b: What's the total value of all projects?  
 SELECT SUM(Budget) AS TotalProjectValue
 FROM Projects;
 
--- Exercise 2.1c: What's the average employee salary?
-SELECT AVG(Salary) AS AverageSalary
-FROM Employees;
+-- Exercise 2.1c: What's the average employee BaseSalary?
+SELECT AVG(e.BaseSalary) AS AverageBaseSalary
+FROM Employees e;
 
 -- Exercise 2.1d: What's the average project size?
 SELECT AVG(Budget) AS AverageProjectSize  
@@ -104,11 +104,11 @@ FROM Projects;
 **Goal**: Find the highest and lowest values.
 
 ```sql
--- Exercise 2.2a: What's the highest and lowest salary?
+-- Exercise 2.2a: What's the highest and lowest BaseSalary?
 SELECT 
-    MAX(Salary) AS HighestSalary,
-    MIN(Salary) AS LowestSalary
-FROM Employees;
+    MAX(e.BaseSalary) AS HighestBaseSalary,
+    MIN(e.BaseSalary) AS LowestBaseSalary
+FROM Employees e;
 
 -- Exercise 2.2b: What's the biggest and smallest project budget?
 SELECT 
@@ -125,11 +125,11 @@ FROM Projects;
 -- Exercise 2.3a: Complete employee summary
 SELECT 
     COUNT(*) AS TotalEmployees,
-    SUM(Salary) AS TotalPayroll, 
-    AVG(Salary) AS AverageSalary,
-    MIN(Salary) AS LowestSalary,
-    MAX(Salary) AS HighestSalary
-FROM Employees;
+    SUM(e.BaseSalary) AS TotalPayroll, 
+    AVG(e.BaseSalary) AS AverageBaseSalary,
+    MIN(e.BaseSalary) AS LowestBaseSalary,
+    MAX(e.BaseSalary) AS HighestBaseSalary
+FROM Employees e;
 
 -- Exercise 2.3b: Complete project summary
 SELECT 
@@ -151,75 +151,20 @@ Now let's practice organizing data into groups.
 
 ```sql
 -- Exercise 3.1a: How many employees are in each department?
-SELECT 
-    Department,
+SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount
-FROM Employees  
-GROUP BY Department
-ORDER BY Department;
-
--- Exercise 3.1b: How many projects are in each status?
-SELECT 
-    ProjectStatus,
-    COUNT(*) AS ProjectCount
-FROM Projects
-GROUP BY ProjectStatus
-ORDER BY ProjectCount DESC;
-
--- Exercise 3.1c: How many clients are in each city?
-SELECT 
-    City,
-    COUNT(*) AS ClientCount  
-FROM Clients
-GROUP BY City
-ORDER BY ClientCount DESC;
-```
-
-### Exercise 3.2: Adding Money by Groups (🟢 EASY)
-
-**Goal**: Add up salaries and budgets for each group.
-
-```sql
--- Exercise 3.2a: Total salary cost by department
-SELECT 
-    Department,
-    COUNT(*) AS EmployeeCount,
-    SUM(Salary) AS TotalSalaryCost
-FROM Employees
-GROUP BY Department  
-ORDER BY TotalSalaryCost DESC;
-
--- Exercise 3.2b: Total budget by project status
-SELECT 
-    ProjectStatus,
-    COUNT(*) AS ProjectCount,
-    SUM(Budget) AS TotalBudget
-FROM Projects
-GROUP BY ProjectStatus
-ORDER BY TotalBudget DESC;
-```
-
-### Exercise 3.3: Finding Averages by Groups (🟢 EASY)
-
-**Goal**: Calculate average salaries and budgets for each group.
-
-```sql
--- Exercise 3.3a: Average salary by department
-SELECT 
-    Department,
-    COUNT(*) AS EmployeeCount,
-    AVG(Salary) AS AverageSalary
-FROM Employees
-GROUP BY Department
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+GROUP BY d.DepartmentName
 ORDER BY AverageSalary DESC;
 
 -- Exercise 3.3b: Average project size by status  
 SELECT 
-    ProjectStatus,
+    Status,
     COUNT(*) AS ProjectCount,
     AVG(Budget) AS AverageProjectSize
 FROM Projects  
-GROUP BY ProjectStatus
+GROUP BY Status
 ORDER BY AverageProjectSize DESC;
 ```
 
@@ -233,81 +178,21 @@ Now let's practice showing only the groups we care about.
 
 ```sql
 -- Exercise 4.1a: Show only departments with more than 2 employees
-SELECT 
-    Department,
+SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount
-FROM Employees
-GROUP BY Department
-HAVING COUNT(*) > 2
-ORDER BY EmployeeCount DESC;
-
--- Exercise 4.1b: Show only project statuses with 2 or more projects
-SELECT 
-    ProjectStatus,  
-    COUNT(*) AS ProjectCount
-FROM Projects
-GROUP BY ProjectStatus
-HAVING COUNT(*) >= 2
-ORDER BY ProjectCount DESC;
-
--- Exercise 4.1c: Show only cities with multiple clients
-SELECT 
-    City,
-    COUNT(*) AS ClientCount
-FROM Clients
-GROUP BY City  
-HAVING COUNT(*) > 1
-ORDER BY ClientCount DESC;
-```
-
-### Exercise 4.2: Filter by Money Amounts (🟢 EASY)
-
-**Goal**: Show only groups with high costs or budgets.
-
-```sql  
--- Exercise 4.2a: Show departments spending more than $100,000 on salaries
-SELECT 
-    Department,
-    COUNT(*) AS EmployeeCount,
-    SUM(Salary) AS TotalSalaryCost
-FROM Employees
-GROUP BY Department
-HAVING SUM(Salary) > 100000
-ORDER BY TotalSalaryCost DESC;
-
--- Exercise 4.2b: Show project statuses with total budgets over $50,000  
-SELECT 
-    ProjectStatus,
-    COUNT(*) AS ProjectCount,
-    SUM(Budget) AS TotalBudget
-FROM Projects
-GROUP BY ProjectStatus  
-HAVING SUM(Budget) > 50000
-ORDER BY TotalBudget DESC;
-```
-
-### Exercise 4.3: Filter by Averages (🟢 INTERMEDIATE)
-
-**Goal**: Show only groups with high average values.
-
-```sql
--- Exercise 4.3a: Show departments with average salary above $45,000
-SELECT 
-    Department,
-    COUNT(*) AS EmployeeCount,  
-    AVG(Salary) AS AverageSalary
-FROM Employees
-GROUP BY Department
-HAVING AVG(Salary) > 45000
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+GROUP BY d.DepartmentName
+HAVING AVG(e.BaseSalary) > 45000
 ORDER BY AverageSalary DESC;
 
 -- Exercise 4.3b: Show project statuses with average budget above $25,000
 SELECT 
-    ProjectStatus,
+    Status,
     COUNT(*) AS ProjectCount,
     AVG(Budget) AS AverageProjectSize
 FROM Projects
-GROUP BY ProjectStatus
+GROUP BY Status
 HAVING AVG(Budget) > 25000  
 ORDER BY AverageProjectSize DESC;
 ```
@@ -321,133 +206,23 @@ Let's answer questions that a real manager might ask.
 ```sql
 -- Question 5.1a: "Which departments have both many employees AND high costs?"
 -- (More than 2 employees AND total salaries over $150,000)
-SELECT 
-    Department,
-    COUNT(*) AS EmployeeCount,
-    SUM(Salary) AS TotalSalaryCost,
-    AVG(Salary) AS AverageSalary
-FROM Employees
-GROUP BY Department
-HAVING COUNT(*) > 2 AND SUM(Salary) > 150000  
-ORDER BY TotalSalaryCost DESC;
-
--- Question 5.1b: "What's the salary range in each department?"
-SELECT 
-    Department,
-    COUNT(*) AS EmployeeCount,
-    MIN(Salary) AS LowestSalary,  
-    MAX(Salary) AS HighestSalary,
-    MAX(Salary) - MIN(Salary) AS SalaryRange
-FROM Employees
-GROUP BY Department
-ORDER BY SalaryRange DESC;
-```
-
-### Exercise 5.2: Project Questions (🟢 INTERMEDIATE)
-
-```sql
--- Question 5.2a: "Which project statuses are both active AND valuable?"
--- (2 or more projects AND average budget above $30,000)
-SELECT 
-    ProjectStatus,
-    COUNT(*) AS ProjectCount,
-    AVG(Budget) AS AverageProjectSize,
-    SUM(Budget) AS TotalValue
-FROM Projects  
-GROUP BY ProjectStatus
-HAVING COUNT(*) >= 2 AND AVG(Budget) > 30000
-ORDER BY TotalValue DESC;
-
--- Question 5.2b: "What's the project size range for each status?"
-SELECT 
-    ProjectStatus,
-    COUNT(*) AS ProjectCount,
-    MIN(Budget) AS SmallestProject,
-    MAX(Budget) AS LargestProject,  
-    MAX(Budget) - MIN(Budget) AS ProjectRange
-FROM Projects
-GROUP BY ProjectStatus
-ORDER BY ProjectRange DESC;
-```
-
-### Exercise 5.3: Client and Industry Questions (🟢 INTERMEDIATE)
-
-```sql
--- Question 5.3a: "How much business do we get from each industry?"
-SELECT 
-    c.Industry,
-    COUNT(DISTINCT c.ClientID) AS NumberOfClients,
-    COUNT(p.ProjectID) AS NumberOfProjects,
-    SUM(p.Budget) AS TotalRevenue
-FROM Clients c
-LEFT JOIN Projects p ON c.ClientID = p.ClientID
-GROUP BY c.Industry
-ORDER BY TotalRevenue DESC;
-
--- Question 5.3b: "Which industries give us the most valuable projects on average?"
-SELECT 
-    c.Industry,
-    COUNT(p.ProjectID) AS NumberOfProjects,  
-    AVG(p.Budget) AS AverageProjectValue,
-    SUM(p.Budget) AS TotalValue
-FROM Clients c
-JOIN Projects p ON c.ClientID = p.ClientID
-GROUP BY c.Industry
-HAVING COUNT(p.ProjectID) >= 2  -- Only industries with multiple projects
-ORDER BY AverageProjectValue DESC;
-```
-
-## Section 6: Challenge Exercises 📊
-
-Ready for slightly harder challenges? Try these!
-
-### Challenge 6.1: Time-Based Analysis (🟢 CHALLENGING)
-
-```sql
--- Challenge 6.1a: "Which years were we busiest hiring?"  
--- (Show years with 2 or more hires)
-SELECT 
-    YEAR(HireDate) AS HireYear,
-    COUNT(*) AS EmployeesHired
-FROM Employees
-WHERE HireDate IS NOT NULL
-GROUP BY YEAR(HireDate)
-HAVING COUNT(*) >= 2
-ORDER BY EmployeesHired DESC;
-
--- Challenge 6.1b: "Which months do we typically start the most projects?"
-SELECT 
-    MONTH(StartDate) AS StartMonth,
-    COUNT(*) AS ProjectsStarted  
-FROM Projects
-WHERE StartDate IS NOT NULL
-GROUP BY MONTH(StartDate)
-ORDER BY ProjectsStarted DESC;
-```
-
-### Challenge 6.2: Multi-Level Grouping (🟢 CHALLENGING)
-
-```sql
--- Challenge 6.2a: "How many junior vs senior employees in each department?"
-SELECT 
-    Department,
-    JobLevel,
-    COUNT(*) AS EmployeeCount,
-    AVG(Salary) AS AverageSalary
-FROM Employees
-GROUP BY Department, JobLevel  
-ORDER BY Department, JobLevel;
+SELECT d.DepartmentName,
+    COUNT(*) AS EmployeeCount
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+GROUP BY d.DepartmentName, JobLevel  
+ORDER BY d.DepartmentName, JobLevel;
 
 -- Challenge 6.2b: "Project activity by year and status"
 SELECT 
     YEAR(StartDate) AS ProjectYear,
-    ProjectStatus,
+    Status,
     COUNT(*) AS ProjectCount,
     AVG(Budget) AS AverageProjectSize
 FROM Projects
 WHERE StartDate IS NOT NULL
-GROUP BY YEAR(StartDate), ProjectStatus
-ORDER BY ProjectYear, ProjectStatus;
+GROUP BY YEAR(StartDate), Status
+ORDER BY ProjectYear, Status;
 ```
 
 ### Challenge 6.3: Business Intelligence Report (🟢 CHALLENGING)
@@ -458,9 +233,9 @@ ORDER BY ProjectYear, ProjectStatus;
 SELECT 
     'TechCorp Business Overview' AS ReportSection,
     'Employee Statistics' AS Category,
-    (SELECT COUNT(*) FROM Employees) AS TotalEmployees,
-    (SELECT FORMAT(AVG(Salary), 'C0') FROM Employees) AS AvgSalary,
-    (SELECT FORMAT(SUM(Salary), 'C0') FROM Employees) AS TotalPayroll
+    (SELECT COUNT(*) FROM Employees e) AS TotalEmployees,
+    (SELECT FORMAT(AVG(e.BaseSalary), 'C0') FROM Employees e) AS AvgSalary,
+    (SELECT FORMAT(SUM(e.BaseSalary), 'C0') FROM Employees e) AS TotalPayroll
     
 UNION ALL
 

@@ -666,7 +666,7 @@ WHERE ContentLength >= 100;
 -- Sample data for aggregation examples
 CREATE TABLE EmployeeDepartments (
     DepartmentID INT,
-    DepartmentName VARCHAR(50),
+    d.DepartmentName VARCHAR(50),
     EmployeeName VARCHAR(100)
 );
 
@@ -679,18 +679,16 @@ INSERT INTO EmployeeDepartments VALUES
 (3, 'Finance', 'Diana Miller');
 
 -- Using STRING_AGG (SQL Server 2017+)
-SELECT 
-    DepartmentName,
+SELECT d.DepartmentName,
     STRING_AGG(EmployeeName, ', ') AS EmployeeList,
     STRING_AGG(EmployeeName, ', ') WITHIN GROUP (ORDER BY EmployeeName) AS SortedEmployeeList,
     COUNT(*) AS EmployeeCount
 FROM EmployeeDepartments
-GROUP BY DepartmentIDID, DepartmentName;
+GROUP BY DepartmentIDID, d.DepartmentName;
 
 -- Legacy string aggregation methods (for older versions)
 -- Method 1: Using FOR XML PATH
-SELECT 
-    DepartmentName,
+SELECT d.DepartmentName,
     STUFF((
         SELECT ', ' + EmployeeName
         FROM EmployeeDepartments e2
@@ -699,7 +697,7 @@ SELECT
         FOR XML PATH('')
     ), 1, 2, '') AS EmployeeList
 FROM EmployeeDepartments e1
-GROUP BY DepartmentIDID, DepartmentName;
+GROUP BY DepartmentIDID, d.DepartmentName;
 
 -- Method 2: Using recursive CTE (complex but works in all versions)
 WITH EmployeeCTE AS (
@@ -712,7 +710,7 @@ WITH EmployeeCTE AS (
     FROM EmployeeDepartments
 ),
 AggregationCTE AS (
-    -- Anchor: First employee in each department
+    -- Anchor: First employee in each d.DepartmentName
     SELECT 
         DepartmentID,
         DepartmentName,
@@ -734,8 +732,7 @@ AggregationCTE AS (
     FROM EmployeeCTE e
     INNER JOIN AggregationCTE a ON e.DepartmentID = a.DepartmentID AND e.RowNum = a.RowNum + 1
 )
-SELECT 
-    DepartmentName,
+SELECT d.DepartmentName,
     EmployeeList
 FROM AggregationCTE
 WHERE RowNum = TotalCount;

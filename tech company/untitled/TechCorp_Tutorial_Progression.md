@@ -63,14 +63,14 @@ SELECT @@SERVERNAME as ServerName;
 #### Key Scenarios:
 ```sql
 -- Beginner: Show all employees
-SELECT * FROM Employees;
+SELECT * FROM Employees e;
 -- Explanation: "This shows you everyone who works at TechCorp"
 
 -- Early Intermediate: Calculate business metrics  
 SELECT 
     FirstName + ' ' + LastName AS FullName,
     BaseSalary / 12 AS MonthlySalary
-FROM Employees;
+FROM Employees e;
 -- Explanation: "Now we're doing business math - calculating monthly pay"
 ```
 
@@ -131,7 +131,7 @@ SELECT
     p.ProjectName,
     p.Budget,
     e.FirstName + ' ' + e.LastName as ProjectManager,
-    d.DepartmentName
+    d.d.DepartmentName
 FROM Companies c
     INNER JOIN Projects p ON c.CompanyID = p.CompanyID
     INNER JOIN Employees e ON p.ProjectManagerID = e.EmployeeID

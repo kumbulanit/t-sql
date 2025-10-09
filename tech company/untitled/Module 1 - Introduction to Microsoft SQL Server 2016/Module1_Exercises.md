@@ -1,10 +1,7 @@
-# Module 1 Exercises: SQL Server 2016 Tools - TechCorp Solutions Database Foundation
+# Module 1 Exercises: SQL Server 2016 Tools
 
 ## Overview
-These exercises complement the lessons and lab activities for Module 1, focusing on SQL Server 2016 tools and basic administration using **TechCorp Solutions** as our business context. You'll work with realistic business scenarios while learning SQL Server architecture, editions, SSMS usage, and installation procedures.
-
-## 🏢 Business Context: TechCorp Solutions
-**TechCorp Solutions** is a mid-sized technology consulting company with 145 employees, serving clients across various industries. Throughout these exercises, you'll work with their database infrastructure, learning SQL Server concepts through real-world business scenarios.
+These exercises complement the lessons and lab activities for Module 1, focusing on SQL Server 2016 tools and basic administration. Complete these exercises to reinforce your understanding of SQL Server architecture, editions, SSMS usage, and installation procedures.
 
 ## Exercise Set 1: SQL Server Architecture (Lesson 1)
 
@@ -25,41 +22,32 @@ These exercises complement the lessons and lab activities for Module 1, focusing
 2. How can you determine if your instance is the default instance?
 3. What does the EngineEdition property tell you about your SQL Server instance?
 
-### Exercise 1.2: TechCorp Database File Architecture
-**Objective**: Understand database file structure and properties using TechCorp Solutions business requirements
-
-**Business Scenario**: TechCorp Solutions needs a robust database infrastructure to support their consulting operations, project management, and client data.
+### Exercise 1.2: Database File Architecture
+**Objective**: Understand database file structure and properties
 
 **Tasks**:
-1. Create the TechCorpDB database with specific file settings:
-   - Primary data file: TechCorpDB_Data.mdf (Initial: 100MB, Growth: 10MB)
-   - Log file: TechCorpDB_Log.ldf (Initial: 50MB, Growth: 10%)
-   - Consider TechCorp's expected data growth from 145 employees and multiple projects
-2. Query system views to examine TechCorpDB database files
-3. Identify primary data files, secondary data files, and log files for TechCorp
-4. Examine file growth settings considering TechCorp's business expansion plans
+1. Create a test database with specific file settings
+2. Query system views to examine database files
+3. Identify primary data files, secondary data files, and log files
+4. Examine file growth settings and usage statistics
 
-**Business Questions**:
-1. Given TechCorp's rapid growth, what initial database size would you recommend?
-2. Why would TechCorp want to separate data and log files on different drives?
-3. What would happen to TechCorp's operations if the database file reaches its maximum size during a critical project deadline?
+**Questions**:
+1. What is the difference between initial size and maximum size for database files?
+2. Why is it important to separate data and log files on different drives?
+3. What happens when a database file reaches its maximum size?
 
-### Exercise 1.3: System Databases - TechCorp Infrastructure Planning
-**Objective**: Explore SQL Server system databases in the context of TechCorp's database infrastructure
-
-**Business Scenario**: As TechCorp's Database Administrator, you need to understand how system databases support TechCorp's business operations and plan for disaster recovery.
+### Exercise 1.3: System Databases
+**Objective**: Explore SQL Server system databases
 
 **Tasks**:
-1. List all system databases and explain how each supports TechCorp's operations
-2. Examine the master database and identify TechCorp-specific configurations
-3. Review tempdb configuration for TechCorp's expected query workload
-4. Understand how msdb supports TechCorp's backup and maintenance strategies
-5. Analyze the model database template that will be used for future TechCorp databases
+1. List all system databases and their purposes
+2. Examine the contents of master database
+3. Review tempdb configuration and usage
+4. Understand the role of msdb and model databases
 
-**Business-Critical Questions**:
-1. If TechCorp's master database became corrupted during a client presentation, what would be the business impact?
-2. Why shouldn't TechCorp store client project data in system databases?
-3. How would you configure tempdb to handle TechCorp's peak workload during month-end reporting?
+**Questions**:
+1. What would happen if the master database became corrupted?
+2. Why shouldn't you store user data in system databases?
 3. How does the model database affect new database creation?
 
 ## Exercise Set 2: SQL Server Editions and Versions (Lesson 2)

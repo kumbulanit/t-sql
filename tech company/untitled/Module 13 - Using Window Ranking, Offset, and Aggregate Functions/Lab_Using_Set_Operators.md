@@ -79,8 +79,8 @@ Extend your contact directory with business intelligence:
 4. Add recommended engagement strategy
 
 **Business Logic:**
-- High Value: Customers with orders >$50,000 total OR employees with salary >$80,000
-- Medium Value: Customers with orders >$20,000 total OR employees with salary >$60,000
+- High Value: Customers with orders >$50,000 total OR employees with BaseSalary >$80,000
+- Medium Value: Customers with orders >$20,000 total OR employees with BaseSalary >$60,000
 - Standard: All other contacts
 
 ## Exercise 2: EXCEPT Operations - Data Quality and Compliance
@@ -115,7 +115,7 @@ EXCEPT
 -- Add your EXCEPT logic to exclude employees with project assignments
 -- Hint: SELECT employees who HAVE been assigned to projects
 
-ORDER BY DepartmentName, EmployeeName;
+ORDER BY d.DepartmentName, EmployeeName;
 ```
 
 ### Task 2.2: Customer Data Validation
@@ -146,9 +146,9 @@ Find employees who are both high performers and high earners:
 
 **Instructions:**
 1. Define high performers (top 20% by project involvement and customer interaction)
-2. Define high earners (top 25% by salary within department)
+2. Define high earners (top 25% by BaseSalary within department)
 3. Use INTERSECT to find employees meeting both criteria
-4. Analyze their characteristics and department distribution
+4. Analyze their characteristics and d.DepartmentName distribution
 
 **Starter Template:**
 ```sql
@@ -180,10 +180,10 @@ FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND e.BaseSalary >= (
-      -- Calculate department salary threshold (75th percentile)
+      -- Calculate d.DepartmentName BaseSalary threshold (75th percentile)
   )
 
-ORDER BY DepartmentName, BaseSalary DESC;
+ORDER BY d.DepartmentName, BaseSalary DESC;
 ```
 
 ### Task 3.2: Customer Segment Overlap Analysis
@@ -195,7 +195,7 @@ Identify customers who belong to multiple valuable segments:
 3. Define loyal customers (long relationship duration)
 4. Use INTERSECT to find overlaps between segments
 
-### Task 3.3: Department Capability Analysis
+### Task 3.3: d.DepartmentName Capability Analysis
 Find departments that excel in multiple areas:
 
 **Instructions:**
@@ -254,7 +254,7 @@ CROSS APPLY (
             WHEN team_data.TeamScore < 50 THEN 'Develop team collaboration'
             ELSE 'Continue excellent performance'
         END AS CareerRecommendation,
-        -- Department ranking
+        -- d.DepartmentName ranking
         ROW_NUMBER() OVER (
             PARTITION BY e.DepartmentID 
             ORDER BY (
@@ -304,7 +304,7 @@ Use OUTER APPLY to analyze customer relationships comprehensively:
 3. Identify relationship risks and opportunities
 4. Provide account management recommendations
 
-### Task 4.3: Department Resource Optimization
+### Task 4.3: d.DepartmentName Resource Optimization
 Create department-level analysis using APPLY operations:
 
 **Instructions:**
@@ -328,7 +328,7 @@ Create a comprehensive query that combines multiple set operators:
 4. Use APPLY to calculate dynamic, contextual metrics
 
 **Dashboard Requirements:**
-- Department performance summary with key metrics
+- d.DepartmentName performance summary with key metrics
 - Employee performance distribution and outliers
 - Customer relationship health indicators
 - Project portfolio analysis
@@ -340,8 +340,7 @@ Create a comprehensive query that combines multiple set operators:
 -- Executive Dashboard: Combined Set Operations
 WITH DepartmentMetrics AS (
     -- Use APPLY operations for department-level analysis
-    SELECT 
-        d.DepartmentName,
+    SELECT d.DepartmentName,
         dept_analysis.EmployeeCount,
         dept_analysis.AvgSalary,
         dept_analysis.ProjectCount,
@@ -349,7 +348,7 @@ WITH DepartmentMetrics AS (
         dept_analysis.PerformanceRating
     FROM Departments d
     CROSS APPLY (
-        -- Your comprehensive department analysis here
+        -- Your comprehensive d.DepartmentName analysis here
         -- Include employee metrics, project success, customer satisfaction
     ) dept_analysis
     WHERE d.IsActive = 1
@@ -443,7 +442,7 @@ Build queries that analyze business performance across multiple dimensions simul
 **Requirements:**
 - Time-based trending analysis
 - Geographic performance comparison
-- Department vs role vs performance matrices
+- d.DepartmentName vs role vs performance matrices
 - Customer segment profitability analysis
 
 ### Challenge 3: Exception and Anomaly Detection

@@ -216,7 +216,7 @@ WHERE NOT EXISTS (
 );
 
 -- Complex EXISTS with multiple conditions
-SELECT e.FirstName, e.LastName, e.Title
+SELECT e.FirstName, e.LastName, e.JobTitle
 FROM Employees e
 WHERE EXISTS (
     SELECT 1 
@@ -277,7 +277,7 @@ WHERE EXISTS (
 SELECT 
     e.FirstName,
     e.LastName,
-    e.Title,
+    e.JobTitle,
     e.BaseSalary,
     d.DepartmentName
 FROM Employees e
@@ -290,7 +290,7 @@ WHERE
     AND (
         (d.DepartmentName = 'IT' AND e.BaseSalary >= 70000)
         OR (d.DepartmentName = 'Finance' AND e.BaseSalary >= 65000)
-        OR (d.DepartmentName = 'Sales' AND (e.Title LIKE '%Manager%' OR e.BaseSalary >= 60000))
+        OR (d.DepartmentName = 'Sales' AND (e.JobTitle LIKE '%Manager%' OR e.BaseSalary >= 60000))
         OR (d.DepartmentName NOT IN ('IT', 'Finance', 'Sales') AND e.BaseSalary >= 50000)
     )
     
@@ -298,7 +298,7 @@ WHERE
     AND DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 2
     
     -- Exclude specific conditions
-    AND NOT (e.Title LIKE '%Intern%' OR e.Title LIKE '%Temp%')
+    AND NOT (e.JobTitle LIKE '%Intern%' OR e.JobTitle LIKE '%Temp%')
     
     -- Handle edge cases
     AND e.WorkEmail IS NOT NULL
@@ -340,7 +340,7 @@ SELECT
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE 
-    -- Above average BaseSalary in their department
+    -- Above average BaseSalary in their d.DepartmentName
     e.BaseSalary > (
         SELECT AVG(e2.BaseSalary)
         FROM Employees e2
@@ -351,14 +351,14 @@ WHERE
     -- Has skills in high-demand categories
     AND EXISTS (
         SELECT 1
-        FROM EmployeeSkills es
+        FROM Employees ekills es
         INNER JOIN Skills s ON es.SkillID = s.SkillID
         WHERE es.EmployeeID = e.EmployeeID
           AND s.MarketDemand = 'High'
           AND es.ProficiencyLevel IN ('Advanced', 'Expert')
     )
     
-    -- Not the highest paid in department (leave room for growth)
+    -- Not the highest paid in d.DepartmentName (leave room for growth)
     AND e.BaseSalary < (
         SELECT MAX(e3.BaseSalary)
         FROM Employees e3
@@ -487,7 +487,7 @@ WHERE ISNULL(Phone, '') LIKE '206%';  -- Treat NULL as empty string
 SELECT 
     e.FirstName,
     e.LastName,
-    e.Title,
+    e.JobTitle,
     e.BaseSalary,
     d.DepartmentName
 FROM Employees e
@@ -500,21 +500,21 @@ WHERE
     AND (
         -- IT: Senior level with high skills
         (d.DepartmentName = 'IT' 
-         AND e.Title LIKE '%Senior%' 
+         AND e.JobTitle LIKE '%Senior%' 
          AND EXISTS (
-             SELECT 1 FROM EmployeeSkills es 
+             SELECT 1 FROM Employees ekills es 
              WHERE es.EmployeeID = e.EmployeeID 
              AND es.ProficiencyLevel = 'Expert'
          ))
          
         -- Sales: High performers or managers
         OR (d.DepartmentName = 'Sales' 
-            AND (e.BaseSalary >= 75000 OR e.Title LIKE '%Manager%'))
+            AND (e.BaseSalary >= 75000 OR e.JobTitle LIKE '%Manager%'))
             
         -- Finance: Certified professionals
         OR (d.DepartmentName = 'Finance' 
             AND EXISTS (
-                SELECT 1 FROM EmployeeSkills es
+                SELECT 1 FROM Employees ekills es
                 INNER JOIN Skills s ON es.SkillID = s.SkillID
                 WHERE es.EmployeeID = e.EmployeeID 
                 AND s.SkillCategory = 'Finance'

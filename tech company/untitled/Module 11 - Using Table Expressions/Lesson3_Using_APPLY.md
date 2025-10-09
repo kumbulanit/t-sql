@@ -76,16 +76,15 @@ Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, IsActive
 
 ### 1. Top-N Analysis per Group
 
-#### TechCorp Example: Top Earners by Department
+#### TechCorp Example: Top Earners by d.DepartmentName
 ```sql
--- Find the top 3 highest-paid employees in each department
-SELECT 
-    d.DepartmentName,
+-- Find the top 3 highest-paid employees in each d.DepartmentName
+SELECT d.DepartmentName,
     d.Budget,
     top_earners.FirstName,
     top_earners.LastName,
     top_earners.JobTitle,
-    FORMAT(top_earners.BaseSalary, 'C') AS Salary,
+    FORMAT(top_earners.BaseSalary, 'C') AS BaseSalary,
     top_earners.SalaryRank
 FROM Departments d
 CROSS APPLY (
@@ -96,6 +95,7 @@ CROSS APPLY (
         e.BaseSalary,
         ROW_NUMBER() OVER (ORDER BY e.BaseSalary DESC) AS SalaryRank
     FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.DepartmentID = d.DepartmentID
       AND e.IsActive = 1
     ORDER BY e.BaseSalary DESC
@@ -186,11 +186,10 @@ ORDER BY perf_metrics.PerformanceScore DESC, e.LastName;
 
 ### 3. Dynamic Filtering with OUTER APPLY
 
-#### TechCorp Example: Department Activity Overview
+#### TechCorp Example: d.DepartmentName Activity Overview
 ```sql
 -- Show all departments with their recent activity (if any)
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     d.Budget,
     d.Location,
     ISNULL(activity.RecentProjectCount, 0) AS RecentProjects,
@@ -395,8 +394,7 @@ ORDER BY
 -- CREATE INDEX IX_EmployeeProjects_EmployeeID_Hours ON EmployeeProjects(EmployeeID, HoursWorked DESC, IsActive);
 
 -- Optimized query using proper indexes
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     top_performers.FirstName,
     top_performers.LastName,
     top_performers.BaseSalary
@@ -404,6 +402,7 @@ FROM Departments d
 CROSS APPLY (
     SELECT TOP 2 FirstName, LastName, BaseSalary
     FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.DepartmentID = d.DepartmentID  -- Uses index efficiently
       AND e.IsActive = 1
     ORDER BY e.BaseSalary DESC
@@ -421,16 +420,16 @@ FROM Departments d
 CROSS APPLY (
     SELECT TOP 1 FirstName, LastName, BaseSalary
     FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.DepartmentID = d.DepartmentID AND e.IsActive = 1
     ORDER BY e.BaseSalary DESC
 ) top_emp
 WHERE d.IsActive = 1;
 
 -- ⚠️ Window function alternative (may be less efficient for small Top-N)
-SELECT DepartmentName, FirstName, LastName, BaseSalary
+SELECT d.DepartmentName, FirstName, LastName, BaseSalary
 FROM (
-    SELECT 
-        d.DepartmentName,
+    SELECT d.DepartmentName,
         e.FirstName,
         e.LastName,
         e.BaseSalary,
@@ -442,9 +441,9 @@ FROM (
 WHERE rn = 1;
 
 -- ✅ Correlated subquery alternative (sometimes simpler)
-SELECT 
-    d.DepartmentName,
-    (SELECT TOP 1 e.FirstName FROM Employees e WHERE e.DepartmentID = d.DepartmentID AND e.IsActive = 1 ORDER BY e.BaseSalary DESC) AS FirstName,
+SELECT d.DepartmentName,
+    (SELECT TOP 1 e.FirstName FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE e.DepartmentID = d.DepartmentID AND e.IsActive = 1 ORDER BY e.BaseSalary DESC) AS FirstName,
     (SELECT TOP 1 e.LastName FROM Employees e WHERE e.DepartmentID = d.DepartmentID AND e.IsActive = 1 ORDER BY e.BaseSalary DESC) AS LastName,
     (SELECT TOP 1 e.BaseSalary FROM Employees e WHERE e.DepartmentID = d.DepartmentID AND e.IsActive = 1 ORDER BY e.BaseSalary DESC) AS BaseSalary
 FROM Departments d
@@ -498,8 +497,7 @@ ORDER BY e.LastName, e.FirstName;
 #### Handling NULL and Empty Results
 ```sql
 -- ✅ GOOD: Proper NULL handling with OUTER APPLY
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     ISNULL(emp_stats.EmployeeCount, 0) AS EmployeeCount,
     ISNULL(FORMAT(emp_stats.AvgSalary, 'C'), 'N/A') AS AvgSalary,
     ISNULL(emp_stats.TopEmployee, 'None') AS TopEmployee
@@ -510,6 +508,7 @@ OUTER APPLY (
         AVG(e.BaseSalary) AS AvgSalary,
         MAX(e.FirstName + ' ' + e.LastName) AS TopEmployee
     FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.DepartmentID = d.DepartmentID
       AND e.IsActive = 1
     HAVING COUNT(*) > 0  -- Only return results if employees exist
@@ -576,6 +575,7 @@ CROSS APPLY (
             COUNT(*) AS EmployeeCount,
             SUM(e.BaseSalary) AS TotalSalaryBudget
         FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
         WHERE e.DepartmentID = d.DepartmentID AND e.IsActive = 1
     ) emp_metrics
     CROSS JOIN (
@@ -642,7 +642,8 @@ WHERE c.IsActive = 1;
 SELECT d.DepartmentName, emp.FirstName
 FROM Departments d
 CROSS APPLY (
-    SELECT TOP 1 FirstName FROM Employees e 
+    SELECT TOP 1 FirstName FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.DepartmentID = d.DepartmentID AND e.IsActive = 1
     ORDER BY BaseSalary DESC
 ) emp;  -- This excludes departments with no employees
@@ -651,7 +652,8 @@ CROSS APPLY (
 SELECT d.DepartmentName, ISNULL(emp.FirstName, 'No Employees') AS TopEmployee
 FROM Departments d
 OUTER APPLY (
-    SELECT TOP 1 FirstName FROM Employees e 
+    SELECT TOP 1 FirstName FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.DepartmentID = d.DepartmentID AND e.IsActive = 1
     ORDER BY BaseSalary DESC
 ) emp
@@ -687,13 +689,13 @@ WITH DepartmentTopEmployee AS (
     CROSS APPLY (
         SELECT TOP 1 EmployeeID, FirstName, LastName
         FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
         WHERE e.DepartmentID = d.DepartmentID AND e.IsActive = 1
         ORDER BY BaseSalary DESC
     ) e
     WHERE d.IsActive = 1
 )
-SELECT 
-    dte.DepartmentName,
+SELECT dte.d.DepartmentName,
     dte.FirstName,
     dte.LastName,
     recent_order.OrderDate,

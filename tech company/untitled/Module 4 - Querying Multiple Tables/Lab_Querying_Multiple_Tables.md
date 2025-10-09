@@ -46,7 +46,7 @@ CREATE TABLE Companies (
 -- Departments table (enhanced)
 CREATE TABLE Departments (
     DepartmentID INT PRIMARY KEY IDENTITY(1,1),
-    DepartmentName NVARCHAR(50) NOT NULL,
+    d.DepartmentName NVARCHAR(50) NOT NULL,
     DepartmentCode NVARCHAR(10) NOT NULL,
     Budget DECIMAL(12,2) NOT NULL,
     ManagerID INT NULL,
@@ -274,11 +274,11 @@ INSERT INTO EmployeeSkills (EmployeeID, SkillID, ProficiencyLevel, YearsExperien
 **Question 1.1.1**: Employee-Department Analysis
 Create a comprehensive employee report showing:
 - Employee full name and title
-- Department name and location
+- d.DepartmentName name and location
 - Manager name (if applicable)
 - BaseSalary and hire date
 - Only include active employees
-- Order by department, then by BaseSalary descending
+- ORDER BY d.DepartmentName, then by BaseSalary descending
 
 **Question 1.1.2**: Project Team Composition
 Build a project team report displaying:
@@ -291,21 +291,21 @@ Build a project team report displaying:
 
 **Question 1.1.3**: Skills Inventory Report
 Generate a skills analysis showing:
-- Employee name and department
+- Employee name and d.DepartmentName
 - Skill name and category
 - Proficiency level and years of experience
 - Certification status and last assessment date
 - Market demand for each skill
 - Only include employees with at least one certified skill
 
-**Question 1.1.4**: Financial Performance by Department
-Create a department financial summary with:
-- Department name and budget
+**Question 1.1.4**: Financial Performance by d.DepartmentName
+Create a d.DepartmentName financial summary with:
+- d.DepartmentName name and budget
 - Number of active employees
-- Total department BaseSalary cost
+- Total d.DepartmentName BaseSalary cost
 - Average employee BaseSalary
 - Budget utilization percentage
-- Number of active projects per department
+- Number of active projects per d.DepartmentName
 
 **Question 1.1.5**: Client Project Overview
 Develop a client-focused report showing:
@@ -323,19 +323,19 @@ Develop a client-focused report showing:
 **Question 2.1.1**: Employee Integration Analysis
 Create a report identifying employees who may need attention:
 - All employees (active and inactive)
-- Department assignment status
+- d.DepartmentName assignment status
 - Project assignment status
 - Skills registration status
 - Manager assignment status
 - Identify employees needing intervention (missing assignments)
 
-**Question 2.1.2**: Department Utilization Report
-Build a comprehensive department analysis:
+**Question 2.1.2**: d.DepartmentName Utilization Report
+Build a comprehensive d.DepartmentName analysis:
 - All departments (even those without employees)
 - Employee headcount (including zero)
 - Active project count
 - Total budget vs utilized budget
-- Skills diversity within department
+- Skills diversity within d.DepartmentName
 - Identify underutilized or vacant departments
 
 **Question 2.1.3**: Project Resource Gaps
@@ -370,7 +370,7 @@ Generate an organizational hierarchy report:
 **Question 3.1.1**: Comprehensive Employee Performance Dashboard
 Create an executive dashboard combining:
 - Employee demographics and employment details
-- Department and manager information
+- d.DepartmentName and manager information
 - Project involvement and performance metrics
 - Skills portfolio and market value
 - Performance ratings and career trajectory
@@ -387,7 +387,7 @@ Build a strategic project analysis:
 
 **Question 3.1.3**: Organizational Health and Planning Report
 Develop a comprehensive organizational analysis:
-- Department structure and efficiency
+- d.DepartmentName structure and efficiency
 - Employee satisfaction and retention indicators
 - Skills inventory and future needs
 - Financial performance and budget optimization
@@ -408,7 +408,7 @@ Create a multi-level hierarchy report showing:
 
 **Question 4.1.2**: Employee Comparison and Benchmarking
 Develop peer comparison analysis:
-- Compare employees within same department
+- Compare employees within same d.DepartmentName
 - BaseSalary equity analysis
 - Experience vs compensation alignment
 - Skills portfolio comparisons

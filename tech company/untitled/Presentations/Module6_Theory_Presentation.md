@@ -384,7 +384,7 @@ SELECT
     STUFF(SSN, 4, 0, '-') AS FormattedSSN,
     REVERSE(LastName) AS ReversedName,
     REPLICATE('*', LEN(Password)) AS MaskedPassword
-FROM Employees;
+FROM Employees e;
 ```
 
 ---
@@ -410,7 +410,7 @@ SELECT
     DATEADD(YEAR, 1, HireDate) AS Anniversary,
     DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsEmployed,
     EOMONTH(HireDate) AS EndOfHireMonth
-FROM Employees;
+FROM Employees e;
 ```
 
 ---
@@ -431,7 +431,7 @@ SELECT
     -- Precision considerations
     BaseSalary * 1.05 AS RaisedSalary,
     CAST(BaseSalary * 1.05 AS DECIMAL(10,2)) AS PreciseRaise
-FROM Employees;
+FROM Employees e;
 ```
 
 ---

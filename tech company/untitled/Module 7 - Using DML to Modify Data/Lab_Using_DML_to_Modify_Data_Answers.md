@@ -1,312 +1,116 @@
 # Lab Answers: Using DML to Modify Data
 
-## Exercise 1: Advanced INSERT Operations - TechCorp Solutions
+## Exercise 1: Adding Data to Tables - Answers
 
-### Task 1.1: TechCorp Business Growth - New Client Onboarding - Answers
+### Task 1.1: Basic INSERT Operations - Answers
 
-#### Question 1: Create new business tables and insert comprehensive data
-**Business Scenario:** TechCorp has landed several major new clients and needs to expand their database to track additional business entities.
+#### Question 1: Insert single record with all columns
+**Task:** Insert a new product with all column values specified.
 
 ```sql
--- Answer 1: Complete TechCorp table creation and data insertion
-USE TechCorpDB;
+-- Answer 1: Insert single record with all columns
+USE Northwind;
 GO
 
--- Step 1: Create ClientContacts table for tracking multiple contacts per client company
-CREATE TABLE ClientContacts (
-    ContactID INT PRIMARY KEY IDENTITY(5001,1),
-    CompanyID INT NOT NULL,
-    FirstName NVARCHAR(50) NOT NULL,
-    LastName NVARCHAR(50) NOT NULL,
-    Title NVARCHAR(100) NOT NULL,
-    WorkEmail NVARCHAR(100) NOT NULL,
-    Phone NVARCHAR(20) NULL,
-    IsPrimary BIT NOT NULL DEFAULT 0,
-    IsActive BIT NOT NULL DEFAULT 1,
-    CreatedDate DATETIME2(3) NOT NULL DEFAULT SYSDATETIME(),
-    FOREIGN KEY (CompanyID) REFERENCES Companies(CompanyID)
+-- Insert a new product
+INSERT INTO Products (
+    ProductName, 
+    SupplierID, 
+    CategoryID, 
+    QuantityPerUnit, 
+    BaseSalary, 
+    UnitsInStock, 
+    UnitsOnOrder, 
+    ReorderLevel, 
+    Discontinued
+)
+VALUES (
+    'Gourmet Coffee Blend',
+    1,                          -- Exotic Liquids
+    1,                          -- Beverages
+    '12 - 250g bags',
+    25.99,
+    50,
+    0,
+    10,
+    0                           -- Not discontinued
 );
 
--- Step 2: Create ProjectPhases table for breaking down projects
-CREATE TABLE ProjectPhases (
-    PhaseID INT PRIMARY KEY IDENTITY(4001,1),
-    ProjectID INT NOT NULL,
-    PhaseName NVARCHAR(100) NOT NULL,
-    PhaseDescription NVARCHAR(500) NULL,
-    StartDate DATE NOT NULL,
-    EndDate DATE NULL,
-    PlannedEndDate DATE NOT NULL,
-    Budget DECIMAL(10,2) NOT NULL,
-    Status NVARCHAR(20) NOT NULL DEFAULT 'Planning',
-    CompletionPercentage DECIMAL(5,2) NOT NULL DEFAULT 0.00,
-    FOREIGN KEY (ProjectID) REFERENCES Projects(ProjectID)
-);
-
--- Step 3: Enhanced TimeTracking table (if not exists)
-IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'TimeTracking')
-BEGIN
-    CREATE TABLE TimeTracking (
-        TimeEntryID INT PRIMARY KEY IDENTITY(6001,1),
-        EmployeeID INT NOT NULL,
-        ProjectID INT NOT NULL,
-        WorkDate DATE NOT NULL,
-        HoursWorked DECIMAL(4,2) NOT NULL,
-        Description NVARCHAR(255) NULL,
-        BillableHours DECIMAL(4,2) NOT NULL,
-        CreatedDate DATETIME2(3) NOT NULL DEFAULT SYSDATETIME(),
-        FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID),
-        FOREIGN KEY (ProjectID) REFERENCES Projects(ProjectID)
-    );
-END
-
--- Step 4: Insert client contacts data
-INSERT INTO ClientContacts (CompanyID, FirstName, LastName, Title, WorkEmail, Phone, IsPrimary)
-VALUES 
-    (1, 'Sarah', 'Johnson', 'IT Director', 'sarah.johnson@techcorp.com', '555-0101', 1),
-    (1, 'Michael', 'Chen', 'Senior Developer', 'michael.chen@techcorp.com', '555-0102', 0),
-    (2, 'Lisa', 'Rodriguez', 'Project Manager', 'lisa.rodriguez@globaltech.com', '555-0201', 1),
-    (2, 'David', 'Kim', 'Systems Analyst', 'david.kim@globaltech.com', '555-0202', 0),
-    (3, 'Jennifer', 'Wilson', 'VP of Technology', 'jennifer.wilson@innovativesolutions.com', '555-0301', 1),
-    (4, 'Robert', 'Thompson', 'CTO', 'robert.thompson@digitaldynamics.com', '555-0401', 1),
-    (5, 'Amanda', 'Davis', 'Technical Lead', 'amanda.davis@smartsystems.com', '555-0501', 1);
-
--- Verify client contacts insertion
-SELECT cc.ContactID, c.CompanyName, cc.FirstName, cc.LastName, cc.Title, cc.IsPrimary
-FROM ClientContacts cc
-INNER JOIN Companies c ON cc.CompanyID = c.CompanyID
-ORDER BY cc.CompanyID, cc.IsPrimary DESC;
+-- Verify the insert
+SELECT TOP 1 * 
+FROM Products 
+WHERE ProductName = 'Gourmet Coffee Blend'
+ORDER BY ProductID DESC;
 ```
 
-#### Question 2: Insert project phases with detailed planning
-**Task:** Break down existing projects into manageable phases with proper planning data.
+#### Question 2: Insert with default and NULL values
+**Task:** Insert records using default values and explicit NULLs.
 
 ```sql
--- Answer 2: Insert comprehensive project phases
--- Insert phases for Project 1 (Customer Management System)
-INSERT INTO ProjectPhases (ProjectID, PhaseName, PhaseDescription, StartDate, PlannedEndDate, Budget, Status, CompletionPercentage)
-VALUES 
-    (1, 'Requirements Analysis', 'Gather and document all customer requirements and system specifications', '2024-01-15', '2024-02-28', 25000.00, 'Completed', 100.00),
-    (1, 'System Design', 'Create technical architecture and database design documents', '2024-03-01', '2024-03-31', 35000.00, 'Completed', 100.00),
-    (1, 'Development Phase 1', 'Core customer management functionality development', '2024-04-01', '2024-05-31', 75000.00, 'In Progress', 75.00),
-    (1, 'Development Phase 2', 'Advanced features and integrations development', '2024-06-01', '2024-07-31', 65000.00, 'Planning', 0.00),
-    (1, 'Testing & QA', 'Comprehensive system testing and quality assurance', '2024-08-01', '2024-08-31', 20000.00, 'Planning', 0.00),
-    (1, 'Deployment', 'Production deployment and user training', '2024-09-01', '2024-09-15', 15000.00, 'Planning', 0.00);
-
--- Insert phases for Project 2 (E-commerce Platform)
-INSERT INTO ProjectPhases (ProjectID, PhaseName, PhaseDescription, StartDate, PlannedEndDate, Budget, Status, CompletionPercentage)
-VALUES 
-    (2, 'Market Research', 'Research competitor platforms and identify key features', '2024-02-01', '2024-02-15', 15000.00, 'Completed', 100.00),
-    (2, 'UI/UX Design', 'Design user interface and user experience components', '2024-02-16', '2024-03-31', 40000.00, 'Completed', 100.00),
-    (2, 'Backend Development', 'Develop core e-commerce backend functionality', '2024-04-01', '2024-06-30', 120000.00, 'In Progress', 60.00),
-    (2, 'Frontend Development', 'Implement responsive frontend interface', '2024-05-01', '2024-07-31', 80000.00, 'In Progress', 40.00),
-    (2, 'Payment Integration', 'Integrate multiple payment gateways and security', '2024-07-01', '2024-08-15', 35000.00, 'Planning', 0.00),
-    (2, 'Performance Testing', 'Load testing and performance optimization', '2024-08-16', '2024-09-15', 25000.00, 'Planning', 0.00);
-
--- Verify project phases insertion with project details
-SELECT 
-    p.ProjectName,
-    pp.PhaseName,
-    pp.Status,
-    pp.StartDate,
-    pp.PlannedEndDate,
-    FORMAT(pp.Budget, 'C') as Budget,
-    CONCAT(pp.CompletionPercentage, '%') as Completion
-FROM ProjectPhases pp
-INNER JOIN Projects p ON pp.ProjectID = p.ProjectID
-ORDER BY pp.ProjectID, pp.PhaseID;
-```
-
-#### Question 3: Insert time tracking data with business logic
-**Task:** Record employee time entries with proper business validation.
-
-```sql
--- Answer 3: Insert comprehensive time tracking data
--- Insert time tracking for multiple employees across different projects
-INSERT INTO TimeTracking (EmployeeID, ProjectID, WorkDate, HoursWorked, Description, BillableHours)
-VALUES 
-    -- Employee 1 (John Smith - CEO) - Strategic oversight
-    (1, 1, '2024-10-01', 2.0, 'Project kickoff meeting and strategic planning', 2.0),
-    (1, 2, '2024-10-01', 1.5, 'E-commerce platform requirements review', 1.5),
-    
-    -- Employee 2 (Jane Doe - CTO) - Technical leadership
-    (2, 1, '2024-10-01', 6.0, 'Technical architecture design and team coordination', 6.0),
-    (2, 2, '2024-10-01', 4.0, 'Backend architecture planning for e-commerce platform', 4.0),
-    (2, 1, '2024-10-02', 7.0, 'Code review and development methodology setup', 7.0),
-    
-    -- Employee 3 (Mike Johnson - Senior Developer) - Core development
-    (3, 1, '2024-10-01', 8.0, 'Customer management module development', 8.0),
-    (3, 1, '2024-10-02', 8.0, 'Database integration and API development', 8.0),
-    (3, 1, '2024-10-03', 6.0, 'Unit testing and bug fixes', 6.0),
-    
-    -- Employee 4 (Sarah Wilson - Project Manager) - Project coordination
-    (4, 1, '2024-10-01', 4.0, 'Sprint planning and team coordination', 4.0),
-    (4, 2, '2024-10-01', 4.0, 'E-commerce project milestone tracking', 4.0),
-    (4, 1, '2024-10-02', 5.0, 'Client communication and progress reporting', 5.0),
-    
-    -- Employee 5 (David Brown - Developer) - Feature development
-    (5, 2, '2024-10-01', 8.0, 'E-commerce frontend component development', 7.5),
-    (5, 2, '2024-10-02', 8.0, 'Shopping cart functionality implementation', 8.0),
-    (5, 2, '2024-10-03', 7.0, 'Payment integration testing', 6.5);
-
--- Verify time tracking with employee and project details
-SELECT 
-    e.FirstName + ' ' + e.LastName as EmployeeName,
-    e.JobTitle,
-    p.ProjectName,
-    tt.WorkDate,
-    tt.HoursWorked,
-    tt.BillableHours,
-    tt.Description
-FROM TimeTracking tt
-INNER JOIN Employees e ON tt.EmployeeID = e.EmployeeID
-INNER JOIN Projects p ON tt.ProjectID = p.ProjectID
-ORDER BY tt.WorkDate, e.LastName;
-
--- Summary report by employee
-SELECT 
-    e.FirstName + ' ' + e.LastName as EmployeeName,
-    COUNT(*) as TotalEntries,
-    SUM(tt.HoursWorked) as TotalHours,
-    SUM(tt.BillableHours) as TotalBillableHours,
-    AVG(tt.HoursWorked) as AvgHoursPerDay
-FROM TimeTracking tt
-INNER JOIN Employees e ON tt.EmployeeID = e.EmployeeID
-GROUP BY e.EmployeeID, e.FirstName, e.LastName
-ORDER BY TotalHours DESC;
-```
-
-### Task 1.2: INSERT with SELECT and Advanced Techniques - Answers
-
-#### Question 1: Copy and transform data between tables
-**Task:** Create reporting tables and populate them with transformed data from existing tables.
-
-```sql
--- Answer 1: Create reporting tables and copy transformed data
-
--- Create monthly employee performance summary table
-CREATE TABLE EmployeePerformanceSummary (
-    SummaryID INT IDENTITY(1,1) PRIMARY KEY,
-    EmployeeID INT NOT NULL,
-    EmployeeName NVARCHAR(101),
-    Department NVARCHAR(100),
-    MonthYear NVARCHAR(7),
-    TotalHoursWorked DECIMAL(10,2),
-    TotalBillableHours DECIMAL(10,2),
-    ProjectCount INT,
-    BillingEfficiency DECIMAL(5,2),
+-- Answer 2: Insert with default and NULL values
+-- First, let's create a test table to demonstrate defaults
+CREATE TABLE TestProducts (
+    ProductID INT IDENTITY(1,1) PRIMARY KEY,
+    ProductName NVARCHAR(40) NOT NULL,
+    BaseSalary MONEY DEFAULT 0.00,
+    UnitsInStock SMALLINT DEFAULT 0,
     CreatedDate DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID)
+    Description NVARCHAR(255) NULL
 );
 
--- Insert performance data using SELECT with aggregations and transformations
-INSERT INTO EmployeePerformanceSummary (
-    EmployeeID, 
-    EmployeeName, 
-    Department, 
-    MonthYear, 
-    TotalHoursWorked, 
-    TotalBillableHours, 
-    ProjectCount, 
-    BillingEfficiency
-)
-SELECT 
-    e.EmployeeID,
-    e.FirstName + ' ' + e.LastName as EmployeeName,
-    d.DepartmentName,
-    FORMAT(tt.WorkDate, 'yyyy-MM') as MonthYear,
-    SUM(tt.HoursWorked) as TotalHoursWorked,
-    SUM(tt.BillableHours) as TotalBillableHours,
-    COUNT(DISTINCT tt.ProjectID) as ProjectCount,
-    CASE 
-        WHEN SUM(tt.HoursWorked) > 0 
-        THEN ROUND((SUM(tt.BillableHours) / SUM(tt.HoursWorked)) * 100, 2)
-        ELSE 0
-    END as BillingEfficiency
-FROM TimeTracking tt
-INNER JOIN Employees e ON tt.EmployeeID = e.EmployeeID
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE e.IsActive = 1
-GROUP BY 
-    e.EmployeeID, 
-    e.FirstName, 
-    e.LastName, 
-    d.DepartmentName, 
-    FORMAT(tt.WorkDate, 'yyyy-MM');
+-- Insert using defaults and NULL
+INSERT INTO TestProducts (ProductName, BaseSalary, Description)
+VALUES 
+    ('Basic Product', 10.50, 'This is a basic product'),
+    ('Free Sample', DEFAULT, NULL),  -- Use default price, NULL description
+    ('Premium Product', 99.99, 'Premium quality item');
 
--- Verify the performance summary data
-SELECT 
-    EmployeeName,
-    Department,
-    MonthYear,
-    TotalHoursWorked,
-    TotalBillableHours,
-    ProjectCount,
-    CONCAT(BillingEfficiency, '%') as BillingEfficiency
-FROM EmployeePerformanceSummary
-ORDER BY MonthYear DESC, BillingEfficiency DESC;
+-- Insert using column list (defaults will be used for omitted columns)
+INSERT INTO TestProducts (ProductName)
+VALUES ('Minimal Product');
+
+-- Verify the inserts
+SELECT * FROM TestProducts;
+
+-- Clean up
+DROP TABLE TestProducts;
 ```
 
-#### Question 2: Insert multiple projects with bulk operations
-**Task:** TechCorp needs to quickly onboard multiple new projects from different clients.
+#### Question 3: Multiple record insert
+**Task:** Insert multiple records in a single statement.
 
 ```sql
--- Answer 2: Bulk insert multiple projects with business logic
--- First, add some new companies if they don't exist
-INSERT INTO Companies (CompanyName, ContactFirstName, ContactLastName, Industry, Country, IsActive)
+-- Answer 3: Multiple record insert
+-- Insert multiple categories (example data)
+INSERT INTO Categories (CategoryName, Description)
 VALUES 
-    ('Digital Innovations Corp', 'Mark', 'Stevens', 'Technology', 'United States', 1),
-    ('Future Systems Ltd', 'Emma', 'Thompson', 'Software', 'Canada', 1),
-    ('NextGen Solutions', 'Carlos', 'Martinez', 'Consulting', 'Mexico', 1);
+    ('Health Foods', 'Organic and health-conscious food products'),
+    ('Frozen Foods', 'Frozen meals and convenience foods'),
+    ('Pet Supplies', 'Food and accessories for pets');
 
--- Insert multiple new projects in a single statement
-INSERT INTO Projects (
-    ProjectName, 
-    ProjectDescription,
-    CompanyID,
-    StartDate,
-    EndDate,
-    Budget,
-    IsActive
+-- Insert multiple related products
+INSERT INTO Products (
+    ProductName, 
+    SupplierID, 
+    CategoryID, 
+    QuantityPerUnit, 
+    BaseSalary, 
+    UnitsInStock, 
+    UnitsOnOrder, 
+    ReorderLevel, 
+    Discontinued
 )
 VALUES 
-    ('Mobile App Development', 
-     'Cross-platform mobile application for inventory management', 
-     (SELECT CompanyID FROM Companies WHERE CompanyName = 'Digital Innovations Corp'), 
-     '2024-11-01', '2025-02-28', 180000.00, 1),
-     
-    ('Cloud Migration Project', 
-     'Complete migration of legacy systems to AWS cloud infrastructure', 
-     (SELECT CompanyID FROM Companies WHERE CompanyName = 'Future Systems Ltd'), 
-     '2024-11-15', '2025-04-30', 250000.00, 1),
-     
-    ('Data Analytics Platform', 
-     'Implementation of real-time business intelligence and reporting system', 
-     (SELECT CompanyID FROM Companies WHERE CompanyName = 'NextGen Solutions'), 
-     '2024-12-01', '2025-05-31', 320000.00, 1),
-     
-    ('Security Audit & Enhancement', 
-     'Comprehensive security assessment and implementation of security measures', 
-     (SELECT CompanyID FROM Companies WHERE CompanyName = 'Digital Innovations Corp'), 
-     '2024-11-20', '2025-01-31', 75000.00, 1),
-     
-    ('API Integration Hub', 
-     'Development of centralized API gateway for third-party integrations', 
-     (SELECT CompanyID FROM Companies WHERE CompanyName = 'Future Systems Ltd'), 
-     '2025-01-15', '2025-06-30', 145000.00, 1);
+    ('Organic Quinoa', 7, (SELECT CategoryID FROM Categories WHERE CategoryName = 'Health Foods'), '500g bag', 12.99, 25, 0, 5, 0),
+    ('Frozen Pizza Supreme', 5, (SELECT CategoryID FROM Categories WHERE CategoryName = 'Frozen Foods'), '1 pizza', 8.99, 40, 10, 8, 0),
+    ('Premium Dog Food', 3, (SELECT CategoryID FROM Categories WHERE CategoryName = 'Pet Supplies'), '5kg bag', 29.99, 15, 5, 3, 0);
 
--- Verify the project insertions with company details
-SELECT 
-    p.ProjectName,
-    c.CompanyName,
-    c.ContactFirstName + ' ' + c.ContactLastName as ClientContact,
-    p.StartDate,
-    p.EndDate,
-    FORMAT(p.Budget, 'C') as ProjectBudget,
-    DATEDIFF(DAY, p.StartDate, p.EndDate) as ProjectDurationDays
-FROM Projects p
-INNER JOIN Companies c ON p.CompanyID = c.CompanyID
-WHERE p.ProjectID > (SELECT MAX(ProjectID) - 5 FROM Projects)
-ORDER BY p.StartDate;
+-- Verify the inserts
+SELECT p.ProductName, c.CategoryName, p.BaseSalary
+FROM Products p
+INNER JOIN Categories c ON p.CategoryID = c.CategoryID
+WHERE c.CategoryName IN ('Health Foods', 'Frozen Foods', 'Pet Supplies');
+```
 
 ### Task 1.2: INSERT with SELECT Statements - Answers
 
@@ -320,8 +124,8 @@ CREATE TABLE DiscontinuedProducts (
     ProductID INT,
     ProductName NVARCHAR(40),
     CategoryName NVARCHAR(15),
-    UnitPrice MONEY,
-    StockQuantity INT,
+    BaseSalary MONEY,
+    UnitsInStock SMALLINT,
     ArchiveDate DATETIME DEFAULT GETDATE()
 );
 
@@ -330,17 +134,18 @@ INSERT INTO DiscontinuedProducts (
     ProductID, 
     ProductName, 
     CategoryName, 
-    UnitPrice, 
-    StockQuantity
+    BaseSalary, 
+    UnitsInStock
 )
 SELECT 
     p.ProductID,
     p.ProductName,
-    p.ProductCategory,
-    p.UnitPrice,
-    p.StockQuantity
+    c.CategoryName,
+    p.BaseSalary,
+    p.UnitsInStock
 FROM Products p
-WHERE p.IsActive = 0;
+INNER JOIN Categories c ON p.CategoryID = c.CategoryID
+WHERE p.Discontinued = 1;
 
 -- Verify the copy
 SELECT * FROM DiscontinuedProducts;
@@ -348,9 +153,9 @@ SELECT * FROM DiscontinuedProducts;
 -- Show count comparison
 SELECT 
     'Original Table' as Source,
-    COUNT(*) as InactiveCount
+    COUNT(*) as DiscontinuedCount
 FROM Products 
-WHERE IsActive = 0
+WHERE Discontinued = 1
 UNION ALL
 SELECT 
     'Backup Table',
@@ -388,8 +193,8 @@ SELECT
     c.CategoryID,
     c.CategoryName,
     COUNT(p.ProductID) as ProductCount,
-    AVG(p.UnitPrice) as AveragePrice,
-    SUM(p.UnitPrice * p.StockQuantity) as TotalInventoryValue
+    AVG(p.BaseSalary) as AveragePrice,
+    SUM(p.BaseSalary * p.UnitsInStock) as TotalInventoryValue
 FROM Categories c
 LEFT JOIN Products p ON c.CategoryID = p.CategoryID
 WHERE p.Discontinued = 0 OR p.Discontinued IS NULL
@@ -519,107 +324,80 @@ WHERE c.CustomerID IS NULL
 DROP TABLE StagingCustomers;
 ```
 
-## Exercise 2: Modifying Data with UPDATE Operations - Answers
+## Exercise 2: Modifying and Removing Data - Answers
 
-### Task 2.1: Strategic Employee Updates at TechCorp - Answers
+### Task 2.1: Basic UPDATE Operations - Answers
 
-#### Question 1: Update single employee with performance-based changes
-**Business Scenario:** TechCorp needs to update employee information based on recent performance reviews and promotions.
+#### Question 1: Update single record
+**Task:** Update a specific product's price and stock level.
 
 ```sql
--- Answer 1: Update single employee with comprehensive changes
--- First, let's see the current employee status
-SELECT 
-    e.EmployeeID, 
-    e.FirstName + ' ' + e.LastName as FullName,
-    e.JobTitle,
-    COALESCE(SUM(ep.HoursWorked), 0) as TotalHoursWorked,
-    COALESCE(SUM(ep.HoursAllocated), 0) as TotalHoursAllocated,
-    e.IsActive
-FROM Employees e
-LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID AND ep.IsActive = 1
-WHERE e.EmployeeID = 3
-GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.IsActive;
+-- Answer 1: Update single record
+-- First, let's see the current values
+SELECT ProductID, ProductName, BaseSalary, UnitsInStock
+FROM Products
+WHERE ProductName = 'Gourmet Coffee Blend';
 
--- Update Mike Johnson's record after his promotion to Senior Developer
-UPDATE Employees
+-- Update specific product
+UPDATE Products
 SET 
-    JobTitle = 'Senior Software Developer',
-    ModifiedDate = SYSDATETIME(),
-    ModifiedBy = 'HR_System'
-WHERE EmployeeID = 3 AND FirstName = 'Mike' AND LastName = 'Johnson';
+    BaseSalary = 27.99,
+    UnitsInStock = 75,
+    ReorderLevel = 15
+WHERE ProductName = 'Gourmet Coffee Blend';
 
--- Also update his project allocation and hours worked
-UPDATE EmployeeProjects
-SET 
-    HoursWorked = ISNULL(HoursWorked, 0) + 160,  -- Add current month hours
-    HoursAllocated = ISNULL(HoursAllocated, 0) + 180,  -- Update allocation
-    Role = 'Senior Software Developer'
-WHERE EmployeeID = 3 AND IsActive = 1;
-
--- Verify the update with calculated fields
+-- Verify the update
 SELECT 
-    e.EmployeeID,
-    e.FirstName + ' ' + e.LastName as FullName,
-    e.JobTitle,
-    COALESCE(SUM(ep.HoursWorked), 0) as TotalHoursWorked,
-    COALESCE(SUM(ep.HoursAllocated), 0) as TotalHoursAllocated,
-    CASE 
-        WHEN COALESCE(SUM(ep.HoursAllocated), 0) > 0 
-        THEN CONCAT(ROUND((COALESCE(SUM(ep.HoursWorked), 0) * 100.0 / COALESCE(SUM(ep.HoursAllocated), 1)), 1), '%')
-        ELSE 'N/A'
-    END as Utilization,
-    'Updated: ' + FORMAT(SYSDATETIME(), 'yyyy-MM-dd HH:mm:ss') as UpdateInfo
-FROM Employees e
-LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID AND ep.IsActive = 1
-WHERE e.EmployeeID = 3
-GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle;
-
--- Create audit trail of the promotion
-INSERT INTO PerformanceMetrics (EmployeeID, MetricName, MetricValue, MeasurementDate, Comments)
-VALUES (3, 'Promotion Update', 1, GETDATE(), 'Promoted to Senior Software Developer');
+    ProductID, 
+    ProductName, 
+    BaseSalary, 
+    UnitsInStock, 
+    ReorderLevel,
+    'Updated: ' + FORMAT(GETDATE(), 'yyyy-MM-dd HH:mm:ss') as UpdateInfo
+FROM Products
+WHERE ProductName = 'Gourmet Coffee Blend';
 
 -- Show the number of rows affected
-PRINT 'Employee promotion updated successfully. Rows affected: ' + CAST(@@ROWCOUNT AS VARCHAR(10));
+PRINT 'Rows affected: ' + CAST(@@ROWCOUNT AS VARCHAR(10));
 ```
 
-#### Question 2: Bulk update multiple employees with conditional logic
-**Business Scenario:** TechCorp needs to update employee hours and status based on department performance metrics.
+#### Question 2: Update multiple records with conditions
+**Task:** Apply price increases to products in specific categories.
 
 ```sql
--- Answer 2: Update multiple employees with complex conditions
--- First, let's see current status of Software Development team
+-- Answer 2: Update multiple records with conditions
+-- First, let's see current prices for beverages
 SELECT 
-    e.FirstName + ' ' + e.LastName as EmployeeName,
-    e.JobTitle,
-    d.DepartmentName,
-    ISNULL(e.HoursWorked, 0) as CurrentHoursWorked,
-    ISNULL(e.HoursAllocated, 0) as CurrentHoursAllocated
-FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE d.DepartmentName = 'Software Development' 
-  AND e.JobTitle LIKE '%Developer%'
+    p.ProductName,
+    c.CategoryName,
+    p.BaseSalary as CurrentPrice,
+    p.BaseSalary * 1.10 as NewPrice
+FROM Products p
+INNER JOIN Categories c ON p.CategoryID = c.CategoryID
+WHERE c.CategoryName = 'Beverages'
   AND p.Discontinued = 0;
 
 -- Apply 10% price increase to all active beverages
 UPDATE p
-SET UnitPrice = p.UnitPrice * 1.10
+SET BaseSalary = p.BaseSalary * 1.10
 FROM Products p
-WHERE p.ProductCategory = 'Beverages'
-  AND p.IsActive = 1;
+INNER JOIN Categories c ON p.CategoryID = c.CategoryID
+WHERE c.CategoryName = 'Beverages'
+  AND p.Discontinued = 0;
 
 PRINT 'Updated ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' beverage products with 10% price increase';
 
 -- Verify the updates
 SELECT 
     p.ProductName,
-    p.ProductCategory,
-    p.UnitPrice as UpdatedPrice,
-    FORMAT(p.UnitPrice / 1.10, 'N2') as OriginalPrice
+    c.CategoryName,
+    p.BaseSalary as UpdatedPrice,
+    FORMAT(p.BaseSalary / 1.10, 'N2') as OriginalPrice
 FROM Products p
-WHERE p.ProductCategory = 'Beverages'
-  AND p.IsActive = 1
-ORDER BY p.UnitPrice DESC;
+INNER JOIN Categories c ON p.CategoryID = c.CategoryID
+WHERE c.CategoryName = 'Beverages'
+  AND p.Discontinued = 0
+ORDER BY p.BaseSalary DESC;
 ```
 
 #### Question 3: Update with calculated values
@@ -695,23 +473,22 @@ GROUP BY p.ProductID, p.ProductName, p.Discontinued
 HAVING COUNT(od.OrderID) = 0;
 
 -- Count before deletion
-DECLARE @BeforeCount INT = (SELECT COUNT(*) FROM Products WHERE IsActive = 0);
+DECLARE @BeforeCount INT = (SELECT COUNT(*) FROM Products WHERE Discontinued = 1);
 
--- Delete inactive products with no order history
+-- Delete discontinued products with no sales history
 DELETE p
 FROM Products p
-WHERE p.IsActive = 0
-  AND p.ProductID NOT IN (
-      SELECT DISTINCT od.ProductID 
-      FROM OrderDetails od 
-      WHERE od.ProductID IS NOT NULL
-  );
+LEFT JOIN [Order Details] od ON p.ProductID = od.ProductID
+WHERE p.Discontinued = 1
+GROUP BY p.ProductID, p.ProductName, p.BaseSalary, p.SupplierID, p.CategoryID, 
+         p.QuantityPerUnit, p.UnitsInStock, p.UnitsOnOrder, p.ReorderLevel, p.Discontinued
+HAVING COUNT(od.OrderID) = 0;
 
 -- Count after deletion
-DECLARE @AfterCount INT = (SELECT COUNT(*) FROM Products WHERE IsActive = 0);
+DECLARE @AfterCount INT = (SELECT COUNT(*) FROM Products WHERE Discontinued = 1);
 
-PRINT 'Deleted ' + CAST(@BeforeCount - @AfterCount AS VARCHAR(10)) + ' inactive products with no order history';
-PRINT 'Remaining inactive products: ' + CAST(@AfterCount AS VARCHAR(10));
+PRINT 'Deleted ' + CAST(@BeforeCount - @AfterCount AS VARCHAR(10)) + ' discontinued products with no sales history';
+PRINT 'Remaining discontinued products: ' + CAST(@AfterCount AS VARCHAR(10));
 ```
 
 #### Question 2: Conditional DELETE with subquery
@@ -768,26 +545,26 @@ PRINT 'Backup created in CustomerBackup table with ' + CAST((SELECT COUNT(*) FRO
 -- Create a staging table for product updates
 CREATE TABLE ProductUpdates (
     ProductID INT,
-    ProductName NVARCHAR(200),
-    UnitPrice MONEY,
-    StockQuantity INT,
+    ProductName NVARCHAR(40),
+    BaseSalary MONEY,
+    UnitsInStock SMALLINT,
     Action NVARCHAR(10)
 );
 
 -- Insert sample update data
-INSERT INTO ProductUpdates (ProductID, ProductName, UnitPrice, StockQuantity)
+INSERT INTO ProductUpdates (ProductID, ProductName, BaseSalary, UnitsInStock)
 VALUES 
-    (6001, 'Premium Software License - Updated', 25.00, 50),      -- Update existing
-    (999999, 'New Cloud Service Package', 22.00, 30),             -- Insert new
-    (6002, 'Database Management Tool - Enhanced', 28.00, 45);     -- Update existing
+    (1, 'Chai - Premium Blend', 25.00, 50),      -- Update existing
+    (999, 'New Exotic Tea', 22.00, 30),          -- Insert new
+    (2, 'Chang - Updated Formula', 28.00, 45);   -- Update existing
 
 -- Implement MERGE-like logic using separate operations
 -- Step 1: Update existing products
 UPDATE p
 SET 
     p.ProductName = pu.ProductName,
-    p.UnitPrice = pu.UnitPrice,
-    p.StockQuantity = pu.StockQuantity
+    p.BaseSalary = pu.BaseSalary,
+    p.UnitsInStock = pu.UnitsInStock
 FROM Products p
 INNER JOIN ProductUpdates pu ON p.ProductID = pu.ProductID;
 
@@ -797,14 +574,17 @@ SET Action = 'UPDATED'
 WHERE ProductID IN (SELECT ProductID FROM Products);
 
 -- Step 2: Insert new products
-INSERT INTO Products (CompanyID, ProductName, ProductCode, ProductCategory, UnitPrice, StockQuantity)
+INSERT INTO Products (ProductName, SupplierID, CategoryID, QuantityPerUnit, BaseSalary, UnitsInStock, UnitsOnOrder, ReorderLevel, Discontinued)
 SELECT 
-    1,  -- Default company
     pu.ProductName,
-    'PROD' + CAST(pu.ProductID AS VARCHAR(10)),
-    'Software',
-    pu.UnitPrice,
-    pu.StockQuantity
+    1,  -- Default supplier
+    1,  -- Default category
+    '1 unit',
+    pu.BaseSalary,
+    pu.UnitsInStock,
+    0,
+    10,
+    0
 FROM ProductUpdates pu
 WHERE pu.ProductID NOT IN (SELECT ProductID FROM Products WHERE ProductID IS NOT NULL);
 
@@ -827,8 +607,8 @@ SELECT
     pu.Action,
     p.ProductID as ActualProductID,
     p.ProductName as ActualName,
-    p.UnitPrice,
-    p.StockQuantity
+    p.BaseSalary,
+    p.UnitsInStock
 FROM ProductUpdates pu
 LEFT JOIN Products p ON pu.ProductName = p.ProductName
 ORDER BY pu.Action, pu.ProductID;
@@ -854,12 +634,12 @@ BEGIN TRY
     DECLARE @Quantity2 INT = 5;
     
     -- Check if we have enough inventory
-    IF (SELECT StockQuantity FROM Products WHERE ProductID = @ProductID1) < @Quantity1
+    IF (SELECT UnitsInStock FROM Products WHERE ProductID = @ProductID1) < @Quantity1
     BEGIN
         RAISERROR('Insufficient inventory for Product ID %d', 16, 1, @ProductID1);
     END
     
-    IF (SELECT StockQuantity FROM Products WHERE ProductID = @ProductID2) < @Quantity2
+    IF (SELECT UnitsInStock FROM Products WHERE ProductID = @ProductID2) < @Quantity2
     BEGIN
         RAISERROR('Insufficient inventory for Product ID %d', 16, 1, @ProductID2);
     END
@@ -871,21 +651,21 @@ BEGIN TRY
     SET @OrderID = SCOPE_IDENTITY();
     
     -- Add order details
-    INSERT INTO OrderDetails (OrderID, ProductID, UnitPrice, Quantity, Discount)
-    SELECT @OrderID, @ProductID1, UnitPrice, @Quantity1, 0.0
+    INSERT INTO [Order Details] (OrderID, ProductID, BaseSalary, Quantity, Discount)
+    SELECT @OrderID, @ProductID1, BaseSalary, @Quantity1, 0.0
     FROM Products WHERE ProductID = @ProductID1;
     
-    INSERT INTO OrderDetails (OrderID, ProductID, UnitPrice, Quantity, Discount)
-    SELECT @OrderID, @ProductID2, UnitPrice, @Quantity2, 0.05  -- 5% discount
+    INSERT INTO [Order Details] (OrderID, ProductID, BaseSalary, Quantity, Discount)
+    SELECT @OrderID, @ProductID2, BaseSalary, @Quantity2, 0.05  -- 5% discount
     FROM Products WHERE ProductID = @ProductID2;
     
     -- Update inventory
     UPDATE Products
-    SET StockQuantity = StockQuantity - @Quantity1
+    SET UnitsInStock = UnitsInStock - @Quantity1
     WHERE ProductID = @ProductID1;
     
     UPDATE Products
-    SET StockQuantity = StockQuantity - @Quantity2
+    SET UnitsInStock = UnitsInStock - @Quantity2
     WHERE ProductID = @ProductID2;
     
     -- Log the transaction
@@ -900,11 +680,11 @@ BEGIN TRY
         od.ProductID,
         p.ProductName,
         od.Quantity,
-        od.UnitPrice,
-        od.LineTotal,
-        p.StockQuantity as RemainingStock
+        od.BaseSalary,
+        od.Quantity * od.BaseSalary * (1 - od.Discount) as LineTotal,
+        p.UnitsInStock as RemainingStock
     FROM Orders o
-    INNER JOIN OrderDetails od ON o.OrderID = od.OrderID
+    INNER JOIN [Order Details] od ON o.OrderID = od.OrderID
     INNER JOIN Products p ON od.ProductID = p.ProductID
     WHERE o.OrderID = @OrderID;
     
@@ -1123,20 +903,20 @@ CREATE TABLE OrderDetails (
     DetailID INT IDENTITY(1, 1) PRIMARY KEY,
     OrderID INT NOT NULL,
     ProductID INT NOT NULL,
-    UnitPrice MONEY NOT NULL,
+    BaseSalary MONEY NOT NULL,
     Quantity INT NOT NULL,
     Discount REAL DEFAULT 0.0,
     -- Non-persisted computed columns
-    LineTotal AS (UnitPrice * Quantity * (1 - Discount)),
-    DiscountAmount AS (UnitPrice * Quantity * Discount),
+    LineTotal AS (BaseSalary * Quantity * (1 - Discount)),
+    DiscountAmount AS (BaseSalary * Quantity * Discount),
     -- Persisted computed column (stored physically)
-    LineTotalPersisted AS (UnitPrice * Quantity * (1 - Discount)) PERSISTED,
+    LineTotalPersisted AS (BaseSalary * Quantity * (1 - Discount)) PERSISTED,
     -- Complex computed column
     PriceCategory AS (
         CASE 
-            WHEN UnitPrice < 10 THEN 'Budget'
-            WHEN UnitPrice < 50 THEN 'Standard'
-            WHEN UnitPrice < 100 THEN 'Premium'
+            WHEN BaseSalary < 10 THEN 'Budget'
+            WHEN BaseSalary < 50 THEN 'Standard'
+            WHEN BaseSalary < 100 THEN 'Premium'
             ELSE 'Luxury'
         END
     ),
@@ -1146,7 +926,7 @@ CREATE TABLE OrderDetails (
 );
 
 -- Insert test data
-INSERT INTO OrderDetails (OrderID, ProductID, UnitPrice, Quantity, Discount)
+INSERT INTO OrderDetails (OrderID, ProductID, BaseSalary, Quantity, Discount)
 VALUES 
     (1, 1, 15.50, 10, 0.0),
     (1, 2, 25.00, 5, 0.05),

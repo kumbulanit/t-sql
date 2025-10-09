@@ -8,7 +8,7 @@ Database transactions are fundamental units of work that ensure data integrity a
 
 **Transaction Management in Enterprise Operations:**
 
-- **Financial Operations**: Salary processing and payroll transactions requiring atomicity
+- **Financial Operations**: BaseSalary processing and payroll transactions requiring atomicity
 - **Order Processing**: Customer order management with inventory updates and payment processing
 - **Employee Management**: Complex HR operations involving multiple table updates
 - **Project Management**: Resource allocation and budget management across departments
@@ -56,10 +56,10 @@ A transaction is a logical unit of work that consists of one or more database op
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### TechCorp Example: Employee Salary Update Transaction
+### TechCorp Example: Employee BaseSalary Update Transaction
 
 ```sql
--- Example: Updating employee salary with department budget adjustment
+-- Example: Updating employee BaseSalary with d.DepartmentName budget adjustment
 -- This demonstrates a complete transaction that maintains data consistency
 
 BEGIN TRANSACTION EmpSalaryUpdate;
@@ -81,21 +81,21 @@ WHERE EmployeeID = @EmployeeID;
 -- Calculate budget impact
 SET @SalaryDifference = @NewSalary - @OldSalary;
 
--- Get current department budget
+-- Get current d.DepartmentName budget
 SELECT @CurrentBudget = Budget 
 FROM Departments 
 WHERE DepartmentID = @DepartmentID;
 
--- Check if department has sufficient budget
+-- Check if d.DepartmentName has sufficient budget
 IF @CurrentBudget >= @SalaryDifference
 BEGIN
-    -- Update employee salary
+    -- Update employee BaseSalary
     UPDATE Employees 
     SET BaseSalary = @NewSalary,
         ModifiedDate = GETDATE()
     WHERE EmployeeID = @EmployeeID;
     
-    -- Adjust department budget
+    -- Adjust d.DepartmentName budget
     UPDATE Departments 
     SET Budget = Budget - @SalaryDifference,
         ModifiedDate = GETDATE()
@@ -106,12 +106,12 @@ BEGIN
     VALUES ('SALARY_UPDATE', @EmployeeID, @OldSalary, @NewSalary, GETDATE());
     
     COMMIT TRANSACTION EmpSalaryUpdate;
-    PRINT 'Salary update completed successfully';
+    PRINT 'BaseSalary update completed successfully';
 END
 ELSE
 BEGIN
     ROLLBACK TRANSACTION EmpSalaryUpdate;
-    PRINT 'Insufficient department budget for salary increase';
+    PRINT 'Insufficient d.DepartmentName budget for BaseSalary increase';
 END;
 ```
 
@@ -239,15 +239,15 @@ END;
 **Definition**: Concurrent transactions should not interfere with each other's operations.
 
 ```sql
--- TechCorp Example: Concurrent Salary Processing
+-- TechCorp Example: Concurrent BaseSalary Processing
 -- Demonstrates isolation levels to prevent conflicts
 
--- Session 1: Processing salary increases
+-- Session 1: Processing BaseSalary increases
 SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
 
 BEGIN TRANSACTION SalaryIncrease;
 
--- Read current salary (with shared lock)
+-- Read current BaseSalary (with shared lock)
 DECLARE @CurrentSalary DECIMAL(10,2);
 SELECT @CurrentSalary = BaseSalary 
 FROM Employees 
@@ -256,7 +256,7 @@ WHERE EmployeeID = 3001;
 -- Simulate processing time
 WAITFOR DELAY '00:00:05';
 
--- Update salary (with exclusive lock)
+-- Update BaseSalary (with exclusive lock)
 UPDATE Employees 
 SET BaseSalary = @CurrentSalary * 1.10,  -- 10% increase
     ModifiedDate = GETDATE()
@@ -266,7 +266,7 @@ COMMIT TRANSACTION SalaryIncrease;
 ```
 
 ```sql
--- Session 2: Reading salary information (concurrent operation)
+-- Session 2: Reading BaseSalary information (concurrent operation)
 SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
 
 -- This will wait for Session 1 to complete due to isolation
@@ -407,7 +407,7 @@ SQL Server uses locks to ensure transaction isolation and prevent data corruptio
 
 ```sql
 -- TechCorp Example: Lock Monitoring During Busy Operations
--- Monitor locks during employee salary processing
+-- Monitor locks during employee BaseSalary processing
 
 -- Query to view current locks
 SELECT 

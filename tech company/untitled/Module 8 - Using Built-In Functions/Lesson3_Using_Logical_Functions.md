@@ -448,8 +448,7 @@ ORDER BY e.BaseSalary DESC;
 -- Lab 8.3.5: IIF in Aggregations - Business Metrics
 -- Business scenario: Quick conditional aggregations for dashboards
 
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     COUNT(*) AS TotalEmployees,
     
     -- Count employees by BaseSalary level using IIF

@@ -36,7 +36,7 @@ Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, WorkEmai
 │                                                                             │
 │  Source Data (Normalized):           PIVOT Result (Cross-tabulated):       │
 │  ┌─────────────────────────┐        ┌─────────────────────────────────────┐ │
-│  │ Department  │ Month │ Amt│   →    │ Department │ Jan │ Feb │ Mar │ Apr │ │
+│  │ d.DepartmentName  │ Month │ Amt│   →    │ d.DepartmentName │ Jan │ Feb │ Mar │ Apr │ │
 │  ├─────────────┼───────┼───┤        ├────────────┼─────┼─────┼─────┼─────┤ │
 │  │ IT          │ Jan   │100│        │ IT         │ 100 │ 150 │ 200 │ 175 │ │
 │  │ IT          │ Feb   │150│        │ HR         │  80 │ 120 │ 160 │ 140 │ │
@@ -70,14 +70,13 @@ PIVOT (
 
 ## Basic PIVOT Operations
 
-### 1. Department Budget Analysis
+### 1. d.DepartmentName Budget Analysis
 
 #### TechCorp Example: Quarterly Budget Performance
 ```sql
 -- Transform quarterly budget data into cross-tabulated format for executive review
 WITH QuarterlyBudgetData AS (
-    SELECT 
-        d.DepartmentName,
+    SELECT d.DepartmentName,
         CASE 
             WHEN MONTH(p.StartDate) BETWEEN 1 AND 3 THEN 'Q1'
             WHEN MONTH(p.StartDate) BETWEEN 4 AND 6 THEN 'Q2'
@@ -94,8 +93,7 @@ WITH QuarterlyBudgetData AS (
       AND p.StartDate >= '2025-01-01'
       AND p.StartDate < '2026-01-01'
 )
-SELECT 
-    DepartmentName,
+SELECT d.DepartmentName,
     FORMAT(ISNULL([Q1], 0), 'C') AS Q1_Budget,
     FORMAT(ISNULL([Q2], 0), 'C') AS Q2_Budget,
     FORMAT(ISNULL([Q3], 0), 'C') AS Q3_Budget,
@@ -117,12 +115,11 @@ ORDER BY Total_Annual_Budget DESC;
 
 ### 2. Employee Performance Matrix
 
-#### TechCorp Example: Salary Distribution by Department and Experience Level
+#### TechCorp Example: BaseSalary Distribution by d.DepartmentName and Experience Level
 ```sql
--- Create salary distribution matrix for HR compensation analysis
+-- Create BaseSalary distribution matrix for HR compensation analysis
 WITH EmployeeExperienceData AS (
-    SELECT 
-        d.DepartmentName,
+    SELECT d.DepartmentName,
         CASE 
             WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) <= 2 THEN 'Entry Level'
             WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) <= 5 THEN 'Mid Level'
@@ -135,13 +132,12 @@ WITH EmployeeExperienceData AS (
     WHERE e.IsActive = 1
       AND d.IsActive = 1
 )
-SELECT 
-    DepartmentName,
+SELECT d.DepartmentName,
     FORMAT(ISNULL([Entry Level], 0), 'C') AS Entry_Level_Avg,
     FORMAT(ISNULL([Mid Level], 0), 'C') AS Mid_Level_Avg,
     FORMAT(ISNULL([Senior Level], 0), 'C') AS Senior_Level_Avg,
     FORMAT(ISNULL([Executive Level], 0), 'C') AS Executive_Level_Avg,
-    -- Calculate department salary range
+    -- Calculate d.DepartmentName BaseSalary range
     FORMAT(
         ISNULL([Executive Level], 0) - ISNULL([Entry Level], 0), 
         'C'
@@ -156,10 +152,10 @@ SELECT
     ) AS Growth_Multiplier
 FROM EmployeeExperienceData
 PIVOT (
-    AVG(BaseSalary)
+    AVG(e.BaseSalary)
     FOR ExperienceLevel IN ([Entry Level], [Mid Level], [Senior Level], [Executive Level])
 ) salary_pivot
-ORDER BY Growth_Multiplier DESC, DepartmentName;
+ORDER BY Growth_Multiplier DESC, d.DepartmentName;
 ```
 
 ### 3. Customer Order Analysis
@@ -244,8 +240,7 @@ FROM (
 -- Build dynamic PIVOT query
 SET @PivotQuery = '
 WITH MonthlySalesData AS (
-    SELECT 
-        d.DepartmentName,
+    SELECT d.DepartmentName,
         FORMAT(o.OrderDate, ''yyyy-MM'') + '' - '' + FORMAT(o.OrderDate, ''MMM'') AS MonthName,
         o.TotalAmount
     FROM Orders o
@@ -257,8 +252,7 @@ WITH MonthlySalesData AS (
       AND o.OrderDate >= ''2025-01-01''
       AND o.OrderDate < ''2026-01-01''
 )
-SELECT 
-    DepartmentName,' + @PivotColumns + ',
+SELECT d.DepartmentName,' + @PivotColumns + ',
     FORMAT((' + REPLACE(@PivotColumns, ', ', ' + ') + '), ''C'') AS Total_Annual_Revenue
 FROM MonthlySalesData
 PIVOT (
@@ -361,7 +355,7 @@ ORDER BY Total_Project_Hours DESC, DepartmentName, EmployeeName;
 │                                                                             │
 │  Source Data (Cross-tabulated):      UNPIVOT Result (Normalized):          │
 │  ┌─────────────────────────────────┐  ┌─────────────────────────────────────┐ │
-│  │ Department │ Q1  │ Q2  │ Q3  │Q4│  │ Department │ Quarter │ Amount      │ │
+│  │ d.DepartmentName │ Q1  │ Q2  │ Q3  │Q4│  │ d.DepartmentName │ Quarter │ Amount      │ │
 │  ├────────────┼─────┼─────┼─────┼──┤  ├────────────┼─────────┼─────────────┤ │
 │  │ IT         │ 100 │ 150 │ 200 │175│  │ IT         │ Q1      │ 100         │ │
 │  │ HR         │  80 │ 120 │ 160 │140│  │ IT         │ Q2      │ 150         │ │
@@ -403,8 +397,7 @@ UNPIVOT (
 -- Normalize quarterly budget data for trend analysis and forecasting
 WITH QuarterlyBudgetMatrix AS (
     -- Simulate quarterly budget crosstab (would typically come from PIVOT or imported data)
-    SELECT 
-        d.DepartmentName,
+    SELECT d.DepartmentName,
         SUM(CASE WHEN MONTH(p.StartDate) BETWEEN 1 AND 3 THEN p.Budget ELSE 0 END) AS Q1_Budget,
         SUM(CASE WHEN MONTH(p.StartDate) BETWEEN 4 AND 6 THEN p.Budget ELSE 0 END) AS Q2_Budget,
         SUM(CASE WHEN MONTH(p.StartDate) BETWEEN 7 AND 9 THEN p.Budget ELSE 0 END) AS Q3_Budget,
@@ -418,8 +411,7 @@ WITH QuarterlyBudgetMatrix AS (
       AND YEAR(p.StartDate) = 2025
     GROUP BY d.DepartmentName
 )
-SELECT 
-    DepartmentName,
+SELECT d.DepartmentName,
     Quarter,
     FORMAT(QuarterlyBudget, 'C') AS Quarterly_Budget,
     -- Add analytical columns for time series analysis
@@ -432,32 +424,32 @@ SELECT
     -- Calculate quarter-over-quarter growth
     FORMAT(
         QuarterlyBudget - LAG(QuarterlyBudget) OVER (
-            PARTITION BY DepartmentName 
+            PARTITION BY d.DepartmentName 
             ORDER BY CASE Quarter WHEN 'Q1' THEN 1 WHEN 'Q2' THEN 2 WHEN 'Q3' THEN 3 WHEN 'Q4' THEN 4 END
         ), 'C'
     ) AS QoQ_Change,
     -- Calculate growth percentage
     CAST(
         (QuarterlyBudget - LAG(QuarterlyBudget) OVER (
-            PARTITION BY DepartmentName 
+            PARTITION BY d.DepartmentName 
             ORDER BY CASE Quarter WHEN 'Q1' THEN 1 WHEN 'Q2' THEN 2 WHEN 'Q3' THEN 3 WHEN 'Q4' THEN 4 END
         )) * 100.0 / NULLIF(LAG(QuarterlyBudget) OVER (
-            PARTITION BY DepartmentName 
+            PARTITION BY d.DepartmentName 
             ORDER BY CASE Quarter WHEN 'Q1' THEN 1 WHEN 'Q2' THEN 2 WHEN 'Q3' THEN 3 WHEN 'Q4' THEN 4 END
         ), 0) AS DECIMAL(5,2)
     ) AS QoQ_Growth_Percent,
     -- Trend classification
     CASE 
         WHEN QuarterlyBudget > LAG(QuarterlyBudget) OVER (
-            PARTITION BY DepartmentName 
+            PARTITION BY d.DepartmentName 
             ORDER BY CASE Quarter WHEN 'Q1' THEN 1 WHEN 'Q2' THEN 2 WHEN 'Q3' THEN 3 WHEN 'Q4' THEN 4 END
         ) * 1.1 THEN 'Strong Growth'
         WHEN QuarterlyBudget > LAG(QuarterlyBudget) OVER (
-            PARTITION BY DepartmentName 
+            PARTITION BY d.DepartmentName 
             ORDER BY CASE Quarter WHEN 'Q1' THEN 1 WHEN 'Q2' THEN 2 WHEN 'Q3' THEN 3 WHEN 'Q4' THEN 4 END
         ) THEN 'Moderate Growth'
         WHEN QuarterlyBudget < LAG(QuarterlyBudget) OVER (
-            PARTITION BY DepartmentName 
+            PARTITION BY d.DepartmentName 
             ORDER BY CASE Quarter WHEN 'Q1' THEN 1 WHEN 'Q2' THEN 2 WHEN 'Q3' THEN 3 WHEN 'Q4' THEN 4 END
         ) * 0.9 THEN 'Declining'
         ELSE 'Stable'
@@ -477,7 +469,7 @@ CROSS APPLY (
         END AS Quarter
 ) quarter_cleanup
 WHERE QuarterlyBudget > 0  -- Exclude quarters with no budget activity
-ORDER BY DepartmentName, Quarter_Number;
+ORDER BY d.DepartmentName, Quarter_Number;
 ```
 
 ### 2. Employee Performance Data Normalization
@@ -624,8 +616,7 @@ ORDER BY EmployeeName,
 -- Complex business intelligence query combining PIVOT and UNPIVOT operations
 WITH DepartmentKPIMatrix AS (
     -- First, create a comprehensive KPI matrix using PIVOT
-    SELECT 
-        DepartmentName,
+    SELECT d.DepartmentName,
         [Employee_Count] AS Active_Employees,
         [Avg_Salary] AS Average_Salary,
         [Total_Projects] AS Active_Projects,
@@ -633,8 +624,7 @@ WITH DepartmentKPIMatrix AS (
         [Customer_Orders] AS Customer_Orders_Processed,
         [Order_Revenue] AS Total_Order_Revenue
     FROM (
-        SELECT 
-            d.DepartmentName,
+        SELECT d.DepartmentName,
             'Employee_Count' AS KPI_Type,
             CAST(COUNT(DISTINCT e.EmployeeID) AS DECIMAL(15,2)) AS KPI_Value
         FROM Departments d
@@ -644,8 +634,7 @@ WITH DepartmentKPIMatrix AS (
         
         UNION ALL
         
-        SELECT 
-            d.DepartmentName,
+        SELECT d.DepartmentName,
             'Avg_Salary' AS KPI_Type,
             CAST(AVG(e.BaseSalary) AS DECIMAL(15,2)) AS KPI_Value
         FROM Departments d
@@ -655,8 +644,7 @@ WITH DepartmentKPIMatrix AS (
         
         UNION ALL
         
-        SELECT 
-            d.DepartmentName,
+        SELECT d.DepartmentName,
             'Total_Projects' AS KPI_Type,
             CAST(COUNT(DISTINCT p.ProjectID) AS DECIMAL(15,2)) AS KPI_Value
         FROM Departments d
@@ -667,8 +655,7 @@ WITH DepartmentKPIMatrix AS (
         
         UNION ALL
         
-        SELECT 
-            d.DepartmentName,
+        SELECT d.DepartmentName,
             'Project_Budget' AS KPI_Type,
             CAST(SUM(p.Budget) AS DECIMAL(15,2)) AS KPI_Value
         FROM Departments d
@@ -679,8 +666,7 @@ WITH DepartmentKPIMatrix AS (
         
         UNION ALL
         
-        SELECT 
-            d.DepartmentName,
+        SELECT d.DepartmentName,
             'Customer_Orders' AS KPI_Type,
             CAST(COUNT(o.OrderID) AS DECIMAL(15,2)) AS KPI_Value
         FROM Departments d
@@ -691,8 +677,7 @@ WITH DepartmentKPIMatrix AS (
         
         UNION ALL
         
-        SELECT 
-            d.DepartmentName,
+        SELECT d.DepartmentName,
             'Order_Revenue' AS KPI_Type,
             CAST(SUM(o.TotalAmount) AS DECIMAL(15,2)) AS KPI_Value
         FROM Departments d
@@ -710,8 +695,7 @@ WITH DepartmentKPIMatrix AS (
 ),
 NormalizedKPIData AS (
     -- Then UNPIVOT the matrix for detailed analysis
-    SELECT 
-        DepartmentName,
+    SELECT d.DepartmentName,
         KPI_Category,
         KPI_Value,
         -- Add performance benchmarks and classifications
@@ -739,7 +723,7 @@ NormalizedKPIData AS (
                 END
             ELSE 'Standard Range'
         END AS Performance_Classification,
-        -- Calculate department efficiency ratios
+        -- Calculate d.DepartmentName efficiency ratios
         CASE 
             WHEN KPI_Category = 'Total_Order_Revenue' AND Active_Employees > 0 
             THEN KPI_Value / Active_Employees
@@ -761,8 +745,7 @@ NormalizedKPIData AS (
     WHERE KPI_Value IS NOT NULL AND KPI_Value > 0
 )
 -- Final executive dashboard with comprehensive insights
-SELECT 
-    DepartmentName,
+SELECT d.DepartmentName,
     KPI_Category,
     CASE KPI_Category
         WHEN 'Average_Salary' THEN FORMAT(KPI_Value, 'C')
@@ -784,12 +767,12 @@ SELECT
     -- Performance trend indicator (simplified)
     CASE 
         WHEN Category_Rank <= 2 THEN '↗️ Top Performer'
-        WHEN Category_Rank <= CEILING((SELECT COUNT(DISTINCT DepartmentName) FROM DepartmentKPIMatrix) * 0.5) 
+        WHEN Category_Rank <= CEILING((SELECT COUNT(DISTINCT d.DepartmentName) FROM DepartmentKPIMatrix) * 0.5) 
              THEN '→ Average Performer'
         ELSE '↘️ Below Average'
     END AS Trend_Indicator
 FROM NormalizedKPIData
-ORDER BY DepartmentName, 
+ORDER BY d.DepartmentName, 
          CASE KPI_Category 
              WHEN 'Active_Employees' THEN 1
              WHEN 'Average_Salary' THEN 2
@@ -812,8 +795,7 @@ ORDER BY DepartmentName,
 
 -- Example of optimized PIVOT query design
 WITH OptimizedPivotSource AS (
-    SELECT 
-        d.DepartmentName,
+    SELECT d.DepartmentName,
         DATEPART(QUARTER, o.OrderDate) AS OrderQuarter,
         o.TotalAmount
     FROM Orders o WITH(INDEX(IX_Orders_Employee_Date_Amount))  -- Force index usage
@@ -824,8 +806,7 @@ WITH OptimizedPivotSource AS (
       AND d.IsActive = 1
       AND o.OrderDate >= DATEADD(YEAR, -1, GETDATE())  -- Limit date range for performance
 )
-SELECT 
-    DepartmentName,
+SELECT d.DepartmentName,
     FORMAT(ISNULL([1], 0), 'C') AS Q1_Revenue,
     FORMAT(ISNULL([2], 0), 'C') AS Q2_Revenue,
     FORMAT(ISNULL([3], 0), 'C') AS Q3_Revenue,
@@ -834,7 +815,7 @@ FROM OptimizedPivotSource
 PIVOT (
     SUM(TotalAmount) FOR OrderQuarter IN ([1], [2], [3], [4])
 ) revenue_pivot
-ORDER BY DepartmentName;
+ORDER BY d.DepartmentName;
 ```
 
 ### 2. Best Practices for Large Dataset Operations
@@ -843,8 +824,7 @@ ORDER BY DepartmentName;
 -- ✅ GOOD: Efficient PIVOT with proper filtering and aggregation
 WITH FilteredData AS (
     -- Pre-filter data to reduce processing overhead
-    SELECT 
-        d.DepartmentName,
+    SELECT d.DepartmentName,
         FORMAT(o.OrderDate, 'yyyy-MM') AS OrderMonth,
         o.TotalAmount
     FROM Orders o
@@ -858,15 +838,13 @@ WITH FilteredData AS (
 ),
 MonthlyAggregation AS (
     -- Pre-aggregate before PIVOT to improve performance
-    SELECT 
-        DepartmentName,
+    SELECT d.DepartmentName,
         OrderMonth,
         SUM(TotalAmount) AS MonthlyRevenue
     FROM FilteredData
-    GROUP BY DepartmentName, OrderMonth
+    GROUP BY d.DepartmentName, OrderMonth
 )
-SELECT 
-    DepartmentName,
+SELECT d.DepartmentName,
     -- Only include months with significant data
     FORMAT(ISNULL([2025-01], 0), 'C') AS Jan_2025,
     FORMAT(ISNULL([2025-02], 0), 'C') AS Feb_2025,
@@ -880,7 +858,7 @@ PIVOT (
         [2025-01], [2025-02], [2025-03], [2025-04], [2025-05], [2025-06]
     )
 ) monthly_pivot
-ORDER BY DepartmentName;
+ORDER BY d.DepartmentName;
 ```
 
 ## Common Pitfalls and Solutions
@@ -889,7 +867,7 @@ ORDER BY DepartmentName;
 
 ```sql
 -- ❌ PROBLEM: PIVOT doesn't handle NULLs as expected
-SELECT DepartmentName, [Q1], [Q2], [Q3], [Q4]
+SELECT d.DepartmentName, [Q1], [Q2], [Q3], [Q4]
 FROM (
     SELECT d.DepartmentName, 'Q1' AS Quarter, NULL AS Revenue
     FROM Departments d
@@ -898,8 +876,7 @@ PIVOT (SUM(Revenue) FOR Quarter IN ([Q1], [Q2], [Q3], [Q4])) pivot_table;
 -- Result: NULL values in PIVOT columns
 
 -- ✅ SOLUTION: Proper NULL handling with ISNULL and default values
-SELECT 
-    DepartmentName,
+SELECT d.DepartmentName,
     FORMAT(ISNULL([Q1], 0), 'C') AS Q1_Revenue,
     FORMAT(ISNULL([Q2], 0), 'C') AS Q2_Revenue,
     FORMAT(ISNULL([Q3], 0), 'C') AS Q3_Revenue,
@@ -913,8 +890,7 @@ SELECT
         ELSE 'Complete Data'
     END AS Data_Completeness
 FROM (
-    SELECT 
-        d.DepartmentName,
+    SELECT d.DepartmentName,
         CASE 
             WHEN MONTH(p.StartDate) BETWEEN 1 AND 3 THEN 'Q1'
             WHEN MONTH(p.StartDate) BETWEEN 4 AND 6 THEN 'Q2'
@@ -930,14 +906,14 @@ FROM (
       AND (p.IsActive = 1 OR p.ProjectID IS NULL)
 ) source_data
 PIVOT (SUM(Revenue) FOR Quarter IN ([Q1], [Q2], [Q3], [Q4])) pivot_table
-ORDER BY DepartmentName;
+ORDER BY d.DepartmentName;
 ```
 
 ### 2. Dynamic Column Challenges
 
 ```sql
 -- ❌ PROBLEM: Hard-coded column names in PIVOT
-SELECT DepartmentName, [Project Alpha], [Project Beta], [Project Gamma]
+SELECT d.DepartmentName, [Project Alpha], [Project Beta], [Project Gamma]
 FROM project_data
 PIVOT (SUM(Budget) FOR ProjectName IN ([Project Alpha], [Project Beta], [Project Gamma])) p;
 -- Problem: Doesn't adapt to new projects
@@ -961,8 +937,7 @@ IF @ProjectColumns IS NOT NULL AND LEN(@ProjectColumns) > 0
 BEGIN
     SET @DynamicPivotSQL = N'
     WITH ProjectBudgetData AS (
-        SELECT 
-            d.DepartmentName,
+        SELECT d.DepartmentName,
             p.ProjectName,
             p.Budget
         FROM Departments d
@@ -973,8 +948,7 @@ BEGIN
           AND p.IsActive = 1
           AND p.StartDate >= DATEADD(YEAR, -2, GETDATE())
     )
-    SELECT 
-        DepartmentName,
+    SELECT d.DepartmentName,
         ' + @ProjectColumns + ',
         FORMAT((' + REPLACE(@ProjectColumns, ', ', ' + ISNULL(') + ', 0) + ISNULL(') + ', 0)), ''C'') AS Total_Department_Budget
     FROM ProjectBudgetData

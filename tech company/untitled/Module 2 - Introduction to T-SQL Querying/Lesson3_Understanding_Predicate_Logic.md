@@ -94,11 +94,11 @@ WHERE OrderDate BETWEEN '2023-01-01' AND '2023-12-31';
 ```sql
 -- List membership
 SELECT * FROM Employees 
-WHERE Department IN ('IT', 'Finance', 'Marketing');
+WHERE d.DepartmentName IN ('IT', 'Finance', 'Marketing');
 
 -- Equivalent to:
 SELECT * FROM Employees 
-WHERE d.DepartmentName = 'Engineering' OR Department = 'Finance' OR Department = 'Marketing';
+WHERE d.DepartmentName = 'Engineering' OR d.DepartmentName = 'Finance' OR d.DepartmentName = 'Marketing';
 
 -- With subquery
 SELECT CustomerID, CompanyName FROM Customers 
@@ -157,7 +157,7 @@ WHERE NOT EXISTS (
 ```sql
 -- AND, OR, NOT operators with proper grouping
 SELECT * FROM Employees 
-WHERE (Department = 'IT' OR Department = 'Engineering')
+WHERE (Department = 'IT' OR d.DepartmentName = 'Engineering')
   AND BaseSalary > 60000
   AND HireDate >= '2020-01-01';
 
@@ -190,10 +190,10 @@ SELECT
     CASE 
         WHEN d.DepartmentName = 'Sales' AND BaseSalary > 80000 THEN 'Top Sales Performer'
         WHEN d.DepartmentName = 'Engineering' AND DATEDIFF(YEAR, HireDate, GETDATE()) > 5 THEN 'Senior IT Professional'
-        WHEN Age < 25 AND Department = 'Marketing' THEN 'Young Marketing Talent'
+        WHEN Age < 25 AND d.DepartmentName = 'Marketing' THEN 'Young Marketing Talent'
         ELSE 'Standard Employee'
     END AS EmployeeType
-FROM Employees;
+FROM Employees e;
 ```
 
 #### 2. Advanced Pattern Matching
@@ -316,7 +316,7 @@ DECLARE @MinSalary DECIMAL(10,2) = NULL;
 SELECT *
 FROM Employees
 WHERE (@SearchName IS NULL OR FirstName LIKE '%' + @SearchName + '%')
-  AND (@SearchDept IS NULL OR Department = @SearchDept)
+  AND (@SearchDept IS NULL OR d.DepartmentName = @SearchDept)
   AND (@MinSalary IS NULL OR BaseSalary >= @MinSalary);
 ```
 
@@ -427,7 +427,7 @@ WHERE ISNULL(MiddleName, '') LIKE '%' + ISNULL(@SearchMiddleName, '') + '%';
 -- Clear precedence with parentheses
 SELECT *
 FROM Employees
-WHERE (Department = 'IT' OR Department = 'Engineering')
+WHERE (Department = 'IT' OR d.DepartmentName = 'Engineering')
   AND (BaseSalary > 60000)
   AND (HireDate >= '2020-01-01' OR Title LIKE '%Senior%');
 ```

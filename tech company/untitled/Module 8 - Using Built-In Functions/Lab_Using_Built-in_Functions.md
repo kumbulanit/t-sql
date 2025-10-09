@@ -92,7 +92,7 @@ WITH ExecutiveMetrics AS (
         -- Calculate compound annual BaseSalary growth (assuming 3% average)
         ISNULL(e.BaseSalary, 0) * POWER(1.03, DATEDIFF(YEAR, ISNULL(e.HireDate, GETDATE()), GETDATE())) AS ProjectedCurrentValue,
         
-        -- Statistical ranking within department
+        -- Statistical ranking within d.DepartmentName
         PERCENT_RANK() OVER (
             PARTITION BY e.DepartmentID 
             ORDER BY ISNULL(e.BaseSalary, 0)

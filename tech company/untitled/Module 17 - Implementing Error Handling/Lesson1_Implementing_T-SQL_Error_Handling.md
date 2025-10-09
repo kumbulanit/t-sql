@@ -202,10 +202,10 @@ BEGIN CATCH
 END CATCH;
 ```
 
-### TechCorp Business Scenario: Employee Salary Update
+### TechCorp Business Scenario: Employee BaseSalary Update
 
 ```sql
--- Comprehensive employee salary update with error handling
+-- Comprehensive employee BaseSalary update with error handling
 CREATE OR ALTER PROCEDURE UpdateEmployeeSalary
     @EmployeeID INT,
     @NewSalary MONEY,
@@ -234,35 +234,35 @@ BEGIN
             RETURN;
         END
         
-        -- Validate salary amount
+        -- Validate BaseSalary amount
         IF @NewSalary <= 0
         BEGIN
-            RAISERROR('Salary amount must be greater than zero', 16, 1);
+            RAISERROR('BaseSalary amount must be greater than zero', 16, 1);
             RETURN;
         END
         
-        -- Check department budget constraints
+        -- Check d.DepartmentName budget constraints
         SELECT @DepartmentBudget = Budget
         FROM Departments 
         WHERE DepartmentID = @DepartmentID AND IsActive = 1;
         
-        IF @NewSalary > @DepartmentBudget * 0.3  -- No single salary > 30% of dept budget
+        IF @NewSalary > @DepartmentBudget * 0.3  -- No single BaseSalary > 30% of dept budget
         BEGIN
-            RAISERROR('Proposed salary exceeds department budget constraints (max 30%% of budget)', 16, 1);
+            RAISERROR('Proposed BaseSalary exceeds d.DepartmentName budget constraints (max 30%% of budget)', 16, 1);
             RETURN;
         END
         
         -- Begin transaction for atomic update
         BEGIN TRANSACTION UpdateSalary;
         
-        -- Update employee salary
+        -- Update employee BaseSalary
         UPDATE Employees 
         SET BaseSalary = @NewSalary,
             LastModified = GETDATE(),
             LastModifiedBy = @UpdatedBy
         WHERE EmployeeID = @EmployeeID;
         
-        -- Log the salary change for audit
+        -- Log the BaseSalary change for audit
         INSERT INTO SalaryHistory (
             EmployeeID,
             PreviousSalary,
@@ -282,9 +282,9 @@ BEGIN
         
         COMMIT TRANSACTION UpdateSalary;
         
-        PRINT 'Salary successfully updated for ' + @EmployeeName;
-        PRINT 'Previous Salary: $' + FORMAT(@CurrentSalary, 'N2');
-        PRINT 'New Salary: $' + FORMAT(@NewSalary, 'N2');
+        PRINT 'BaseSalary successfully updated for ' + @EmployeeName;
+        PRINT 'Previous BaseSalary: $' + FORMAT(@CurrentSalary, 'N2');
+        PRINT 'New BaseSalary: $' + FORMAT(@NewSalary, 'N2');
         PRINT 'Change Amount: $' + FORMAT(@NewSalary - @CurrentSalary, 'N2');
         
     END TRY
@@ -322,7 +322,7 @@ BEGIN
             @ErrorState,
             @UpdatedBy,
             GETDATE(),
-            'Employee ID: ' + CAST(@EmployeeID AS VARCHAR(10)) + ', Proposed Salary: $' + FORMAT(@NewSalary, 'N2')
+            'Employee ID: ' + CAST(@EmployeeID AS VARCHAR(10)) + ', Proposed BaseSalary: $' + FORMAT(@NewSalary, 'N2')
         );
         
         -- Return user-friendly error message
@@ -345,7 +345,7 @@ END;
 -- Test the procedure with various scenarios
 EXEC UpdateEmployeeSalary @EmployeeID = 3001, @NewSalary = 85000, @UpdatedBy = 'HR Manager';
 EXEC UpdateEmployeeSalary @EmployeeID = 9999, @NewSalary = 75000, @UpdatedBy = 'HR Manager'; -- Non-existent employee
-EXEC UpdateEmployeeSalary @EmployeeID = 3001, @NewSalary = -1000, @UpdatedBy = 'HR Manager'; -- Invalid salary
+EXEC UpdateEmployeeSalary @EmployeeID = 3001, @NewSalary = -1000, @UpdatedBy = 'HR Manager'; -- Invalid BaseSalary
 ```
 
 ---

@@ -79,16 +79,15 @@ Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, WorkEmai
 
 ### 1. Top-N Analysis per Category
 
-#### TechCorp Example: Top Performers by Department
+#### TechCorp Example: Top Performers by d.DepartmentName
 ```sql
--- Find the top 3 highest-paid employees in each department with detailed metrics
-SELECT 
-    d.DepartmentName,
+-- Find the top 3 highest-paid employees in each d.DepartmentName with detailed metrics
+SELECT d.DepartmentName,
     d.Budget AS DepartmentBudget,
     d.Location,
     top_earners.EmployeeName,
     top_earners.JobTitle,
-    FORMAT(top_earners.BaseSalary, 'C') AS Salary,
+    FORMAT(top_earners.BaseSalary, 'C') AS BaseSalary,
     top_earners.YearsOfService,
     top_earners.SalaryRank,
     CAST((top_earners.BaseSalary * 100.0 / d.Budget) AS DECIMAL(5,2)) AS SalaryBudgetPercentage
@@ -101,6 +100,7 @@ CROSS APPLY (
         DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
         ROW_NUMBER() OVER (ORDER BY e.BaseSalary DESC) AS SalaryRank
     FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.DepartmentID = d.DepartmentID
       AND e.IsActive = 1
     ORDER BY e.BaseSalary DESC
@@ -280,11 +280,10 @@ ORDER BY performance_data.OverallScore DESC, e.LastName;
 
 ### 3. Dynamic Filtering with OUTER APPLY
 
-#### TechCorp Example: Department Activity Overview
+#### TechCorp Example: d.DepartmentName Activity Overview
 ```sql
--- Comprehensive department analysis including those with no recent activity
-SELECT 
-    d.DepartmentName,
+-- Comprehensive d.DepartmentName analysis including those with no recent activity
+SELECT d.DepartmentName,
     FORMAT(d.Budget, 'C') AS DepartmentBudget,
     d.Location,
     ISNULL(activity_summary.ActiveEmployees, 0) AS ActiveEmployeeCount,
@@ -298,7 +297,7 @@ SELECT
         WHEN activity_summary.ActivityScore >= 20 THEN 'Low Activity'
         ELSE 'Inactive'
     END AS ActivityLevel,
-    ISNULL(activity_summary.RecommendedAction, 'Assess department needs') AS RecommendedAction
+    ISNULL(activity_summary.RecommendedAction, 'Assess d.DepartmentName needs') AS RecommendedAction
 FROM Departments d
 OUTER APPLY (
     SELECT 
@@ -320,7 +319,7 @@ OUTER APPLY (
         CASE 
             WHEN employee_metrics.ActiveEmployees = 0 THEN 'Critical: No active employees'
             WHEN project_metrics.RecentProjects = 0 AND order_metrics.RecentOrders = 0 
-                 THEN 'Review department productivity'
+                 THEN 'Review d.DepartmentName productivity'
             WHEN project_metrics.RecentProjects = 0 THEN 'Increase project assignments'
             WHEN order_metrics.RecentOrders = 0 THEN 'Enhance customer engagement'
             ELSE 'Maintain current performance'
@@ -329,6 +328,7 @@ OUTER APPLY (
         -- Employee metrics
         SELECT COUNT(*) AS ActiveEmployees
         FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
         WHERE e.DepartmentID = d.DepartmentID
           AND e.IsActive = 1
     ) employee_metrics
@@ -588,11 +588,10 @@ ORDER BY trend_analysis.TotalLifetimeValue DESC, trend_analysis.TotalOrders DESC
 -- CREATE INDEX IX_Orders_Customer_Date ON Orders(CustomerID, OrderDate DESC, IsActive) INCLUDE (TotalAmount, EmployeeID);
 -- CREATE INDEX IX_EmployeeProjects_Employee_Hours ON EmployeeProjects(EmployeeID, IsActive) INCLUDE (ProjectID, HoursWorked);
 
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     top_performers.EmployeeName,
     top_performers.JobTitle,
-    FORMAT(top_performers.BaseSalary, 'C') AS Salary,
+    FORMAT(top_performers.BaseSalary, 'C') AS BaseSalary,
     top_performers.PerformanceRank
 FROM Departments d
 CROSS APPLY (
@@ -602,6 +601,7 @@ CROSS APPLY (
         e.BaseSalary,
         ROW_NUMBER() OVER (ORDER BY e.BaseSalary DESC) AS PerformanceRank
     FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.DepartmentID = d.DepartmentID  -- Uses index efficiently
       AND e.IsActive = 1
     ORDER BY e.BaseSalary DESC
@@ -717,8 +717,7 @@ ORDER BY e.LastName, e.FirstName;
 #### Robust NULL and Empty Result Handling
 ```sql
 -- ✅ GOOD: Comprehensive NULL handling with OUTER APPLY
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     ISNULL(dept_stats.EmployeeCount, 0) AS EmployeeCount,
     ISNULL(FORMAT(dept_stats.AvgSalary, 'C'), 'N/A') AS AvgSalary,
     ISNULL(dept_stats.TopEmployee, 'No Employees') AS TopEmployee,
@@ -743,6 +742,7 @@ OUTER APPLY (
             AVG(e.BaseSalary) AS AvgSalary,
             MAX(e.FirstName + ' ' + e.LastName) AS TopEmployee
         FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
         WHERE e.DepartmentID = d.DepartmentID
           AND e.IsActive = 1
         HAVING COUNT(*) > 0  -- Only return results if employees exist
@@ -846,21 +846,22 @@ SELECT d.DepartmentName, emp.FirstName, emp.BaseSalary
 FROM Departments d
 CROSS APPLY (
     SELECT TOP 1 FirstName, BaseSalary
-    FROM Employees e 
+    FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.DepartmentID = d.DepartmentID 
       AND e.IsActive = 1
     ORDER BY BaseSalary DESC
 ) emp;  -- This excludes departments with no employees
 
 -- ✅ SOLUTION: Use OUTER APPLY to include all departments
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     ISNULL(emp.FirstName, 'No Employees') AS TopEmployee,
     ISNULL(FORMAT(emp.BaseSalary, 'C'), 'N/A') AS TopSalary
 FROM Departments d
 OUTER APPLY (
     SELECT TOP 1 FirstName, BaseSalary
-    FROM Employees e 
+    FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.DepartmentID = d.DepartmentID 
       AND e.IsActive = 1
     ORDER BY BaseSalary DESC
@@ -903,14 +904,14 @@ WITH DepartmentTopEmployee AS (
     CROSS APPLY (
         SELECT TOP 1 EmployeeID, FirstName, LastName, BaseSalary
         FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
         WHERE e.DepartmentID = d.DepartmentID 
           AND e.IsActive = 1
         ORDER BY BaseSalary DESC
     ) e
     WHERE d.IsActive = 1
 )
-SELECT 
-    dte.DepartmentName,
+SELECT dte.d.DepartmentName,
     dte.EmployeeName,
     FORMAT(dte.BaseSalary, 'C') AS TopEmployeeSalary,
     recent_order.OrderDate,
@@ -923,7 +924,7 @@ OUTER APPLY (
       AND o.IsActive = 1
     ORDER BY OrderDate DESC
 ) recent_order
-ORDER BY dte.DepartmentName;
+ORDER BY dte.d.DepartmentName;
 ```
 
 ## Summary
@@ -940,7 +941,7 @@ APPLY operations are essential for advanced T-SQL analysis:
 - Employee performance analytics and ranking
 - Customer behavior analysis and segmentation
 - Management effectiveness evaluation
-- Department activity monitoring
+- d.DepartmentName activity monitoring
 - Complex business intelligence dashboards
 
 **Performance Advantages:**

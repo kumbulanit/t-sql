@@ -93,10 +93,9 @@ ORDER BY p.Budget DESC;
 
 **Explanation**: Demonstrates percentage calculations, date arithmetic, conditional logic for handling NULLs, and business categorization logic.
 
-**Answer 1.1.3**: Department Overview
+**Answer 1.1.3**: d.DepartmentName Overview
 ```sql
-SELECT 
-    d.DepartmentName AS [Department],
+SELECT d.DepartmentName AS [Department],
     d.Location AS [Office Location],
     
     -- Formatted budget
@@ -111,7 +110,7 @@ SELECT
         ELSE 'Position Vacant'
     END AS [Department Manager],
     
-    -- Department size category
+    -- d.DepartmentName size category
     CASE 
         WHEN d.Budget < 300000 THEN 'Small Department'
         WHEN d.Budget BETWEEN 300000 AND 600000 THEN 'Medium Department'
@@ -139,8 +138,8 @@ SELECT
     
     -- Complete address
     CASE 
-        WHEN e.City IS NOT NULL AND e.StateProvince IS NOT NULL 
-        THEN e.City + ', ' + e.StateProvince
+        WHEN e.City IS NOT NULL AND e.State IS NOT NULL 
+        THEN e.City + ', ' + e.State
         WHEN e.City IS NOT NULL THEN e.City
         ELSE 'Location Not Available'
     END AS [Location],
@@ -281,21 +280,21 @@ ORDER BY [Uniqueness Percentage] ASC;
 WITH LocationAnalysis AS (
     SELECT DISTINCT 
         e.City,
-        e.StateProvince,
-        e.City + ', ' + e.StateProvince AS [Full Location]
+        e.State,
+        e.City + ', ' + e.State AS [Full Location]
     FROM Employees e
-    WHERE e.City IS NOT NULL AND e.StateProvince IS NOT NULL
+    WHERE e.City IS NOT NULL AND e.State IS NOT NULL
 ),
 LocationStats AS (
     SELECT 
-        la.StateProvince,
+        la.State,
         la.City,
         la.[Full Location],
         COUNT(e.EmployeeID) AS [Employee Count]
     FROM LocationAnalysis la
-    LEFT JOIN Employees e ON la.City = e.City AND la.StateProvince = e.StateProvince
+    LEFT JOIN Employees e ON la.City = e.City AND la.State = e.State
     WHERE e.IsActive = 1
-    GROUP BY la.StateProvince, la.City, la.[Full Location]
+    GROUP BY la.State, la.City, la.[Full Location]
 )
 SELECT 
     [Full Location] AS [Employee Location],
@@ -527,8 +526,7 @@ LEFT JOIN Projects proj ON ep.ProjectID = proj.ProjectID AND proj.IsActive = 'In
 
 **Answer 3.1.2**: Human Resources Dashboard
 ```sql
-SELECT 
-    dept.DepartmentName AS [Business Unit],
+SELECT dept.d.DepartmentName AS [Business Unit],
     
     -- Employee lifecycle indicators with HR terminology
     COUNT(emp.EmployeeID) AS [Current Headcount],
@@ -570,7 +568,7 @@ SELECT
 FROM Employees emp
 INNER JOIN Departments dept ON emp.DepartmentID = dept.DepartmentID
 WHERE emp.IsActive = 1
-GROUP BY dept.DepartmentID, dept.DepartmentName
+GROUP BY dept.DepartmentID, dept.d.DepartmentName
 ORDER BY COUNT(emp.EmployeeID) DESC;
 ```
 
@@ -716,7 +714,7 @@ INNER JOIN Departments dept ON emp.DepartmentID = dept.DepartmentID
 LEFT JOIN EmployeeSkills es ON emp.EmployeeID = es.EmployeeID
 LEFT JOIN Skills sk ON es.SkillID = sk.SkillID
 WHERE emp.IsActive = 1
-GROUP BY emp.EmployeeID, emp.FirstName, emp.LastName, emp.Title, dept.DepartmentName
+GROUP BY emp.EmployeeID, emp.FirstName, emp.LastName, emp.Title, dept.d.DepartmentName
 ORDER BY COUNT(es.SkillID) DESC, emp.LastName;
 ```
 
@@ -724,8 +722,7 @@ ORDER BY COUNT(es.SkillID) DESC, emp.LastName;
 
 **Answer 3.1.5**: Financial Performance Report
 ```sql
-SELECT 
-    dept.DepartmentName AS [Cost Center],
+SELECT dept.d.DepartmentName AS [Cost Center],
     dept.CostCenter AS [Accounting Code],
     
     -- Cost center analysis with accounting terminology
@@ -1007,7 +1004,7 @@ WITH EmployeeMetrics AS (
     LEFT JOIN EmployeeSkills es ON emp.EmployeeID = es.EmployeeID
     WHERE emp.IsActive = 1
     GROUP BY emp.EmployeeID, emp.FirstName, emp.LastName, emp.Title, 
-             emp.BaseSalary, emp.HireDate, dept.DepartmentName
+             emp.BaseSalary, emp.HireDate, dept.d.DepartmentName
 ),
 PerformanceSegmentation AS (
     SELECT *,
@@ -1039,7 +1036,7 @@ PerformanceSegmentation AS (
             WHEN Title LIKE '%Director%' AND TenureYears >= 7 THEN 'Executive Development Track'
             WHEN (Title LIKE '%Senior%' OR Title LIKE '%Manager%') AND TenureYears >= 5 
                  THEN 'Leadership Development Track'
-            WHEN TenureYears >= 3 AND BaseSalary >= AVG(BaseSalary) OVER (PARTITION BY DepartmentIDName)
+            WHEN TenureYears >= 3 AND BaseSalary >= AVG(e.BaseSalary) OVER (PARTITION BY DepartmentIDName)
                  THEN 'Senior Professional Track'
             WHEN TenureYears >= 1 THEN 'Professional Development Track'
             ELSE 'Foundation Building Track'
@@ -1047,7 +1044,7 @@ PerformanceSegmentation AS (
         
         -- Retention risk assessment with actionable insights
         CASE 
-            WHEN TenureYears >= 5 AND BaseSalary < AVG(BaseSalary) OVER (PARTITION BY DepartmentIDName) * 0.9
+            WHEN TenureYears >= 5 AND BaseSalary < AVG(e.BaseSalary) OVER (PARTITION BY DepartmentIDName) * 0.9
                  THEN 'High Flight Risk - Compensation Below Market'
             WHEN ProjectCount = 0 AND TenureYears >= 1
                  THEN 'High Flight Risk - Lack of Engagement'

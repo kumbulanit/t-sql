@@ -14,7 +14,7 @@ This document provides complete solutions to all Module 4 exercises, demonstrati
 -- Employee project performance with efficiency calculations
 SELECT 
     e.FirstName + ' ' + e.LastName AS [Employee Name],
-    e.Title AS [Position],
+    e.JobTitle AS [Position],
     d.DepartmentName AS [Department],
     p.ProjectName AS [Project],
     p.IsActive AS [Project IsActive],
@@ -55,11 +55,11 @@ ORDER BY
     END DESC;
 ```
 
-**Explanation**: Uses multiple INNER JOINs to combine employee, department, project, and assignment data. Calculates efficiency with proper NULL handling and categorizes performance levels.
+**Explanation**: Uses multiple INNER JOINs to combine employee, d.DepartmentName, project, and assignment data. Calculates efficiency with proper NULL handling and categorizes performance levels.
 
-**Answer 1.1.2**: Department Resource Utilization
+**Answer 1.1.2**: d.DepartmentName Resource Utilization
 ```sql
--- Comprehensive department resource analysis
+-- Comprehensive d.DepartmentName resource analysis
 WITH DepartmentMetrics AS (
     SELECT 
         d.DepartmentID,
@@ -67,7 +67,7 @@ WITH DepartmentMetrics AS (
         d.Budget,
         d.Location,
         COUNT(DISTINCT e.EmployeeID) AS ActiveEmployees,
-        SUM(e.BaseSalary) AS TotalSalaryCost,
+        SUM(e.BaseSalary) AS TotalBaseSalaryCost,
         COUNT(DISTINCT ep.ProjectID) AS ActiveProjects,
         SUM(ep.HoursAllocated) AS TotalProjectHours,
         AVG(ep.HoursWorked / NULLIF(ep.HoursAllocated, 0)) AS AvgUtilizationRate,
@@ -79,8 +79,7 @@ WITH DepartmentMetrics AS (
     LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
     GROUP BY d.DepartmentID, d.DepartmentName, d.Budget, d.Location
 )
-SELECT 
-    DepartmentName AS [Department],
+SELECT d.DepartmentName AS [Department],
     FORMAT(Budget, 'C0') AS [Annual Budget],
     Location AS [Location],
     ActiveEmployees AS [Active Employees],
@@ -91,7 +90,7 @@ SELECT
     CAST(ISNULL(AvgUtilizationRate * 100, 0) AS DECIMAL(5,1)) AS [Avg Utilization %],
     UniqueSkills AS [Skills Diversity],
     
-    -- Department health assessment
+    -- d.DepartmentName health assessment
     CASE 
         WHEN TotalSalaryCost > Budget THEN 'Over Budget - Review Required'
         WHEN ActiveProjects = 0 THEN 'No Active Projects'
@@ -104,7 +103,7 @@ WHERE ActiveEmployees > 0
 ORDER BY [Budget Used %] DESC;
 ```
 
-**Explanation**: Complex analysis using CTE to aggregate department metrics, including budget utilization, project involvement, and skills diversity with health indicators.
+**Explanation**: Complex analysis using CTE to aggregate d.DepartmentName metrics, including budget utilization, project involvement, and skills diversity with health indicators.
 
 **Answer 1.1.3**: Skills Market Value Analysis
 ```sql
@@ -233,7 +232,7 @@ WITH EmployeeMetrics AS (
     SELECT 
         e.EmployeeID,
         e.FirstName + ' ' + e.LastName AS EmployeeName,
-        e.Title,
+        e.JobTitle,
         DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
         d.DepartmentName,
         mgr.FirstName + ' ' + mgr.LastName AS ManagerName,
@@ -250,7 +249,7 @@ WITH EmployeeMetrics AS (
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'In Progress'
     LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
     WHERE e.IsActive = 1
-    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.HireDate,
+    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.HireDate,
              d.DepartmentName, mgr.FirstName, mgr.LastName
     HAVING COUNT(ep.ProjectID) >= 2
 )
@@ -306,11 +305,11 @@ WITH EmployeeIntegration AS (
     SELECT 
         e.EmployeeID,
         e.FirstName + ' ' + e.LastName AS EmployeeName,
-        e.Title,
+        e.JobTitle,
         e.HireDate,
         e.IsActive,
         
-        -- Department integration
+        -- d.DepartmentName integration
         CASE WHEN d.DepartmentID IS NOT NULL THEN 1 ELSE 0 END AS HasDepartment,
         ISNULL(d.DepartmentName, 'Unassigned') AS DepartmentIsActive,
         
@@ -331,7 +330,7 @@ WITH EmployeeIntegration AS (
     LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'In Progress'
     LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
-    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.HireDate, e.IsActive,
+    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.HireDate, e.IsActive,
              d.DepartmentID, d.DepartmentName, mgr.EmployeeID, mgr.FirstName, mgr.LastName
 )
 SELECT 
@@ -374,9 +373,9 @@ ORDER BY [Integration Score] ASC, HireDate ASC;
 
 **Explanation**: Comprehensive integration analysis using multiple LEFT JOINs to assess employee assignment completeness across all organizational dimensions.
 
-**Answer 2.1.2**: Department Efficiency and Capacity Analysis
+**Answer 2.1.2**: d.DepartmentName Efficiency and Capacity Analysis
 ```sql
--- Complete department analysis including vacant departments
+-- Complete d.DepartmentName analysis including vacant departments
 WITH DepartmentAnalysis AS (
     SELECT 
         d.DepartmentID,
@@ -385,7 +384,7 @@ WITH DepartmentAnalysis AS (
         d.Location,
         d.IsActive AS DeptActive,
         COUNT(e.EmployeeID) AS CurrentHeadcount,
-        ISNULL(SUM(e.BaseSalary), 0) AS TotalSalaryCost,
+        ISNULL(SUM(e.BaseSalary), 0) AS TotalBaseSalaryCost,
         COUNT(DISTINCT proj_emp.ProjectID) AS ActiveProjectCount,
         AVG(CASE WHEN ep.HoursAllocated > 0 THEN ep.HoursWorked / ep.HoursAllocated END) AS AvgEfficiency,
         COUNT(DISTINCT es.SkillID) AS SkillsCoverage
@@ -401,8 +400,7 @@ WITH DepartmentAnalysis AS (
     LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
     GROUP BY d.DepartmentID, d.DepartmentName, d.Budget, d.Location, d.IsActive
 )
-SELECT 
-    DepartmentName AS [Department],
+SELECT d.DepartmentName AS [Department],
     CASE WHEN DeptActive = 1 THEN 'Active' ELSE 'Inactive' END AS [Dept IsActive],
     FORMAT(Budget, 'C0') AS [Budget],
     Location AS [Location],
@@ -455,7 +453,7 @@ ORDER BY
     Budget DESC;
 ```
 
-**Explanation**: Comprehensive department analysis using LEFT JOINs to include all departments regardless of staffing, with capacity and efficiency assessments.
+**Explanation**: Comprehensive d.DepartmentName analysis using LEFT JOINs to include all departments regardless of staffing, with capacity and efficiency assessments.
 
 *Due to length constraints, I'll provide the key structure and approach for the remaining answers:*
 
@@ -496,7 +494,7 @@ WITH EmployeeMetrics AS (
     SELECT 
         e.EmployeeID,
         e.FirstName + ' ' + e.LastName AS EmployeeName,
-        e.Title,
+        e.JobTitle,
         e.BaseSalary,
         e.HireDate,
         DATEDIFF(YEAR, e.HireDate, GETDATE()) AS Tenure,
@@ -517,7 +515,7 @@ WITH EmployeeMetrics AS (
     LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
     LEFT JOIN Skills s ON es.SkillID = s.SkillID
     WHERE e.IsActive = 1
-    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.BaseSalary, 
+    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.BaseSalary, 
              e.HireDate, d.DepartmentName, d.Budget
 ),
 PerformanceScoring AS (
@@ -724,7 +722,7 @@ ORDER BY ha.HierarchyLevel, ha.Manager3Name, ha.Manager2Name, ha.Manager1Name, h
 
 **Answer 4.1.2**: Employee Peer Comparison and Benchmarking (Structure)
 ```sql
--- Key elements: Self-join employees within same department
+-- Key elements: Self-join employees within same d.DepartmentName
 -- Compare: BaseSalary equity, experience alignment, skills portfolio
 -- Analyze: Performance benchmarking, career progression
 -- Recommend: Compensation adjustments, development opportunities
@@ -773,7 +771,7 @@ ORDER BY ha.HierarchyLevel, ha.Manager3Name, ha.Manager2Name, ha.Manager1Name, h
 ```sql
 -- Financial Performance Module
 WITH FinancialMetrics AS (
-    -- Department budget performance, ROI calculations
+    -- d.DepartmentName budget performance, ROI calculations
     -- Project profitability analysis
     -- Client value and retention metrics
 ),

@@ -33,7 +33,7 @@ END
 
 ### 1. Basic Simple CASE
 ```sql
--- Simple CASE based on department ID
+-- Simple CASE based on d.d.DepartmentName ID
 SELECT 
     FirstName,
     LastName,
@@ -45,8 +45,8 @@ SELECT
         WHEN 4 THEN 'Marketing'
         WHEN 5 THEN 'Operations'
         ELSE 'Unknown Department'
-    END AS DepartmentName
-FROM Employees;
+    END AS d.DepartmentName
+FROM Employees e;
 
 -- Simple CASE for status indicators
 SELECT 
@@ -58,7 +58,7 @@ SELECT
         WHEN 0 THEN 'Inactive'
         ELSE 'Unknown'
     END AS EmployeeIsActive
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 2. Basic Searched CASE
@@ -75,7 +75,7 @@ SELECT
         WHEN BaseSalary > 100000 THEN 'Executive Level'
         ELSE 'Unclassified'
     END AS SalaryCategory
-FROM Employees;
+FROM Employees e;
 
 -- CASE for tenure analysis
 SELECT 
@@ -89,7 +89,7 @@ SELECT
         WHEN DATEDIFF(YEAR, HireDate, GETDATE()) > 7 THEN 'Veteran'
         ELSE 'Unknown'
     END AS ExperienceLevel
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 3. CASE in SELECT with Calculations
@@ -110,7 +110,7 @@ SELECT
         WHEN DepartmentID = 4 THEN 'Sales Bonus: $1500'
         ELSE 'Standard Benefits'
     END AS AdditionalBenefits
-FROM Employees;
+FROM Employees e;
 ```
 
 ## Intermediate Examples
@@ -138,7 +138,7 @@ SELECT
             FirstName + ' ' + LEFT(MiddleName, 1) + '. ' + LastName
         ELSE FirstName + ' ' + LastName
     END AS FormalName
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 2. CASE with Date Operations
@@ -163,7 +163,7 @@ SELECT
         WHEN DATEPART(WEEKDAY, HireDate) IN (2, 3, 4, 5, 6) THEN 'Weekday Start'
         ELSE 'Weekend Start'
     END AS StartDayType
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 3. CASE in WHERE Clauses
@@ -229,26 +229,26 @@ SELECT
     DepartmentID,
     HireDate,
     CASE 
-        WHEN DepartmentID = 1 THEN  -- IT Department
+        WHEN DepartmentID = 1 THEN  -- IT d.d.DepartmentName
             CASE 
                 WHEN BaseSalary >= 90000 THEN 'IT Senior Architect'
                 WHEN BaseSalary >= 70000 THEN 'IT Senior Developer'
                 WHEN BaseSalary >= 50000 THEN 'IT Developer'
                 ELSE 'IT Junior'
             END
-        WHEN DepartmentID = 2 THEN  -- HR Department
+        WHEN DepartmentID = 2 THEN  -- HR d.d.DepartmentName
             CASE 
                 WHEN BaseSalary >= 80000 THEN 'HR Director'
                 WHEN BaseSalary >= 60000 THEN 'HR Manager'
                 ELSE 'HR Specialist'
             END
-        WHEN DepartmentID = 3 THEN  -- Finance Department
+        WHEN DepartmentID = 3 THEN  -- Finance d.d.DepartmentName
             CASE 
                 WHEN BaseSalary >= 85000 THEN 'Finance Director'
                 WHEN BaseSalary >= 65000 THEN 'Senior Analyst'
                 ELSE 'Financial Analyst'
             END
-        ELSE 'Other Department Role'
+        ELSE 'Other d.d.DepartmentName Role'
     END AS DetailedRole,
     CASE 
         WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 10 THEN
@@ -264,7 +264,7 @@ SELECT
             END
         ELSE 'Developing Professional'
     END AS CareerTrack
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 2. CASE with Complex Business Rules
@@ -276,13 +276,13 @@ SELECT
     e.BaseSalary,
     e.DepartmentID,
     e.HireDate,
-    e.Title,
+    e.JobTitle,
     -- Complex eligibility determination
     CASE 
         WHEN e.IsActive = 0 THEN 'Not Eligible - Inactive'
         WHEN DATEDIFF(MONTH, e.HireDate, GETDATE()) < 6 THEN 'Not Eligible - Tenure'
         WHEN e.DepartmentID = 1 AND e.BaseSalary < 60000 THEN 'Not Eligible - IT BaseSalary Threshold'
-        WHEN e.DepartmentID = 3 AND e.Title NOT LIKE '%Analyst%' AND e.Title NOT LIKE '%Manager%' 
+        WHEN e.DepartmentID = 3 AND e.JobTitle NOT LIKE '%Analyst%' AND e.JobTitle NOT LIKE '%Manager%' 
              THEN 'Not Eligible - Finance Role Requirement'
         WHEN EXISTS (
             SELECT 1 FROM EmployeeProjects ep 
@@ -293,7 +293,7 @@ SELECT
     END AS PromotionEligibility,
     -- Dynamic bonus calculation
     CASE 
-        WHEN e.DepartmentID = 1 THEN  -- IT Department
+        WHEN e.DepartmentID = 1 THEN  -- IT d.d.DepartmentName
             CASE 
                 WHEN EXISTS (
                     SELECT 1 FROM EmployeeProjects ep 
@@ -304,7 +304,7 @@ SELECT
                 ) THEN e.BaseSalary * 0.15  -- Project completion bonus
                 ELSE e.BaseSalary * 0.08    -- Standard IT bonus
             END
-        WHEN e.DepartmentID = 4 THEN  -- Marketing Department
+        WHEN e.DepartmentID = 4 THEN  -- Marketing d.d.DepartmentName
             CASE 
                 WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 3 
                      AND e.BaseSalary >= 60000 THEN e.BaseSalary * 0.12
@@ -312,7 +312,8 @@ SELECT
             END
         ELSE e.BaseSalary * 0.05  -- Standard bonus for other departments
     END AS CalculatedBonus
-FROM Employees e;
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 ```
 
 ### 3. CASE with Window Functions
@@ -335,15 +336,15 @@ SELECT
         ELSE 'Department Below Median'
     END AS SalaryPosition,
     CASE 
-        WHEN BaseSalary > AVG(BaseSalary) OVER (PARTITION BY DepartmentIDID) * 1.2 
+        WHEN BaseSalary > AVG(e.BaseSalary) OVER (PARTITION BY DepartmentIDID) * 1.2 
              THEN 'Significantly Above Dept Average'
-        WHEN BaseSalary > AVG(BaseSalary) OVER (PARTITION BY DepartmentIDID) 
-             THEN 'Above Department Average'
-        WHEN BaseSalary < AVG(BaseSalary) OVER (PARTITION BY DepartmentIDID) * 0.8 
+        WHEN BaseSalary > AVG(e.BaseSalary) OVER (PARTITION BY DepartmentIDID) 
+             THEN 'Above d.d.DepartmentName Average'
+        WHEN BaseSalary < AVG(e.BaseSalary) OVER (PARTITION BY DepartmentIDID) * 0.8 
              THEN 'Significantly Below Dept Average'
-        ELSE 'Near Department Average'
+        ELSE 'Near d.d.DepartmentName Average'
     END AS SalaryComparison
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 4. CASE in Complex Joins
@@ -395,14 +396,14 @@ SELECT
         WHEN 2 THEN 'HR'
         WHEN 3 THEN 'Finance'
         ELSE 'Other'  -- Always include ELSE
-    END AS Department
-FROM Employees;
+    END AS d.DepartmentName
+FROM Employees e;
 
 -- Risky: Missing ELSE can result in NULL values
 -- CASE DepartmentID
 --     WHEN 1 THEN 'IT'
 --     WHEN 2 THEN 'HR'
--- END AS Department  -- What happens with DepartmentID = 3?
+-- END AS d.DepartmentName  -- What happens with DepartmentID = 3?
 ```
 
 ### 2. Order Conditions Appropriately
@@ -419,7 +420,7 @@ SELECT
         WHEN BaseSalary > 40000 THEN 'Entry-Level'
         ELSE 'Intern'                              -- Catch-all last
     END AS Level
-FROM Employees;
+FROM Employees e;
 
 -- Problematic: Wrong order can cause incorrect results
 -- CASE 
@@ -440,7 +441,7 @@ SELECT
         WHEN BaseSalary > 50000 THEN 'Medium'
         ELSE 'Low'
     END AS SalaryLevel
-FROM Employees;
+FROM Employees e;
 
 -- Problematic: Mixed data types
 -- CASE 
@@ -480,8 +481,8 @@ SELECT
         WHEN 1 THEN 'IT'
         WHEN 2 THEN 'HR'
         -- Missing ELSE - what about DepartmentID 3, 4, 5?
-    END AS Department
-FROM Employees;
+    END AS d.DepartmentName
+FROM Employees e;
 
 -- Solution: Always include ELSE
 SELECT 
@@ -490,8 +491,8 @@ SELECT
         WHEN 1 THEN 'IT'
         WHEN 2 THEN 'HR'
         ELSE 'Other Department'
-    END AS Department
-FROM Employees;
+    END AS d.DepartmentName
+FROM Employees e;
 ```
 
 ### 2. Incorrect Condition Order
@@ -504,7 +505,7 @@ SELECT
         WHEN BaseSalary > 80000 THEN 'Above 80k'    -- This never executes!
         ELSE 'Below 50k'
     END AS Range
-FROM Employees;
+FROM Employees e;
 
 -- Solution: Order from highest to lowest
 SELECT 
@@ -514,7 +515,7 @@ SELECT
         WHEN BaseSalary > 50000 THEN 'Above 50k'
         ELSE 'Below 50k'
     END AS Range
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 3. Data Type Inconsistency
@@ -526,7 +527,7 @@ SELECT
         WHEN BaseSalary > 50000 THEN 'Medium'    -- Returns string
         ELSE NULL                            -- Returns NULL
     END AS Result
-FROM Employees;
+FROM Employees e;
 
 -- Solution: Consistent return types
 SELECT 
@@ -535,7 +536,7 @@ SELECT
         WHEN BaseSalary > 50000 THEN 'Medium BaseSalary'
         ELSE 'Low BaseSalary'
     END AS Result
-FROM Employees;
+FROM Employees e;
 ```
 
 ## Performance Considerations

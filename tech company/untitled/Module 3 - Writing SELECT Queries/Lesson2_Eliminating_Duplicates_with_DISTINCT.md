@@ -20,13 +20,13 @@ FROM table_name
 
 ### 1. Basic DISTINCT Usage
 ```sql
--- Without DISTINCT - shows all department IDs (with duplicates)
+-- Without DISTINCT - shows all d.DepartmentName IDs (with duplicates)
 SELECT DepartmentID 
-FROM Employees;
+FROM Employees e;
 
--- With DISTINCT - shows unique department IDs only
+-- With DISTINCT - shows unique d.DepartmentName IDs only
 SELECT DISTINCT DepartmentID 
-FROM Employees;
+FROM Employees e;
 
 -- Practical example: Get all cities where employees live
 SELECT DISTINCT City
@@ -57,18 +57,18 @@ ORDER BY HireYear;
 ```sql
 -- Count total employees
 SELECT COUNT(*) AS TotalEmployees
-FROM Employees;
+FROM Employees e;
 
 -- Count employees with distinct first names
 SELECT COUNT(DISTINCT FirstName) AS UniqueFirstNames
-FROM Employees;
+FROM Employees e;
 
 -- Show the difference
 SELECT 
     COUNT(*) AS TotalEmployees,
     COUNT(DISTINCT FirstName) AS UniqueFirstNames,
     COUNT(*) - COUNT(DISTINCT FirstName) AS DuplicateFirstNames
-FROM Employees;
+FROM Employees e;
 ```
 
 ## Intermediate Examples
@@ -86,8 +86,8 @@ FROM Employees
 ORDER BY DepartmentIDID, Title;
 
 -- Compare single vs. multiple column DISTINCT
-SELECT DISTINCT DepartmentID FROM Employees;  -- Unique departments
-SELECT DISTINCT DepartmentID, Title FROM Employees;  -- Unique dept/title combinations
+SELECT DISTINCT DepartmentID FROM Employees e;  -- Unique departments
+SELECT DISTINCT DepartmentID, Title FROM Employees e;  -- Unique dept/title combinations
 ```
 
 ### 2. DISTINCT with Calculated Columns
@@ -99,7 +99,7 @@ SELECT DISTINCT
         WHEN BaseSalary BETWEEN 50000 AND 80000 THEN 'Medium'
         ELSE 'High'
     END AS SalaryRange
-FROM Employees;
+FROM Employees e;
 
 -- Unique hire date components
 SELECT DISTINCT 
@@ -127,13 +127,14 @@ WHERE DepartmentID IN (
     HAVING COUNT(DISTINCT Title) > 1
 );
 
--- Find the most recent hire date for each department
+-- Find the most recent hire date for each d.DepartmentName
 SELECT 
     e.DepartmentID,
     e.FirstName,
     e.LastName,
     e.HireDate
 FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.HireDate IN (
     SELECT MAX(HireDate)
     FROM Employees e2
@@ -144,13 +145,13 @@ WHERE e.HireDate IN (
 ### 4. DISTINCT with JOINs
 ```sql
 -- Assuming we have a Departments table
--- Find unique department names that have employees
+-- Find unique d.DepartmentName names that have employees
 SELECT DISTINCT d.DepartmentName
 FROM Departments d
 INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
 ORDER BY d.DepartmentName;
 
--- Find unique combinations of department and manager information
+-- Find unique combinations of d.DepartmentName and manager information
 SELECT DISTINCT 
     d.DepartmentName,
     m.FirstName + ' ' + m.LastName AS ManagerName
@@ -175,14 +176,14 @@ WITH EmployeeSkillSets AS (
     GROUP BY e.EmployeeID, e.FirstName, e.LastName
 )
 SELECT DISTINCT SkillSet
-FROM EmployeeSkillSets
+FROM Employees ekillSets
 WHERE SkillSet IS NOT NULL
 ORDER BY SkillSet;
 ```
 
 ### 2. DISTINCT with Window Functions
 ```sql
--- Find distinct BaseSalary ranks within each department
+-- Find distinct BaseSalary ranks within each d.DepartmentName
 SELECT DISTINCT
     DepartmentID,
     DENSE_RANK() OVER (PARTITION BY DepartmentIDID ORDER BY BaseSalary DESC) AS SalaryRank,
@@ -299,7 +300,7 @@ ORDER BY ss.DistinctSalaryTiers DESC, ss.DistinctRoleTypes DESC;
 ```sql
 -- DISTINCT - simply removes duplicates
 SELECT DISTINCT DepartmentID
-FROM Employees;
+FROM Employees e;
 
 -- GROUP BY - groups rows and allows aggregation
 SELECT DepartmentID
@@ -310,7 +311,7 @@ GROUP BY DepartmentIDID;
 SELECT 
     DepartmentID,
     COUNT(*) AS EmployeeCount,
-    AVG(BaseSalary) AS AvgSalary
+    AVG(e.BaseSalary) AS AvgSalary
 FROM Employees
 GROUP BY DepartmentIDID;
 ```
@@ -368,7 +369,7 @@ WHERE EXISTS (
 -- DISTINCT can benefit from appropriate indexes
 -- For this query:
 SELECT DISTINCT DepartmentID, Title
-FROM Employees;
+FROM Employees e;
 
 -- Consider creating an index:
 -- CREATE INDEX IX_Employees_Dept_Title ON Employees(DepartmentID, Title);
@@ -379,7 +380,7 @@ FROM Employees;
 -- Instead of DISTINCT in large datasets, consider GROUP BY
 -- DISTINCT approach
 SELECT DISTINCT DepartmentID
-FROM Employees;
+FROM Employees e;
 
 -- GROUP BY approach (sometimes more efficient)
 SELECT DepartmentID
@@ -392,7 +393,7 @@ FROM (
     SELECT 
         DepartmentID,
         ROW_NUMBER() OVER (PARTITION BY DepartmentIDID ORDER BY EmployeeID) AS rn
-    FROM Employees
+    FROM Employees e
 ) ranked
 WHERE rn = 1;
 ```
@@ -404,35 +405,35 @@ WHERE rn = 1;
 -- WRONG: Thinking DISTINCT applies to individual columns
 -- This gets distinct combinations of DepartmentID and FirstName
 SELECT DISTINCT DepartmentID, FirstName
-FROM Employees;
+FROM Employees e;
 
 -- If you want distinct DepartmentIDs, do this:
 SELECT DISTINCT DepartmentID
-FROM Employees;
+FROM Employees e;
 
 -- If you want both, use separate queries or subqueries
 SELECT DISTINCT DepartmentID FROM Employees
 UNION
-SELECT DISTINCT FirstName FROM Employees;
+SELECT DISTINCT FirstName FROM Employees e;
 ```
 
 ### 2. Unnecessary DISTINCT Usage
 ```sql
 -- WRONG: Using DISTINCT when not needed
 SELECT DISTINCT EmployeeID, FirstName, LastName
-FROM Employees;
+FROM Employees e;
 -- EmployeeID is unique, so DISTINCT is unnecessary
 
 -- CORRECT: Only use DISTINCT when duplicates are possible
 SELECT DISTINCT DepartmentID
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 3. DISTINCT with Functions
 ```sql
 -- Be careful with functions in DISTINCT
 SELECT DISTINCT UPPER(FirstName)
-FROM Employees;
+FROM Employees e;
 -- This is fine
 
 -- But consider performance implications
@@ -440,7 +441,7 @@ SELECT DISTINCT
     UPPER(FirstName),
     LOWER(LastName),
     FORMAT(BaseSalary, 'C')
-FROM Employees;
+FROM Employees e;
 -- Multiple functions can impact performance
 ```
 
@@ -448,7 +449,7 @@ FROM Employees;
 ```sql
 -- DISTINCT treats NULL as a distinct value
 SELECT DISTINCT MiddleName
-FROM Employees;
+FROM Employees e;
 -- Will show NULL as one of the distinct values
 
 -- To exclude NULLs:
@@ -458,7 +459,7 @@ WHERE MiddleName IS NOT NULL;
 
 -- To replace NULLs:
 SELECT DISTINCT ISNULL(MiddleName, 'No Middle Name') AS MiddleName
-FROM Employees;
+FROM Employees e;
 ```
 
 ## Practical Applications
@@ -472,7 +473,7 @@ SELECT 'Title', COUNT(DISTINCT Title) FROM Employees
 UNION ALL
 SELECT 'City', COUNT(DISTINCT City) FROM Employees
 UNION ALL
-SELECT 'HireYear', COUNT(DISTINCT YEAR(HireDate)) FROM Employees;
+SELECT 'HireYear', COUNT(DISTINCT YEAR(HireDate)) FROM Employees e;
 ```
 
 ### 2. Data Validation

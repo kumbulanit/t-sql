@@ -27,12 +27,12 @@ EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, 
 
 ### Task 1.1: Combine Employee Lists
 
-**Business Scenario**: The HR department needs a comprehensive list combining current employees and recent former employees for a company-wide communication initiative.
+**Business Scenario**: The HR d.DepartmentName needs a comprehensive list combining current employees and recent former employees for a company-wide communication initiative.
 
 **Instructions**:
 1. Create a query that combines current employees with former employees who left within the last 6 months
-2. Include employee name, department, and employment status
-3. Sort the results by department and then by employee name
+2. Include employee name, d.DepartmentName, and employment status
+3. Sort the results by d.DepartmentName and then by employee name
 
 **Expected Output Columns**:
 - EmployeeName
@@ -85,13 +85,13 @@ EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, 
 
 ```
 
-### Task 2.2: Department Budget Allocation Analysis
+### Task 2.2: d.DepartmentName Budget Allocation Analysis
 
 **Business Scenario**: Finance needs to analyze budget allocations across different categories (salaries, projects, operational costs) using historical data that may have duplicate entries for audit purposes.
 
 **Instructions**:
 1. Combine different budget allocation sources using UNION ALL
-2. Include allocation type, department, amount, and period
+2. Include allocation type, d.DepartmentName, amount, and period
 3. Calculate percentage distributions
 
 **Your Solution**:
@@ -179,7 +179,7 @@ EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, 
 
 ### Task 5.1: Dynamic Employee Performance Analysis
 
-**Business Scenario**: HR needs a dynamic performance report where analysis criteria change based on each employee's role, department, and tenure.
+**Business Scenario**: HR needs a dynamic performance report where analysis criteria change based on each employee's role, d.DepartmentName, and tenure.
 
 **Instructions**:
 1. Use CROSS APPLY to create dynamic performance metrics
@@ -221,7 +221,7 @@ EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, 
 1. Combine revenue data from multiple sources (UNION)
 2. Identify performance gaps (EXCEPT)
 3. Find cross-functional success patterns (INTERSECT)
-4. Generate dynamic insights per department (APPLY)
+4. Generate dynamic insights per d.DepartmentName (APPLY)
 
 **Instructions**:
 1. Create a complex query using at least 3 different set operators

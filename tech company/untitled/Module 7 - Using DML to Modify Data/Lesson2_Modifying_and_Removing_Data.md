@@ -197,7 +197,7 @@ WHERE EmployeeID IN (
     FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.BaseSalary > (
-        SELECT AVG(BaseSalary) 
+        SELECT AVG(e.BaseSalary) 
         FROM Employees 
         WHERE DepartmentID = e.DepartmentID AND IsActive = 1
     )
@@ -221,7 +221,7 @@ WHERE NOT EXISTS (
 
 ### UPDATE with INNER JOIN
 ```sql
--- Update employee salaries based on department budget
+-- Update employee salaries based on d.DepartmentName budget
 UPDATE e
 SET 
     BaseSalary = CASE 
@@ -234,7 +234,7 @@ FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1;
 
--- Update department manager based on highest BaseSalary in department
+-- Update d.DepartmentName manager based on highest BaseSalary in d.DepartmentName
 UPDATE d
 SET 
     ManagerID = emp.EmployeeID,
@@ -249,9 +249,8 @@ INNER JOIN (
     WHERE IsActive = 1
 ) emp ON d.DepartmentID = emp.DepartmentID AND emp.rn = 1;
 
--- Verify the department manager updates
-SELECT 
-    d.DepartmentName,
+-- Verify the d.DepartmentName manager updates
+SELECT d.DepartmentName,
     e.FirstName + ' ' + e.LastName AS ManagerName,
     FORMAT(e.BaseSalary, 'C') AS ManagerSalary
 FROM Departments d
@@ -492,7 +491,7 @@ WHERE OldIsActive != NewIsActive;
 ```sql
 -- Create a test table for DELETE demonstrations
 CREATE TABLE EmployeeTemp AS 
-SELECT * FROM Employees;
+SELECT * FROM Employees e;
 
 -- Add test data that's safe to delete
 INSERT INTO EmployeeTemp (FirstName, LastName, WorkEmail, BaseSalary, DepartmentID, IsActive)
@@ -938,7 +937,7 @@ DECLARE @StartTime DATETIME2 = SYSDATETIME();
 DECLARE @RowsAffected INT;
 
 DELETE FROM EmployeeTemp 
-WHERE IsActive = 0 AND DepartmentID = 999;  -- Non-existent department
+WHERE IsActive = 0 AND DepartmentID = 999;  -- Non-existent d.DepartmentName
 
 SET @RowsAffected = @@ROWCOUNT;
 
@@ -1030,7 +1029,7 @@ BEGIN
     
     IF NOT EXISTS (SELECT 1 FROM Departments WHERE DepartmentID = @DepartmentID)
     BEGIN
-        PRINT 'Error: Invalid department ID';
+        PRINT 'Error: Invalid d.DepartmentName ID';
         RETURN;
     END
     
@@ -1060,6 +1059,7 @@ BEGIN
             BaseSalary = BaseSalary * (1 + @SalaryIncreasePercent / 100.0),
             ModifiedDate = SYSDATETIME()
         FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
         WHERE e.DepartmentID = @DepartmentID 
           AND e.IsActive = 1 
           AND e.BaseSalary IS NOT NULL;
@@ -1081,8 +1081,7 @@ BEGIN
         PRINT 'Successfully updated ' + CAST(@UpdatedCount AS VARCHAR(10)) + ' employees';
         
         -- Return summary of changes
-        SELECT 
-            d.DepartmentName,
+        SELECT d.DepartmentName,
             COUNT(*) AS EmployeesUpdated,
             FORMAT(AVG(bu.OldSalary), 'C') AS AverageOldSalary,
             FORMAT(AVG(bu.NewSalary), 'C') AS AverageNewSalary,

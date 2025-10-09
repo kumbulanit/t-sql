@@ -36,17 +36,17 @@ EmployeeArchive: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, Term
 │                                                                             │
 │  UNION (Removes Duplicates):                                               │
 │  ┌─────────────────────────────────────┐                                   │
-│  │ SELECT Name, Department FROM Active │                                   │
+│  │ SELECT Name, d.DepartmentName FROM Active │                                   │
 │  │ UNION                               │  →  • Sorts data to find dupes    │
-│  │ SELECT Name, Department FROM Temp   │      • Higher memory usage        │
+│  │ SELECT Name, d.DepartmentName FROM Temp   │      • Higher memory usage        │
 │  │                                     │      • Slower execution           │
 │  └─────────────────────────────────────┘      • Guaranteed unique results  │
 │                                                                             │
 │  UNION ALL (Preserves All Rows):                                          │
 │  ┌─────────────────────────────────────┐                                   │
-│  │ SELECT Name, Department FROM Active │                                   │
+│  │ SELECT Name, d.DepartmentName FROM Active │                                   │
 │  │ UNION ALL                           │  →  • No duplicate checking       │
-│  │ SELECT Name, Department FROM Temp   │      • Lower memory usage         │
+│  │ SELECT Name, d.DepartmentName FROM Temp   │      • Lower memory usage         │
 │  │                                     │      • Faster execution           │
 │  └─────────────────────────────────────┘      • May contain duplicates     │
 │                                                                             │
@@ -214,8 +214,8 @@ UNION ALL
 SELECT 
     'Human Resources' AS BusinessDimension,
     'Compensation' AS MetricCategory,
-    'Average Base Salary' AS MetricName,
-    FORMAT(AVG(BaseSalary), 'C') AS MetricValue,
+    'Average Base BaseSalary' AS MetricName,
+    FORMAT(AVG(e.BaseSalary), 'C') AS MetricValue,
     'Currency' AS UnitOfMeasure,
     FORMAT(GETDATE(), 'yyyy-MM-dd') AS ReportDate,
     'Current' AS TimePeriod
@@ -530,7 +530,7 @@ ORDER BY TransactionDate DESC, Amount DESC;
 -- Complete audit trail for compliance reporting
 SELECT 
     'Employee Transaction' AS AuditCategory,
-    'Salary Change' AS TransactionType,
+    'BaseSalary Change' AS TransactionType,
     e.EmployeeID AS EntityID,
     e.FirstName + ' ' + e.LastName AS EntityName,
     FORMAT(e.BaseSalary, 'C') AS TransactionAmount,
@@ -680,8 +680,7 @@ ORDER BY RecordDate DESC;
 #### Early Filtering for Performance
 ```sql
 -- ✅ GOOD: Filter early in each SELECT statement
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     'Current' AS Period,
     COUNT(*) AS EmployeeCount,
     AVG(e.BaseSalary) AS AvgSalary
@@ -694,8 +693,7 @@ GROUP BY d.DepartmentID, d.DepartmentName
 
 UNION ALL
 
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     'Historical' AS Period,
     COUNT(*) AS EmployeeCount,
     AVG(ea.BaseSalary) AS AvgSalary
@@ -705,7 +703,7 @@ WHERE d.IsActive = 1
   AND ea.TerminationDate >= DATEADD(YEAR, -2, GETDATE())
 GROUP BY d.DepartmentID, d.DepartmentName
 
-ORDER BY DepartmentName, Period;
+ORDER BY d.DepartmentName, Period;
 ```
 
 ### 3. Meaningful Column Aliasing
@@ -763,7 +761,7 @@ SELECT ContactName, CompanyName, 'Customer' AS RecordType FROM Customers WHERE I
 #### Problem and Solution
 ```sql
 -- ❌ PROBLEM: Incompatible data types
-SELECT EmployeeID, BaseSalary FROM Employees  -- INT, DECIMAL
+SELECT EmployeeID, BaseSalary FROM Employees e  -- INT, DECIMAL
 UNION
 SELECT CompanyName, ContactName FROM Customers;  -- VARCHAR, VARCHAR
 

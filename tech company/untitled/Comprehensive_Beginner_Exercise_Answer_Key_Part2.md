@@ -275,7 +275,7 @@ WITH SalaryAnalytics AS (
         e.BaseSalary,
         e.HireDate,
         
-        -- Get salary history for calculations (simulated with random increases)
+        -- Get BaseSalary history for calculations (simulated with random increases)
         e.BaseSalary * 0.95 as EstimatedStartingSalary,  -- Assume 5% growth
         
         -- Performance metrics
@@ -300,7 +300,7 @@ SELECT
     DepartmentName,
     JobTitle,
     
-    -- Salary calculations with mathematical functions
+    -- BaseSalary calculations with mathematical functions
     FORMAT(BaseSalary, 'C') as CurrentSalary,
     FORMAT(EstimatedStartingSalary, 'C') as EstimatedStartingSalary,
     
@@ -366,7 +366,7 @@ SELECT
     END as SalaryQuartile,
     
     -- Square root for standard deviation-like calculations
-    SQRT(ABS(BaseSalary - (SELECT AVG(BaseSalary) FROM SalaryAnalytics WHERE DepartmentName = sa.DepartmentName))) as SalaryDeviationSqrt,
+    SQRT(ABS(BaseSalary - (SELECT AVG(e.BaseSalary) FROM SalaryAnalytics WHERE d.d.DepartmentName = sa.d.DepartmentName))) as SalaryDeviationSqrt,
     
     -- Modulo operations for grouping
     EmployeeID % 10 as EmployeeGroupMod10,
@@ -380,7 +380,7 @@ SELECT
         ELSE 39895.50 + (BaseSalary - 190750) * 0.32
     END as EstimatedFederalTax,
     
-    -- Net salary calculation
+    -- Net BaseSalary calculation
     BaseSalary - (
         CASE 
             WHEN BaseSalary <= 10275 THEN BaseSalary * 0.10
@@ -396,7 +396,7 @@ FROM SalaryAnalytics sa
 ORDER BY BaseSalary DESC;
 ```
 
-**🎯 Business Explanation**: Mathematical analysis of compensation data supports budgeting, tax planning, and performance evaluation. These calculations help HR understand the financial impact of salary decisions and project future compensation costs.
+**🎯 Business Explanation**: Mathematical analysis of compensation data supports budgeting, tax planning, and performance evaluation. These calculations help HR understand the financial impact of BaseSalary decisions and project future compensation costs.
 
 **🔧 Technical Breakdown**:
 
@@ -435,7 +435,7 @@ WITH DepartmentMetrics AS (
         COUNT(CASE WHEN DATEDIFF(YEAR, e.BirthDate, GETDATE()) >= 30 AND DATEDIFF(YEAR, e.BirthDate, GETDATE()) < 50 THEN 1 END) as Employees30to50,
         COUNT(CASE WHEN DATEDIFF(YEAR, e.BirthDate, GETDATE()) >= 50 THEN 1 END) as EmployeesOver50,
         
-        -- Salary statistics
+        -- BaseSalary statistics
         AVG(e.BaseSalary) as AvgSalary,
         MIN(e.BaseSalary) as MinSalary,
         MAX(e.BaseSalary) as MaxSalary,
@@ -471,7 +471,7 @@ WITH DepartmentMetrics AS (
         LEFT JOIN (
             -- Count skills per employee
             SELECT EmployeeID, COUNT(*) as SkillCount
-            FROM EmployeeSkills
+            FROM Employees ekills
             GROUP BY EmployeeID
         ) emp_skills ON e.EmployeeID = emp_skills.EmployeeID
         
@@ -485,9 +485,9 @@ ProjectMetrics AS (
         COUNT(DISTINCT p.ProjectID) as ActiveProjects,
         SUM(p.Budget) as TotalProjectBudget,
         AVG(p.Budget) as AvgProjectBudget,
-        COUNT(CASE WHEN p.ProjectStatus = 'Completed' THEN 1 END) as CompletedProjects,
-        COUNT(CASE WHEN p.ProjectStatus = 'Active' THEN 1 END) as CurrentActiveProjects,
-        COUNT(CASE WHEN p.ProjectStatus = 'On Hold' THEN 1 END) as ProjectsOnHold
+        COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) as CompletedProjects,
+        COUNT(CASE WHEN p.Status = 'Active' THEN 1 END) as CurrentActiveProjects,
+        COUNT(CASE WHEN p.Status = 'On Hold' THEN 1 END) as ProjectsOnHold
     FROM Departments d
         LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID
         LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
@@ -496,8 +496,7 @@ ProjectMetrics AS (
 )
 
 -- Final comprehensive dashboard
-SELECT 
-    dm.DepartmentName,
+SELECT dm.d.DepartmentName,
     dm.CompanyName,
     
     -- Employee Statistics
@@ -547,7 +546,7 @@ SELECT
         ELSE 0
     END as ProjectsPerEmployee,
     
-    -- Department Health Score (composite metric)
+    -- d.d.DepartmentName Health Score (composite metric)
     (
         -- Performance component (40%)
         CASE 
@@ -627,7 +626,7 @@ ORDER BY
 **🔧 Technical Breakdown**:
 
 - **Complex CTEs**: Multi-stage data preparation (advanced Module 9)
-- **Multiple GROUP BY levels**: Department and project aggregations (Module 9, Lesson 2)
+- **Multiple GROUP BY levels**: d.DepartmentName and project aggregations (Module 9, Lesson 2)
 - **Conditional aggregation**: COUNT(CASE WHEN) pattern (Module 9, Lesson 1)
 - **Statistical functions**: STDEV, percentiles, ratios (Module 9, Lesson 1)
 - **Window functions**: ROW_NUMBER for latest performance data (Module 9)
@@ -688,8 +687,7 @@ WITH ExecutiveSummary AS (
 
 -- Competitive positioning analysis
 CompetitiveAnalysis AS (
-    SELECT 
-        d.DepartmentName,
+    SELECT d.d.DepartmentName,
         
         -- Talent competitiveness
         AVG(e.BaseSalary) as AvgDeptSalary,
@@ -717,7 +715,7 @@ CompetitiveAnalysis AS (
                 ROW_NUMBER() OVER (PARTITION BY pm1.EmployeeID ORDER BY pm1.ReviewDate DESC) as rn
             FROM PerformanceMetrics pm1
         ) pm ON e.EmployeeID = pm.EmployeeID AND pm.rn = 1
-    GROUP BY d.DepartmentID, d.DepartmentName
+    GROUP BY d.DepartmentID, d.d.DepartmentName
 ),
 
 -- Risk and opportunity assessment
@@ -735,7 +733,7 @@ RiskOpportunityAnalysis AS (
                         SELECT 1 FROM EmployeeProjects ep2 
                         INNER JOIN Projects p2 ON ep2.ProjectID = p2.ProjectID
                         WHERE ep2.EmployeeID = e.EmployeeID 
-                        AND p2.ProjectStatus = 'Active'
+                        AND p2.Status = 'Active'
                     )
               THEN 1 END) as UnderutilizedTalent,
               
@@ -743,12 +741,12 @@ RiskOpportunityAnalysis AS (
         COUNT(CASE WHEN dept_skills.SkillCount < 5 THEN 1 END) as DepartmentsWithSkillGaps,
         
         -- Revenue growth potential (projects in pipeline)
-        SUM(CASE WHEN p.ProjectStatus = 'Planning' THEN p.Budget ELSE 0 END) as PipelineValue
+        SUM(CASE WHEN p.Status = 'Planning' THEN p.Budget ELSE 0 END) as PipelineValue
         
     FROM Employees e
         INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
         LEFT JOIN (
-            SELECT DepartmentID, AVG(BaseSalary) as AvgSalary
+            SELECT DepartmentID, AVG(e.BaseSalary) as AvgSalary
             FROM Employees 
             WHERE IsActive = 1
             GROUP BY DepartmentID
@@ -914,7 +912,7 @@ SELECT
     CAST(ca.ProjectsPerEmployee AS DECIMAL(3,1)) as ProjectsPerEmployee,
     CAST(ca.SkillDiversityIndex AS DECIMAL(3,1)) as SkillDiversityIndex,
     
-    -- Department health score
+    -- d.d.DepartmentName health score
     (
         CASE WHEN ca.DeptPerformanceRating >= 4.0 THEN 25 WHEN ca.DeptPerformanceRating >= 3.5 THEN 20 ELSE 15 END +
         CASE WHEN ca.AvgTenure >= 3 THEN 25 WHEN ca.AvgTenure >= 2 THEN 20 ELSE 15 END +
@@ -922,7 +920,7 @@ SELECT
         CASE WHEN ca.ProjectsPerEmployee >= 1 THEN 25 WHEN ca.ProjectsPerEmployee >= 0.5 THEN 20 ELSE 15 END
     ) as HealthScore,
     
-    -- Strategic recommendation per department
+    -- Strategic recommendation per d.d.DepartmentName
     CASE 
         WHEN ca.DeptPerformanceRating < 3.5 THEN 'Performance Improvement Focus'
         WHEN ca.SkillDiversityIndex < 2 THEN 'Skills Development Investment'

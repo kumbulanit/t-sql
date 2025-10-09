@@ -29,15 +29,15 @@
 -- Complete GROUP BY query structure and processing order
 SELECT 
     -- 5. SELECT: Project aggregated results
-    Department,
+    d.DepartmentName,
     JobTitle,
     COUNT(*) AS EmployeeCount,
-    AVG(BaseSalary) AS AverageSalary,
-    SUM(BaseSalary) AS TotalSalary,
+    AVG(e.BaseSalary) AS AverageBaseSalary,
+    SUM(e.BaseSalary) AS TotalSalary,
     MIN(HireDate) AS EarliestHire,
     MAX(HireDate) AS LatestHire
 -- 1. FROM: Start with source table
-FROM Employees
+FROM Employees e
 -- 2. WHERE: Filter individual rows (before grouping)
 WHERE IsActive = 1 
     AND HireDate >= '2020-01-01'
@@ -45,7 +45,7 @@ WHERE IsActive = 1
 GROUP BY DepartmentID, JobTitle
 -- 4. HAVING: Filter groups (after grouping)
 HAVING COUNT(*) >= 3 
-    AND AVG(BaseSalary) > 50000
+    AND AVG(e.BaseSalary) > 50000
 -- 6. ORDER BY: Sort final result set
 ORDER BY DepartmentID, AverageSalary DESC;
 ```
@@ -274,14 +274,13 @@ ORDER BY GROUPING_ID(Region, Category, Product), Region, Category, Product;
 #### **Multi-Condition Filtering**
 ```sql
 -- Complex HAVING clause scenarios
-SELECT 
-    Department,
+SELECT d.DepartmentName,
     JobTitle,
     COUNT(*) AS EmployeeCount,
-    AVG(BaseSalary) AS AverageSalary,
-    MIN(BaseSalary) AS MinSalary,
-    MAX(BaseSalary) AS MaxSalary,
-    MAX(BaseSalary) - MIN(BaseSalary) AS SalaryRange,
+    AVG(e.BaseSalary) AS AverageBaseSalary,
+    MIN(e.BaseSalary) AS MinSalary,
+    MAX(e.BaseSalary) AS MaxSalary,
+    MAX(e.BaseSalary) - MIN(e.BaseSalary) AS SalaryRange,
     STDEV(BaseSalary) AS SalaryStandardDeviation
 FROM Employees
 WHERE IsActive = 1
@@ -289,11 +288,11 @@ GROUP BY DepartmentID, JobTitle
 HAVING 
     -- Multiple aggregate conditions
     COUNT(*) >= 5                               -- At least 5 employees
-    AND AVG(BaseSalary) BETWEEN 50000 AND 150000    -- Average BaseSalary in range
-    AND MAX(BaseSalary) - MIN(BaseSalary) > 20000       -- Significant BaseSalary variation
+    AND AVG(e.BaseSalary) BETWEEN 50000 AND 150000    -- Average BaseSalary in range
+    AND MAX(e.BaseSalary) - MIN(e.BaseSalary) > 20000       -- Significant BaseSalary variation
     AND STDEV(BaseSalary) < 15000                   -- Not too much variation
     -- Percentage-based conditions
-    AND MIN(BaseSalary) > 0.7 * AVG(BaseSalary)        -- Min BaseSalary at least 70% of average
+    AND MIN(e.BaseSalary) > 0.7 * AVG(e.BaseSalary)        -- Min BaseSalary at least 70% of average
 ORDER BY DepartmentID, AverageSalary DESC;
 ```
 
@@ -337,7 +336,7 @@ WITH EmployeeRankings AS (
     SELECT 
         EmployeeID,
         FirstName + ' ' + LastName AS EmployeeName,
-        Department,
+        d.DepartmentName,
         JobTitle,
         BaseSalary,
         HireDate,
@@ -357,8 +356,8 @@ WITH EmployeeRankings AS (
         CUME_DIST() OVER (ORDER BY BaseSalary) AS SalaryCumulativeDistribution,
         
         -- Window frame calculations
-        AVG(BaseSalary) OVER (PARTITION BY DepartmentID) AS DeptAverageSalary,
-        SUM(BaseSalary) OVER (PARTITION BY DepartmentID) AS DeptTotalSalary,
+        AVG(e.BaseSalary) OVER (PARTITION BY DepartmentID) AS DeptAverageSalary,
+        SUM(e.BaseSalary) OVER (PARTITION BY DepartmentID) AS DeptTotalSalary,
         COUNT(*) OVER (PARTITION BY DepartmentID) AS DeptEmployeeCount
         
     FROM Employees
@@ -536,36 +535,34 @@ GROUP BY SalesPersonID;
 -- Performance comparison: Different aggregation approaches
 
 -- Approach 1: Single pass with CASE expressions (Efficient)
-SELECT 
-    DepartmentName,
+SELECT d.DepartmentName,
     COUNT(*) AS TotalProducts,
     SUM(CASE WHEN BaseSalary > 100 THEN 1 ELSE 0 END) AS ExpensiveProducts,
     SUM(CASE WHEN BaseSalary <= 100 THEN 1 ELSE 0 END) AS AffordableProducts,
-    AVG(BaseSalary) AS AveragePrice,
+    AVG(e.BaseSalary) AS AveragePrice,
     SUM(CASE WHEN BaseSalary > 100 THEN BaseSalary ELSE 0 END) / 
         NULLIF(SUM(CASE WHEN BaseSalary > 100 THEN 1 ELSE 0 END), 0) AS AvgExpensivePrice
 FROM Products
-GROUP BY DepartmentName;
+GROUP BY d.DepartmentName;
 
 -- Approach 2: Multiple subqueries (Less efficient)
-SELECT 
-    p1.DepartmentName,
+SELECT p1.d.DepartmentName,
     p1.TotalProducts,
     p2.ExpensiveProducts,
     p3.AffordableProducts,
     p1.AveragePrice
 FROM (
-    SELECT DepartmentName, COUNT(*) AS TotalProducts, AVG(BaseSalary) AS AveragePrice
-    FROM Products GROUP BY DepartmentName
+    SELECT d.DepartmentName, COUNT(*) AS TotalProducts, AVG(e.BaseSalary) AS AveragePrice
+    FROM Products GROUP BY d.DepartmentName
 ) p1
 JOIN (
-    SELECT DepartmentName, COUNT(*) AS ExpensiveProducts
-    FROM Products WHERE BaseSalary > 100 GROUP BY DepartmentName
-) p2 ON p1.DepartmentName = p2.DepartmentName
+    SELECT d.DepartmentName, COUNT(*) AS ExpensiveProducts
+    FROM Products WHERE BaseSalary > 100 GROUP BY d.DepartmentName
+) p2 ON p1.DepartmentName = p2.d.DepartmentName
 JOIN (
-    SELECT DepartmentName, COUNT(*) AS AffordableProducts
-    FROM Products WHERE BaseSalary <= 100 GROUP BY DepartmentName
-) p3 ON p1.DepartmentName = p3.DepartmentName;
+    SELECT d.DepartmentName, COUNT(*) AS AffordableProducts
+    FROM Products WHERE BaseSalary <= 100 GROUP BY d.DepartmentName
+) p3 ON p1.DepartmentName = p3.d.DepartmentName;
 ```
 
 This comprehensive Module 8 presentation covers all aspects of data aggregation and grouping with detailed explanations, advanced techniques, and performance optimization strategies.

@@ -53,30 +53,29 @@ GROUP BY transforms aggregate functions from summary statistics into dimensional
 USE TechCorpDB;
 GO
 
--- Lab 9.2.1: Department Performance Comparison
+-- Lab 9.2.1: d.DepartmentName Performance Comparison
 -- Business scenario: Strategic resource allocation across departments
 
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     
-    -- EMPLOYEE METRICS by department
+    -- EMPLOYEE METRICS by d.DepartmentName
     COUNT(DISTINCT e.EmployeeID) AS TotalEmployees,
     COUNT(DISTINCT CASE WHEN e.IsActive = 1 THEN e.EmployeeID END) AS ActiveEmployees,
     COUNT(DISTINCT CASE WHEN e.HireDate >= DATEADD(YEAR, -1, GETDATE()) THEN e.EmployeeID END) AS NewHires,
     
-    -- FINANCIAL METRICS by department
+    -- FINANCIAL METRICS by d.DepartmentName
     FORMAT(SUM(e.BaseSalary), 'C0') AS TotalPayroll,
     FORMAT(AVG(e.BaseSalary), 'C0') AS AvgSalary,
     FORMAT(MIN(e.BaseSalary), 'C0') AS MinSalary,
     FORMAT(MAX(e.BaseSalary), 'C0') AS MaxSalary,
     FORMAT(STDEV(e.BaseSalary), 'C0') AS SalaryStandardDeviation,
     
-    -- PROJECT PERFORMANCE by department
+    -- PROJECT PERFORMANCE by d.DepartmentName
     COUNT(DISTINCT p.ProjectID) AS ProjectsManaged,
     FORMAT(SUM(p.Budget), 'C0') AS TotalProjectValue,
     FORMAT(AVG(p.Budget), 'C0') AS AvgProjectValue,
     
-    -- SUCCESS METRICS by department
+    -- SUCCESS METRICS by d.DepartmentName
     COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
     COUNT(CASE WHEN p.IsActive = 'Active' THEN 1 END) AS ActiveProjects,
     COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeProjects,
@@ -94,7 +93,7 @@ SELECT
         'C0'
     ) AS RevenuePerEmployee,
     
-    -- PROFITABILITY by department
+    -- PROFITABILITY by d.DepartmentName
     FORMAT(
         SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)), 
         'C0'
@@ -109,7 +108,7 @@ SELECT
         'N1'
     ) + '%' AS ProfitMargin,
     
-    -- DEPARTMENT PERFORMANCE RATING
+    -- d.DepartmentName PERFORMANCE RATING
     CASE 
         WHEN SUM(p.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 2000000 
              AND COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
@@ -138,7 +137,7 @@ SELECT
         WHEN AVG(e.BaseSalary) < 75000 AND SUM(p.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 1000000
         THEN 'INVEST: Increase compensation to retain talent'
         WHEN COUNT(DISTINCT e.EmployeeID) < 5 AND SUM(p.Budget) >= 5000000
-        THEN 'SCALE: Department is understaffed for workload'
+        THEN 'SCALE: d.DepartmentName is understaffed for workload'
         ELSE 'MAINTAIN: Continue current strategy with minor optimizations'
     END AS StrategicRecommendation
 
@@ -396,40 +395,39 @@ Multi-dimensional grouping reveals complex business patterns:
 - **Strategic Segmentation**: Create sophisticated customer and market segments
 - **Performance Attribution**: Understand what drives success across multiple factors
 
-### Exercise 2.1: Department and Time Period Analysis (🔴 EXPERT LEVEL)
+### Exercise 2.1: d.DepartmentName and Time Period Analysis (🔴 EXPERT LEVEL)
 
 **Scenario**: Create comprehensive analysis showing departmental performance trends over time for strategic planning and budgeting.
 
 ```sql
--- Lab 9.2.4: Multi-Dimensional Department and Time Analysis
--- Business scenario: Strategic planning and budget allocation by department over time
+-- Lab 9.2.4: Multi-Dimensional d.DepartmentName and Time Analysis
+-- Business scenario: Strategic planning and budget allocation by d.DepartmentName over time
 
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     YEAR(p.StartDate) AS ProjectYear,
     DATENAME(QUARTER, p.StartDate) AS Quarter,
     MONTH(p.StartDate) AS ProjectMonth,
     DATENAME(MONTH, p.StartDate) AS MonthName,
     
-    -- VOLUME METRICS by department and time
+    -- VOLUME METRICS by d.DepartmentName and time
     COUNT(p.ProjectID) AS MonthlyProjects,
     COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
     COUNT(CASE WHEN p.IsActive = 'Active' THEN 1 END) AS ActiveProjects,
     
-    -- FINANCIAL METRICS by department and time
+    -- FINANCIAL METRICS by d.DepartmentName and time
     FORMAT(SUM(p.Budget), 'C0') AS MonthlyRevenue,
     FORMAT(AVG(p.Budget), 'C0') AS AvgProjectValue,
     FORMAT(SUM(ISNULL(p.ActualCost, 0)), 'C0') AS MonthlyCosts,
     FORMAT(SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)), 'C0') AS MonthlyProfit,
     
-    -- PERFORMANCE METRICS by department and time
+    -- PERFORMANCE METRICS by d.DepartmentName and time
     FORMAT(
         COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
         NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0), 
         'N1'
     ) + '%' AS MonthlyOnTimeRate,
     
-    -- PROFIT MARGIN by department and time
+    -- PROFIT MARGIN by d.DepartmentName and time
     FORMAT(
         CASE 
             WHEN SUM(p.Budget) > 0 
@@ -534,7 +532,7 @@ SELECT
         THEN '🎯 GOOD MONTH - Solid volume and delivery'
         WHEN COUNT(p.ProjectID) >= 1
         THEN '📊 STANDARD MONTH - Regular business activity'
-        ELSE '❌ NO ACTIVITY - Department had no projects this month'
+        ELSE '❌ NO ACTIVITY - d.DepartmentName had no projects this month'
     END AS MonthlyPerformanceAssessment
 
 FROM Departments d
@@ -720,7 +718,7 @@ ORDER BY
 
 ### GROUP BY Techniques You've Mastered
 
-1. **Single Dimension Grouping**: Department, industry, project type analysis
+1. **Single Dimension Grouping**: d.DepartmentName, industry, project type analysis
 2. **Multi-Dimensional Analysis**: Cross-category insights and patterns
 3. **Temporal Grouping**: Time-based trending and seasonality analysis
 4. **Hierarchical Grouping**: Organizational and categorical hierarchies
@@ -729,7 +727,7 @@ ORDER BY
 ### Real-World Business Applications
 
 - **Strategic Planning**: Multi-dimensional performance analysis for decision-making
-- **Resource Allocation**: Department and time-based budgeting decisions
+- **Resource Allocation**: d.DepartmentName and time-based budgeting decisions
 - **Market Intelligence**: Industry and service line optimization
 - **Performance Management**: Cross-functional team and project analysis
 - **Competitive Positioning**: Market segment analysis and strategy development

@@ -165,7 +165,7 @@ SELECT
     d.DepartmentName AS Category,
     SUM(e.BaseSalary) AS Amount,
     COUNT(e.EmployeeID) AS TransactionCount,
-    'Monthly salary expenses' AS Description
+    'Monthly BaseSalary expenses' AS Description
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
@@ -226,7 +226,7 @@ WITH HighPerformers AS (
     HAVING COUNT(DISTINCT ep.ProjectID) >= 2
 ),
 SalaryBenchmarks AS (
-    -- Calculate salary benchmarks by department
+    -- Calculate BaseSalary benchmarks by d.DepartmentName
     SELECT 
         d.DepartmentID,
         d.DepartmentName,
@@ -239,7 +239,7 @@ SalaryBenchmarks AS (
     GROUP BY d.DepartmentID, d.DepartmentName
 )
 
--- Combine performance data with salary analysis
+-- Combine performance data with BaseSalary analysis
 SELECT 
     'HIGH_PERFORMER' AS AnalysisType,
     hp.EmployeeName,
@@ -262,11 +262,11 @@ SELECT
     sb.DepartmentName AS EmployeeName,
     sb.AvgSalary AS BaseSalary,
     (sb.MaxSalary - sb.MinSalary) AS MetricValue,
-    'Salary range within department' AS MetricDescription,
+    'BaseSalary range within department' AS MetricDescription,
     CASE 
-        WHEN (sb.MaxSalary - sb.MinSalary) > 50000 THEN 'High Salary Variance'
-        WHEN (sb.MaxSalary - sb.MinSalary) > 25000 THEN 'Moderate Salary Variance'
-        ELSE 'Low Salary Variance'
+        WHEN (sb.MaxSalary - sb.MinSalary) > 50000 THEN 'High BaseSalary Variance'
+        WHEN (sb.MaxSalary - sb.MinSalary) > 25000 THEN 'Moderate BaseSalary Variance'
+        ELSE 'Low BaseSalary Variance'
     END AS CompensationStatus
 FROM SalaryBenchmarks sb
 
@@ -298,11 +298,11 @@ UNION ALL
 
 SELECT 
     'HUMAN_RESOURCES' AS BusinessArea,
-    'Average Salary' AS MetricName,
-    CAST(AVG(BaseSalary) AS INT) AS CurrentValue,
+    'Average BaseSalary' AS MetricName,
+    CAST(AVG(e.BaseSalary) AS INT) AS CurrentValue,
     NULL AS PreviousValue,
     NULL AS PercentChange,
-    'Average salary across all active employees' AS Description
+    'Average BaseSalary across all active employees' AS Description
 FROM Employees 
 WHERE IsActive = 1
 

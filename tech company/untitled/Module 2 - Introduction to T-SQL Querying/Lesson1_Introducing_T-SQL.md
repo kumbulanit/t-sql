@@ -1,52 +1,11 @@
-# Lesson 1: Introducing T-SQL - TechCorp Solutions Database Queries
+# Lesson 1: Introducing T-SQL
 
 ## Overview
-Transact-SQL (T-SQL) is Microsoft's extension to SQL (Structured Query Language) that we'll use to query TechCorp Solutions' business data. As a technology consulting company, TechCorp relies on SQL Server to manage employee information, project data, client relationships, and business operations. T-SQL expands on the SQL standard to include procedural programming, local variables, and various support functions that help TechCorp analyze their business performance.
+Transact-SQL (T-SQL) is Microsoft's extension to SQL (Structured Query Language) for use with Microsoft SQL Server and Azure SQL Database. T-SQL expands on the SQL standard to include procedural programming, local variables, various support functions for string processing, date processing, mathematics, etc.
 
-## 🏢 TechCorp Business Context
-**TechCorp Solutions** uses SQL Server to manage:
-- **Employee Management**: 145 employees across Engineering, Sales, Marketing, HR, and Finance departments
-- **Project Tracking**: Custom software development, cloud migration, and cybersecurity projects
-- **Client Relationships**: From small startups to large enterprise clients
-- **Financial Operations**: Project budgets, employee salaries, and revenue tracking
-- **Performance Analytics**: Employee performance metrics and project profitability
+## What is T-SQL?
 
-### 📋 Important Schema Notes for Students
-**Key Database Relationships:**
-- `Employees` table contains `DepartmentID` (INT foreign key), NOT a Department name column
-- `Departments` table contains `DepartmentName` (NVARCHAR) - the readable department names
-- To get department names in queries, you must JOIN: `Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID`
-- Similarly, `Employees` table has `BaseSalary` column (not `Salary`)
-
-## 🎯 **What is T-SQL? (Beginner-Friendly Explanation)**
-
-**T-SQL = Transact-SQL**
-Think of T-SQL as the **language** you use to "talk" to SQL Server databases.
-
-**Simple Analogy:**
-- **English** ➜ How you communicate with people  
-- **T-SQL** ➜ How you communicate with databases
-
-**What can you do with T-SQL?**
-- **Ask questions:** "Show me all employees in Engineering"  
-- **Get answers:** Database returns the list of engineers
-- **Make changes:** Add new employees, update salaries, etc.
-- **Organize data:** Sort, filter, and summarize information
-
-**Why learn T-SQL?**
-- **High demand skill** - Most companies need database professionals
-- **Immediate results** - See your queries work instantly
-- **Logical thinking** - Builds problem-solving skills
-- **Career advancement** - Opens doors to data analyst, developer roles
-
-## 🔍 **T-SQL vs Regular SQL (What's the Difference?)**
-
-**SQL (Standard):** Basic database language  
-**T-SQL (Microsoft):** SQL + Extra powerful features
-
-**Think of it like:**
-- **SQL** = Basic calculator  
-- **T-SQL** = Scientific calculator with advanced functions
+T-SQL stands for Transact-SQL and is Microsoft's proprietary extension of the SQL standard. It includes all the functionality of standard SQL plus additional features that make it a powerful tool for database management and development.
 
 ### Key Features of T-SQL:
 - **Data Definition Language (DDL)**: CREATE, ALTER, DROP statements
@@ -59,56 +18,31 @@ Think of T-SQL as the **language** you use to "talk" to SQL Server databases.
 
 ### Simple Examples
 
-#### 1. Basic SELECT Statement - TechCorp Employee Data
+#### 1. Basic SELECT Statement
 ```sql
--- Select all TechCorp employee information
-SELECT * FROM Employees;
+-- Select all columns from a table
+SELECT * FROM Employees e;
 
--- Select specific information about TechCorp team members
-SELECT FirstName, LastName, JobTitle, BaseSalary 
-FROM Employees;
-
--- View TechCorp department structure
-SELECT DepartmentName, Budget, Location 
-FROM Departments;
+-- Select specific columns
+SELECT FirstName, LastName, BaseSalary 
+FROM Employees e;
 ```
 
-#### 2. Using WHERE Clause - TechCorp Business Filtering
+#### 2. Using WHERE Clause
 ```sql
--- Find TechCorp senior-level employees
-SELECT FirstName, LastName, JobTitle
+-- Filter records with conditions
+SELECT FirstName, LastName 
 FROM Employees 
-WHERE BaseSalary > 80000;
-
--- Find TechCorp projects with high budgets
-SELECT ProjectName, Budget, IsActive
-FROM Projects
-WHERE Budget > 500000;
-
--- Find TechCorp employees in Engineering department
--- Note: Employees table has DepartmentID (foreign key), not Department name
--- We JOIN with Departments table to get the readable department name
-SELECT FirstName, LastName, JobTitle
-FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE d.DepartmentName = 'Engineering';
+WHERE BaseSalary > 50000;
 ```
 
-#### 3. TechCorp Business Data Types
+#### 3. Basic Data Types
 ```sql
--- Common T-SQL data types used in TechCorp's database
-DECLARE @EmployeeName NVARCHAR(100) = 'Sarah Chen';
-DECLARE @EmployeeID INT = 4051;
-DECLARE @BaseSalary DECIMAL(10,2) = 95000.00;
-DECLARE @HireDate DATE = '2021-03-15';
-DECLARE @IsActive BIT = 1;
-DECLARE @ProjectBudget MONEY = 750000;
-DECLARE @LastReviewDate DATETIME2(3) = '2024-12-01 09:30:00.000';
-
--- TechCorp business examples
-DECLARE @ClientCompany NVARCHAR(200) = 'GlobalTech Industries';
-DECLARE @ProjectIsActive NVARCHAR(50) = 'In Progress';
-DECLARE @CompletionPercentage DECIMAL(5,2) = 67.50;
+-- Common T-SQL data types
+DECLARE @Name NVARCHAR(50) = 'John Doe';
+DECLARE @Age INT = 30;
+DECLARE @BaseSalary DECIMAL(10,2) = 75000.00;
+DECLARE @HireDate DATE = '2020-01-15';
 ```
 
 ### Intermediate Examples
@@ -120,14 +54,14 @@ SELECT
     UPPER(FirstName) AS UpperFirstName,
     LEN(LastName) AS LastNameLength,
     SUBSTRING(WorkEmail, 1, CHARINDEX('@', WorkEmail) - 1) AS Username
-FROM Employees;
+FROM Employees e;
 
 -- Date functions
 SELECT 
     GETDATE() AS CurrentDateTime,
     DATEADD(YEAR, 1, HireDate) AS OneYearLater,
     DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsEmployed
-FROM Employees;
+FROM Employees e;
 ```
 
 #### 2. Conditional Logic
@@ -142,23 +76,19 @@ SELECT
         WHEN BaseSalary BETWEEN 40000 AND 80000 THEN 'Mid Level'
         ELSE 'Senior Level'
     END AS SalaryCategory
-FROM Employees;
+FROM Employees e;
 ```
 
 #### 3. Grouping and Aggregation
 ```sql
--- GROUP BY with aggregate functions (using proper JOIN)
--- Note: We JOIN Employees with Departments to get readable department names
--- since Employees table only contains DepartmentID (foreign key)
-SELECT 
-    d.DepartmentName AS Department,
+-- GROUP BY with aggregate functions
+SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount,
-    AVG(e.BaseSalary) AS AverageSalary,
+    AVG(e.BaseSalary) AS AverageBaseSalary,
     MAX(e.BaseSalary) AS MaxSalary,
     MIN(e.BaseSalary) AS MinSalary
-FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-GROUP BY d.DepartmentName
+FROM Employees
+GROUP BY DepartmentID
 HAVING COUNT(*) > 5;
 ```
 
@@ -173,11 +103,11 @@ WITH EmployeeSalaryRanking AS (
         LastName,
         BaseSalary,
         RANK() OVER (ORDER BY BaseSalary DESC) AS SalaryRank,
-        DENSE_RANK() OVER (PARTITION BY DepartmentIDID ORDER BY BaseSalary DESC) AS DeptSalaryRank
-    FROM Employees
+        DENSE_RANK() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) AS DeptSalaryRank
+    FROM Employees e
 )
 SELECT *
-FROM EmployeeSalaryRanking
+FROM Employees ealaryRanking
 WHERE SalaryRank <= 10;
 ```
 
@@ -190,9 +120,9 @@ SELECT
     BaseSalary,
     LAG(BaseSalary) OVER (ORDER BY HireDate) AS PreviousEmployeeSalary,
     LEAD(BaseSalary) OVER (ORDER BY HireDate) AS NextEmployeeSalary,
-    SUM(BaseSalary) OVER (PARTITION BY DepartmentIDID) AS DepartmentTotalSalary,
-    ROW_NUMBER() OVER (PARTITION BY DepartmentIDID ORDER BY BaseSalary DESC) AS RowNum
-FROM Employees;
+    SUM(e.BaseSalary) OVER (PARTITION BY DepartmentID) AS DepartmentTotalSalary,
+    ROW_NUMBER() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) AS RowNum
+FROM Employees e;
 ```
 
 #### 3. Recursive CTE
@@ -282,7 +212,7 @@ ORDER BY Level, LastName;
    SELECT * FROM dbo.Employees;
    
    -- Avoid
-   SELECT * FROM Employees;
+   SELECT * FROM Employees e;
    ```
 
 3. **Use Proper Formatting**
@@ -291,7 +221,7 @@ ORDER BY Level, LastName;
    SELECT 
        emp.FirstName,
        emp.LastName,
-       dept.DepartmentName
+       dept.d.DepartmentName
    FROM dbo.Employees emp
    INNER JOIN dbo.Departments dept 
        ON emp.DepartmentID = dept.DepartmentID
@@ -306,7 +236,7 @@ ORDER BY Level, LastName;
        FirstName,
        ISNULL(MiddleName, '') AS MiddleName,
        LastName
-   FROM Employees;
+   FROM Employees e;
    ```
 
 ## Common T-SQL Statements Overview

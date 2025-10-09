@@ -39,13 +39,13 @@ Table A         Table B         Result (A ∩ B)
 SELECT 
     e.FirstName,
     e.LastName,
-    e.Title,
+    e.JobTitle,
     d.DepartmentName,
     d.Location
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
--- Result: Only employees who have a valid department assignment
+-- Result: Only employees who have a valid d.DepartmentName assignment
 ```
 
 ### Inner Join with Column Aliases
@@ -53,7 +53,7 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 -- Professional report with meaningful column names
 SELECT 
     e.FirstName + ' ' + e.LastName AS [Employee Name],
-    e.Title AS [Position],
+    e.JobTitle AS [Position],
     d.DepartmentName AS [Department],
     d.Location AS [Office Location],
     FORMAT(e.BaseSalary, 'C') AS [Annual BaseSalary]
@@ -64,7 +64,7 @@ ORDER BY d.DepartmentName, e.LastName;
 
 ### Inner Join with WHERE Clause
 ```sql
--- Find IT department employees with specific criteria
+-- Find IT d.DepartmentName employees with specific criteria
 SELECT 
     e.FirstName,
     e.LastName,
@@ -85,10 +85,10 @@ ORDER BY e.BaseSalary DESC;
 ```sql
 -- Join employees, departments, and their current projects
 SELECT 
-    e.FirstName + ' ' + e.LastName AS [Employee Name],
-    d.DepartmentName AS [Department],
-    p.ProjectName AS [Project],
-    ep.Role AS [Project Role],
+    e.JobTitle,
+    d.DepartmentName,
+    p.ProjectName,
+    ep.Role,
     ep.HoursAllocated AS [Hours Allocated],
     ep.HoursWorked AS [Hours Worked],
     FORMAT(ep.HourlyRate, 'C') AS [Hourly Rate]
@@ -102,15 +102,14 @@ ORDER BY d.DepartmentName, e.LastName, p.ProjectName;
 
 ### Inner Join with Aggregation
 ```sql
--- Department summary with employee counts and average salaries
-SELECT 
-    d.DepartmentName AS [Department],
+-- d.DepartmentName summary with employee counts and average salaries
+SELECT d.DepartmentName AS [Department],
     d.Location AS [Location],
     COUNT(e.EmployeeID) AS [Employee Count],
     FORMAT(AVG(e.BaseSalary), 'C0') AS [Average BaseSalary],
     FORMAT(MIN(e.BaseSalary), 'C0') AS [Minimum BaseSalary],
     FORMAT(MAX(e.BaseSalary), 'C0') AS [Maximum BaseSalary],
-    FORMAT(SUM(e.BaseSalary), 'C0') AS [Total Department Payroll]
+    FORMAT(SUM(e.BaseSalary), 'C0') AS [Total d.DepartmentName Payroll]
 FROM Departments d
 INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
 WHERE e.IsActive = 1
@@ -124,7 +123,7 @@ ORDER BY COUNT(e.EmployeeID) DESC;
 -- Find employees working on high-priority projects
 SELECT 
     e.FirstName + ' ' + e.LastName AS [Employee Name],
-    e.Title,
+    e.JobTitle,
     d.DepartmentName,
     p.ProjectName,
     p.Priority,
@@ -147,7 +146,7 @@ ORDER BY p.ProjectName, e.LastName;
 -- Advanced filtering across multiple tables
 SELECT 
     e.FirstName + ' ' + e.LastName AS [Employee Name],
-    e.Title,
+    e.JobTitle,
     d.DepartmentName,
     e.BaseSalary,
     COUNT(ep.ProjectID) AS [Active Projects],
@@ -160,7 +159,7 @@ WHERE e.IsActive = 1
   AND p.IsActive IN ('In Progress', 'Planning')
   AND d.DepartmentName IN ('Information Technology', 'Research & Development')
   AND e.HireDate >= '2019-01-01'
-GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, d.DepartmentName, e.BaseSalary
+GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, d.DepartmentName, e.BaseSalary
 HAVING COUNT(ep.ProjectID) >= 1
 ORDER BY [Avg Completion %] DESC, e.BaseSalary DESC;
 ```
@@ -187,12 +186,12 @@ SkillAssessment AS (
         COUNT(es.SkillID) AS TotalSkills,
         COUNT(CASE WHEN es.ProficiencyLevel = 'Expert' THEN 1 END) AS ExpertSkills,
         AVG(es.YearsExperience) AS AvgSkillExperience
-    FROM EmployeeSkills es
+    FROM Employees ekills es
     GROUP BY es.EmployeeID
 )
 SELECT 
     e.FirstName + ' ' + e.LastName AS [Employee Name],
-    e.Title AS [Position],
+    e.JobTitle AS [Position],
     d.DepartmentName AS [Department],
     FORMAT(e.BaseSalary, 'C0') AS [BaseSalary],
     DATEDIFF(YEAR, e.HireDate, GETDATE()) AS [Years of Service],
@@ -246,15 +245,15 @@ ORDER BY
 -- Employee ranking within departments
 SELECT 
     e.FirstName + ' ' + e.LastName AS [Employee Name],
-    e.Title,
+    e.JobTitle,
     d.DepartmentName,
     FORMAT(e.BaseSalary, 'C0') AS [BaseSalary],
     
-    -- Ranking within department
+    -- Ranking within d.DepartmentName
     RANK() OVER (PARTITION BY d.DepartmentID ORDER BY e.BaseSalary DESC) AS [Dept BaseSalary Rank],
     DENSE_RANK() OVER (PARTITION BY d.DepartmentID ORDER BY e.HireDate) AS [Dept Seniority Rank],
     
-    -- Department statistics
+    -- d.DepartmentName statistics
     FORMAT(AVG(e.BaseSalary) OVER (PARTITION BY d.DepartmentID), 'C0') AS [Dept Avg BaseSalary],
     COUNT(e.EmployeeID) OVER (PARTITION BY d.DepartmentID) AS [Dept Employee Count],
     
@@ -280,7 +279,7 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'In Progress'
 WHERE e.IsActive = 1
-GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.BaseSalary, 
+GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.BaseSalary, 
          e.HireDate, d.DepartmentID, d.DepartmentName
 ORDER BY d.DepartmentName, [Dept BaseSalary Rank];
 ```
@@ -397,7 +396,7 @@ ORDER BY [Project Health], p.Budget DESC;
 │  Step 4: Result Set                                                        │
 │  ┌─────────────┐                                                           │
 │  │ Final Result│  Only rows with matches in both tables                    │
-│  │ 850 rows    │  (150 employees have no department match)                 │
+│  │ 850 rows    │  (150 employees have no d.DepartmentName match)                 │
 │  └─────────────┘                                                           │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -415,7 +414,7 @@ ORDER BY [Project Health], p.Budget DESC;
 │  │  Employees (1000 rows)    Departments (10 rows)                        │
 │  │  ┌─────┐                 ┌─────┐                                        │
 │  │  │ Row1├─────────────────→│Scan │  For each employee row:              │
-│  │  │ Row2├─────────────────→│All  │  • Scan entire Department table     │
+│  │  │ Row2├─────────────────→│All  │  • Scan entire d.DepartmentName table     │
 │  │  │ ... │                 │Rows │  • 1000 × 10 = 10,000 operations    │
 │  │  │Row1K│                 └─────┘                                        │
 │  │  └─────┘                                                                │
@@ -568,9 +567,9 @@ FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
 -- Avoid: Verbose and unclear
-SELECT Employees.FirstName, Departments.DepartmentName
+SELECT Employees.FirstName, Departments.d.DepartmentName
 FROM Employees
-INNER JOIN Departments ON Employees.DepartmentID = Departments.DepartmentID;
+INNER JOIN Departments d ON Employees.DepartmentID = Departments.DepartmentID;
 ```
 
 ### 2. Join Order Considerations
@@ -636,8 +635,7 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 ### 3. Incorrect Aggregation
 ```sql
 -- PROBLEM: Double-counting due to multiple related records
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     COUNT(e.EmployeeID) AS EmployeeCount  -- This might be wrong if employees have multiple projects
 FROM Departments d
 INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
@@ -645,8 +643,7 @@ INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 GROUP BY d.DepartmentName;
 
 -- SOLUTION: Use DISTINCT or separate the aggregation
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     COUNT(DISTINCT e.EmployeeID) AS EmployeeCount
 FROM Departments d
 INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID

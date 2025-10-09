@@ -66,7 +66,7 @@
 **Your Task**:
 ```sql
 -- Select ALL employees from the Employees table
--- Then select only employees from the 'Engineering' department
+-- Then SELECT only employees from the 'Engineering' d.d.d.DepartmentName
 -- Explain in comments how these represent different sets of data
 ```
 
@@ -80,8 +80,8 @@
 **Your Task**:
 ```sql
 -- Find employees where:
--- Salary is greater than 75000 AND department is 'Sales'
--- OR department is 'Engineering' 
+-- BaseSalary is greater than 75000 AND d.d.DepartmentName is 'Sales'
+-- OR d.d.DepartmentName is 'Engineering' 
 -- Use proper logical operators and parentheses
 ```
 
@@ -96,7 +96,7 @@
 ```sql
 -- Write a query with FROM, WHERE, and ORDER BY
 -- Add comments explaining the logical order SQL processes each clause
--- Select employee names and salaries, filter for active employees, sort by salary
+-- Select employee names and salaries, filter for active employees, sort by BaseSalary
 ```
 
 ---
@@ -110,7 +110,7 @@
 
 **Your Task**:
 ```sql
--- Select EmployeeID, FirstName, LastName, and BaseSalary from Employees
+-- Select EmployeeID, FirstName, LastName, and BaseSalary FROM Employees e
 -- Use proper formatting and indentation
 -- Sort results by LastName alphabetically
 ```
@@ -125,7 +125,7 @@
 **Your Task**:
 ```sql
 -- Find all unique job titles in the company
--- Find all unique department names
+-- Find all unique d.d.DepartmentName names
 -- Show the difference between using DISTINCT and not using it
 ```
 
@@ -139,7 +139,7 @@
 **Your Task**:
 ```sql
 -- Select employee data using table alias 'e' for Employees
--- Create column aliases: 'Full Name', 'Job Position', 'Annual Salary'
+-- Create column aliases: 'Full Name', 'Job Position', 'Annual BaseSalary'
 -- Join with Departments table using alias 'd'
 ```
 
@@ -148,11 +148,11 @@
 ### **Question 8: CASE Expressions** (3 points)
 *Module 3, Lesson 4: Writing Simple CASE Expressions*
 
-**Business Need**: Categorize employees based on salary ranges
+**Business Need**: Categorize employees based on BaseSalary ranges
 
 **Your Task**:
 ```sql
--- Create salary categories:
+-- Create BaseSalary categories:
 -- 'Entry Level' (< 50000)
 -- 'Mid Level' (50000-80000)  
 -- 'Senior Level' (> 80000)
@@ -180,12 +180,12 @@
 ### **Question 10: Inner Joins** (4 points)
 *Module 4, Lesson 2: Querying with Inner Joins*
 
-**Business Need**: Combine employee and department information
+**Business Need**: Combine employee and d.DepartmentName information
 
 **Your Task**:
 ```sql
 -- Join Employees and Departments tables using INNER JOIN
--- Show employee names and their department names
+-- Show employee names and their d.d.DepartmentName names
 -- Only include active employees
 ```
 
@@ -200,7 +200,7 @@
 ```sql
 -- Use LEFT JOIN to show all departments and their employee count
 -- Include departments with zero employees
--- Use COUNT function to show employee count per department
+-- Use COUNT function to show employee count per d.d.DepartmentName
 ```
 
 ---
@@ -228,7 +228,7 @@
 
 **Your Task**:
 ```sql
--- Sort employees by department name, then by salary (highest first)
+-- Sort employees by d.d.DepartmentName name, then by BaseSalary (highest first)
 -- Add a secondary sort by last name if salaries are equal
 -- Show the difference between ASC and DESC sorting
 ```
@@ -243,7 +243,7 @@
 **Your Task**:
 ```sql
 -- Find employees hired after January 1, 2020
--- With salary between 60000 and 100000
+-- With BaseSalary between 60000 and 100000
 -- In departments 'Engineering', 'Sales', or 'Marketing'
 -- Use BETWEEN, IN, and comparison operators
 ```
@@ -347,8 +347,8 @@
 
 **Your Task**:
 ```sql
--- Update an employee's salary and job title
--- Update all employees in a department with a 5% salary increase
+-- Update an employee's BaseSalary and job title
+-- Update all employees in a d.d.DepartmentName with a 5% BaseSalary increase
 -- Safely delete inactive employee records (use WHERE clause!)
 ```
 
@@ -388,13 +388,13 @@
 ### **Question 24: Mathematical Functions** (3 points)
 *Module 8, Lesson 2: Mathematical Functions*
 
-**Business Need**: Calculate salary statistics and bonuses
+**Business Need**: Calculate BaseSalary statistics and bonuses
 
 **Your Task**:
 ```sql
 -- Calculate 15% bonus amounts using mathematical functions
--- Round salary values to nearest thousand
--- Use ABS to find salary differences from department average
+-- Round BaseSalary values to nearest thousand
+-- Use ABS to find BaseSalary differences from d.d.DepartmentName average
 -- Apply CEILING and FLOOR functions to budget calculations
 ```
 
@@ -420,12 +420,12 @@
 ### **Question 26: Aggregate Functions** (4 points)
 *Module 9, Lesson 1: Using Aggregate Functions*
 
-**Business Need**: Calculate summary statistics by department
+**Business Need**: Calculate summary statistics by d.DepartmentName
 
 **Your Task**:
 ```sql
--- Calculate COUNT, AVG, MIN, MAX, SUM of salaries by department
--- Find the total payroll cost for each department
+-- Calculate COUNT, AVG, MIN, MAX, SUM of salaries by d.d.DepartmentName
+-- Find the total payroll cost for each d.d.DepartmentName
 -- Include only departments with more than 5 employees
 ```
 
@@ -438,10 +438,10 @@
 
 **Your Task**:
 ```sql
--- Group employees by department and job level
--- Calculate average salary for each group
--- Use HAVING to show only groups with average salary > 70000
--- Sort results by average salary descending
+-- Group employees by d.d.DepartmentName and job level
+-- Calculate average BaseSalary for each group
+-- Use HAVING to show only groups with average BaseSalary > 70000
+-- Sort results by average BaseSalary descending
 ```
 
 ---
@@ -457,8 +457,8 @@
 ```sql
 -- Join Employees, Departments, and Projects tables
 -- Show employees working on active projects
--- Include department names and project names
--- Sort by department, then by employee salary
+-- Include d.d.DepartmentName names and project names
+-- Sort by d.DepartmentName, then by employee BaseSalary
 -- Handle employees not assigned to projects
 ```
 
@@ -471,7 +471,7 @@
 
 **Your Task**:
 ```sql
--- Find top 15% of earners in each department
+-- Find top 15% of earners in each d.d.DepartmentName
 -- Calculate their tenure in years and months
 -- Format their names and contact information professionally
 -- Use advanced filtering with OFFSET-FETCH for pagination
@@ -487,9 +487,9 @@
 **Your Task**:
 ```sql
 -- Create a comprehensive report showing:
--- Department performance metrics (employee count, avg salary, etc.)
--- Top performers by department
--- Salary distribution analysis
+-- d.d.DepartmentName performance metrics (employee count, avg BaseSalary, etc.)
+-- Top performers by d.d.DepartmentName
+-- BaseSalary distribution analysis
 -- Growth trends and recommendations
 -- Use all major T-SQL concepts learned
 ```
@@ -513,33 +513,33 @@ The HR Director needs detailed employee profiles to support workforce planning i
 **Requirements**:
 Create a single query that shows:
 - Employee full name (handle all name components gracefully)
-- Professional title and department assignment
-- Formatted salary with appropriate currency display
+- Professional title and d.DepartmentName assignment
+- Formatted BaseSalary with appropriate currency display
 - Employment tenure (years, months, days)
 - Age category classification
 - Contact information (email domain, formatted phone)
 - Experience level categorization
 
 **Business Rules for Classification**:
-- **"Executive"**: Salary > $150,000 OR title contains "Director/VP/Chief"
-- **"Senior Professional"**: 5+ years tenure AND salary > $80,000
-- **"Mid-Level"**: 2-5 years tenure OR salary $50,000-$80,000
-- **"Developing Professional"**: < 2 years tenure AND salary < $50,000
+- **"Executive"**: BaseSalary > $150,000 OR title contains "Director/VP/Chief"
+- **"Senior Professional"**: 5+ years tenure AND BaseSalary > $80,000
+- **"Mid-Level"**: 2-5 years tenure OR BaseSalary $50,000-$80,000
+- **"Developing Professional"**: < 2 years tenure AND BaseSalary < $50,000
 
 **Advanced Requirements**:
 - Handle NULL values elegantly (provide defaults)
 - Format all dates and numbers professionally
 - Use meaningful column aliases
-- Sort by department, then by salary (descending)
+- Sort by d.DepartmentName, then by BaseSalary (descending)
 
 ### **Task 2.2: Compensation Analysis Report** (12 points)
 
-**Business Need**: Analyze salary equity and budget planning
+**Business Need**: Analyze BaseSalary equity and budget planning
 
 **Your Assignment**:
 ```sql
--- Show salary statistics by department and job level
--- Calculate salary percentiles (25th, 50th, 75th, 90th)
+-- Show BaseSalary statistics by d.d.DepartmentName and job level
+-- Calculate BaseSalary percentiles (25th, 50th, 75th, 90th)
 -- Identify potential pay equity gaps
 -- Format all currency consistently with proper thousands separators
 -- Include only active employees
@@ -559,7 +559,7 @@ Create a single query that shows:
 
 ### **Task 3.1: Organizational Structure Analysis** (18 points)
 
-**Business Need**: Understand reporting relationships and department interdependencies
+**Business Need**: Understand reporting relationships and d.DepartmentName interdependencies
 
 **Your Assignment**:
 The executive team needs visibility into organizational structure and cross-departmental collaboration.
@@ -569,16 +569,16 @@ The executive team needs visibility into organizational structure and cross-depa
 1. **Management Hierarchy Report**
 ```sql
 -- Show employee-manager relationships using self-joins
--- Include manager's name, title, and department
+-- Include manager's name, title, and d.d.DepartmentName
 -- Show span of control (number of direct reports)
 -- Handle employees without managers (executives)
--- Calculate average salary by management level
+-- Calculate average BaseSalary by management level
 ```
 
 2. **Department Collaboration Matrix**
 ```sql
 -- Show which departments work together on projects
--- Use CROSS JOIN to show all possible department pairs
+-- Use CROSS JOIN to show all possible d.d.DepartmentName pairs
 -- Count actual collaborations vs. potential collaborations
 -- Include departments with no current collaborations
 ```
@@ -601,7 +601,7 @@ The executive team needs visibility into organizational structure and cross-depa
 **Your Assignment**:
 ```sql
 -- Map all employees to their skill sets
--- Show which skills are missing in each department
+-- Show which skills are missing in each d.d.DepartmentName
 -- Identify employees with rare or high-value skills
 -- Use multiple JOIN types to create comprehensive skill matrix
 -- Include skill proficiency levels and certification status
@@ -627,9 +627,9 @@ Create sophisticated queries using advanced filtering techniques:
 
 1. **Top Performer Identification**
 ```sql
--- Find top 5 employees by department based on multiple criteria:
+-- Find top 5 employees by d.d.DepartmentName based on multiple criteria:
   -- Performance rating > 4.0
-  -- Salary in top quartile for their level
+  -- BaseSalary in top quartile for their level
   -- Tenure > 18 months
 -- Use TOP and OFFSET-FETCH for different views
 -- Handle ties appropriately
@@ -709,7 +709,7 @@ Demonstrate mastery of ALL built-in function categories:
 
 3. **Mathematical Function Applications**
 ```sql
--- Calculate salary increase percentages over time
+-- Calculate BaseSalary increase percentages over time
 -- Compute project budget variance and ROI
 -- Generate performance indexes and rankings
 -- Apply statistical functions for trend analysis
@@ -766,11 +766,11 @@ Create comprehensive analytical reports using advanced grouping and aggregation:
 
 1. **Departmental Performance Metrics**
 ```sql
--- Employee count, average salary, salary range by department
+-- Employee count, average BaseSalary, BaseSalary range by d.d.DepartmentName
 -- Performance ratings distribution and trends
--- Skill diversity index per department
+-- Skill diversity index per d.d.DepartmentName
 -- Training completion rates and compliance
--- Revenue contribution by department
+-- Revenue contribution by d.d.DepartmentName
 -- Use multiple levels of GROUP BY and ROLLUP/CUBE where appropriate
 ```
 
@@ -797,7 +797,7 @@ Create comprehensive analytical reports using advanced grouping and aggregation:
 ```sql
 -- Retention rates by demographic segments
 -- Promotion rates and career progression metrics
--- Skills gap analysis by department and level
+-- Skills gap analysis by d.d.DepartmentName and level
 -- Training ROI and development program effectiveness
 -- Diversity and inclusion metrics
 ```
@@ -837,7 +837,7 @@ Execute these business scenarios using proper DML operations:
 ```sql
 -- Insert new performance review records for all eligible employees
 -- Update employee ratings based on review outcomes
--- Apply salary adjustments for top performers (>4.0 rating gets 5% increase)
+-- Apply BaseSalary adjustments for top performers (>4.0 rating gets 5% increase)
 -- Update job levels for promoted employees
 -- Handle all constraints and referential integrity
 ```
@@ -865,7 +865,7 @@ Execute these business scenarios using proper DML operations:
 -- Update inconsistent phone number formats
 -- Standardize job title naming conventions
 -- Correct invalid email addresses
--- Update missing or incorrect department assignments
+-- Update missing or incorrect d.DepartmentName assignments
 -- Implement data validation checks
 ```
 

@@ -57,10 +57,9 @@ UNION ALL
 SELECT 'Customers', COUNT(*) FROM Customers;
 
 -- Verify key relationships and data integrity
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     COUNT(e.EmployeeID) AS EmployeeCount,
-    AVG(e.BaseSalary) AS AverageSalary
+    AVG(e.BaseSalary) AS AverageBaseSalary
 FROM Departments d
 LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID
 WHERE d.IsActive = 1
@@ -74,13 +73,13 @@ ORDER BY d.DepartmentName;
 
 ### 🎯 Exercise 1.1: Variable Declaration and Assignment (⭐ BEGINNER)
 
-**Business Scenario:** Create a salary analysis script using variables to calculate department statistics.
+**Business Scenario:** Create a BaseSalary analysis script using variables to calculate d.DepartmentName statistics.
 
 ```sql
--- Challenge: Implement salary analysis using T-SQL variables
+-- Challenge: Implement BaseSalary analysis using T-SQL variables
 -- Declare and initialize variables for calculation parameters
 
-DECLARE @DepartmentID INT = 2001;  -- IT Department
+DECLARE @DepartmentID INT = 2001;  -- IT d.DepartmentName
 DECLARE @TargetYear INT = YEAR(GETDATE());
 DECLARE @MinSalaryThreshold DECIMAL(10,2) = 50000.00;
 DECLARE @BonusPercentage DECIMAL(5,4) = 0.10;
@@ -89,21 +88,21 @@ DECLARE @BonusPercentage DECIMAL(5,4) = 0.10;
 DECLARE @EmployeeCount INT;
 DECLARE @AverageSalary DECIMAL(10,2);
 DECLARE @TotalPayroll DECIMAL(15,2);
-DECLARE @DepartmentName VARCHAR(100);
+DECLARE @d.DepartmentName VARCHAR(100);
 
 -- Your Implementation Here:
--- TODO: 1. Get department name using the @DepartmentID variable
--- TODO: 2. Calculate employee count for the department
--- TODO: 3. Calculate average salary for the department
--- TODO: 4. Calculate total payroll (including bonus) for the department
+-- TODO: 1. Get d.DepartmentName name using the @DepartmentID variable
+-- TODO: 2. Calculate employee count for the d.DepartmentName
+-- TODO: 3. Calculate average BaseSalary for the d.DepartmentName
+-- TODO: 4. Calculate total payroll (including bonus) for the d.DepartmentName
 -- TODO: 5. Display results using the variables
 
 -- Sample solution structure:
-SELECT @DepartmentName = DepartmentName FROM Departments WHERE DepartmentID = @DepartmentID;
+SELECT @d.DepartmentName = d.DepartmentName FROM Departments WHERE DepartmentID = @DepartmentID;
 
 SELECT 
     @EmployeeCount = COUNT(*),
-    @AverageSalary = AVG(BaseSalary),
+    @AverageSalary = AVG(e.BaseSalary),
     @TotalPayroll = SUM(BaseSalary * (1 + @BonusPercentage))
 FROM Employees 
 WHERE DepartmentID = @DepartmentID 
@@ -111,10 +110,9 @@ AND IsActive = 1
 AND YEAR(HireDate) <= @TargetYear;
 
 -- Display results
-SELECT 
-    @DepartmentName AS DepartmentName,
+SELECT @d.DepartmentName AS DepartmentName,
     @EmployeeCount AS EmployeeCount,
-    @AverageSalary AS AverageSalary,
+    @AverageSalary AS AverageBaseSalary,
     @TotalPayroll AS TotalPayrollWithBonus,
     @MinSalaryThreshold AS MinSalaryThreshold,
     CASE 
@@ -151,7 +149,7 @@ DECLARE @StandardPerformanceThreshold DECIMAL(5,2) = 70.00;
 -- TODO: 1. Populate @PerformanceMetrics with employee data
 -- TODO: 2. Calculate project count and total hours for each employee
 -- TODO: 3. Generate performance scores based on project involvement
--- TODO: 4. Provide salary recommendations based on performance
+-- TODO: 4. Provide BaseSalary recommendations based on performance
 
 -- Sample solution structure:
 INSERT INTO @PerformanceMetrics (EmployeeID, EmployeeName, CurrentSalary, ProjectCount, TotalHours)
@@ -195,10 +193,10 @@ ORDER BY PerformanceScore DESC, EmployeeName;
 
 ### 🎯 Exercise 2.1: IF...ELSE Conditional Logic (⭐⭐ INTERMEDIATE)
 
-**Business Scenario:** Implement an automated employee review and salary adjustment system.
+**Business Scenario:** Implement an automated employee review and BaseSalary adjustment system.
 
 ```sql
--- Challenge: Create intelligent salary adjustment logic using IF...ELSE
+-- Challenge: Create intelligent BaseSalary adjustment logic using IF...ELSE
 
 DECLARE @EmployeeID INT = 3001;  -- Test with specific employee
 DECLARE @CurrentSalary DECIMAL(10,2);
@@ -210,12 +208,12 @@ DECLARE @AdjustmentReason VARCHAR(200);
 DECLARE @AdjustmentPercentage DECIMAL(5,4);
 
 -- Your Implementation Here:
--- TODO: 1. Get employee details including salary and hire date
+-- TODO: 1. Get employee details including BaseSalary and hire date
 -- TODO: 2. Calculate years of service
 -- TODO: 3. Determine performance rating based on project involvement
--- TODO: 4. Check department budget availability
+-- TODO: 4. Check d.DepartmentName budget availability
 -- TODO: 5. Apply business rules using IF...ELSE logic
--- TODO: 6. Calculate new salary and adjustment reason
+-- TODO: 6. Calculate new BaseSalary and adjustment reason
 
 -- Sample solution structure:
 SELECT 
@@ -269,7 +267,7 @@ BEGIN
     SET @AdjustmentReason = 'No Adjustment - Developing Employee';
 END;
 
--- Calculate new salary
+-- Calculate new BaseSalary
 SET @NewSalary = @CurrentSalary * (1 + @AdjustmentPercentage);
 
 -- Display results
@@ -480,7 +478,7 @@ BEGIN
     RETURN @Score;
 END;
 
--- TODO: Create a table-valued function for department analytics
+-- TODO: Create a table-valued function for d.DepartmentName analytics
 CREATE FUNCTION dbo.fn_GetDepartmentAnalytics
 (
     @DepartmentID INT,
@@ -491,7 +489,7 @@ AS
 RETURN
 (
     -- Your Implementation Here:
-    -- TODO: Return comprehensive department analytics
+    -- TODO: Return comprehensive d.DepartmentName analytics
     
     SELECT 
         e.EmployeeID,
@@ -520,12 +518,11 @@ RETURN
 -- Test the functions
 SELECT * FROM dbo.fn_GetDepartmentAnalytics(2001, 2024);
 
--- Calculate average performance by department
-SELECT 
-    d.DepartmentName,
+-- Calculate average performance by d.DepartmentName
+SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount,
     AVG(da.PerformanceScore) AS AveragePerformanceScore,
-    AVG(da.BaseSalary) AS AverageSalary
+    AVG(da.BaseSalary) AS AverageBaseSalary
 FROM Departments d
 CROSS APPLY dbo.fn_GetDepartmentAnalytics(d.DepartmentID, 2024) da
 WHERE d.IsActive = 1
@@ -561,7 +558,7 @@ END;
 CREATE OR ALTER PROCEDURE sp_ProcessEmployeeSalaryUpdate
     @EmployeeID INT,
     @NewSalary DECIMAL(10,2),
-    @UpdateReason NVARCHAR(200) = 'Salary Adjustment',
+    @UpdateReason NVARCHAR(200) = 'BaseSalary Adjustment',
     @EffectiveDate DATE = NULL
 AS
 BEGIN
@@ -586,9 +583,9 @@ BEGIN
         -- Your Implementation Here:
         -- TODO: 1. Validate input parameters
         -- TODO: 2. Check employee exists and get current details
-        -- TODO: 3. Validate salary against job level constraints
-        -- TODO: 4. Check for reasonable salary increase limits
-        -- TODO: 5. Update salary with proper audit trail
+        -- TODO: 3. Validate BaseSalary against job level constraints
+        -- TODO: 4. Check for reasonable BaseSalary increase limits
+        -- TODO: 5. Update BaseSalary with proper audit trail
         -- TODO: 6. Log the transaction
         
         -- Input validation
@@ -600,7 +597,7 @@ BEGIN
         
         IF @NewSalary IS NULL OR @NewSalary <= 0
         BEGIN
-            SET @ErrorMessage = 'Invalid salary amount provided';
+            SET @ErrorMessage = 'Invalid BaseSalary amount provided';
             RAISERROR(@ErrorMessage, 16, 1);
         END;
         
@@ -623,27 +620,27 @@ BEGIN
         FROM JobLevels
         WHERE JobLevelID = @JobLevelID AND IsActive = 1;
         
-        -- Validate salary against job level
+        -- Validate BaseSalary against job level
         IF @NewSalary > @MaxSalaryForLevel
         BEGIN
-            SET @ErrorMessage = 'New salary exceeds maximum for job level. Max allowed: ' + 
+            SET @ErrorMessage = 'New BaseSalary exceeds maximum for job level. Max allowed: ' + 
                                CAST(@MaxSalaryForLevel AS VARCHAR(20));
             RAISERROR(@ErrorMessage, 16, 1);
         END;
         
-        -- Calculate salary increase percentage
+        -- Calculate BaseSalary increase percentage
         SET @SalaryIncreasePercent = ((@NewSalary - @CurrentSalary) / @CurrentSalary) * 100;
         
         -- Check for excessive increases (more than 50%)
         IF @SalaryIncreasePercent > 50
         BEGIN
-            SET @ErrorMessage = 'Salary increase of ' + 
+            SET @ErrorMessage = 'BaseSalary increase of ' + 
                                CAST(@SalaryIncreasePercent AS VARCHAR(10)) + 
                                '% exceeds maximum allowed increase of 50%';
             RAISERROR(@ErrorMessage, 16, 1);
         END;
         
-        -- Update employee salary
+        -- Update employee BaseSalary
         UPDATE Employees
         SET BaseSalary = @NewSalary,
             ModifiedDate = GETDATE()
@@ -653,10 +650,10 @@ BEGIN
         INSERT INTO ErrorLog (ErrorNumber, ErrorSeverity, ErrorState, ErrorProcedure, 
                              ErrorMessage, AdditionalInfo)
         VALUES (0, 0, 0, 'sp_ProcessEmployeeSalaryUpdate', 
-                'Salary update successful',
+                'BaseSalary update successful',
                 'EmployeeID: ' + CAST(@EmployeeID AS VARCHAR(10)) + 
-                ', Old Salary: ' + CAST(@CurrentSalary AS VARCHAR(20)) +
-                ', New Salary: ' + CAST(@NewSalary AS VARCHAR(20)) +
+                ', Old BaseSalary: ' + CAST(@CurrentSalary AS VARCHAR(20)) +
+                ', New BaseSalary: ' + CAST(@NewSalary AS VARCHAR(20)) +
                 ', Reason: ' + @UpdateReason);
         
         -- Commit transaction
@@ -669,7 +666,7 @@ BEGIN
             @NewSalary AS NewSalary,
             @SalaryIncreasePercent AS IncreasePercent,
             'SUCCESS' AS Status,
-            'Salary updated successfully' AS Message;
+            'BaseSalary updated successfully' AS Message;
             
     END TRY
     BEGIN CATCH
@@ -683,7 +680,7 @@ BEGIN
         VALUES (ERROR_NUMBER(), ERROR_SEVERITY(), ERROR_STATE(), ERROR_PROCEDURE(),
                 ERROR_LINE(), ERROR_MESSAGE(),
                 'EmployeeID: ' + CAST(@EmployeeID AS VARCHAR(10)) + 
-                ', New Salary: ' + CAST(@NewSalary AS VARCHAR(20)) +
+                ', New BaseSalary: ' + CAST(@NewSalary AS VARCHAR(20)) +
                 ', Reason: ' + @UpdateReason);
         
         -- Return error information
@@ -703,7 +700,7 @@ END;
 -- Test the error handling procedure
 PRINT 'Testing error handling scenarios...';
 
--- Test 1: Valid salary update
+-- Test 1: Valid BaseSalary update
 EXEC sp_ProcessEmployeeSalaryUpdate 
     @EmployeeID = 3001,
     @NewSalary = 75000,
@@ -720,14 +717,14 @@ BEGIN CATCH
     SELECT ERROR_MESSAGE() AS CaughtError;
 END CATCH;
 
--- Test 3: Excessive salary increase
+-- Test 3: Excessive BaseSalary increase
 BEGIN TRY
     EXEC sp_ProcessEmployeeSalaryUpdate 
         @EmployeeID = 3002,
         @NewSalary = 200000;  -- Assuming this is excessive
 END TRY
 BEGIN CATCH
-    PRINT 'Caught expected error for excessive salary increase';
+    PRINT 'Caught expected error for excessive BaseSalary increase';
     SELECT ERROR_MESSAGE() AS CaughtError;
 END CATCH;
 
@@ -801,10 +798,10 @@ BEGIN
                 -- Get performance score using user-defined function
                 SET @PerfScore = dbo.fn_CalculatePerformanceScore(@CurrentEmployee, @PerformanceYear);
                 
-                -- Get current salary
+                -- Get current BaseSalary
                 SELECT @CurrentSalary = BaseSalary FROM Employees WHERE EmployeeID = @CurrentEmployee;
                 
-                -- Calculate salary recommendation using complex business logic
+                -- Calculate BaseSalary recommendation using complex business logic
                 IF @PerfScore >= 90
                     SET @SalaryRecommendation = @CurrentSalary * 1.15;  -- 15% increase
                 ELSE IF @PerfScore >= 80
@@ -828,12 +825,12 @@ BEGIN
         END
         ELSE IF @Action = 'UPDATE_SALARIES'
         BEGIN
-            -- Batch salary updates with comprehensive error handling
-            PRINT 'Starting batch salary updates...';
+            -- Batch BaseSalary updates with comprehensive error handling
+            PRINT 'Starting batch BaseSalary updates...';
             
             IF @ExecutionMode = 'EXECUTE'
             BEGIN
-                -- Process salary updates
+                -- Process BaseSalary updates
                 DECLARE @UpdateEmployee INT;
                 DECLARE @NewSalary DECIMAL(10,2);
                 
@@ -879,9 +876,8 @@ BEGIN
             -- Generate comprehensive reports using table-valued functions
             PRINT 'Generating comprehensive management reports...';
             
-            -- Department summary report
-            SELECT 
-                d.DepartmentName,
+            -- d.DepartmentName summary report
+            SELECT d.DepartmentName,
                 COUNT(da.EmployeeID) AS EmployeeCount,
                 AVG(da.PerformanceScore) AS AvgPerformanceScore,
                 AVG(da.BaseSalary) AS AvgSalary,
@@ -935,13 +931,13 @@ EXEC sp_TechCorp_EmployeeManagementSystem
     @Action = 'ANALYZE',
     @PerformanceYear = 2024;
 
--- Test 2: Generate reports for specific department
+-- Test 2: Generate reports for specific d.DepartmentName
 EXEC sp_TechCorp_EmployeeManagementSystem 
     @Action = 'GENERATE_REPORTS',
     @DepartmentID = 2001,
     @PerformanceYear = 2024;
 
--- Test 3: Preview salary updates
+-- Test 3: Preview BaseSalary updates
 EXEC sp_TechCorp_EmployeeManagementSystem 
     @Action = 'UPDATE_SALARIES',
     @ExecutionMode = 'PREVIEW',
@@ -966,7 +962,7 @@ EXEC sp_TechCorp_EmployeeManagementSystem
 **Business Application Skills:**
 - ✅ Employee performance analysis systems
 - ✅ Batch processing and automation
-- ✅ Salary calculation and adjustment algorithms
+- ✅ BaseSalary calculation and adjustment algorithms
 - ✅ Error logging and audit trail implementation
 - ✅ Comprehensive business logic implementation
 

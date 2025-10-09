@@ -47,69 +47,23 @@ This is the most important concept to understand:
 -- All departments with their employee counts
 USE TechCorpDB;
 
-SELECT 
-    Department,
+SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount
-FROM Employees
-GROUP BY Department;
-```
-
-**Expected Result:**
-```
-Department  | EmployeeCount
-IT          | 5
-Sales       | 4
-Marketing   | 3
-HR          | 2
-Finance     | 1
-```
-
-**Query with HAVING filter:**
-```sql
--- Only departments with more than 2 employees
-SELECT 
-    Department,
-    COUNT(*) AS EmployeeCount
-FROM Employees
-GROUP BY Department
-HAVING COUNT(*) > 2;
-```
-
-**Expected Result:**
-```
-Department  | EmployeeCount  
-IT          | 5
-Sales       | 4
-Marketing   | 3
-```
-
-**What happened?** HR (2 employees) and Finance (1 employee) were filtered out!
-
-## Part 2: Filtering by Counts 📊
-
-### Exercise 2.1: Large Departments Only (🟢 SUPER BASIC)
-
-**Question**: "Which departments have more than 3 employees?"
-
-```sql
--- Show only departments with more than 3 employees
-SELECT 
-    Department,
-    COUNT(*) AS EmployeeCount
-FROM Employees  
-GROUP BY Department
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+GROUP BY d.DepartmentName
 HAVING COUNT(*) > 3
 ORDER BY EmployeeCount DESC;
 ```
 
 **Expected Result:**
 ```
-Department  | EmployeeCount
+d.DepartmentName  | EmployeeCount
 IT          | 5  
 Sales       | 4
 ```
 
-**In plain English**: "Group employees by department, count them, then show me only departments with more than 3 people"
+**In plain English**: "Group employees by d.DepartmentName, count them, then show me only departments with more than 3 people"
 
 ### Exercise 2.2: Active Project Categories (🟢 SUPER BASIC)
 
@@ -118,10 +72,10 @@ Sales       | 4
 ```sql
 -- Show project statuses with multiple projects
 SELECT 
-    ProjectStatus,
+    Status,
     COUNT(*) AS ProjectCount
 FROM Projects
-GROUP BY ProjectStatus  
+GROUP BY Status  
 HAVING COUNT(*) >= 2
 ORDER BY ProjectCount DESC;
 ```
@@ -133,87 +87,17 @@ ORDER BY ProjectCount DESC;
 **Question**: "Which departments cost more than $150,000 in salaries?"
 
 ```sql
--- Departments with high salary costs
-SELECT 
-    Department,
-    COUNT(*) AS EmployeeCount,
-    SUM(Salary) AS TotalSalaryCost
-FROM Employees
-GROUP BY Department
-HAVING SUM(Salary) > 150000
-ORDER BY TotalSalaryCost DESC;
-```
-
-**Expected Result:**
-```
-Department | EmployeeCount | TotalSalaryCost
-IT         | 5             | 275000
-Sales      | 4             | 200000
-```
-
-**What this means**: Only IT and Sales departments spend more than $150,000 on salaries
-
-### Exercise 3.2: High-Value Project Categories (🟢 SUPER BASIC)
-
-**Question**: "Which project statuses have total budgets over $100,000?"
-
-```sql
--- Project statuses with high total budgets
-SELECT 
-    ProjectStatus,
-    COUNT(*) AS ProjectCount,
-    SUM(Budget) AS TotalBudget
-FROM Projects
-GROUP BY ProjectStatus
-HAVING SUM(Budget) > 100000
-ORDER BY TotalBudget DESC;
-```
-
-## Part 4: Filtering by Averages 📊
-
-### Exercise 4.1: Well-Paid Departments (🟢 BASIC)
-
-**Question**: "Which departments have average salaries above $50,000?"
-
-```sql
--- Departments with high average salaries
-SELECT 
-    Department,
-    COUNT(*) AS EmployeeCount,
-    AVG(Salary) AS AverageSalary
-FROM Employees
-GROUP BY Department  
-HAVING AVG(Salary) > 50000
+-- Departments with high BaseSalary costs
+SELECT d.DepartmentName,
+    COUNT(*) AS EmployeeCount
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+GROUP BY d.DepartmentName
+HAVING COUNT(*) > 2 AND AVG(e.BaseSalary) > 45000
 ORDER BY AverageSalary DESC;
 ```
 
-**Expected Result:**
-```
-Department | EmployeeCount | AverageSalary
-IT         | 5             | 55000
-```
-
-**What this means**: Only IT department has an average salary above $50,000
-
-## Part 5: Multiple Filters with AND/OR 📊
-
-### Exercise 5.1: Using AND - Both Conditions Must Be True (🟢 BASIC)
-
-**Question**: "Which departments have more than 2 employees AND average salary above $45,000?"
-
-```sql
--- Departments that are both large and well-paid
-SELECT 
-    Department,
-    COUNT(*) AS EmployeeCount,
-    AVG(Salary) AS AverageSalary
-FROM Employees
-GROUP BY Department
-HAVING COUNT(*) > 2 AND AVG(Salary) > 45000
-ORDER BY AverageSalary DESC;
-```
-
-**What AND means**: BOTH conditions must be true. Department must have >2 employees AND >$45K average salary.
+**What AND means**: BOTH conditions must be true. d.DepartmentName must have >2 employees AND >$45K average BaseSalary.
 
 ### Exercise 5.2: Using OR - Either Condition Can Be True (🟢 BASIC)
 
@@ -221,47 +105,19 @@ ORDER BY AverageSalary DESC;
 
 ```sql
 -- Departments that are either large OR expensive
-SELECT 
-    Department,
-    COUNT(*) AS EmployeeCount,
-    SUM(Salary) AS TotalCost
-FROM Employees
-GROUP BY Department  
-HAVING COUNT(*) > 4 OR SUM(Salary) > 180000
-ORDER BY TotalCost DESC;
-```
-
-**What OR means**: Either condition can be true. Show departments with >4 employees OR >$180K total cost.
-
-## Part 6: Combining WHERE and HAVING 📊
-
-### 🎓 Using Both Filters Together
-
-You can use WHERE and HAVING in the same query:
-1. **WHERE** filters rows first
-2. **GROUP BY** organizes the remaining rows  
-3. **HAVING** filters the groups
-
-### Exercise 6.1: Filter Employees, Then Filter Groups (🟢 INTERMEDIATE)
-
-**Question**: "Among employees earning over $40,000, which departments have more than 1 such employee?"
-
-```sql
--- Filter employees first, then filter departments
-SELECT 
-    Department,
-    COUNT(*) AS HighEarnerCount,
-    AVG(Salary) AS AvgHighEarnerSalary
-FROM Employees
-WHERE Salary > 40000           -- Filter employees first
-GROUP BY Department  
+SELECT d.DepartmentName,
+    COUNT(*) AS EmployeeCount
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+WHERE BaseSalary > 40000           -- Filter employees first
+GROUP BY d.DepartmentName  
 HAVING COUNT(*) > 1            -- Then filter departments
 ORDER BY HighEarnerCount DESC;
 ```
 
 **Step by step:**
 1. **WHERE** keeps only employees earning >$40,000
-2. **GROUP BY** groups these high earners by department  
+2. **GROUP BY** groups these high earners by d.DepartmentName  
 3. **HAVING** shows only departments with >1 high earner
 
 ## Part 7: Real Business Questions 📊
@@ -306,15 +162,17 @@ ORDER BY ProjectYear, ProjectMonth;
 
 ```sql
 -- WRONG: This won't work
-SELECT Department, COUNT(*)  
-FROM Employees
-GROUP BY Department
+SELECT d.DepartmentName, COUNT(*)  
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+GROUP BY d.DepartmentName
 WHERE COUNT(*) > 3;  -- Error! Use HAVING for group filters
 
 -- CORRECT: Use HAVING for group filters
-SELECT Department, COUNT(*)
-FROM Employees  
-GROUP BY Department
+SELECT d.DepartmentName, COUNT(*)
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+GROUP BY d.DepartmentName
 HAVING COUNT(*) > 3;
 ```
 
@@ -322,15 +180,16 @@ HAVING COUNT(*) > 3;
 
 ```sql
 -- WRONG: HAVING before GROUP BY
-SELECT Department, COUNT(*)
+SELECT d.DepartmentName, COUNT(*)
 FROM Employees
 HAVING COUNT(*) > 3
-GROUP BY Department;  -- Error! GROUP BY must come first
+GROUP BY d.DepartmentName;  -- Error! GROUP BY must come first
 
 -- CORRECT: Proper order
-SELECT Department, COUNT(*)
-FROM Employees
-GROUP BY Department  
+SELECT d.DepartmentName, COUNT(*)
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+GROUP BY d.DepartmentName  
 HAVING COUNT(*) > 3;
 ```
 

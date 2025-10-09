@@ -185,7 +185,7 @@ ORDER BY t.CreateDate DESC;
 2. **Create Additional Tables for Diagram**:
    ```sql
    -- Create related tables to show relationships
-   CREATE TABLE Department (
+   CREATE TABLE d.DepartmentName (
        DeptID INT IDENTITY(1,1) PRIMARY KEY,
        DeptName NVARCHAR(50) NOT NULL,
        Budget DECIMAL(10,2)
@@ -203,7 +203,7 @@ ORDER BY t.CreateDate DESC;
 
 3. **Create Diagram Using SSMS**:
    - Right-click "Database Diagrams" → New Database Diagram
-   - Add Department and Employee tables
+   - Add d.DepartmentName and Employee tables
    - Verify foreign key relationship is displayed
    - Save diagram as "CompanyStructure"
 
@@ -321,7 +321,7 @@ GO
 USE ArchitectureDemo;
 GO
 
-INSERT INTO Department (DeptName, Budget) VALUES 
+INSERT INTO d.DepartmentName (DeptName, Budget) VALUES 
 ('Research', 150000),
 ('Quality Assurance', 100000);
 
@@ -389,7 +389,7 @@ WITH RECOVERY;
 
 -- Verify recovery
 USE ArchitectureDemo_Recovery;
-SELECT * FROM Employee;
+SELECT * FROM Employees e;
 ```
 
 ## Lab Summary and Key Takeaways

@@ -38,10 +38,10 @@ SELECT
     COUNT(DISTINCT JobLevelID) AS UniqueLevels,
     
     -- Financial aggregates
-    SUM(BaseSalary) AS TotalPayroll,
-    AVG(BaseSalary) AS AverageSalary,
-    MIN(BaseSalary) AS MinimumSalary,
-    MAX(BaseSalary) AS MaximumSalary,
+    SUM(e.BaseSalary) AS TotalPayroll,
+    AVG(e.BaseSalary) AS AverageBaseSalary,
+    MIN(e.BaseSalary) AS MinimumSalary,
+    MAX(e.BaseSalary) AS MaximumSalary,
     
     -- Statistical measures
     STDEV(BaseSalary) AS SalaryStandardDeviation,
@@ -84,19 +84,17 @@ HAVING COUNT(*) >= 5;  -- Minimum sample size for statistical significance
 
 ```sql
 -- Single dimension grouping
-SELECT 
-    Department,
+SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount,
-    AVG(BaseSalary) AS AvgSalary
+    AVG(e.BaseSalary) AS AvgSalary
 FROM Employees
 GROUP BY DepartmentID;
 
 -- Multi-dimensional grouping
-SELECT 
-    Department,
+SELECT d.DepartmentName,
     JobLevel,
     COUNT(*) AS EmployeeCount,
-    AVG(BaseSalary) AS AvgSalary,
+    AVG(e.BaseSalary) AS AvgSalary,
     AVG(DATEDIFF(YEAR, HireDate, GETDATE())) AS AvgTenure
 FROM Employees
 GROUP BY DepartmentID, JobLevel
@@ -124,11 +122,10 @@ GROUP BY ROLLUP(Industry, CompanySize)
 ORDER BY Industry, CompanySize;
 
 -- CUBE for all possible combinations
-SELECT 
-    ISNULL(Department, 'ALL DEPARTMENTS') AS Department,
+SELECT ISNULL(Department, 'ALL DEPARTMENTS') AS d.DepartmentName,
     ISNULL(JobLevel, 'ALL LEVELS') AS JobLevel,
     COUNT(*) AS EmployeeCount,
-    AVG(BaseSalary) AS AvgSalary
+    AVG(e.BaseSalary) AS AvgSalary
 FROM Employees
 GROUP BY CUBE(Department, JobLevel);
 ```
@@ -143,14 +140,14 @@ GROUP BY CUBE(Department, JobLevel);
 SELECT 
     DepartmentID,
     COUNT(*) AS EmployeeCount,
-    AVG(BaseSalary) AS AvgSalary,
-    SUM(BaseSalary) AS TotalPayroll,
+    AVG(e.BaseSalary) AS AvgSalary,
+    SUM(e.BaseSalary) AS TotalPayroll,
     MAX(HireDate) AS MostRecentHire
 FROM Employees
 WHERE IsActive = 1
 GROUP BY DepartmentIDID
 HAVING COUNT(*) >= 10                    -- Departments with at least 10 employees
-    AND AVG(BaseSalary) > 60000              -- Above-average compensation
+    AND AVG(e.BaseSalary) > 60000              -- Above-average compensation
     AND MAX(HireDate) >= DATEADD(YEAR, -2, GETDATE())  -- Recent hiring activity
 ORDER BY AvgSalary DESC;
 ```
@@ -198,17 +195,17 @@ SELECT
     BaseSalary,
     
     -- Department-level aggregates
-    AVG(BaseSalary) OVER (PARTITION BY DepartmentIDID) AS DeptAvgSalary,
+    AVG(e.BaseSalary) OVER (PARTITION BY DepartmentIDID) AS DeptAvgSalary,
     COUNT(*) OVER (PARTITION BY DepartmentIDID) AS DeptEmployeeCount,
-    SUM(BaseSalary) OVER (PARTITION BY DepartmentIDID) AS DeptTotalPayroll,
+    SUM(e.BaseSalary) OVER (PARTITION BY DepartmentIDID) AS DeptTotalPayroll,
     
     -- Running totals and rankings
-    SUM(BaseSalary) OVER (ORDER BY EmployeeID ROWS UNBOUNDED PRECEDING) AS RunningPayrollTotal,
+    SUM(e.BaseSalary) OVER (ORDER BY EmployeeID ROWS UNBOUNDED PRECEDING) AS RunningPayrollTotal,
     ROW_NUMBER() OVER (PARTITION BY DepartmentIDID ORDER BY BaseSalary DESC) AS DeptSalaryRank,
     
     -- Comparative analysis
-    BaseSalary - AVG(BaseSalary) OVER (PARTITION BY DepartmentIDID) AS SalaryDifference,
-    (BaseSalary * 100.0) / SUM(BaseSalary) OVER (PARTITION BY DepartmentIDID) AS PayrollPercentage
+    BaseSalary - AVG(e.BaseSalary) OVER (PARTITION BY DepartmentIDID) AS SalaryDifference,
+    (BaseSalary * 100.0) / SUM(e.BaseSalary) OVER (PARTITION BY DepartmentIDID) AS PayrollPercentage
 FROM Employees
 WHERE IsActive = 1
 ORDER BY DepartmentIDID, BaseSalary DESC;
@@ -274,7 +271,7 @@ SELECT
     
     -- Complex business calculations
     (COUNT(CASE WHEN PerformanceRating >= 4 THEN 1 END) * 100.0) / COUNT(*) AS HighPerformerPercent,
-    (SUM(CASE WHEN JobLevel = 'Manager' THEN BaseSalary ELSE 0 END) * 100.0) / SUM(BaseSalary) AS ManagerPayrollPercent
+    (SUM(CASE WHEN JobLevel = 'Manager' THEN BaseSalary ELSE 0 END) * 100.0) / SUM(e.BaseSalary) AS ManagerPayrollPercent
 FROM Employees
 WHERE IsActive = 1
 GROUP BY DepartmentIDID
@@ -326,7 +323,7 @@ INCLUDE (BaseSalary, HireDate, PerformanceRating);
 SELECT 
     DepartmentID,
     COUNT(*) AS EmployeeCount,
-    AVG(BaseSalary) AS AvgSalary
+    AVG(e.BaseSalary) AS AvgSalary
 FROM Employees
 WHERE IsActive = 1  -- Filter applied before grouping
     AND HireDate >= '2020-01-01'
@@ -358,12 +355,12 @@ GROUP BY DepartmentIDID;
 -- CORRECT: Use HAVING COUNT(*) > 5
 
 -- Mistake 3: Forgetting NULL handling in aggregates
-SELECT AVG(Bonus) FROM Employees;  -- Ignores NULL values, might not be expected behavior
+SELECT AVG(Bonus) FROM Employees e;  -- Ignores NULL values, might not be expected behavior
 
 -- Mistake 4: Incorrect COUNT usage
-SELECT COUNT(MiddleName) FROM Employees;  -- Counts only non-NULL values
+SELECT COUNT(MiddleName) FROM Employees e;  -- Counts only non-NULL values
 -- vs
-SELECT COUNT(*) FROM Employees;  -- Counts all rows
+SELECT COUNT(*) FROM Employees e;  -- Counts all rows
 ```
 
 ---
@@ -479,7 +476,7 @@ ORDER BY YearMonth DESC;
 ```sql
 -- Comprehensive executive summary
 WITH ExecutiveSummary AS (
-    -- Department performance
+    -- d.DepartmentName performance
     SELECT 
         'Department Performance' AS MetricCategory,
         d.DepartmentName AS Dimension,
@@ -562,7 +559,7 @@ SELECT
     COUNT(CASE WHEN LEN(FirstName) >= 2 THEN 1 END) AS ValidFirstNames,
     
     -- Outlier detection
-    COUNT(CASE WHEN BaseSalary > (SELECT AVG(BaseSalary) + 3 * STDEV(BaseSalary) FROM Employees WHERE IsActive = 1) THEN 1 END) AS SalaryOutliers
+    COUNT(CASE WHEN BaseSalary > (SELECT AVG(e.BaseSalary) + 3 * STDEV(BaseSalary) FROM Employees WHERE IsActive = 1) THEN 1 END) AS SalaryOutliers
 FROM Employees
 WHERE IsActive = 1;
 ```
@@ -587,8 +584,7 @@ BEGIN
     IF @EndDate IS NULL SET @EndDate = GETDATE();
     
     -- Main aggregation query
-    SELECT 
-        ISNULL(d.DepartmentName, 'ALL DEPARTMENTS') AS Department,
+    SELECT ISNULL(d.DepartmentName, 'ALL DEPARTMENTS') AS DepartmentName,
         COUNT(DISTINCT e.EmployeeID) AS ActiveEmployees,
         COUNT(DISTINCT p.ProjectID) AS ActiveProjects,
         
@@ -642,7 +638,7 @@ END
 
 **Financial Analysis**: Budget forecasting, variance analysis, and profitability assessments
 
-**Performance Management**: Department productivity, employee performance analysis, and benchmarking
+**Performance Management**: d.DepartmentName productivity, employee performance analysis, and benchmarking
 
 **Customer Analytics**: Segmentation analysis, lifetime value calculations, and retention metrics
 
@@ -676,11 +672,10 @@ END
 -- Integration patterns for modern BI tools
 -- Power BI, Tableau, QlikView connectivity
 CREATE VIEW vw_ExecutiveDashboard AS
-SELECT 
-    Department,
+SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount,
-    AVG(BaseSalary) AS AvgSalary,
-    SUM(BaseSalary) AS TotalPayroll,
+    AVG(e.BaseSalary) AS AvgSalary,
+    SUM(e.BaseSalary) AS TotalPayroll,
     STDEV(BaseSalary) AS SalaryStdDev
 FROM Employees
 WHERE IsActive = 1

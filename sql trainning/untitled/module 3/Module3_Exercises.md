@@ -30,12 +30,12 @@ These exercises test your mastery of fundamental SELECT statement concepts: basi
 - Projected vs actual timeline variance in days
 - Client type classification (Internal vs External)
 
-**Question 1.1.3**: Create a department overview showing:
-- Department name and location
+**Question 1.1.3**: Create a d.DepartmentName overview showing:
+- d.DepartmentName name and location
 - Budget formatted with commas and dollar sign
 - Cost center information
 - Manager information (if available)
-- Department size category based on budget ranges
+- d.DepartmentName size category based on budget ranges
 
 **Question 1.1.4**: Write a query for employee contact management:
 - Employee name and title
@@ -86,7 +86,7 @@ These exercises test your mastery of fundamental SELECT statement concepts: basi
 - Determine training program priorities
 
 **Question 2.1.5**: Perform organizational structure analysis:
-- Find unique department and title combinations
+- Find unique d.DepartmentName and title combinations
 - Identify career path diversity within departments
 - Analyze management structure patterns
 - Show hierarchy distribution
@@ -240,7 +240,7 @@ Develop a sophisticated project analysis system that:
 1. **Employee Excellence Engine**: Identify top performers, flight risks, and development candidates
 2. **Project Success Predictor**: Forecast project outcomes and recommend interventions
 3. **Skills Investment Optimizer**: Determine optimal training and hiring strategies
-4. **Organizational Health Monitor**: Assess department effectiveness and balance
+4. **Organizational Health Monitor**: Assess d.DepartmentName effectiveness and balance
 
 **Technical Constraints:**
 - Single query result set suitable for executive visualization

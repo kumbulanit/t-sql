@@ -35,11 +35,11 @@ AFTER: Complete learning framework with:
 ```sql
 -- BEFORE: Basic query
 SELECT FirstName + ' ' + LastName AS FullName
-FROM Employees;
+FROM Employees e;
 
 -- AFTER: Complete beginner explanation
 SELECT FirstName + ' ' + LastName AS FullName
-FROM Employees;
+FROM Employees e;
 
 🎯 Beginner Explanation:
 • String Concatenation: Combines first and last names with space

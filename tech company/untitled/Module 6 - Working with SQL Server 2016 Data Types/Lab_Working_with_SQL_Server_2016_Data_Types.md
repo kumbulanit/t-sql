@@ -124,8 +124,8 @@ CREATE TABLE Employees (
 -- 1. Annual bonus amount (BaseSalary * BonusPercentage)
 -- 2. Monthly commission potential (BaseSalary * CommissionRate / 12)
 -- 3. Total annual compensation (BaseSalary + Bonus)
--- 4. Average performance score per department
--- 5. BaseSalary range (min and max) per department
+-- 4. Average performance score per d.DepartmentName
+-- 5. BaseSalary range (min and max) per d.DepartmentName
 
 -- Your solution here
 

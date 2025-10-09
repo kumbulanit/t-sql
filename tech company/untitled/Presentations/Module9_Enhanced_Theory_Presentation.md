@@ -37,14 +37,14 @@ SELECT
     (SELECT CategoryName FROM Categories c WHERE c.CategoryID = p.CategoryID) AS CategoryName,
     
     -- Scalar subquery with aggregate
-    (SELECT AVG(BaseSalary) FROM Products p2 WHERE p2.CategoryID = p.CategoryID) AS CategoryAveragePrice,
+    (SELECT AVG(e.BaseSalary) FROM Products p2 WHERE p2.CategoryID = p.CategoryID) AS CategoryAveragePrice,
     
     -- Scalar subquery for calculations
-    BaseSalary - (SELECT AVG(BaseSalary) FROM Products) AS PriceDifferenceFromOverallAverage,
+    BaseSalary - (SELECT AVG(e.BaseSalary) FROM Products) AS PriceDifferenceFromOverallAverage,
     
     -- Conditional scalar subquery
     CASE 
-        WHEN BaseSalary > (SELECT AVG(BaseSalary) FROM Products p3 WHERE p3.CategoryID = p.CategoryID)
+        WHEN BaseSalary > (SELECT AVG(e.BaseSalary) FROM Products p3 WHERE p3.CategoryID = p.CategoryID)
         THEN 'Above Average'
         ELSE 'Below Average'
     END AS PriceCategory
@@ -83,7 +83,7 @@ WHERE CategoryID IN (
     SELECT CategoryID
     FROM Products
     GROUP BY CategoryID
-    HAVING AVG(BaseSalary) > 50
+    HAVING AVG(e.BaseSalary) > 50
 )
 AND ProductID NOT IN (
     -- Exclude products never ordered
@@ -101,10 +101,10 @@ AND ProductID NOT IN (
 SELECT 
     e1.EmployeeID,
     e1.FirstName + ' ' + e1.LastName AS EmployeeName,
-    e1.Department,
+    e1.DepartmentName,
     e1.BaseSalary,
     
-    -- Correlated subquery for department ranking
+    -- Correlated subquery for d.DepartmentName ranking
     (SELECT COUNT(*)
      FROM Employees e2 
      WHERE e2.DepartmentID = e1.DepartmentID 
@@ -112,7 +112,7 @@ SELECT
     
     -- Correlated subquery for percentage calculation
     CAST(e1.BaseSalary AS DECIMAL(10,2)) / 
-    (SELECT AVG(BaseSalary) FROM Employees e3 WHERE e3.DepartmentID = e1.DepartmentID) * 100 AS PercentOfDeptAverage,
+    (SELECT AVG(e.BaseSalary) FROM Employees e3 WHERE e3.DepartmentID = e1.DepartmentID) * 100 AS PercentOfDeptAverage,
     
     -- Correlated EXISTS subquery
     CASE 
@@ -124,7 +124,7 @@ SELECT
     
 FROM Employees e1
 WHERE e1.IsActive = 1
-ORDER BY e1.Department, e1.BaseSalary DESC;
+ORDER BY e1.DepartmentName, e1.BaseSalary DESC;
 ```
 
 #### **EXISTS vs IN Performance Comparison**
@@ -255,7 +255,7 @@ WITH EmployeeHierarchy AS (
         FirstName + ' ' + LastName AS EmployeeName,
         JobTitle,
         ManagerID,
-        Department,
+        d.DepartmentName,
         BaseSalary,
         0 AS Level,  -- Top level
         CAST(FirstName + ' ' + LastName AS NVARCHAR(MAX)) AS HierarchyPath
@@ -270,7 +270,7 @@ WITH EmployeeHierarchy AS (
         e.FirstName + ' ' + e.LastName,
         e.JobTitle,
         e.ManagerID,
-        e.Department,
+        e.DepartmentName,
         e.BaseSalary,
         eh.Level + 1,
         eh.HierarchyPath + ' > ' + e.FirstName + ' ' + e.LastName
@@ -282,11 +282,12 @@ SELECT
     Level,
     REPLICATE('  ', Level) + EmployeeName AS IndentedName,  -- Visual hierarchy
     JobTitle,
-    Department,
+    d.DepartmentName,
     BaseSalary,
     HierarchyPath,
     -- Calculate span of control
-    (SELECT COUNT(*) FROM Employees e WHERE e.ManagerID = eh.EmployeeID) AS DirectReports,
+    (SELECT COUNT(*) FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE e.ManagerID = eh.EmployeeID) AS DirectReports,
     -- Calculate total subordinates (recursive count)
     (SELECT COUNT(*) FROM EmployeeHierarchy eh2 
      WHERE eh2.HierarchyPath LIKE eh.HierarchyPath + '%' 
@@ -537,21 +538,22 @@ WHERE o.OrderDate >= '2023-01-01';
 SELECT 
     e.EmployeeID,
     e.FirstName + ' ' + e.LastName AS EmployeeName,
-    e.Department,
+    e.DepartmentName,
     e.BaseSalary,
     (SELECT COUNT(*) 
      FROM Employees e2 
      WHERE e2.DepartmentID = e.DepartmentID 
          AND e2.BaseSalary > e.BaseSalary) + 1 AS DepartmentRank
 FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
-ORDER BY e.Department, DepartmentRank;
+ORDER BY e.DepartmentName, DepartmentRank;
 
 -- Window function approach (more efficient)
 SELECT 
     EmployeeID,
     FirstName + ' ' + LastName AS EmployeeName,
-    Department,
+    d.DepartmentName,
     BaseSalary,
     RANK() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) AS DepartmentRank
 FROM Employees

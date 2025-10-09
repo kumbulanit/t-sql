@@ -33,18 +33,18 @@ Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, IsActive
 
 ### 1.1 Scalar Subquery Challenge
 
-**Business Problem:** The HR department needs to identify all employees earning above the company average salary for budget planning purposes.
+**Business Problem:** The HR d.DepartmentName needs to identify all employees earning above the company average BaseSalary for budget planning purposes.
 
-**Your Task:** Write a query that shows employee details for those earning above the company average salary. Include employee name, job title, salary, and how much above average they earn.
+**Your Task:** Write a query that shows employee details for those earning above the company average BaseSalary. Include employee name, job title, BaseSalary, and how much above average they earn.
 
 **Expected Output Columns:**
 - Employee Name (First + Last)
 - Job Title
-- Current Salary
-- Company Average Salary
+- Current BaseSalary
+- Company Average BaseSalary
 - Difference from Average
 
-**Hint:** Use a scalar subquery to calculate the company average salary.
+**Hint:** Use a scalar subquery to calculate the company average BaseSalary.
 
 ```sql
 -- Write your solution here:
@@ -76,19 +76,19 @@ Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, IsActive
 
 ## Exercise 2: Correlated Subqueries (Intermediate Level)
 
-### 2.1 Department Comparison Challenge
+### 2.1 d.DepartmentName Comparison Challenge
 
-**Business Problem:** Management wants to identify high-performing employees by comparing each employee's salary to their department average.
+**Business Problem:** Management wants to identify high-performing employees by comparing each employee's BaseSalary to their d.DepartmentName average.
 
-**Your Task:** Create a report showing employees who earn more than their department average. Include department comparison metrics.
+**Your Task:** Create a report showing employees who earn more than their d.DepartmentName average. Include d.DepartmentName comparison metrics.
 
 **Expected Output Columns:**
 - Employee Name
-- Department Name
-- Employee Salary
-- Department Average Salary
-- Percentage Above Department Average
-- Employee Rank in Department
+- d.DepartmentName Name
+- Employee BaseSalary
+- d.DepartmentName Average BaseSalary
+- Percentage Above d.DepartmentName Average
+- Employee Rank in d.DepartmentName
 
 **Hint:** Use correlated subqueries to calculate department-specific averages and rankings.
 
@@ -106,9 +106,9 @@ Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, IsActive
 
 **Expected Output Columns:**
 - Employee Name
-- Department Name
+- d.DepartmentName Name
 - Total Hours Worked
-- Department Average Hours
+- d.DepartmentName Average Hours
 - Number of Projects
 - Average Hours per Project
 
@@ -133,7 +133,7 @@ Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, IsActive
 **Expected Output Columns:**
 - Manager Name
 - Job Title
-- Department Name
+- d.DepartmentName Name
 - Number of Direct Reports
 - Hire Date
 
@@ -173,21 +173,21 @@ Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, IsActive
 
 ### 4.1 Multi-Dimensional Analysis Challenge
 
-**Business Problem:** Senior management needs a comprehensive analysis of department performance combining multiple metrics.
+**Business Problem:** Senior management needs a comprehensive analysis of d.DepartmentName performance combining multiple metrics.
 
-**Your Task:** Create a department performance dashboard that combines salary analysis, project activity, and order processing metrics.
+**Your Task:** Create a d.DepartmentName performance dashboard that combines BaseSalary analysis, project activity, and order processing metrics.
 
 **Required Analysis:**
 - Departments with above-average budgets
-- Employee salary distribution within each department
+- Employee BaseSalary distribution within each d.DepartmentName
 - Project management activity
 - Order processing performance
 
 **Expected Output Columns:**
-- Department Name
+- d.DepartmentName Name
 - Budget vs Company Average
-- High Salary Employee Count (above dept avg)
-- Projects Managed by Department
+- High BaseSalary Employee Count (above dept avg)
+- Projects Managed by d.DepartmentName
 - Total Orders Processed
 - Performance Rating
 
@@ -206,15 +206,15 @@ Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, IsActive
 **Your Task:** Develop a scoring system that evaluates employees across multiple dimensions.
 
 **Scoring Criteria:**
-- Salary percentile within department (25% of score)
-- Project involvement vs department average (25% of score)
+- BaseSalary percentile within d.DepartmentName (25% of score)
+- Project involvement vs d.DepartmentName average (25% of score)
 - Order processing activity (25% of score)
 - Management responsibilities (25% of score)
 
 **Expected Output Columns:**
 - Employee Name
-- Department Name
-- Salary Percentile Score
+- d.DepartmentName Name
+- BaseSalary Percentile Score
 - Project Activity Score
 - Order Processing Score
 - Management Score
@@ -241,17 +241,17 @@ SELECT
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     e.JobTitle,
     FORMAT(e.BaseSalary, 'C') AS CurrentSalary,
-    FORMAT((SELECT AVG(BaseSalary) 
+    FORMAT((SELECT AVG(e.BaseSalary) 
             FROM Employees 
             WHERE IsActive = 1), 'C') AS CompanyAverageSalary,
-    FORMAT(e.BaseSalary - (SELECT AVG(BaseSalary) 
+    FORMAT(e.BaseSalary - (SELECT AVG(e.BaseSalary) 
                            FROM Employees 
                            WHERE IsActive = 1), 'C') AS DifferenceFromAverage,
-    CAST((e.BaseSalary - (SELECT AVG(BaseSalary) FROM Employees WHERE IsActive = 1)) * 100.0 / 
-         (SELECT AVG(BaseSalary) FROM Employees WHERE IsActive = 1) AS DECIMAL(5,1)) AS PercentAboveAverage
+    CAST((e.BaseSalary - (SELECT AVG(e.BaseSalary) FROM Employees WHERE IsActive = 1)) * 100.0 / 
+         (SELECT AVG(e.BaseSalary) FROM Employees WHERE IsActive = 1) AS DECIMAL(5,1)) AS PercentAboveAverage
 FROM Employees e
 WHERE e.BaseSalary > (
-    SELECT AVG(BaseSalary)
+    SELECT AVG(e.BaseSalary)
     FROM Employees
     WHERE IsActive = 1
 )
@@ -296,10 +296,10 @@ ORDER BY o.TotalAmount DESC, o.OrderDate DESC;
 - Multiple table JOINs can be combined with subqueries
 - Proper filtering ensures data quality
 
-### Solution 2.1: Department Comparison Challenge
+### Solution 2.1: d.DepartmentName Comparison Challenge
 
 ```sql
--- Management: High-Performing Employees by Department
+-- Management: High-Performing Employees by d.DepartmentName
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     d.DepartmentName,
@@ -515,9 +515,8 @@ ORDER BY DaysSinceLastOrder DESC, TotalHistoricalRevenue DESC;
 ### Solution 4.1: Multi-Dimensional Analysis Challenge
 
 ```sql
--- Senior Management: Department Performance Dashboard
-SELECT 
-    d.DepartmentName,
+-- Senior Management: d.DepartmentName Performance Dashboard
+SELECT d.DepartmentName,
     FORMAT(d.Budget, 'C') AS DepartmentBudget,
     CASE 
         WHEN d.Budget > (SELECT AVG(Budget) FROM Departments WHERE IsActive = 1)
@@ -530,6 +529,7 @@ SELECT
     END AS BudgetVsCompanyAverage,
     (SELECT COUNT(*)
      FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
      WHERE e.DepartmentID = d.DepartmentID
        AND e.BaseSalary > (SELECT AVG(e2.BaseSalary)
                            FROM Employees e2
@@ -617,7 +617,7 @@ WITH PerformanceScores AS (
         d.DepartmentName,
         e.BaseSalary,
         
-        -- Salary Percentile Score (25% of total)
+        -- BaseSalary Percentile Score (25% of total)
         CAST((SELECT COUNT(*)
               FROM Employees e2
               WHERE e2.DepartmentID = e.DepartmentID

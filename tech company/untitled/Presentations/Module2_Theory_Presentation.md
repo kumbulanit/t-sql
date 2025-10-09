@@ -199,7 +199,7 @@ WHERE d.DepartmentName = 'Sales' AND BaseSalary > 50000;
 -- Mathematical: π(attribute_list)(R)
 -- Projects specified attributes from relation
 SELECT EmployeeID, FirstName, LastName
-FROM Employees;
+FROM Employees e;
 
 -- Result: New relation with only specified columns
 ```
@@ -424,7 +424,7 @@ SELECT FirstName + ' ' + LastName AS full_name,
 
 Example:
 ```sql
-GROUP BY department, job_title
+GROUP BY d.DepartmentName, job_title
 ```
 
 ---

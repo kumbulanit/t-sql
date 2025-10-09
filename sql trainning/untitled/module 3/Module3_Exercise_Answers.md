@@ -93,10 +93,9 @@ ORDER BY p.Budget DESC;
 
 **Explanation**: Demonstrates percentage calculations, date arithmetic, conditional logic for handling NULLs, and business categorization logic.
 
-**Answer 1.1.3**: Department Overview
+**Answer 1.1.3**: d.DepartmentName Overview
 ```sql
-SELECT 
-    d.DepartmentName AS [Department],
+SELECT d.DepartmentName AS [Department],
     d.Location AS [Office Location],
     
     -- Formatted budget
@@ -111,7 +110,7 @@ SELECT
         ELSE 'Position Vacant'
     END AS [Department Manager],
     
-    -- Department size category
+    -- d.DepartmentName size category
     CASE 
         WHEN d.Budget < 300000 THEN 'Small Department'
         WHEN d.Budget BETWEEN 300000 AND 600000 THEN 'Medium Department'
@@ -135,7 +134,7 @@ ORDER BY d.Budget DESC;
 ```sql
 SELECT 
     e.FirstName + ' ' + e.LastName AS [Employee Name],
-    e.Title AS [Position],
+    e.JobTitle AS [Position],
     
     -- Complete address
     CASE 
@@ -429,29 +428,29 @@ ORDER BY
 ```sql
 SELECT DISTINCT
     d.DepartmentName AS [Department],
-    e.Title AS [Position Title],
-    COUNT(e.EmployeeID) OVER (PARTITION BY d.DepartmentID, e.Title) AS [Position Count],
+    e.JobTitle AS [Position Title],
+    COUNT(e.EmployeeID) OVER (PARTITION BY d.DepartmentID, e.JobTitle) AS [Position Count],
     COUNT(e.EmployeeID) OVER (PARTITION BY d.DepartmentID) AS [Department Size],
-    COUNT(DISTINCT e.Title) OVER (PARTITION BY d.DepartmentID) AS [Unique Positions],
+    COUNT(DISTINCT e.JobTitle) OVER (PARTITION BY d.DepartmentID) AS [Unique Positions],
     CASE 
-        WHEN COUNT(DISTINCT e.Title) OVER (PARTITION BY d.DepartmentID) >= 5 
+        WHEN COUNT(DISTINCT e.JobTitle) OVER (PARTITION BY d.DepartmentID) >= 5 
              THEN 'Complex Hierarchy'
-        WHEN COUNT(DISTINCT e.Title) OVER (PARTITION BY d.DepartmentID) BETWEEN 3 AND 4 
+        WHEN COUNT(DISTINCT e.JobTitle) OVER (PARTITION BY d.DepartmentID) BETWEEN 3 AND 4 
              THEN 'Moderate Hierarchy'
-        WHEN COUNT(DISTINCT e.Title) OVER (PARTITION BY d.DepartmentID) <= 2 
+        WHEN COUNT(DISTINCT e.JobTitle) OVER (PARTITION BY d.DepartmentID) <= 2 
              THEN 'Flat Structure'
         ELSE 'Undefined Structure'
     END AS [Organizational Complexity],
     CASE 
-        WHEN e.Title LIKE '%Director%' THEN 'Executive Level'
-        WHEN e.Title LIKE '%Manager%' THEN 'Management Level'
-        WHEN e.Title LIKE '%Senior%' THEN 'Senior Individual Contributor'
+        WHEN e.JobTitle LIKE '%Director%' THEN 'Executive Level'
+        WHEN e.JobTitle LIKE '%Manager%' THEN 'Management Level'
+        WHEN e.JobTitle LIKE '%Senior%' THEN 'Senior Individual Contributor'
         ELSE 'Individual Contributor'
     END AS [Hierarchy Level],
     CASE 
-        WHEN COUNT(e.EmployeeID) OVER (PARTITION BY d.DepartmentID, e.Title) > 3 
+        WHEN COUNT(e.EmployeeID) OVER (PARTITION BY d.DepartmentID, e.JobTitle) > 3 
              THEN 'Multiple Incumbents'
-        WHEN COUNT(e.EmployeeID) OVER (PARTITION BY d.DepartmentID, e.Title) = 1 
+        WHEN COUNT(e.EmployeeID) OVER (PARTITION BY d.DepartmentID, e.JobTitle) = 1 
              THEN 'Single Incumbent'
         ELSE 'Dual Coverage'
     END AS [Position Coverage]
@@ -460,12 +459,12 @@ INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
 WHERE e.IsActive = 1
 ORDER BY d.DepartmentName, 
          CASE 
-             WHEN e.Title LIKE '%Director%' THEN 1
-             WHEN e.Title LIKE '%Manager%' THEN 2
-             WHEN e.Title LIKE '%Senior%' THEN 3
+             WHEN e.JobTitle LIKE '%Director%' THEN 1
+             WHEN e.JobTitle LIKE '%Manager%' THEN 2
+             WHEN e.JobTitle LIKE '%Senior%' THEN 3
              ELSE 4
          END,
-         e.Title;
+         e.JobTitle;
 ```
 
 **Explanation**: Organizational analysis using window functions, hierarchy classification logic, and structural complexity assessment.
@@ -527,8 +526,7 @@ LEFT JOIN Projects proj ON ep.ProjectID = proj.ProjectID AND proj.IsActive = 'In
 
 **Answer 3.1.2**: Human Resources Dashboard
 ```sql
-SELECT 
-    dept.DepartmentName AS [Business Unit],
+SELECT dept.d.DepartmentName AS [Business Unit],
     
     -- Employee lifecycle indicators with HR terminology
     COUNT(emp.EmployeeID) AS [Current Headcount],
@@ -570,7 +568,7 @@ SELECT
 FROM Employees emp
 INNER JOIN Departments dept ON emp.DepartmentID = dept.DepartmentID
 WHERE emp.IsActive = 1
-GROUP BY dept.DepartmentID, dept.DepartmentName
+GROUP BY dept.DepartmentID, dept.d.DepartmentName
 ORDER BY COUNT(emp.EmployeeID) DESC;
 ```
 
@@ -716,7 +714,7 @@ INNER JOIN Departments dept ON emp.DepartmentID = dept.DepartmentID
 LEFT JOIN EmployeeSkills es ON emp.EmployeeID = es.EmployeeID
 LEFT JOIN Skills sk ON es.SkillID = sk.SkillID
 WHERE emp.IsActive = 1
-GROUP BY emp.EmployeeID, emp.FirstName, emp.LastName, emp.Title, dept.DepartmentName
+GROUP BY emp.EmployeeID, emp.FirstName, emp.LastName, emp.Title, dept.d.DepartmentName
 ORDER BY COUNT(es.SkillID) DESC, emp.LastName;
 ```
 
@@ -724,8 +722,7 @@ ORDER BY COUNT(es.SkillID) DESC, emp.LastName;
 
 **Answer 3.1.5**: Financial Performance Report
 ```sql
-SELECT 
-    dept.DepartmentName AS [Cost Center],
+SELECT dept.d.DepartmentName AS [Cost Center],
     dept.CostCenter AS [Accounting Code],
     
     -- Cost center analysis with accounting terminology
@@ -1007,7 +1004,7 @@ WITH EmployeeMetrics AS (
     LEFT JOIN EmployeeSkills es ON emp.EmployeeID = es.EmployeeID
     WHERE emp.IsActive = 1
     GROUP BY emp.EmployeeID, emp.FirstName, emp.LastName, emp.Title, 
-             emp.BaseSalary, emp.HireDate, dept.DepartmentName
+             emp.BaseSalary, emp.HireDate, dept.d.DepartmentName
 ),
 PerformanceSegmentation AS (
     SELECT *,
@@ -1039,7 +1036,7 @@ PerformanceSegmentation AS (
             WHEN Title LIKE '%Director%' AND TenureYears >= 7 THEN 'Executive Development Track'
             WHEN (Title LIKE '%Senior%' OR Title LIKE '%Manager%') AND TenureYears >= 5 
                  THEN 'Leadership Development Track'
-            WHEN TenureYears >= 3 AND BaseSalary >= AVG(BaseSalary) OVER (PARTITION BY DepartmentIDName)
+            WHEN TenureYears >= 3 AND BaseSalary >= AVG(e.BaseSalary) OVER (PARTITION BY DepartmentIDName)
                  THEN 'Senior Professional Track'
             WHEN TenureYears >= 1 THEN 'Professional Development Track'
             ELSE 'Foundation Building Track'
@@ -1047,7 +1044,7 @@ PerformanceSegmentation AS (
         
         -- Retention risk assessment with actionable insights
         CASE 
-            WHEN TenureYears >= 5 AND BaseSalary < AVG(BaseSalary) OVER (PARTITION BY DepartmentIDName) * 0.9
+            WHEN TenureYears >= 5 AND BaseSalary < AVG(e.BaseSalary) OVER (PARTITION BY DepartmentIDName) * 0.9
                  THEN 'High Flight Risk - Compensation Below Market'
             WHEN ProjectCount = 0 AND TenureYears >= 1
                  THEN 'High Flight Risk - Lack of Engagement'

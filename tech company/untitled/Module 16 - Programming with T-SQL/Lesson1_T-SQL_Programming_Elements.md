@@ -67,27 +67,26 @@ Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, WorkEmai
 
 ### Basic Variable Operations
 
-#### TechCorp Example: Employee Salary Analysis Variables
+#### TechCorp Example: Employee BaseSalary Analysis Variables
 
 ```sql
--- Demonstrate variable declaration and usage for TechCorp salary analysis
+-- Demonstrate variable declaration and usage for TechCorp BaseSalary analysis
 DECLARE @CurrentDate DATE = GETDATE();
 DECLARE @AnalysisYear INT = YEAR(@CurrentDate);
-DECLARE @DepartmentID INT = 2001; -- Engineering Department
+DECLARE @DepartmentID INT = 2001; -- Engineering d.DepartmentName
 DECLARE @MinSalary DECIMAL(10,2) = 0;
 DECLARE @MaxSalary DECIMAL(10,2) = 0;
 DECLARE @AverageSalary DECIMAL(10,2) = 0;
 DECLARE @EmployeeCount INT = 0;
 DECLARE @TotalPayroll DECIMAL(12,2) = 0;
-DECLARE @DepartmentName VARCHAR(100);
+DECLARE @d.DepartmentName VARCHAR(100);
 DECLARE @ReportTitle VARCHAR(200);
 
 -- Single variable assignment using SET
-SET @ReportTitle = 'TechCorp Salary Analysis Report - ' + CAST(@AnalysisYear AS VARCHAR(4));
+SET @ReportTitle = 'TechCorp BaseSalary Analysis Report - ' + CAST(@AnalysisYear AS VARCHAR(4));
 
 -- Multiple variable assignment using SELECT
-SELECT 
-    @DepartmentName = d.DepartmentName,
+SELECT @d.DepartmentName = d.DepartmentName,
     @EmployeeCount = COUNT(e.EmployeeID),
     @MinSalary = MIN(e.BaseSalary),
     @MaxSalary = MAX(e.BaseSalary),
@@ -108,7 +107,7 @@ SELECT
     @EmployeeCount AS TotalEmployees,
     FORMAT(@MinSalary, 'C') AS MinimumSalary,
     FORMAT(@MaxSalary, 'C') AS MaximumSalary,
-    FORMAT(@AverageSalary, 'C') AS AverageSalary,
+    FORMAT(@AverageSalary, 'C') AS AverageBaseSalary,
     FORMAT(@TotalPayroll, 'C') AS TotalPayroll,
     -- Calculated fields using variables
     FORMAT(@TotalPayroll / @EmployeeCount, 'C') AS CalculatedAverage,
@@ -123,12 +122,12 @@ SELECT
 -- Variable-driven conditional logic
 IF @AverageSalary > 75000
 BEGIN
-    PRINT 'Department ' + @DepartmentName + ' has above-average compensation levels.';
-    PRINT 'Average salary: ' + FORMAT(@AverageSalary, 'C');
+    PRINT 'Department ' + @d.DepartmentName + ' has above-average compensation levels.';
+    PRINT 'Average BaseSalary: ' + FORMAT(@AverageSalary, 'C');
 END
 ELSE
 BEGIN
-    PRINT 'Department ' + @DepartmentName + ' has standard compensation levels.';
+    PRINT 'Department ' + @d.DepartmentName + ' has standard compensation levels.';
     PRINT 'Consider market analysis for competitive positioning.';
 END;
 
@@ -138,11 +137,12 @@ DECLARE @HighPerformerThreshold DECIMAL(10,2) = @AverageSalary * 1.2;
 
 SELECT @HighPerformerCount = COUNT(*)
 FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.DepartmentID = @DepartmentID
   AND e.BaseSalary >= @HighPerformerThreshold
   AND e.IsActive = 1;
 
-PRINT 'High performers (salary >= ' + FORMAT(@HighPerformerThreshold, 'C') + '): ' + CAST(@HighPerformerCount AS VARCHAR);
+PRINT 'High performers (BaseSalary >= ' + FORMAT(@HighPerformerThreshold, 'C') + '): ' + CAST(@HighPerformerCount AS VARCHAR);
 ```
 
 ### Advanced Data Types and Table Variables
@@ -154,7 +154,7 @@ PRINT 'High performers (salary >= ' + FORMAT(@HighPerformerThreshold, 'C') + '):
 DECLARE @EmployeeProjectSummary TABLE (
     EmployeeID INT,
     EmployeeName VARCHAR(101),
-    DepartmentName VARCHAR(100),
+    d.DepartmentName VARCHAR(100),
     BaseSalary DECIMAL(10,2),
     ProjectCount INT,
     TotalHours DECIMAL(8,2),
@@ -216,7 +216,7 @@ SELECT
     EmployeeID,
     EmployeeName,
     DepartmentName,
-    FORMAT(BaseSalary, 'C') AS Salary,
+    FORMAT(BaseSalary, 'C') AS BaseSalary,
     ProjectCount,
     TotalHours,
     FORMAT(AverageHoursPerProject, 'N1') AS AvgHoursPerProject,
@@ -305,19 +305,19 @@ SELECT
         ELSE 'Previous Fiscal Year Hire'
     END AS FiscalYearHireStatus,
     
-    -- Department information
+    -- d.DepartmentName information
     d.DepartmentName,
     d.Location,
     
     -- Performance metrics using mathematical functions
     CASE 
         WHEN e.BaseSalary > (
-            SELECT AVG(BaseSalary) * 1.2 
+            SELECT AVG(e.BaseSalary) * 1.2 
             FROM Employees 
             WHERE DepartmentID = e.DepartmentID AND IsActive = 1
         ) THEN 'High Performer'
         WHEN e.BaseSalary > (
-            SELECT AVG(BaseSalary) 
+            SELECT AVG(e.BaseSalary) 
             FROM Employees 
             WHERE DepartmentID = e.DepartmentID AND IsActive = 1
         ) THEN 'Above Average'
@@ -346,12 +346,12 @@ SELECT
                    THEN e.BaseSalary ELSE 0 END), 'C') AS VeteranPayroll,
     
     -- Average functions
-    FORMAT(AVG(e.BaseSalary), 'C') AS AverageSalary,
+    FORMAT(AVG(e.BaseSalary), 'C') AS AverageBaseSalary,
     AVG(DATEDIFF(YEAR, e.HireDate, @AnalysisDate)) AS AverageYearsOfService,
     
     -- Min/Max functions
-    FORMAT(MIN(e.BaseSalary), 'C') AS LowestSalary,
-    FORMAT(MAX(e.BaseSalary), 'C') AS HighestSalary,
+    FORMAT(MIN(e.BaseSalary), 'C') AS LowestBaseSalary,
+    FORMAT(MAX(e.BaseSalary), 'C') AS HighestBaseSalary,
     MIN(e.HireDate) AS EarliestHireDate,
     MAX(e.HireDate) AS LatestHireDate,
     
@@ -496,7 +496,7 @@ BEGIN
     RETURN @PerformanceScore;
 END;
 
--- Create table-valued function for department analysis
+-- Create table-valued function for d.DepartmentName analysis
 CREATE FUNCTION dbo.fn_GetDepartmentEmployeeAnalysis
 (
     @DepartmentID INT,
@@ -532,15 +532,15 @@ RETURN
             ELSE 'Needs Improvement'
         END AS PerformanceRating,
         
-        -- Salary analysis
+        -- BaseSalary analysis
         CASE 
             WHEN e.BaseSalary > (
-                SELECT AVG(BaseSalary) * 1.2 
+                SELECT AVG(e.BaseSalary) * 1.2 
                 FROM Employees 
                 WHERE DepartmentID = @DepartmentID AND (IsActive = 1 OR @IncludeInactive = 1)
             ) THEN 'Above Market'
             WHEN e.BaseSalary > (
-                SELECT AVG(BaseSalary) 
+                SELECT AVG(e.BaseSalary) 
                 FROM Employees 
                 WHERE DepartmentID = @DepartmentID AND (IsActive = 1 OR @IncludeInactive = 1)
             ) THEN 'Competitive'
@@ -610,14 +610,13 @@ SELECT
     SalaryPositioning,
     ISNULL(ActiveProjects, 0) AS ProjectCount,
     ISNULL(OrdersProcessed, 0) AS CustomerOrders
-FROM dbo.fn_GetDepartmentEmployeeAnalysis(2001, 0)  -- Engineering department
+FROM dbo.fn_GetDepartmentEmployeeAnalysis(2001, 0)  -- Engineering d.DepartmentName
 ORDER BY PerformanceScore DESC, YearsOfService DESC;
 
--- Comprehensive department comparison using custom functions
-SELECT 
-    d.DepartmentName,
+-- Comprehensive d.DepartmentName comparison using custom functions
+SELECT d.DepartmentName,
     COUNT(f.EmployeeID) AS TotalEmployees,
-    FORMAT(AVG(f.BaseSalary), 'C') AS AverageSalary,
+    FORMAT(AVG(f.BaseSalary), 'C') AS AverageBaseSalary,
     FORMAT(AVG(f.PerformanceScore), 'N1') AS AveragePerformanceScore,
     SUM(CASE WHEN f.PerformanceRating = 'Exceptional' THEN 1 ELSE 0 END) AS ExceptionalPerformers,
     SUM(CASE WHEN f.SalaryPositioning = 'Above Market' THEN 1 ELSE 0 END) AS AboveMarketSalaries,
@@ -645,7 +644,7 @@ DECLARE @CompanyRevenue DECIMAL(15,2) = 50000000.00;
 DECLARE @PerformanceMultiplier DECIMAL(3,2) = 1.25;
 DECLARE @AnalysisYear INT = YEAR(GETDATE());
 
--- Complex salary and bonus calculations using various operators
+-- Complex BaseSalary and bonus calculations using various operators
 SELECT 
     e.EmployeeID,
     e.FirstName + ' ' + e.LastName AS EmployeeName,
@@ -740,7 +739,7 @@ ORDER BY e.BaseSalary DESC, e.HireDate;
 
 -- Advanced comparison and logical operator examples
 SELECT 
-    'Salary Analysis Report' AS ReportType,
+    'BaseSalary Analysis Report' AS ReportType,
     GETDATE() AS ReportDate,
     
     -- Complex WHERE clause equivalents in SELECT
@@ -771,7 +770,7 @@ SELECT
     
     -- Mathematical comparisons
     COUNT(CASE WHEN e.BaseSalary > (
-        SELECT AVG(BaseSalary) FROM Employees WHERE IsActive = 1
+        SELECT AVG(e.BaseSalary) FROM Employees WHERE IsActive = 1
     ) THEN 1 END) AS AboveAverageSalaryEmployees,
     
     -- Date comparisons
@@ -779,6 +778,7 @@ SELECT
     COUNT(CASE WHEN YEAR(e.HireDate) = YEAR(GETDATE()) THEN 1 END) AS CurrentYearHires
 
 FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1;
 ```
 
@@ -794,7 +794,7 @@ CREATE PROCEDURE sp_TechCorp_ProcessEmployeeSalaryUpdate
     @EmployeeID INT,
     @NewSalary DECIMAL(10,2),
     @EffectiveDate DATE = NULL,
-    @UpdateReason VARCHAR(500) = 'Standard salary adjustment',
+    @UpdateReason VARCHAR(500) = 'Standard BaseSalary adjustment',
     @ApprovedBy VARCHAR(100) = 'System'
 AS
 BEGIN
@@ -832,13 +832,13 @@ BEGIN
         
         IF @NewSalary IS NULL OR @NewSalary <= 0
         BEGIN
-            RAISERROR('New salary must be a positive amount.', 16, 2);
+            RAISERROR('New BaseSalary must be a positive amount.', 16, 2);
             RETURN -2;
         END
         
         IF @NewSalary > 500000
         BEGIN
-            RAISERROR('Salary exceeds company maximum of $500,000.', 16, 3);
+            RAISERROR('BaseSalary exceeds company maximum of $500,000.', 16, 3);
             RETURN -3;
         END
         
@@ -864,36 +864,36 @@ BEGIN
             RETURN -5;
         END
         
-        -- Calculate salary change percentage
+        -- Calculate BaseSalary change percentage
         SET @SalaryChangePercent = ((@NewSalary - @CurrentSalary) / @CurrentSalary) * 100;
         
         -- Business rule validation
         IF ABS(@SalaryChangePercent) > 50
         BEGIN
-            SET @CustomErrorMessage = 'Salary change of ' + 
+            SET @CustomErrorMessage = 'BaseSalary change of ' + 
                 FORMAT(@SalaryChangePercent, 'N2') + 
                 '% exceeds 50% limit and requires special approval.';
             RAISERROR(@CustomErrorMessage, 16, 6);
             RETURN -6;
         END
         
-        -- Get department budget information
+        -- Get d.DepartmentName budget information
         SELECT 
             @DepartmentBudget = Budget,
             @DepartmentCurrentPayroll = (
-                SELECT SUM(BaseSalary) 
+                SELECT SUM(e.BaseSalary) 
                 FROM Employees 
                 WHERE DepartmentID = @DepartmentID AND IsActive = 1
             )
         FROM Departments
         WHERE DepartmentID = @DepartmentID AND IsActive = 1;
         
-        -- Check department budget constraints
+        -- Check d.DepartmentName budget constraints
         DECLARE @NewDepartmentPayroll DECIMAL(12,2) = @DepartmentCurrentPayroll - @CurrentSalary + @NewSalary;
         
         IF @NewDepartmentPayroll > (@DepartmentBudget * 0.85)  -- 85% of budget limit
         BEGIN
-            SET @CustomErrorMessage = 'Salary update would exceed department budget limits. ' +
+            SET @CustomErrorMessage = 'BaseSalary update would exceed d.DepartmentName budget limits. ' +
                 'Current payroll: ' + FORMAT(@DepartmentCurrentPayroll, 'C') + 
                 ', Proposed payroll: ' + FORMAT(@NewDepartmentPayroll, 'C') + 
                 ', Budget limit (85%): ' + FORMAT(@DepartmentBudget * 0.85, 'C');
@@ -904,7 +904,7 @@ BEGIN
         -- Begin transaction for atomic update
         BEGIN TRANSACTION SalaryUpdate;
         
-        -- Update employee salary
+        -- Update employee BaseSalary
         UPDATE Employees
         SET BaseSalary = @NewSalary
         WHERE EmployeeID = @EmployeeID;
@@ -912,14 +912,14 @@ BEGIN
         -- Check if update was successful
         IF @@ROWCOUNT = 0
         BEGIN
-            RAISERROR('Failed to update employee salary - no rows affected.', 16, 8);
+            RAISERROR('Failed to update employee BaseSalary - no rows affected.', 16, 8);
             ROLLBACK TRANSACTION SalaryUpdate;
             RETURN -8;
         END
         
         -- Insert audit record (simulated - in real system would be separate audit table)
         DECLARE @AuditMessage VARCHAR(1000);
-        SET @AuditMessage = 'Salary updated for ' + @EmployeeName + 
+        SET @AuditMessage = 'BaseSalary updated for ' + @EmployeeName + 
             ' (ID: ' + CAST(@EmployeeID AS VARCHAR) + ')' +
             ' from ' + FORMAT(@CurrentSalary, 'C') + 
             ' to ' + FORMAT(@NewSalary, 'C') + 
@@ -934,10 +934,10 @@ BEGIN
         COMMIT TRANSACTION SalaryUpdate;
         
         -- Success message
-        PRINT 'SUCCESS: Salary update completed successfully.';
+        PRINT 'SUCCESS: BaseSalary update completed successfully.';
         PRINT 'Employee: ' + @EmployeeName;
-        PRINT 'Previous salary: ' + FORMAT(@CurrentSalary, 'C');
-        PRINT 'New salary: ' + FORMAT(@NewSalary, 'C');
+        PRINT 'Previous BaseSalary: ' + FORMAT(@CurrentSalary, 'C');
+        PRINT 'New BaseSalary: ' + FORMAT(@NewSalary, 'C');
         PRINT 'Change: ' + FORMAT(@SalaryChangePercent, 'N2') + '%';
         PRINT 'Effective date: ' + FORMAT(@EffectiveDate, 'yyyy-MM-dd');
         
@@ -959,7 +959,7 @@ BEGIN
             @ErrorMessage = ERROR_MESSAGE();
         
         -- Create comprehensive error message
-        SET @CustomErrorMessage = 'Salary update failed for Employee ID ' + CAST(@EmployeeID AS VARCHAR) + '. ' +
+        SET @CustomErrorMessage = 'BaseSalary update failed for Employee ID ' + CAST(@EmployeeID AS VARCHAR) + '. ' +
             'Error ' + CAST(@ErrorNumber AS VARCHAR) + ' at line ' + CAST(@ErrorLine AS VARCHAR) + 
             ' in procedure ' + ISNULL(@ErrorProcedure, 'N/A') + ': ' + @ErrorMessage;
         
@@ -982,7 +982,7 @@ END;
 -- Test the comprehensive error handling procedure
 DECLARE @Result INT;
 
--- Test 1: Successful salary update
+-- Test 1: Successful BaseSalary update
 EXEC @Result = sp_TechCorp_ProcessEmployeeSalaryUpdate
     @EmployeeID = 3001,
     @NewSalary = 82000,
@@ -998,15 +998,15 @@ EXEC @Result = sp_TechCorp_ProcessEmployeeSalaryUpdate
 
 SELECT @Result AS InvalidEmployeeTestResult;
 
--- Test 3: Excessive salary increase
+-- Test 3: Excessive BaseSalary increase
 EXEC @Result = sp_TechCorp_ProcessEmployeeSalaryUpdate
     @EmployeeID = 3002,
-    @NewSalary = 200000,  -- Assuming current salary is much lower
+    @NewSalary = 200000,  -- Assuming current BaseSalary is much lower
     @UpdateReason = 'Excessive increase test';
 
 SELECT @Result AS ExcessiveIncreaseTestResult;
 
--- Test 4: Null salary value
+-- Test 4: Null BaseSalary value
 EXEC @Result = sp_TechCorp_ProcessEmployeeSalaryUpdate
     @EmployeeID = 3003,
     @NewSalary = NULL;

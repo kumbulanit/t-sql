@@ -525,8 +525,8 @@ CategoryStats AS (
     SELECT 
         CategoryName,
         COUNT(*) AS ProductCount,
-        AVG(BaseSalary) AS AvgPrice,
-        MAX(BaseSalary) AS MaxPrice,
+        AVG(e.BaseSalary) AS AvgPrice,
+        MAX(e.BaseSalary) AS MaxPrice,
         SUM(InventoryValue) AS TotalInventoryValue
     FROM ProductAnalysis
     GROUP BY CategoryName

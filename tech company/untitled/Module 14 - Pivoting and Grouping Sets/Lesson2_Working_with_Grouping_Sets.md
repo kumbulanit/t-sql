@@ -10,7 +10,7 @@ Grouping Sets is a powerful T-SQL feature that extends the capabilities of GROUP
 - **Financial Reporting**: Multi-level budget analysis with subtotals and grand totals
 - **Executive Dashboards**: Hierarchical performance metrics across organizational dimensions
 - **Sales Analytics**: Revenue analysis by region, product, time period with all combinations
-- **HR Analytics**: Employee cost analysis by department, level, location with summaries
+- **HR Analytics**: Employee cost analysis by d.DepartmentName, level, location with summaries
 - **Operational Intelligence**: Resource utilization with multiple aggregation perspectives
 
 ### 📋 TechCorp Database Schema Reference
@@ -36,16 +36,16 @@ Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, WorkEmai
 │                                                                             │
 │  Traditional GROUP BY (Single Level):                                      │
 │  ┌─────────────────────────────────────┐                                   │
-│  │ SELECT Department, SUM(Salary)      │  →  Department │ Total Salary    │ │
+│  │ SELECT DepartmentName, SUM(e.BaseSalary)      │  →  d.DepartmentName │ Total BaseSalary    │ │
 │  │ FROM Employees                      │     ─────────────────────────────  │ │
-│  │ GROUP BY Department                 │     IT         │ $450,000       │ │
+│  │ GROUP BY d.DepartmentName                 │     IT         │ $450,000       │ │
 │  └─────────────────────────────────────┘     HR         │ $280,000       │ │
 │                                               Sales      │ $520,000       │ │
 │                                                                             │
 │  GROUPING SETS (Multiple Levels):                                          │
 │  ┌─────────────────────────────────────┐                                   │
-│  │ SELECT Department, JobTitle,        │  →  Department │ JobTitle │ Total │ │
-│  │        SUM(Salary)                  │     ─────────────────────────────  │ │
+│  │ SELECT DepartmentName, JobTitle,        │  →  d.DepartmentName │ JobTitle │ Total │ │
+│  │        SUM(e.BaseSalary)                  │     ─────────────────────────────  │ │
 │  │ FROM Employees                      │     IT         │ Developer│$200K  │ │
 │  │ GROUP BY GROUPING SETS (            │     IT         │ Manager  │$250K  │ │
 │  │   (Department, JobTitle),           │     IT         │ NULL     │$450K  │ │
@@ -92,7 +92,7 @@ GROUP BY GROUPING SETS (
 
 ### 1. Hierarchical Financial Reporting
 
-#### TechCorp Example: Department Budget Analysis with Subtotals
+#### TechCorp Example: d.DepartmentName Budget Analysis with Subtotals
 ```sql
 -- Create comprehensive budget analysis with hierarchical subtotals
 SELECT 
@@ -123,11 +123,11 @@ SELECT
         THEN 'Level 0: Company Summary'
         WHEN GROUPING(d.DepartmentName) = 1 
         THEN 'Level 1: Location Summary'
-        ELSE 'Level 2: Department Detail'
+        ELSE 'Level 2: d.DepartmentName Detail'
     END AS Aggregation_Level,
     -- Performance indicators
     CASE 
-        WHEN GROUPING(d.DepartmentName) = 0 THEN  -- Department level only
+        WHEN GROUPING(d.DepartmentName) = 0 THEN  -- d.DepartmentName level only
             CASE 
                 WHEN SUM(e.BaseSalary) * 100.0 / NULLIF(SUM(d.Budget), 0) > 90 
                 THEN '⚠️ Over Budget Risk'
@@ -370,24 +370,24 @@ WITH EmployeePerformanceData AS (
 )
 SELECT 
     CASE 
-        WHEN GROUPING(Location) = 1 AND GROUPING(DepartmentName) = 1 AND GROUPING(ExperienceLevel) = 1
+        WHEN GROUPING(Location) = 1 AND GROUPING(d.DepartmentName) = 1 AND GROUPING(ExperienceLevel) = 1
         THEN '🏢 COMPANY-WIDE SUMMARY'
-        WHEN GROUPING(DepartmentName) = 1 AND GROUPING(ExperienceLevel) = 1
+        WHEN GROUPING(d.DepartmentName) = 1 AND GROUPING(ExperienceLevel) = 1
         THEN '🏢 ' + Location + ' LOCATION TOTAL'
         WHEN GROUPING(ExperienceLevel) = 1
-        THEN '🏢 ' + Location + ' - ' + DepartmentName + ' DEPT TOTAL'
-        WHEN GROUPING(DepartmentName) = 1
+        THEN '🏢 ' + Location + ' - ' + d.DepartmentName + ' DEPT TOTAL'
+        WHEN GROUPING(d.DepartmentName) = 1
         THEN '👥 ' + Location + ' - ALL DEPTS - ' + ExperienceLevel + ' LEVEL'
         WHEN GROUPING(Location) = 1
-        THEN '🎯 ALL LOCATIONS - ' + DepartmentName + ' - ' + ExperienceLevel
-        ELSE '👤 ' + Location + ' - ' + DepartmentName + ' - ' + ExperienceLevel
+        THEN '🎯 ALL LOCATIONS - ' + d.DepartmentName + ' - ' + ExperienceLevel
+        ELSE '👤 ' + Location + ' - ' + d.DepartmentName + ' - ' + ExperienceLevel
     END AS Analysis_Dimension,
     CASE WHEN GROUPING(Location) = 1 THEN 'All Locations' ELSE Location END AS Location_Display,
-    CASE WHEN GROUPING(DepartmentName) = 1 THEN 'All Departments' ELSE DepartmentName END AS Department_Display,
+    CASE WHEN GROUPING(d.DepartmentName) = 1 THEN 'All Departments' ELSE d.DepartmentName END AS Department_Display,
     CASE WHEN GROUPING(ExperienceLevel) = 1 THEN 'All Levels' ELSE ExperienceLevel END AS Experience_Display,
     COUNT(EmployeeID) AS Employee_Count,
-    FORMAT(SUM(BaseSalary), 'C') AS Total_Compensation,
-    FORMAT(AVG(BaseSalary), 'C') AS Average_Salary,
+    FORMAT(SUM(e.BaseSalary), 'C') AS Total_Compensation,
+    FORMAT(AVG(e.BaseSalary), 'C') AS Average_Salary,
     SUM(ProjectCount) AS Total_Project_Involvement,
     SUM(TotalProjectHours) AS Total_Project_Hours,
     SUM(CustomerOrderCount) AS Total_Customer_Orders,
@@ -405,30 +405,30 @@ SELECT
     END AS Avg_Revenue_Per_Employee,
     -- Efficiency ratios
     CASE 
-        WHEN SUM(BaseSalary) > 0 
-        THEN CAST(SUM(CustomerRevenue) * 1.0 / SUM(BaseSalary) AS DECIMAL(5,2))
+        WHEN SUM(e.BaseSalary) > 0 
+        THEN CAST(SUM(CustomerRevenue) * 1.0 / SUM(e.BaseSalary) AS DECIMAL(5,2))
         ELSE 0
     END AS Revenue_To_Salary_Ratio,
     -- Performance classification
     CASE 
-        WHEN GROUPING(Location) = 1 AND GROUPING(DepartmentName) = 1 AND GROUPING(ExperienceLevel) = 1
+        WHEN GROUPING(Location) = 1 AND GROUPING(d.DepartmentName) = 1 AND GROUPING(ExperienceLevel) = 1
         THEN '🎯 Executive Summary'
-        WHEN GROUPING(DepartmentName) = 1 AND GROUPING(ExperienceLevel) = 1
+        WHEN GROUPING(d.DepartmentName) = 1 AND GROUPING(ExperienceLevel) = 1
         THEN '🌍 Location Analysis'
         WHEN GROUPING(ExperienceLevel) = 1
-        THEN '🏬 Department Analysis'
+        THEN '🏬 d.DepartmentName Analysis'
         ELSE '👥 Detailed Segment Analysis'
     END AS Analysis_Category,
     -- Strategic insights
     CASE 
-        WHEN COUNT(EmployeeID) > 0 AND GROUPING(Location) = 0 AND GROUPING(DepartmentName) = 0 AND GROUPING(ExperienceLevel) = 0
+        WHEN COUNT(EmployeeID) > 0 AND GROUPING(Location) = 0 AND GROUPING(d.DepartmentName) = 0 AND GROUPING(ExperienceLevel) = 0
         THEN
             CASE 
-                WHEN SUM(CustomerRevenue) / NULLIF(SUM(BaseSalary), 0) > 3 
+                WHEN SUM(CustomerRevenue) / NULLIF(SUM(e.BaseSalary), 0) > 3 
                 THEN '🌟 High ROI Segment - Scale Up'
                 WHEN SUM(TotalProjectHours) / COUNT(EmployeeID) > 150 
                 THEN '⚡ High Utilization - Monitor Burnout'
-                WHEN AVG(BaseSalary) > 80000 AND SUM(CustomerRevenue) / COUNT(EmployeeID) < 50000
+                WHEN AVG(e.BaseSalary) > 80000 AND SUM(CustomerRevenue) / COUNT(EmployeeID) < 50000
                 THEN '💡 High Cost, Low Revenue - Optimize'
                 ELSE '📊 Standard Performance Segment'
             END
@@ -439,7 +439,7 @@ GROUP BY CUBE(Location, DepartmentName, ExperienceLevel)
 HAVING COUNT(EmployeeID) > 0
 ORDER BY 
     GROUPING(Location),
-    GROUPING(DepartmentName),
+    GROUPING(d.DepartmentName),
     GROUPING(ExperienceLevel),
     SUM(CustomerRevenue) DESC;
 ```
@@ -493,28 +493,28 @@ WITH ExecutiveMetrics AS (
 SELECT 
     -- Custom dimension labels based on grouping combination
     CASE 
-        WHEN GROUPING(Location) = 0 AND GROUPING(DepartmentName) = 0 AND GROUPING(SalaryTier) = 0
-        THEN '🎯 Detailed: ' + Location + ' - ' + DepartmentName + ' - ' + SalaryTier
-        WHEN GROUPING(Location) = 0 AND GROUPING(SalaryTier) = 0 AND GROUPING(DepartmentName) = 1
+        WHEN GROUPING(Location) = 0 AND GROUPING(d.DepartmentName) = 0 AND GROUPING(SalaryTier) = 0
+        THEN '🎯 Detailed: ' + Location + ' - ' + d.DepartmentName + ' - ' + SalaryTier
+        WHEN GROUPING(Location) = 0 AND GROUPING(SalaryTier) = 0 AND GROUPING(d.DepartmentName) = 1
         THEN '🌍 Location + Tier: ' + Location + ' - ' + SalaryTier + ' Employees'
-        WHEN GROUPING(DepartmentName) = 0 AND GROUPING(SalaryTier) = 0 AND GROUPING(Location) = 1
-        THEN '🏬 Department + Tier: ' + DepartmentName + ' - ' + SalaryTier + ' Level'
-        WHEN GROUPING(Location) = 0 AND GROUPING(DepartmentName) = 1 AND GROUPING(SalaryTier) = 1
+        WHEN GROUPING(d.DepartmentName) = 0 AND GROUPING(SalaryTier) = 0 AND GROUPING(Location) = 1
+        THEN '🏬 d.DepartmentName + Tier: ' + d.DepartmentName + ' - ' + SalaryTier + ' Level'
+        WHEN GROUPING(Location) = 0 AND GROUPING(d.DepartmentName) = 1 AND GROUPING(SalaryTier) = 1
         THEN '📍 Location Summary: ' + Location
-        WHEN GROUPING(DepartmentName) = 0 AND GROUPING(Location) = 1 AND GROUPING(SalaryTier) = 1
-        THEN '🏢 Department Summary: ' + DepartmentName
-        WHEN GROUPING(SalaryTier) = 0 AND GROUPING(Location) = 1 AND GROUPING(DepartmentName) = 1
-        THEN '💰 Salary Tier Summary: ' + SalaryTier + ' Level'
+        WHEN GROUPING(d.DepartmentName) = 0 AND GROUPING(Location) = 1 AND GROUPING(SalaryTier) = 1
+        THEN '🏢 d.DepartmentName Summary: ' + d.DepartmentName
+        WHEN GROUPING(SalaryTier) = 0 AND GROUPING(Location) = 1 AND GROUPING(d.DepartmentName) = 1
+        THEN '💰 BaseSalary Tier Summary: ' + SalaryTier + ' Level'
         ELSE '🏆 COMPANY TOTAL'
     END AS Executive_Summary_Level,
     -- Display columns
     CASE WHEN GROUPING(Location) = 1 THEN 'All Locations' ELSE Location END AS Location,
-    CASE WHEN GROUPING(DepartmentName) = 1 THEN 'All Departments' ELSE DepartmentName END AS Department,
+    CASE WHEN GROUPING(d.DepartmentName) = 1 THEN 'All Departments' ELSE d.DepartmentName END AS DepartmentName,
     CASE WHEN GROUPING(SalaryTier) = 1 THEN 'All Tiers' ELSE SalaryTier END AS Salary_Tier,
     -- Core metrics
     COUNT(*) AS Employee_Count,
-    FORMAT(SUM(BaseSalary), 'C') AS Total_Compensation,
-    FORMAT(AVG(BaseSalary), 'C') AS Average_Salary,
+    FORMAT(SUM(e.BaseSalary), 'C') AS Total_Compensation,
+    FORMAT(AVG(e.BaseSalary), 'C') AS Average_Salary,
     FORMAT(SUM(ProjectBudget), 'C') AS Total_Project_Budget,
     FORMAT(SUM(OrderRevenue), 'C') AS Total_Order_Revenue,
     -- Calculated KPIs
@@ -522,27 +522,27 @@ SELECT
         (SUM(ProjectBudget) + SUM(OrderRevenue)) / NULLIF(COUNT(*), 0), 'C'
     ) AS Revenue_Per_Employee,
     CAST(
-        (SUM(ProjectBudget) + SUM(OrderRevenue)) * 100.0 / NULLIF(SUM(BaseSalary), 0) 
+        (SUM(ProjectBudget) + SUM(OrderRevenue)) * 100.0 / NULLIF(SUM(e.BaseSalary), 0) 
         AS DECIMAL(5,2)
     ) AS ROI_Percentage,
     -- Performance indicators
     CASE 
-        WHEN (SUM(ProjectBudget) + SUM(OrderRevenue)) / NULLIF(SUM(BaseSalary), 0) > 2.5 
+        WHEN (SUM(ProjectBudget) + SUM(OrderRevenue)) / NULLIF(SUM(e.BaseSalary), 0) > 2.5 
         THEN '🌟 Exceptional Performance'
-        WHEN (SUM(ProjectBudget) + SUM(OrderRevenue)) / NULLIF(SUM(BaseSalary), 0) > 1.5 
+        WHEN (SUM(ProjectBudget) + SUM(OrderRevenue)) / NULLIF(SUM(e.BaseSalary), 0) > 1.5 
         THEN '✅ Strong Performance'
-        WHEN (SUM(ProjectBudget) + SUM(OrderRevenue)) / NULLIF(SUM(BaseSalary), 0) > 0.8 
+        WHEN (SUM(ProjectBudget) + SUM(OrderRevenue)) / NULLIF(SUM(e.BaseSalary), 0) > 0.8 
         THEN '📊 Adequate Performance'
         ELSE '⚠️ Below Expectations'
     END AS Performance_Rating,
     -- Business insights
     CASE 
-        WHEN GROUPING(Location) = 0 AND GROUPING(DepartmentName) = 0 AND GROUPING(SalaryTier) = 0
+        WHEN GROUPING(Location) = 0 AND GROUPING(d.DepartmentName) = 0 AND GROUPING(SalaryTier) = 0
         THEN 
             CASE 
-                WHEN COUNT(*) = 1 AND (SUM(ProjectBudget) + SUM(OrderRevenue)) > SUM(BaseSalary) * 3
+                WHEN COUNT(*) = 1 AND (SUM(ProjectBudget) + SUM(OrderRevenue)) > SUM(e.BaseSalary) * 3
                 THEN 'Star Performer - Consider for Leadership'
-                WHEN COUNT(*) > 10 AND AVG(BaseSalary) < 60000
+                WHEN COUNT(*) > 10 AND AVG(e.BaseSalary) < 60000
                 THEN 'Large Team, Lower Cost - Growth Opportunity'
                 WHEN SUM(ProjectBudget) = 0 AND SUM(OrderRevenue) = 0
                 THEN 'No Revenue Generation - Reassess Role'
@@ -555,15 +555,15 @@ GROUP BY GROUPING SETS (
     -- Executive-focused grouping combinations
     (Location, DepartmentName, SalaryTier),  -- Detailed analysis
     (Location, SalaryTier),                  -- Location + tier focus
-    (DepartmentName, SalaryTier),           -- Department + tier focus
+    (DepartmentName, SalaryTier),           -- d.DepartmentName + tier focus
     (Location),                              -- Location summary
-    (DepartmentName),                        -- Department summary
-    (SalaryTier),                           -- Salary tier summary
+    (d.DepartmentName),                        -- d.DepartmentName summary
+    (SalaryTier),                           -- BaseSalary tier summary
     ()                                       -- Grand total
 )
 ORDER BY 
     GROUPING(Location),
-    GROUPING(DepartmentName),
+    GROUPING(d.DepartmentName),
     GROUPING(SalaryTier),
     SUM(ProjectBudget + OrderRevenue) DESC;
 ```
@@ -581,7 +581,7 @@ WITH BudgetActualData AS (
         DATEPART(QUARTER, GETDATE()) AS FiscalQuarter,
         -- Budget data
         d.Budget AS DepartmentBudget,
-        -- Actual salary costs
+        -- Actual BaseSalary costs
         SUM(e.BaseSalary) AS ActualSalaryCost,
         -- Actual project spending
         ISNULL(project_spending.ProjectSpending, 0) AS ActualProjectSpending,
@@ -590,7 +590,7 @@ WITH BudgetActualData AS (
     FROM Departments d
     INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
     LEFT JOIN (
-        -- Project spending by department
+        -- Project spending by d.DepartmentName
         SELECT 
             e.DepartmentID,
             SUM(p.Budget) AS ProjectSpending
@@ -601,7 +601,7 @@ WITH BudgetActualData AS (
         GROUP BY e.DepartmentID
     ) project_spending ON d.DepartmentID = project_spending.DepartmentID
     LEFT JOIN (
-        -- Revenue by department
+        -- Revenue by d.DepartmentName
         SELECT 
             e.DepartmentID,
             SUM(o.TotalAmount) AS GeneratedRevenue
@@ -620,16 +620,16 @@ WITH BudgetActualData AS (
 SELECT 
     -- Dynamic summary labels
     CASE 
-        WHEN GROUPING(Location) = 0 AND GROUPING(DepartmentName) = 0
-        THEN '📊 ' + Location + ' - ' + DepartmentName
-        WHEN GROUPING(Location) = 0 AND GROUPING(DepartmentName) = 1
+        WHEN GROUPING(Location) = 0 AND GROUPING(d.DepartmentName) = 0
+        THEN '📊 ' + Location + ' - ' + d.DepartmentName
+        WHEN GROUPING(Location) = 0 AND GROUPING(d.DepartmentName) = 1
         THEN '🌍 ' + Location + ' Location Total'
-        WHEN GROUPING(Location) = 1 AND GROUPING(DepartmentName) = 0
-        THEN '🏢 All Locations - ' + DepartmentName
+        WHEN GROUPING(Location) = 1 AND GROUPING(d.DepartmentName) = 0
+        THEN '🏢 All Locations - ' + d.DepartmentName
         ELSE '🏆 Company-Wide Financial Summary'
     END AS Financial_Analysis_Level,
     CASE WHEN GROUPING(Location) = 1 THEN 'All Locations' ELSE Location END AS Location,
-    CASE WHEN GROUPING(DepartmentName) = 1 THEN 'All Departments' ELSE DepartmentName END AS Department,
+    CASE WHEN GROUPING(d.DepartmentName) = 1 THEN 'All Departments' ELSE d.DepartmentName END AS DepartmentName,
     -- Budget metrics
     FORMAT(SUM(DepartmentBudget), 'C') AS Allocated_Budget,
     FORMAT(SUM(ActualSalaryCost), 'C') AS Actual_Salary_Cost,
@@ -671,7 +671,7 @@ SELECT
     END AS ROI_Classification,
     -- Strategic recommendations
     CASE 
-        WHEN GROUPING(Location) = 0 AND GROUPING(DepartmentName) = 0 THEN
+        WHEN GROUPING(Location) = 0 AND GROUPING(d.DepartmentName) = 0 THEN
             CASE 
                 WHEN ((SUM(ActualSalaryCost) + SUM(ActualProjectSpending)) * 100.0 / NULLIF(SUM(DepartmentBudget), 0)) > 95
                      AND (SUM(GeneratedRevenue) * 100.0 / NULLIF(SUM(ActualSalaryCost) + SUM(ActualProjectSpending), 0)) < 150
@@ -686,15 +686,15 @@ SELECT
     END AS Strategic_Recommendation
 FROM BudgetActualData
 GROUP BY GROUPING SETS (
-    (Location, DepartmentName),    -- Detailed department analysis
+    (Location, d.DepartmentName),    -- Detailed d.DepartmentName analysis
     (Location),                    -- Location-level summary
-    (DepartmentName),             -- Department type analysis
+    (d.DepartmentName),             -- d.DepartmentName type analysis
     ()                            -- Company-wide summary
 )
 HAVING SUM(DepartmentBudget) > 0
 ORDER BY 
     GROUPING(Location),
-    GROUPING(DepartmentName),
+    GROUPING(d.DepartmentName),
     SUM(GeneratedRevenue) DESC;
 ```
 
@@ -710,21 +710,21 @@ SELECT
     DepartmentName,
     JobTitle,
     COUNT(*) AS Employee_Count,
-    FORMAT(AVG(BaseSalary), 'C') AS Average_Salary,
+    FORMAT(AVG(e.BaseSalary), 'C') AS Average_Salary,
     -- GROUPING function for individual columns (returns 0 or 1)
     GROUPING(Location) AS Location_Grouped,
-    GROUPING(DepartmentName) AS Department_Grouped,
+    GROUPING(d.DepartmentName) AS Department_Grouped,
     GROUPING(JobTitle) AS JobTitle_Grouped,
     -- GROUPING_ID for combination identification (returns bitmask)
     GROUPING_ID(Location, DepartmentName, JobTitle) AS Grouping_Level_ID,
     -- Custom level identification using GROUPING_ID
     CASE GROUPING_ID(Location, DepartmentName, JobTitle)
-        WHEN 0 THEN 'L4: Detailed (Location + Department + Job Title)'
-        WHEN 1 THEN 'L3: Location + Department Summary'
+        WHEN 0 THEN 'L4: Detailed (Location + d.DepartmentName + Job Title)'
+        WHEN 1 THEN 'L3: Location + d.DepartmentName Summary'
         WHEN 2 THEN 'L3: Location + Job Title Summary'
         WHEN 3 THEN 'L2: Location Summary'
-        WHEN 4 THEN 'L3: Department + Job Title Summary'
-        WHEN 5 THEN 'L2: Department Summary'
+        WHEN 4 THEN 'L3: d.DepartmentName + Job Title Summary'
+        WHEN 5 THEN 'L2: d.DepartmentName Summary'
         WHEN 6 THEN 'L2: Job Title Summary'
         WHEN 7 THEN 'L1: Grand Total'
         ELSE 'Unknown Level'
@@ -797,22 +797,22 @@ WITH FilteredEmployeeData AS (
     WHERE e.IsActive = 1
       AND d.IsActive = 1
       AND e.HireDate >= DATEADD(YEAR, -5, GETDATE())  -- Recent hires only
-      AND e.BaseSalary > 0  -- Valid salary data only
+      AND e.BaseSalary > 0  -- Valid BaseSalary data only
 )
 SELECT 
     ISNULL(Location, 'All Locations') AS Location,
-    ISNULL(DepartmentName, 'All Departments') AS Department,
+    ISNULL(DepartmentName, 'All Departments') AS DepartmentName,
     COUNT(*) AS Employee_Count,
-    FORMAT(AVG(BaseSalary), 'C') AS Average_Salary,
-    FORMAT(MIN(BaseSalary), 'C') AS Min_Salary,
-    FORMAT(MAX(BaseSalary), 'C') AS Max_Salary
+    FORMAT(AVG(e.BaseSalary), 'C') AS Average_Salary,
+    FORMAT(MIN(e.BaseSalary), 'C') AS Min_Salary,
+    FORMAT(MAX(e.BaseSalary), 'C') AS Max_Salary
 FROM FilteredEmployeeData
-GROUP BY ROLLUP(Location, DepartmentName)
+GROUP BY ROLLUP(Location, d.DepartmentName)
 HAVING COUNT(*) >= 2  -- Only show groups with meaningful sample size
 ORDER BY 
     GROUPING(Location),
-    GROUPING(DepartmentName),
-    AVG(BaseSalary) DESC;
+    GROUPING(d.DepartmentName),
+    AVG(e.BaseSalary) DESC;
 ```
 
 ## Summary

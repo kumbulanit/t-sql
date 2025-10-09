@@ -60,7 +60,7 @@ SELECT
         WHEN BaseSalary > 60000 THEN 'Mid Level'
         ELSE 'Junior Level'
     END AS SalaryBand
-FROM Employees;
+FROM Employees e;
 ```
 
 #### Module 4: Multi-Table Queries

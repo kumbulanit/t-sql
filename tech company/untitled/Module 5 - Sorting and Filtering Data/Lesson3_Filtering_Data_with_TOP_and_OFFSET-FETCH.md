@@ -269,7 +269,7 @@ SELECT
     Title,
     BaseSalary,
     HireDate,
-    DepartmentName
+    d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
@@ -290,16 +290,16 @@ FETCH NEXT @PageSize ROWS ONLY;
 SELECT 
     e.FirstName,
     e.LastName,
-    e.Title,
+    e.JobTitle,
     e.BaseSalary,
     d.DepartmentName,
     COUNT(ep.ProjectID) AS ActiveProjects
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'Active'
+LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.Status = 'Active'
 WHERE e.IsActive = 1
-GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.BaseSalary, d.DepartmentName
+GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.BaseSalary, d.DepartmentName
 ORDER BY 
     ActiveProjects DESC,      -- Most active employees first
     BaseSalary DESC,              -- Then by BaseSalary
@@ -318,7 +318,7 @@ WITH EmployeeData AS (
     SELECT 
         e.FirstName,
         e.LastName,
-        e.Title,
+        e.JobTitle,
         e.BaseSalary,
         d.DepartmentName,
         COUNT(*) OVER() AS TotalRecords
@@ -387,7 +387,7 @@ WITH EmployeePerformance AS (
         e.EmployeeID,
         e.FirstName,
         e.LastName,
-        e.Title,
+        e.JobTitle,
         e.BaseSalary,
         d.DepartmentName,
         COUNT(ep.ProjectID) AS ProjectCount,
@@ -409,7 +409,7 @@ WITH EmployeePerformance AS (
     LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
     WHERE e.IsActive = 1
-    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.BaseSalary, d.DepartmentName
+    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.BaseSalary, d.DepartmentName
 )
 -- Top 10 performers overall
 SELECT TOP (10)
@@ -480,7 +480,7 @@ WITH FilteredEmployees AS (
         e.EmployeeID,
         e.FirstName,
         e.LastName,
-        e.Title,
+        e.JobTitle,
         e.BaseSalary,
         e.HireDate,
         d.DepartmentName
@@ -490,7 +490,7 @@ WITH FilteredEmployees AS (
       AND (@SearchTerm IS NULL 
            OR e.FirstName LIKE '%' + @SearchTerm + '%'
            OR e.LastName LIKE '%' + @SearchTerm + '%'
-           OR e.Title LIKE '%' + @SearchTerm + '%')
+           OR e.JobTitle LIKE '%' + @SearchTerm + '%')
       AND (@DepartmentFilter IS NULL OR e.DepartmentID = @DepartmentFilter)
       AND e.BaseSalary >= @MinSalary
 ),

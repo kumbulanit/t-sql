@@ -74,7 +74,7 @@ FROM table_name
 ### 1. Select All Columns
 ```sql
 -- Retrieve all columns from Employees table
-SELECT * FROM Employees;
+SELECT * FROM Employees e;
 
 -- More explicit version (better practice)
 SELECT 
@@ -85,21 +85,21 @@ SELECT
     DepartmentID,
     BaseSalary,
     HireDate
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 2. Select Specific Columns
 ```sql
 -- Basic column selection
 SELECT FirstName, LastName, BaseSalary
-FROM Employees;
+FROM Employees e;
 
 -- With consistent formatting
 SELECT 
     FirstName,
     LastName,
     BaseSalary
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 3. Column Order and Arrangement
@@ -110,14 +110,14 @@ SELECT
     FirstName,
     WorkEmail,
     BaseSalary
-FROM Employees;
+FROM Employees e;
 
 -- Same data, different presentation
 SELECT 
     BaseSalary,
     LastName,
     FirstName
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 4. Literal Values and Constants
@@ -129,7 +129,7 @@ SELECT
     LastName,
     'Active' AS IsActive,
     GETDATE() AS ReportDate
-FROM Employees;
+FROM Employees e;
 
 -- Numeric literals
 SELECT 
@@ -138,7 +138,7 @@ SELECT
     BaseSalary,
     100 AS BonusPercent,
     BaseSalary * 1.1 AS SalaryWithBonus
-FROM Employees;
+FROM Employees e;
 ```
 
 ## Intermediate Examples
@@ -153,7 +153,7 @@ SELECT
     BaseSalary / 12 AS MonthlySalary,
     BaseSalary * 0.15 AS EstimatedTax,
     BaseSalary - (BaseSalary * 0.15) AS NetAnnualSalary
-FROM Employees;
+FROM Employees e;
 
 -- More complex calculations
 SELECT 
@@ -165,7 +165,7 @@ SELECT
         WHEN BaseSalary > 60000 THEN BaseSalary * 0.06
         ELSE BaseSalary * 0.04
     END AS BonusAmount
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 2. String Concatenation
@@ -175,20 +175,20 @@ SELECT
     FirstName + ' ' + LastName AS FullName,
     WorkEmail,
     BaseSalary
-FROM Employees;
+FROM Employees e;
 
 -- Handling NULL values in concatenation
 SELECT 
     FirstName + ' ' + ISNULL(MiddleName + ' ', '') + LastName AS FullName,
     WorkEmail,
     BaseSalary
-FROM Employees;
+FROM Employees e;
 
 -- Using CONCAT function (SQL Server 2012+)
 SELECT 
     CONCAT(FirstName, ' ', LastName) AS FullName,
     CONCAT('$', FORMAT(BaseSalary, 'N0')) AS FormattedSalary
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 3. Date Operations
@@ -201,7 +201,7 @@ SELECT
     DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsOfService,
     DATEDIFF(DAY, HireDate, GETDATE()) AS DaysEmployed,
     DATEADD(YEAR, 1, HireDate) AS FirstAnniversary
-FROM Employees;
+FROM Employees e;
 
 -- Date formatting
 SELECT 
@@ -211,7 +211,7 @@ SELECT
     FORMAT(HireDate, 'MMMM dd, yyyy') AS FormattedHireDate,
     DATENAME(WEEKDAY, HireDate) AS HireDayOfWeek,
     YEAR(HireDate) AS HireYear
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 4. Basic WHERE Clauses
@@ -275,7 +275,7 @@ SELECT
              THEN BaseSalary * 1.03
         ELSE BaseSalary * 1.02
     END AS ProjectedSalary
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 2. Advanced String Manipulation
@@ -297,7 +297,7 @@ SELECT
     -- Generate employee code
     UPPER(LEFT(FirstName, 2)) + UPPER(LEFT(LastName, 2)) + 
     RIGHT('000' + CAST(EmployeeID AS VARCHAR), 3) AS EmployeeCode
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 3. Advanced Date and Time Operations
@@ -334,7 +334,7 @@ SELECT
         WHEN MONTH(HireDate) IN (6, 7, 8) THEN 'Summer Hire'
         ELSE 'Fall Hire'
     END AS HireSeason
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 4. Complex Business Logic
@@ -373,7 +373,7 @@ SELECT
         WHEN DATEDIFF(YEAR, HireDate, GETDATE()) BETWEEN 8 AND 15 THEN 'Senior Level'
         ELSE 'Veteran'
     END AS CareerStage
-FROM Employees;
+FROM Employees e;
 ```
 
 ## Best Practices for SELECT Statements
@@ -382,10 +382,10 @@ FROM Employees;
 ```sql
 -- Good: Specify only needed columns
 SELECT FirstName, LastName, WorkEmail
-FROM Employees;
+FROM Employees e;
 
 -- Avoid: Using SELECT * in production code
--- SELECT * FROM Employees; -- Don't do this in production
+-- SELECT * FROM Employees e; -- Don't do this in production
 ```
 
 ### 2. Consistent Formatting
@@ -411,13 +411,13 @@ SELECT
     FirstName + ' ' + LastName AS EmployeeFullName,
     BaseSalary / 12 AS MonthlySalary,
     DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsOfService
-FROM Employees;
+FROM Employees e;
 
 -- Avoid: Unclear abbreviations
 -- SELECT FirstName + ' ' + LastName AS Name,
 --        BaseSalary / 12 AS Sal,
 --        DATEDIFF(YEAR, HireDate, GETDATE()) AS Yrs
--- FROM Employees;
+-- FROM Employees e;
 ```
 
 ### 4. Handle NULL Values Appropriately
@@ -428,13 +428,13 @@ SELECT
     ISNULL(MiddleName, 'N/A') AS MiddleName,
     LastName,
     ISNULL(ManagerID, 0) AS ManagerID
-FROM Employees;
+FROM Employees e;
 
 -- Consider: Using COALESCE for multiple possible NULLs
 SELECT 
     FirstName,
     COALESCE(MiddleName, NickName, 'N/A') AS DisplayMiddleName
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 5. Use Comments for Complex Logic
@@ -456,7 +456,7 @@ SELECT
         WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 2 THEN 'Eligible'
         ELSE 'Not Eligible'
     END AS StockOptionEligibility
-FROM Employees;
+FROM Employees e;
 ```
 
 ## Common Mistakes and How to Avoid Them
@@ -468,14 +468,14 @@ SELECT
     FirstName,
     LastName,
     'Employee ID: ' + EmployeeID  -- Error if EmployeeID is INT
-FROM Employees;
+FROM Employees e;
 
 -- Correct: Explicit conversion
 SELECT 
     FirstName,
     LastName,
     'Employee ID: ' + CAST(EmployeeID AS VARCHAR(10))
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 2. NULL Concatenation Issues
@@ -483,12 +483,12 @@ FROM Employees;
 -- Problematic: NULL in concatenation makes entire result NULL
 SELECT 
     FirstName + ' ' + MiddleName + ' ' + LastName AS FullName
-FROM Employees;
+FROM Employees e;
 
 -- Correct: Handle NULLs explicitly
 SELECT 
     FirstName + ' ' + ISNULL(MiddleName + ' ', '') + LastName AS FullName
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 3. Division by Zero
@@ -498,7 +498,7 @@ SELECT
     FirstName,
     LastName,
     BaseSalary / WorkHours AS HourlyRate  -- WorkHours might be 0
-FROM Employees;
+FROM Employees e;
 
 -- Correct: Check for zero before division
 SELECT 
@@ -508,7 +508,7 @@ SELECT
         WHEN WorkHours > 0 THEN BaseSalary / WorkHours
         ELSE NULL
     END AS HourlyRate
-FROM Employees;
+FROM Employees e;
 ```
 
 ## Performance Considerations
@@ -517,10 +517,10 @@ FROM Employees;
 ```sql
 -- More efficient: Select only needed columns
 SELECT FirstName, LastName, WorkEmail
-FROM Employees;
+FROM Employees e;
 
 -- Less efficient: Selecting unnecessary large columns
--- SELECT * FROM Employees; -- Includes potentially large binary columns
+-- SELECT * FROM Employees e; -- Includes potentially large binary columns
 ```
 
 ### 2. Function Usage in SELECT
@@ -531,7 +531,7 @@ SELECT
     LastName,
     UPPER(FirstName) AS UpperFirstName,  -- Function applied to each row
     BaseSalary
-FROM Employees;
+FROM Employees e;
 
 -- Sometimes better to handle formatting in application layer
 -- for large result sets
@@ -551,7 +551,7 @@ SELECT
              THEN 'Senior High Performer'
         -- ... more complex logic
     END AS PerformanceRating
-FROM Employees;
+FROM Employees e;
 
 -- Better: Create a view or computed column for reusability
 ```

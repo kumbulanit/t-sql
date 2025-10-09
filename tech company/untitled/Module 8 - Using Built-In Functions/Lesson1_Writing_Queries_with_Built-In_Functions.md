@@ -508,8 +508,7 @@ ORDER BY ProfitMarginPercent DESC;
 -- Lab 8.3.2: Employee Compensation Analysis
 -- Business scenario: BaseSalary statistics and compensation benchmarking
 
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     COUNT(e.EmployeeID) AS EmployeeCount,
     
     -- Basic statistical functions

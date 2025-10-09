@@ -4,11 +4,11 @@
 
 ### Task 1.1: Basic Inner Joins - Answers
 
-#### Question 1: Employee and Department Information
-**Task:** Join Employees and Departments to show employee names with their department names.
+#### Question 1: Employee and d.DepartmentName Information
+**Task:** Join Employees and Departments to show employee names with their d.DepartmentName names.
 
 ```sql
--- Answer 1: Employee and Department Information
+-- Answer 1: Employee and d.DepartmentName Information
 SELECT 
     e.FirstName,
     e.LastName,
@@ -31,7 +31,7 @@ SELECT
     ep.Role,
     ep.HoursAllocated,
     ep.HoursWorked,
-    p.Status AS ProjectStatus
+    p.IsActive AS ProjectIsActive
 FROM Employees e
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
@@ -39,7 +39,7 @@ ORDER BY e.LastName, p.ProjectName;
 ```
 
 #### Question 3: Three-Table Join
-**Task:** Show employee name, department, and project information in one query.
+**Task:** Show employee name, d.DepartmentName, and project information in one query.
 
 ```sql
 -- Answer 3: Three-Table Join
@@ -101,7 +101,7 @@ FROM Projects p
 INNER JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
 INNER JOIN Employees e ON ep.EmployeeID = e.EmployeeID
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE p.Status = 'In Progress'
+WHERE p.IsActive = 'In Progress'
   AND e.IsActive = 1
 ORDER BY p.ProjectName, ep.Role, e.LastName;
 ```
@@ -110,16 +110,16 @@ ORDER BY p.ProjectName, ep.Role, e.LastName;
 
 ### Task 2.1: Left Outer Joins - Answers
 
-#### Question 1: All Employees with Department Information
+#### Question 1: All Employees with d.DepartmentName Information
 **Task:** Show all employees including those without assigned departments.
 
 ```sql
--- Answer 1: All Employees with Department Information
+-- Answer 1: All Employees with d.DepartmentName Information
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     e.JobTitle,
     e.BaseSalary,
-    COALESCE(d.DepartmentName, 'No Department Assigned') AS DepartmentName,
+    COALESCE(d.DepartmentName, 'No d.DepartmentName Assigned') AS DepartmentName,
     COALESCE(d.DepartmentCode, 'N/A') AS DepartmentCode
 FROM Employees e
 LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID
@@ -153,12 +153,11 @@ ORDER BY e.LastName, p.ProjectName;
 
 ```sql
 -- Answer 1: All Departments with Employee Count
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     d.DepartmentCode,
     d.Budget,
     COALESCE(COUNT(e.EmployeeID), 0) AS EmployeeCount,
-    COALESCE(AVG(e.BaseSalary), 0) AS AverageSalary,
+    COALESCE(AVG(e.BaseSalary), 0) AS AverageBaseSalary,
     COALESCE(SUM(e.BaseSalary), 0) AS TotalPayroll
 FROM Employees e
 RIGHT JOIN Departments d ON e.DepartmentID = d.DepartmentID AND e.IsActive = 1
@@ -222,7 +221,7 @@ ORDER BY RelationshipIsActive, DepartmentName, EmployeeName;
 -- Answer 1: Employee-Project Combinations
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
-    e.Title,
+    e.JobTitle,
     p.ProjectName,
     p.IsActive AS ProjectIsActive,
     CASE 
@@ -241,8 +240,7 @@ ORDER BY e.LastName, p.ProjectName;
 
 ```sql
 -- Answer 2: Department-Project Matrix
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     p.ProjectName,
     p.IsActive AS ProjectIsActive,
     COALESCE(COUNT(ep.EmployeeID), 0) AS EmployeesAssigned,
@@ -325,7 +323,7 @@ WITH EmployeeHierarchy AS (
     SELECT 
         e.EmployeeID,
         e.FirstName + ' ' + e.LastName AS EmployeeName,
-        e.Title,
+        e.JobTitle,
         e.ManagerID,
         CAST(eh.HierarchyPath + ' -> ' + e.FirstName + ' ' + e.LastName AS NVARCHAR(500)),
         eh.Level + 1
@@ -353,7 +351,7 @@ ORDER BY HierarchyPath;
 -- Answer 1: Comprehensive Employee Report
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
-    e.Title,
+    e.JobTitle,
     e.BaseSalary,
     d.DepartmentName,
     COALESCE(mgr.FirstName + ' ' + mgr.LastName, 'No Manager') AS ManagerName,
@@ -368,7 +366,7 @@ LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 LEFT JOIN Employees sub ON e.EmployeeID = sub.ManagerID AND sub.IsActive = 1
 WHERE e.IsActive = 1
 GROUP BY 
-    e.EmployeeID, e.FirstName, e.LastName, e.Title, e.BaseSalary,
+    e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.BaseSalary,
     d.DepartmentName, mgr.FirstName, mgr.LastName
 ORDER BY d.DepartmentName, e.LastName;
 ```
@@ -382,7 +380,7 @@ ORDER BY d.DepartmentName, e.LastName;
 -- Answer 1: Employees Working on High-Budget Projects
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
-    e.Title,
+    e.JobTitle,
     d.DepartmentName,
     p.ProjectName,
     p.Budget AS ProjectBudget,
@@ -403,13 +401,12 @@ WHERE p.Budget > avgbudget.AverageProjectBudget
 ORDER BY p.Budget DESC, e.LastName;
 ```
 
-#### Question 2: Department Performance Comparison
-**Task:** Compare department performance against company averages.
+#### Question 2: d.DepartmentName Performance Comparison
+**Task:** Compare d.DepartmentName performance against company averages.
 
 ```sql
--- Answer 2: Department Performance Comparison
-SELECT 
-    d.DepartmentName,
+-- Answer 2: d.DepartmentName Performance Comparison
+SELECT d.DepartmentName,
     COUNT(e.EmployeeID) AS EmployeeCount,
     AVG(e.BaseSalary) AS DeptAvgSalary,
     comp.CompanyAvgSalary,
@@ -425,7 +422,7 @@ SELECT
 FROM Departments d
 LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID AND e.IsActive = 1
 CROSS JOIN (
-    SELECT AVG(BaseSalary) AS CompanyAvgSalary
+    SELECT AVG(e.BaseSalary) AS CompanyAvgSalary
     FROM Employees
     WHERE IsActive = 1
 ) comp
@@ -443,7 +440,7 @@ ORDER BY DeptAvgSalary DESC;
 -- Answer 1: Skills Gap Analysis
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
-    e.Title,
+    e.JobTitle,
     d.DepartmentName,
     s.SkillName,
     s.SkillCategory,
@@ -484,7 +481,7 @@ ORDER BY d.DepartmentName, SkillPrevalence DESC, e.LastName;
 SELECT 
     e.EmployeeID,
     e.FirstName + ' ' + e.LastName AS EmployeeName,
-    d.DepartmentName AS Department,
+    d.DepartmentName AS DepartmentName,
     p.ProjectName,
     ep.Role,
     ep.HoursWorked,
@@ -509,7 +506,7 @@ ORDER BY e.EmployeeID, p.ProjectID;  -- Order by indexed columns
 -- Method 1: Using EXISTS (good for checking existence)
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
-    e.Title,
+    e.JobTitle,
     d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
@@ -524,7 +521,7 @@ ORDER BY e.LastName;
 -- Method 2: Using INNER JOIN with DISTINCT (when you need related data)
 SELECT DISTINCT
     e.FirstName + ' ' + e.LastName AS EmployeeName,
-    e.Title,
+    e.JobTitle,
     d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
@@ -535,7 +532,7 @@ ORDER BY e.LastName;
 -- Method 3: Using IN with subquery (less efficient for large datasets)
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
-    e.Title,
+    e.JobTitle,
     d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
@@ -570,7 +567,7 @@ ORDER BY e.LastName;
 4. **Join Order**: SQL Server optimizer handles join order, but be aware of implications
 
 ### Common Join Patterns
-1. **One-to-Many**: Employee to Department relationship
+1. **One-to-Many**: Employee to d.DepartmentName relationship
 2. **Many-to-Many**: Employee to Project through EmployeeProjects
 3. **Hierarchical**: Employee to Manager self-join
 4. **Lookup Tables**: Employee to Skills through EmployeeSkills

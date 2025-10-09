@@ -29,13 +29,13 @@ Create comprehensive executive dashboards that transform operational data into s
 Transform quarterly financial data into executive dashboard format:
 
 **Instructions:**
-1. Create quarterly revenue analysis by department using PIVOT
+1. Create quarterly revenue analysis by d.DepartmentName using PIVOT
 2. Include performance indicators and growth calculations
 3. Add variance analysis and benchmarking
 4. Provide strategic recommendations based on performance
 
 **Expected Columns:**
-- Department information
+- d.DepartmentName information
 - Q1, Q2, Q3, Q4 revenue columns
 - Total annual revenue
 - Growth trends and performance indicators
@@ -45,8 +45,7 @@ Transform quarterly financial data into executive dashboard format:
 ```sql
 -- Task 1.1: Quarterly Financial Performance Matrix
 WITH QuarterlyFinancialData AS (
-    SELECT 
-        d.DepartmentName,
+    SELECT d.DepartmentName,
         d.Location,
         -- Determine quarter from order date
         CASE 
@@ -64,8 +63,7 @@ WITH QuarterlyFinancialData AS (
       AND d.IsActive = 1
       AND YEAR(o.OrderDate) = 2025  -- Focus on current year
 )
-SELECT 
-    DepartmentName,
+SELECT d.DepartmentName,
     Location,
     -- Add your PIVOT operation here to create quarterly columns
     -- FORMAT quarterly amounts as currency
@@ -85,7 +83,7 @@ ORDER BY -- Add appropriate ordering;
 Create employee performance matrix showing skills and contributions across different dimensions:
 
 **Instructions:**
-1. Use PIVOT to create performance matrix by department and experience level
+1. Use PIVOT to create performance matrix by d.DepartmentName and experience level
 2. Include productivity metrics and compensation analysis
 3. Add performance rankings and categorization
 4. Provide development recommendations
@@ -141,7 +139,7 @@ SELECT
     Role_Category,
     Hours_Worked,
     -- Add your analytical columns here:
-    -- Performance ranking within department
+    -- Performance ranking within d.DepartmentName
     -- Specialization indicators
     -- Development recommendations
     ...
@@ -183,7 +181,7 @@ Create comprehensive organizational performance analysis using ROLLUP:
 
 **Instructions:**
 1. Use ROLLUP to create hierarchical employee performance analysis
-2. Include department, location, and company-wide summaries
+2. Include d.DepartmentName, location, and company-wide summaries
 3. Add performance indicators at each level
 4. Provide management insights and recommendations
 
@@ -202,7 +200,7 @@ SELECT
     -- Add your hierarchy display columns
     CASE WHEN GROUPING(d.Location) = 1 THEN 'All Locations' ELSE d.Location END AS Location,
     -- Add aggregation columns:
-    -- Employee counts, salary totals, project involvement
+    -- Employee counts, BaseSalary totals, project involvement
     -- Performance metrics, productivity indicators
     -- Add your calculations here
     ...
@@ -231,7 +229,7 @@ Create hierarchical financial analysis with subtotals:
 Develop hierarchical project portfolio analysis:
 
 **Instructions:**
-1. Create project analysis hierarchy by department and project manager
+1. Create project analysis hierarchy by d.DepartmentName and project manager
 2. Include project performance metrics and resource utilization
 3. Add portfolio risk assessment
 4. Provide project management recommendations
@@ -246,7 +244,7 @@ Build complete business intelligence analysis using CUBE:
 
 **Instructions:**
 1. Use CUBE to analyze business performance across multiple dimensions
-2. Include all possible combinations of location, department, and performance tiers
+2. Include all possible combinations of location, d.DepartmentName, and performance tiers
 3. Add strategic insights for each dimensional combination
 4. Provide comprehensive business recommendations
 
@@ -275,7 +273,7 @@ WITH BusinessIntelligenceData AS (
 SELECT 
     -- Add CASE statements for dimensional labeling
     CASE 
-        WHEN GROUPING(Location) = 1 AND GROUPING(DepartmentName) = 1 AND GROUPING(Performance_Tier) = 1
+        WHEN GROUPING(Location) = 1 AND GROUPING(d.DepartmentName) = 1 AND GROUPING(Performance_Tier) = 1
         THEN 'GLOBAL BUSINESS SUMMARY'
         -- Add all other dimensional combinations
         ...
@@ -303,7 +301,7 @@ Create comprehensive customer analysis across all dimensions:
 Develop resource optimization analysis using CUBE:
 
 **Instructions:**
-1. Create resource utilization cube by department, skill level, and project type
+1. Create resource utilization cube by d.DepartmentName, skill level, and project type
 2. Include efficiency metrics and capacity analysis
 3. Add optimization opportunities identification  
 4. Provide resource allocation recommendations

@@ -59,7 +59,7 @@ BEGIN
             
             IF @BaseSalary IS NULL OR @BaseSalary <= 0
             BEGIN
-                RAISERROR('Valid base salary is required for new employee.', 16, 1);
+                RAISERROR('Valid base BaseSalary is required for new employee.', 16, 1);
             END
             
             IF @DepartmentID IS NULL
@@ -67,7 +67,7 @@ BEGIN
                 RAISERROR('Department ID is required for new employee.', 16, 1);
             END
             
-            -- Validate department exists
+            -- Validate d.DepartmentName exists
             IF NOT EXISTS (SELECT 1 FROM Departments WHERE DepartmentID = @DepartmentID AND IsActive = 1)
             BEGIN
                 RAISERROR('Department ID %d does not exist or is inactive. Please select a valid department.', 16, 1, @DepartmentID);
@@ -81,7 +81,7 @@ BEGIN
                     RAISERROR('Manager ID %d does not exist or is inactive. Please select a valid manager.', 16, 1, @ManagerID);
                 END
                 
-                -- Validate manager is in same or parent department (business rule)
+                -- Validate manager is in same or parent d.DepartmentName (business rule)
                 IF NOT EXISTS (
                     SELECT 1 FROM Employees e1
                     INNER JOIN Employees e2 ON e1.DepartmentID IN (e2.DepartmentID, 
@@ -89,11 +89,11 @@ BEGIN
                     WHERE e1.EmployeeID = @ManagerID AND e2.DepartmentID = @DepartmentID
                 )
                 BEGIN
-                    RAISERROR('Manager must be in the same department or a parent department.', 16, 1);
+                    RAISERROR('Manager must be in the same d.DepartmentName or a parent department.', 16, 1);
                 END
             END
             
-            -- Business rule: Salary range validation
+            -- Business rule: BaseSalary range validation
             DECLARE @DeptMinSalary MONEY, @DeptMaxSalary MONEY;
             SELECT @DeptMinSalary = MinSalary, @DeptMaxSalary = MaxSalary 
             FROM DepartmentSalaryRanges 
@@ -101,19 +101,19 @@ BEGIN
             
             IF @DeptMinSalary IS NOT NULL AND @BaseSalary < @DeptMinSalary
             BEGIN
-                RAISERROR('Salary $%.2f is below department minimum of $%.2f for this position.', 16, 1, @BaseSalary, @DeptMinSalary);
+                RAISERROR('BaseSalary $%.2f is below d.DepartmentName minimum of $%.2f for this position.', 16, 1, @BaseSalary, @DeptMinSalary);
             END
             
             IF @DeptMaxSalary IS NOT NULL AND @BaseSalary > @DeptMaxSalary
             BEGIN
-                RAISERROR('Salary $%.2f exceeds department maximum of $%.2f for this position.', 16, 1, @BaseSalary, @DeptMaxSalary);
+                RAISERROR('BaseSalary $%.2f exceeds d.DepartmentName maximum of $%.2f for this position.', 16, 1, @BaseSalary, @DeptMaxSalary);
             END
             
             BEGIN TRANSACTION InsertEmployee;
             
             -- Generate new employee ID
             DECLARE @NewEmployeeID INT;
-            SELECT @NewEmployeeID = ISNULL(MAX(EmployeeID), 3000) + 1 FROM Employees;
+            SELECT @NewEmployeeID = ISNULL(MAX(EmployeeID), 3000) + 1 FROM Employees e;
             
             INSERT INTO Employees (
                 EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, 
@@ -135,7 +135,7 @@ BEGIN
             VALUES (
                 'Employees', 'INSERT', @EmployeeID,
                 'FirstName: ' + @FirstName + ', LastName: ' + @LastName + 
-                ', Salary: $' + FORMAT(@BaseSalary, 'N2') + ', DepartmentID: ' + CAST(@DepartmentID AS VARCHAR(10)),
+                ', BaseSalary: $' + FORMAT(@BaseSalary, 'N2') + ', DepartmentID: ' + CAST(@DepartmentID AS VARCHAR(10)),
                 @UpdatedBy, GETDATE()
             );
             
@@ -144,7 +144,7 @@ BEGIN
             PRINT 'Employee successfully created:';
             PRINT 'Employee ID: ' + CAST(@EmployeeID AS VARCHAR(10));
             PRINT 'Name: ' + @EmployeeName;
-            PRINT 'Salary: $' + FORMAT(@BaseSalary, 'N2');
+            PRINT 'BaseSalary: $' + FORMAT(@BaseSalary, 'N2');
         END
         
         ELSE IF @Operation = 'UPDATE'
@@ -181,7 +181,7 @@ BEGIN
             -- Validate new values
             IF @BaseSalary <= 0
             BEGIN
-                RAISERROR('Base salary must be greater than zero.', 16, 1);
+                RAISERROR('Base BaseSalary must be greater than zero.', 16, 1);
             END
             
             IF NOT EXISTS (SELECT 1 FROM Departments WHERE DepartmentID = @DepartmentID AND IsActive = 1)
@@ -415,7 +415,7 @@ BEGIN
         ELSE IF @ErrorNumber = 2627  -- Primary key violation
             SET @UserMessage = 'Employee ID already exists. Please use a different Employee ID.';
         ELSE IF @ErrorNumber = 547   -- Foreign key violation
-            SET @UserMessage = 'Invalid reference to department or manager. Please check your values.';
+            SET @UserMessage = 'Invalid reference to d.DepartmentName or manager. Please check your values.';
         ELSE IF @ErrorNumber = 515   -- Cannot insert NULL
             SET @UserMessage = 'Required information is missing. Please provide all mandatory fields.';
         ELSE

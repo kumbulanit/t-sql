@@ -85,7 +85,7 @@ Result: Elements in A but not in B
 -- Basic UNION (removes duplicates)
 SELECT FirstName, LastName FROM Employees
 UNION
-SELECT ContactFirstName AS FirstName, ContactLastName AS LastName FROM Customers;
+SELECT FirstName, LastName FROM Customers;
 
 -- UNION ALL (keeps duplicates)
 SELECT City FROM Employees
@@ -117,13 +117,13 @@ SELECT City FROM Customers;
 (
     SELECT 'Employee' AS Type, FirstName, LastName, City
     FROM Employees
-    WHERE City IN ('New York', 'Los Angeles', 'San Francisco', 'Boston')
+    WHERE City IN ('New York', 'Los Angeles')
 )
 UNION
 (
-    SELECT 'Customer' AS Type, ContactFirstName AS FirstName, ContactLastName AS LastName, City
+    SELECT 'Customer' AS Type, FirstName, LastName, City
     FROM Customers
-    WHERE City IN ('New York', 'Los Angeles', 'San Francisco', 'Boston')
+    WHERE City IN ('New York', 'Los Angeles')
 )
 ORDER BY City, Type, LastName;
 ```
@@ -132,7 +132,7 @@ ORDER BY City, Type, LastName;
 ```sql
 -- Simple membership test
 SELECT CustomerID, CompanyName FROM Customers
-WHERE DepartmentName IN ('Software', 'Services', 'Support');
+WHERE CategoryID IN (1, 3, 5);
 
 -- Subquery membership test
 SELECT * FROM Employees
@@ -169,10 +169,10 @@ WHERE e.EmployeeID IN (
 ```sql
 -- Complex set analysis using CTEs
 WITH HighValueCustomers AS (
-    SELECT CustomerID, SUM(TotalAmount) AS TotalSpent
+    SELECT CustomerID, SUM(OrderTotal) AS TotalSpent
     FROM Orders
     GROUP BY CustomerID
-    HAVING SUM(TotalAmount) > 10000
+    HAVING SUM(OrderTotal) > 10000
 ),
 RecentCustomers AS (
     SELECT DISTINCT CustomerID
@@ -185,8 +185,8 @@ ActiveHighValueCustomers AS (
     SELECT CustomerID FROM RecentCustomers
 )
 SELECT 
-    c.ContactFirstName AS FirstName,
-    c.ContactLastName AS LastName,
+    c.ContactFirstName,
+    c.ContactLastName,
     hvc.TotalSpent
 FROM Customers c
 INNER JOIN HighValueCustomers hvc ON c.CustomerID = hvc.CustomerID
@@ -200,7 +200,7 @@ WITH EmployeeSkills AS (
     SELECT 
         EmployeeID,
         STRING_AGG(SkillName, ',') WITHIN GROUP (ORDER BY SkillName) AS SkillSet
-    FROM EmployeeSkills es
+    FROM Employees ekills es
     INNER JOIN Skills s ON es.SkillID = s.SkillID
     GROUP BY EmployeeID
 )
@@ -212,7 +212,7 @@ FROM Employees e
 INNER JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
 WHERE es.SkillSet NOT IN (
     SELECT SkillSet 
-    FROM EmployeeSkills 
+    FROM Employees ekills 
     WHERE EmployeeID != e.EmployeeID
 );
 ```
@@ -221,10 +221,9 @@ WHERE es.SkillSet NOT IN (
 ```sql
 -- Find products that are ordered by all customers in a specific region
 WITH RegionCustomers AS (
-    SELECT DISTINCT c.CustomerID
-    FROM Customers c
-    INNER JOIN Countries ct ON c.CountryID = ct.CountryID
-    WHERE ct.Region = 'North America'
+    SELECT DISTINCT CustomerID
+    FROM Customers
+    WHERE Region = 'North America'
 ),
 ProductCustomerPairs AS (
     SELECT DISTINCT p.ProductID, o.CustomerID
@@ -242,7 +241,7 @@ ProductsOrderedByAll AS (
 )
 SELECT 
     p.ProductName,
-    p.BaseSalary
+    p.UnitPrice
 FROM Products p
 WHERE p.ProductID IN (SELECT ProductID FROM ProductsOrderedByAll);
 ```
@@ -252,44 +251,44 @@ WHERE p.ProductID IN (SELECT ProductID FROM ProductsOrderedByAll);
 ### Procedural Approach (Avoid)
 ```sql
 -- Inefficient cursor-based approach
-DECLARE @CustomerID INT;
-DECLARE @TotalPurchases DECIMAL(10,2);
-DECLARE customer_cursor CURSOR FOR 
-    SELECT CustomerID FROM Customers;
+DECLARE @EmployeeID INT;
+DECLARE @TotalSales DECIMAL(10,2);
+DECLARE employee_cursor CURSOR FOR 
+    SELECT EmployeeID FROM Employees e;
 
-OPEN customer_cursor;
-FETCH NEXT FROM customer_cursor INTO @CustomerID;
+OPEN employee_cursor;
+FETCH NEXT FROM employee_cursor INTO @EmployeeID;
 
 WHILE @@FETCH_STATUS = 0
 BEGIN
-    SELECT @TotalPurchases = SUM(TotalAmount)
+    SELECT @TotalSales = SUM(OrderTotal)
     FROM Orders
-    WHERE CustomerID = @CustomerID;
+    WHERE EmployeeID = @EmployeeID;
     
-    UPDATE Customers 
-    SET CurrentBalance = @TotalPurchases
-    WHERE CustomerID = @CustomerID;
+    UPDATE Employees 
+    SET TotalSales = @TotalSales
+    WHERE EmployeeID = @EmployeeID;
     
-    FETCH NEXT FROM customer_cursor INTO @CustomerID;
+    FETCH NEXT FROM employee_cursor INTO @EmployeeID;
 END
 
-CLOSE customer_cursor;
-DEALLOCATE customer_cursor;
+CLOSE employee_cursor;
+DEALLOCATE employee_cursor;
 ```
 
 ### Set-Based Approach (Preferred)
 ```sql
 -- Efficient set-based approach
-UPDATE c
-SET CurrentBalance = ISNULL(o.TotalPurchases, 0)
-FROM Customers c
+UPDATE e
+SET TotalSales = ISNULL(o.TotalSales, 0)
+FROM Employees e
 LEFT JOIN (
     SELECT 
-        CustomerID,
-        SUM(TotalAmount) AS TotalPurchases
+        EmployeeID,
+        SUM(OrderTotal) AS TotalSales
     FROM Orders
-    GROUP BY CustomerID
-) o ON c.CustomerID = o.CustomerID;
+    GROUP BY EmployeeID
+) o ON e.EmployeeID = o.EmployeeID;
 ```
 
 ## Working with NULL Values in Sets
@@ -398,7 +397,7 @@ SELECT
 WITH CategoryProducts AS (
     SELECT ProductID 
     FROM Products 
-    WHERE DepartmentName = 'Software'
+    WHERE CategoryID = 1
 ),
 CustomerProductCombos AS (
     SELECT DISTINCT c.CustomerID, p.ProductID

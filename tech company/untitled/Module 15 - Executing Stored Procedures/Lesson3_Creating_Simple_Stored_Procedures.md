@@ -188,9 +188,9 @@ EXEC sp_GetEmployeeBasicInfo @EmployeeID = 3001;
 EXEC sp_GetEmployeeBasicInfo @EmployeeID = 99999;  -- Test error handling
 ```
 
-#### TechCorp Example: Department Employee List Procedure
+#### TechCorp Example: d.DepartmentName Employee List Procedure
 ```sql
--- Create procedure to list all employees in a department
+-- Create procedure to list all employees in a d.DepartmentName
 CREATE PROCEDURE sp_GetDepartmentEmployeeList
     @DepartmentID INT,
     @IncludeInactive BIT = 0
@@ -205,22 +205,21 @@ BEGIN
         RETURN -1;
     END
     
-    -- Verify department exists
+    -- Verify d.DepartmentName exists
     IF NOT EXISTS (SELECT 1 FROM Departments WHERE DepartmentID = @DepartmentID AND IsActive = 1)
     BEGIN
         RAISERROR('Department ID %d does not exist or is inactive.', 16, 1, @DepartmentID);
         RETURN -2;
     END
     
-    -- Get department information for context
-    DECLARE @DepartmentName VARCHAR(100), @Location VARCHAR(100);
-    SELECT 
-        @DepartmentName = DepartmentName,
+    -- Get d.DepartmentName information for context
+    DECLARE @d.DepartmentName VARCHAR(100), @Location VARCHAR(100);
+    SELECT @d.DepartmentName = DepartmentName,
         @Location = Location
     FROM Departments 
     WHERE DepartmentID = @DepartmentID;
     
-    -- Return department header information
+    -- Return d.DepartmentName header information
     SELECT 
         @DepartmentID AS DepartmentID,
         @DepartmentName AS DepartmentName,
@@ -235,7 +234,7 @@ BEGIN
         e.LastName,
         e.FirstName + ' ' + e.LastName AS FullName,
         e.JobTitle,
-        FORMAT(e.BaseSalary, 'C') AS Salary,
+        FORMAT(e.BaseSalary, 'C') AS BaseSalary,
         e.HireDate,
         DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
         e.WorkEmail,
@@ -272,6 +271,7 @@ BEGIN
         FORMAT(AVG(CASE WHEN e.IsActive = 1 THEN e.BaseSalary ELSE NULL END), 'C') AS AverageActiveSalary,
         FORMAT(SUM(CASE WHEN e.IsActive = 1 THEN e.BaseSalary ELSE 0 END), 'C') AS TotalActivePayroll
     FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.DepartmentID = @DepartmentID
       AND (e.IsActive = 1 OR @IncludeInactive = 1);
     
@@ -444,17 +444,17 @@ BEGIN
     
     IF @BaseSalary IS NULL OR @BaseSalary <= 0
     BEGIN
-        RAISERROR('Base salary must be a positive amount.', 16, 1);
+        RAISERROR('Base BaseSalary must be a positive amount.', 16, 1);
         RETURN -4;
     END
     
-    IF @BaseSalary > 500000  -- Business rule: maximum salary cap
+    IF @BaseSalary > 500000  -- Business rule: maximum BaseSalary cap
     BEGIN
-        RAISERROR('Base salary cannot exceed $500,000.', 16, 1);
+        RAISERROR('Base BaseSalary cannot exceed $500,000.', 16, 1);
         RETURN -5;
     END
     
-    -- Validate department exists and is active
+    -- Validate d.DepartmentName exists and is active
     IF NOT EXISTS (SELECT 1 FROM Departments WHERE DepartmentID = @DepartmentID AND IsActive = 1)
     BEGIN
         RAISERROR('Department ID %d does not exist or is inactive.', 16, 1, @DepartmentID);
@@ -470,7 +470,7 @@ BEGIN
             RETURN -7;
         END
         
-        -- Ensure manager is in same department or is a senior manager
+        -- Ensure manager is in same d.DepartmentName or is a senior manager
         IF NOT EXISTS (
             SELECT 1 FROM Employees e
             INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
@@ -478,7 +478,7 @@ BEGIN
               AND (e.DepartmentID = @DepartmentID OR e.BaseSalary >= 80000)
         )
         BEGIN
-            RAISERROR('Manager must be in the same department or be a senior manager.', 16, 1);
+            RAISERROR('Manager must be in the same d.DepartmentName or be a senior manager.', 16, 1);
             RETURN -8;
         END
     END
@@ -641,7 +641,7 @@ BEGIN
     
     IF @BaseSalary IS NOT NULL AND (@BaseSalary <= 0 OR @BaseSalary > 500000)
     BEGIN
-        RAISERROR('Base salary must be between $0 and $500,000.', 16, 1);
+        RAISERROR('Base BaseSalary must be between $0 and $500,000.', 16, 1);
         RETURN -4;
     END
     
@@ -713,7 +713,7 @@ BEGIN
             SET @ChangeLog = @ChangeLog + 'JobTitle: ' + @CurrentJobTitle + ' -> ' + @JobTitle + '. ';
             
         IF @BaseSalary IS NOT NULL AND @BaseSalary != @CurrentSalary
-            SET @ChangeLog = @ChangeLog + 'Salary: ' + FORMAT(@CurrentSalary, 'C') + ' -> ' + FORMAT(@BaseSalary, 'C') + '. ';
+            SET @ChangeLog = @ChangeLog + 'BaseSalary: ' + FORMAT(@CurrentSalary, 'C') + ' -> ' + FORMAT(@BaseSalary, 'C') + '. ';
         
         SET @ChangeLog = @ChangeLog + 'Reason: ' + @UpdateReason;
         
@@ -735,13 +735,13 @@ BEGIN
 END;
 
 -- Test the update procedure
--- Update employee salary and job title
+-- Update employee BaseSalary and job title
 EXEC sp_UpdateEmployeeInfo
     @EmployeeID = 3001,
     @JobTitle = 'Senior Software Developer',
     @BaseSalary = 85000,
     @UpdatedBy = 'HR Manager',
-    @UpdateReason = 'Annual promotion and salary increase';
+    @UpdateReason = 'Annual promotion and BaseSalary increase';
 
 -- Test with no changes
 EXEC sp_UpdateEmployeeInfo

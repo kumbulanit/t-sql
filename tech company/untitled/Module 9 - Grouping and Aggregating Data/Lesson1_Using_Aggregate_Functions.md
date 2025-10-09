@@ -10,7 +10,7 @@ You'll learn to ask your database simple questions like:
 
 - **"How many employees do we have?"** (Counting)
 - **"What's the total of all salaries?"** (Adding)  
-- **"What's the average salary?"** (Average)
+- **"What's the average BaseSalary?"** (Average)
 - **"Who earns the most/least?"** (Highest/Lowest)
 
 These are called **aggregate functions** - fancy words for "math functions that work on groups of data."
@@ -43,7 +43,7 @@ USE TechCorpDB;
 
 -- Step 2: Count all employees
 SELECT COUNT(*) AS NumberOfEmployees
-FROM Employees;
+FROM Employees e;
 ```
 
 **What this does:**
@@ -69,22 +69,22 @@ FROM Projects;
 
 ### 🎓 Adding Up Money: The SUM Function
 
-If you have a pile of dollar bills and want to know the total value, you add them up. SQL can do the same with salary data!
+If you have a pile of dollar bills and want to know the total value, you add them up. SQL can do the same with BaseSalary data!
 
 **The SUM Function**: `SUM(column_name)` = "Add up all the numbers in this column"
 
-### Exercise 2.1: Total Salary Cost (🟢 SUPER BASIC)
+### Exercise 2.1: Total BaseSalary Cost (🟢 SUPER BASIC)
 
 **Question**: "How much does TechCorp spend on all salaries combined?"
 
 ```sql
 -- Add up all salaries
-SELECT SUM(Salary) AS TotalSalaryExpense
-FROM Employees;
+SELECT SUM(e.BaseSalary) AS TotalSalaryExpense
+FROM Employees e;
 ```
 
 **What this does:**
-- `SUM(Salary)` adds up every salary number
+- `SUM(e.BaseSalary)` adds up every BaseSalary number
 - **Example**: If salaries are 50000 + 60000 + 45000 = 155000
 - **Result**: One big number representing total cost
 
@@ -106,20 +106,20 @@ An average tells you what's "normal" or "typical." Like the average height of st
 
 **The AVG Function**: `AVG(column_name)` = "What's the average of all these numbers?"
 
-### Exercise 3.1: Average Salary (🟢 SUPER BASIC)
+### Exercise 3.1: Average BaseSalary (🟢 SUPER BASIC)
 
-**Question**: "What's the typical salary at TechCorp?"
+**Question**: "What's the typical BaseSalary at TechCorp?"
 
 ```sql
--- Calculate average salary
-SELECT AVG(Salary) AS AverageSalary
-FROM Employees;
+-- Calculate average BaseSalary
+SELECT AVG(e.BaseSalary) AS AverageBaseSalary
+FROM Employees e;
 ```
 
 **What this does:**
 - Adds up all salaries, then divides by number of employees
 - **Example**: (50000 + 60000 + 45000) ÷ 3 = 51667
-- **Result**: The "typical" salary amount
+- **Result**: The "typical" BaseSalary amount
 
 ### Exercise 3.2: Average Project Size (🟢 SUPER BASIC)
 
@@ -133,24 +133,24 @@ FROM Projects;
 
 ### 🎓 Who's the Highest and Lowest?
 
-Sometimes you want to know the extremes - the highest salary or smallest project budget.
+Sometimes you want to know the extremes - the highest BaseSalary or smallest project budget.
 
 **MIN and MAX Functions**: 
 - `MIN(column_name)` = "Find the smallest number"
 - `MAX(column_name)` = "Find the biggest number"
 
-### Exercise 4.1: Salary Extremes (🟢 SUPER BASIC)
+### Exercise 4.1: BaseSalary Extremes (🟢 SUPER BASIC)
 
 **Questions**: "Who earns the most? Who earns the least?"
 
 ```sql
--- Find highest salary
-SELECT MAX(Salary) AS HighestSalary
-FROM Employees;
+-- Find highest BaseSalary
+SELECT MAX(e.BaseSalary) AS HighestBaseSalary
+FROM Employees e;
 
--- Find lowest salary  
-SELECT MIN(Salary) AS LowestSalary
-FROM Employees;
+-- Find lowest BaseSalary  
+SELECT MIN(e.BaseSalary) AS LowestBaseSalary
+FROM Employees e;
 ```
 
 ### Exercise 4.2: Get Both in One Query (🟢 BASIC)
@@ -158,9 +158,9 @@ FROM Employees;
 ```sql
 -- Get both highest and lowest in one go
 SELECT 
-    MAX(Salary) AS HighestSalary,
-    MIN(Salary) AS LowestSalary  
-FROM Employees;
+    MAX(e.BaseSalary) AS HighestBaseSalary,
+    MIN(e.BaseSalary) AS LowestBaseSalary  
+FROM Employees e;
 ```
 
 ## Part 5: Putting It All Together 📊
@@ -173,11 +173,11 @@ FROM Employees;
 -- Complete employee statistics
 SELECT 
     COUNT(*) AS TotalEmployees,
-    SUM(Salary) AS TotalPayroll,
-    AVG(Salary) AS AverageSalary,
-    MIN(Salary) AS LowestSalary,
-    MAX(Salary) AS HighestSalary
-FROM Employees;
+    SUM(e.BaseSalary) AS TotalPayroll,
+    AVG(e.BaseSalary) AS AverageBaseSalary,
+    MIN(e.BaseSalary) AS LowestBaseSalary,
+    MAX(e.BaseSalary) AS HighestBaseSalary
+FROM Employees e;
 ```
 
 **Result will look like:**
@@ -212,11 +212,11 @@ Let's answer real questions a manager might ask:
 ```sql
 -- Question 1: How many employees do we have?
 SELECT COUNT(*) AS 'Number of Employees'
-FROM Employees;
+FROM Employees e;
 
 -- Question 2: What's our monthly payroll cost?
-SELECT SUM(Salary) / 12 AS 'Monthly Payroll Cost'
-FROM Employees;
+SELECT SUM(e.BaseSalary) / 12 AS 'Monthly Payroll Cost'
+FROM Employees e;
 
 -- Question 3: What's a typical project worth?
 SELECT AVG(Budget) AS 'Typical Project Value'
@@ -233,9 +233,9 @@ FROM Projects;
 -- Format numbers to be easier to read
 SELECT 
     COUNT(*) AS Employees,
-    FORMAT(SUM(Salary), 'C0') AS 'Total Payroll',
-    FORMAT(AVG(Salary), 'C0') AS 'Average Salary'
-FROM Employees;
+    FORMAT(SUM(e.BaseSalary), 'C0') AS 'Total Payroll',
+    FORMAT(AVG(e.BaseSalary), 'C0') AS 'Average BaseSalary'
+FROM Employees e;
 ```
 
 **What FORMAT does**: Turns `50000` into `$50,000` (easier to read!)
@@ -249,7 +249,7 @@ SELECT COUNT(*) AS 'Number of Clients'
 FROM Clients;
 ```
 
-### Practice 2: Department Count
+### Practice 2: d.DepartmentName Count
 ```sql  
 -- How many different departments exist?
 SELECT COUNT(*) AS 'Number of Departments'
@@ -261,7 +261,7 @@ FROM Departments;
 -- Get a complete business overview
 SELECT 
     'TechCorp Business Overview' AS Report,
-    (SELECT COUNT(*) FROM Employees) AS Employees,
+    (SELECT COUNT(*) FROM Employees e) AS Employees,
     (SELECT COUNT(*) FROM Clients) AS Clients,
     (SELECT COUNT(*) FROM Projects) AS Projects,
     (SELECT FORMAT(SUM(Budget), 'C0') FROM Projects) AS 'Total Project Value'
@@ -289,6 +289,6 @@ You now know the 5 basic math functions in SQL:
 
 In the next lesson, you'll learn about **GROUP BY** - this lets you break your data into groups (like by department) and do math on each group separately. 
 
-**Example**: Instead of "average salary for everyone," you'll learn "average salary per department."
+**Example**: Instead of "average BaseSalary for everyone," you'll learn "average BaseSalary per department."
 
 **Key Takeaway**: SQL's math functions are like having a super-fast calculator that works with lots of data at once!

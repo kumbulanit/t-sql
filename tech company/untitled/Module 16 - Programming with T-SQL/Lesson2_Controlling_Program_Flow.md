@@ -88,7 +88,7 @@ BEGIN
     DECLARE @EmployeeName VARCHAR(101);
     DECLARE @CurrentSalary DECIMAL(10,2);
     DECLARE @DepartmentID INT;
-    DECLARE @DepartmentName VARCHAR(100);
+    DECLARE @d.DepartmentName VARCHAR(100);
     DECLARE @YearsOfService INT;
     DECLARE @JobTitle VARCHAR(100);
     DECLARE @ManagerID INT;
@@ -129,8 +129,8 @@ BEGIN
         RETURN -1;
     END
     
-    -- Get department information
-    SELECT @DepartmentName = DepartmentName
+    -- Get d.DepartmentName information
+    SELECT @d.DepartmentName = d.DepartmentName
     FROM Departments
     WHERE DepartmentID = @DepartmentID AND IsActive = 1;
     
@@ -156,7 +156,7 @@ BEGIN
     -- Start performance evaluation logic
     PRINT '=== TechCorp Performance Review ===';
     PRINT 'Employee: ' + @EmployeeName + ' (' + CAST(@EmployeeID AS VARCHAR) + ')';
-    PRINT 'Department: ' + @DepartmentName;
+    PRINT 'Department: ' + @d.DepartmentName;
     PRINT 'Position: ' + @JobTitle;
     PRINT 'Review Period: ' + CAST(@ReviewPeriodMonths AS VARCHAR) + ' months';
     PRINT 'Years of Service: ' + CAST(@YearsOfService AS VARCHAR);
@@ -285,7 +285,7 @@ BEGIN
     -- Additional conditional logic for special circumstances
     IF @CurrentSalary >= 100000
     BEGIN
-        -- High salary employees have different criteria
+        -- High BaseSalary employees have different criteria
         IF @PerformanceScore < 70
         BEGIN
             SET @RequiresImprovement = 1;
@@ -299,7 +299,7 @@ BEGIN
         IF @OrdersProcessed < 10
         BEGIN
             SET @PerformanceScore = @PerformanceScore * 0.8; -- 20% reduction for low sales activity
-            SET @ActionPlan = @ActionPlan + ' Sales department requires minimum customer engagement levels.';
+            SET @ActionPlan = @ActionPlan + ' Sales d.DepartmentName requires minimum customer engagement levels.';
         END
     END
     ELSE IF @DepartmentName = 'Engineering'
@@ -328,7 +328,7 @@ BEGIN
         SET BaseSalary = @NewSalary
         WHERE EmployeeID = @EmployeeID;
         
-        PRINT 'AUTO-APPROVED: Salary increased from ' + FORMAT(@CurrentSalary, 'C') + 
+        PRINT 'AUTO-APPROVED: BaseSalary increased from ' + FORMAT(@CurrentSalary, 'C') + 
               ' to ' + FORMAT(@NewSalary, 'C') + ' (' + FORMAT(@RecommendedRaise, 'N1') + '% increase)';
     END
     
@@ -548,7 +548,7 @@ BEGIN
                 
                 -- Apply business rules
                 IF @CalculatedBonus > (@CurrentBaseSalary * 0.3)
-                    SET @CalculatedBonus = @CurrentBaseSalary * 0.3; -- Cap at 30% of salary
+                    SET @CalculatedBonus = @CurrentBaseSalary * 0.3; -- Cap at 30% of BaseSalary
                 
                 IF @CalculatedBonus < 500
                     SET @CalculatedBonus = 500; -- Minimum bonus
@@ -644,7 +644,7 @@ END;
 -- Test the batch processing system
 EXEC sp_TechCorp_ProcessMonthlyBonusCalculation
     @ProcessingYear = 2024,
-    @DepartmentID = 2001, -- Engineering department only
+    @DepartmentID = 2001, -- Engineering d.DepartmentName only
     @BatchSize = 5,
     @MaxProcessingTime = 60; -- 1 minute max processing time
 
@@ -732,7 +732,7 @@ EMPLOYEE_VALIDATION:
             SET @ErrorCount = @ErrorCount + 1;
         END
         
-        -- Check for salary anomalies
+        -- Check for BaseSalary anomalies
         DECLARE @SalaryAnomalies INT;
         SELECT @SalaryAnomalies = COUNT(*)
         FROM Employees e
@@ -743,7 +743,7 @@ EMPLOYEE_VALIDATION:
         
         IF @SalaryAnomalies > 0
         BEGIN
-            SET @CurrentError = 'Found ' + CAST(@SalaryAnomalies AS VARCHAR) + ' salary anomalies';
+            SET @CurrentError = 'Found ' + CAST(@SalaryAnomalies AS VARCHAR) + ' BaseSalary anomalies';
             PRINT 'WARNING: ' + @CurrentError;
             SET @WarningCount = @WarningCount + 1;
         END
@@ -788,7 +788,7 @@ EMPLOYEE_VALIDATION:
 DEPARTMENT_VALIDATION:
     SET @StepStartTime = GETDATE();
     PRINT '';
-    PRINT 'Step 2: Department Data Validation';
+    PRINT 'Step 2: d.DepartmentName Data Validation';
     
     BEGIN TRY
         -- Check for departments without employees

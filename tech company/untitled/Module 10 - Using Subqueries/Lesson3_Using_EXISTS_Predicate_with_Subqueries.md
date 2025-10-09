@@ -93,8 +93,7 @@ ORDER BY d.DepartmentName, e.LastName;
 #### TechCorp Example: Departments with Active Projects
 ```sql
 -- Find departments that have at least one active project
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     d.Budget,
     d.Location
 FROM Departments d
@@ -331,7 +330,7 @@ WHERE e.IsActive = 1
 -- Ensure proper indexes for EXISTS performance
 -- For this query pattern:
 SELECT e.FirstName, e.LastName
-FROM Employees e  
+FROM Employees e
 WHERE EXISTS (
     SELECT 1
     FROM Orders o
@@ -398,6 +397,7 @@ FROM Departments d
 WHERE NOT EXISTS (
     SELECT 1
     FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.DepartmentID = d.DepartmentID
       AND e.IsActive = 1
 )
@@ -450,11 +450,11 @@ ORDER BY TotalRevenue DESC;
 #### TechCorp Example: Activity Monitoring Dashboard
 ```sql
 -- Monitor various business activities and employee engagement
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     -- Active employees count
     (SELECT COUNT(*)
      FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
      WHERE e.DepartmentID = d.DepartmentID
        AND e.IsActive = 1) AS ActiveEmployees,
     -- Employees with recent orders
@@ -482,7 +482,7 @@ SELECT
              AND p.IsActive = 1
              AND ep.IsActive = 1
        )) AS EmployeesOnProjects,
-    -- Department activity score
+    -- d.DepartmentName activity score
     CASE 
         WHEN EXISTS (
             SELECT 1

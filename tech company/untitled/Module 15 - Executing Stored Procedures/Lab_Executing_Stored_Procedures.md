@@ -61,7 +61,7 @@ SELECT
     MAX(EmployeeID) AS MaxEmployeeID,
     COUNT(DISTINCT DepartmentID) AS DepartmentCount,
     COUNT(CASE WHEN IsActive = 1 THEN 1 END) AS ActiveEmployees
-FROM Employees;
+FROM Employees e;
 
 -- Check for any existing stored procedures (optional cleanup)
 SELECT 
@@ -117,7 +117,7 @@ BEGIN
         e.FirstName,
         e.LastName,
         e.JobTitle,
-        FORMAT(e.BaseSalary, 'C') AS Salary,
+        FORMAT(e.BaseSalary, 'C') AS BaseSalary,
         d.DepartmentName,
         d.Location,
         e.HireDate,
@@ -165,12 +165,12 @@ EXEC @ReturnValue = sp_Lab_GetEmployeeInfo
 SELECT @ReturnValue AS ErrorReturnCode;
 ```
 
-### Exercise 1.2: Department Summary Procedure
+### Exercise 1.2: d.DepartmentName Summary Procedure
 
-**Task:** Create and execute a procedure that returns department statistics with configurable options.
+**Task:** Create and execute a procedure that returns d.DepartmentName statistics with configurable options.
 
 ```sql
--- Step 1: Create department summary procedure
+-- Step 1: Create d.DepartmentName summary procedure
 CREATE PROCEDURE sp_Lab_GetDepartmentSummary
     @DepartmentID INT = NULL,
     @IncludeInactiveEmployees BIT = 0,
@@ -187,7 +187,7 @@ BEGIN
     SET @TotalPayroll = 0;
     SET @AverageSalary = 0;
     
-    -- Validate department if specified
+    -- Validate d.DepartmentName if specified
     IF @DepartmentID IS NOT NULL AND NOT EXISTS (
         SELECT 1 FROM Departments WHERE DepartmentID = @DepartmentID AND IsActive = 1
     )
@@ -221,7 +221,7 @@ BEGIN
     GROUP BY d.DepartmentID, d.DepartmentName, d.Location, d.Budget
     ORDER BY d.DepartmentName;
     
-    -- Calculate output parameters for first/specified department
+    -- Calculate output parameters for first/specified d.DepartmentName
     SELECT 
         @EmployeeCount = COUNT(e.EmployeeID),
         @TotalPayroll = SUM(CASE WHEN e.IsActive = 1 OR @IncludeInactiveEmployees = 1 
@@ -247,9 +247,9 @@ EXEC sp_Lab_GetDepartmentSummary
     @TotalPayroll = @Payroll OUTPUT,
     @AverageSalary = @AvgSalary OUTPUT;
 
-SELECT @EmpCount AS TotalEmployees, @Payroll AS TotalPayroll, @AvgSalary AS AverageSalary;
+SELECT @EmpCount AS TotalEmployees, @Payroll AS TotalPayroll, @AvgSalary AS AverageBaseSalary;
 
--- Test 2: Specific department with salary threshold
+-- Test 2: Specific d.DepartmentName with BaseSalary threshold
 EXEC sp_Lab_GetDepartmentSummary 
     @DepartmentID = 2001,
     @SalaryThreshold = 60000,
@@ -321,23 +321,23 @@ BEGIN
         RETURN -3;
     END
     
-    -- Salary validation
+    -- BaseSalary validation
     IF @BaseSalary IS NULL OR @BaseSalary <= 0
     BEGIN
-        SET @ValidationMessage = 'Base salary must be a positive amount.';
+        SET @ValidationMessage = 'Base BaseSalary must be a positive amount.';
         RETURN -4;
     END
     
     IF @BaseSalary > 500000 -- Business rule
     BEGIN
-        SET @ValidationMessage = 'Base salary cannot exceed $500,000 per company policy.';
+        SET @ValidationMessage = 'Base BaseSalary cannot exceed $500,000 per company policy.';
         RETURN -5;
     END
     
-    -- Department validation
+    -- d.DepartmentName validation
     IF NOT EXISTS (SELECT 1 FROM Departments WHERE DepartmentID = @DepartmentID AND IsActive = 1)
     BEGIN
-        SET @ValidationMessage = 'Invalid or inactive department ID: ' + CAST(@DepartmentID AS VARCHAR);
+        SET @ValidationMessage = 'Invalid or inactive d.DepartmentName ID: ' + CAST(@DepartmentID AS VARCHAR);
         RETURN -6;
     END
     
@@ -350,14 +350,15 @@ BEGIN
             RETURN -7;
         END
         
-        -- Business rule: Manager should be in same department or senior level
+        -- Business rule: Manager should be in same d.DepartmentName or senior level
         IF NOT EXISTS (
             SELECT 1 FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
             WHERE e.EmployeeID = @ManagerID 
               AND (e.DepartmentID = @DepartmentID OR e.BaseSalary >= 80000)
         )
         BEGIN
-            SET @ValidationMessage = 'Manager must be in same department or be a senior manager.';
+            SET @ValidationMessage = 'Manager must be in same d.DepartmentName or be a senior manager.';
             RETURN -8;
         END
     END
@@ -383,15 +384,15 @@ BEGIN
         RETURN -11;
     END
     
-    -- Business validation: salary should be appropriate for department
+    -- Business validation: BaseSalary should be appropriate for d.DepartmentName
     DECLARE @DeptAvgSalary DECIMAL(10,2);
-    SELECT @DeptAvgSalary = AVG(BaseSalary)
+    SELECT @DeptAvgSalary = AVG(e.BaseSalary)
     FROM Employees 
     WHERE DepartmentID = @DepartmentID AND IsActive = 1;
     
     IF @DeptAvgSalary IS NOT NULL AND @BaseSalary > (@DeptAvgSalary * 2)
     BEGIN
-        SET @ValidationMessage = 'Proposed salary is significantly higher than department average. Please review.';
+        SET @ValidationMessage = 'Proposed BaseSalary is significantly higher than d.DepartmentName average. Please review.';
         -- This is a warning, not an error - continue with insertion
     END
     
@@ -850,7 +851,7 @@ BEGIN
             COUNT(DISTINCT e.EmployeeID) AS TotalEmployees,
             COUNT(DISTINCT o.OrderID) AS TotalOrders,
             FORMAT(SUM(o.TotalAmount), ''C'') AS DepartmentRevenue,
-            FORMAT(AVG(e.BaseSalary), ''C'') AS AverageSalary,
+            FORMAT(AVG(e.BaseSalary), ''C'') AS AverageBaseSalary,
             FORMAT(SUM(e.BaseSalary), ''C'') AS TotalPayroll';
             
         IF @OutputFormat = 'Detailed'
@@ -1013,7 +1014,7 @@ EXEC sp_Lab_GenerateBusinessReport
     @OutputFormat = 'Detailed',
     @FilterIDs = '3001,3002,3003';
 
--- Test 3: Department Performance Report
+-- Test 3: d.DepartmentName Performance Report
 EXEC sp_Lab_GenerateBusinessReport
     @ReportType = 'DepartmentPerformance',
     @OutputFormat = 'Standard';

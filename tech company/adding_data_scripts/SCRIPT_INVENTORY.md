@@ -19,7 +19,7 @@
 - **`03_TechCorp_Lookup_Data.sql`** - Reference/lookup data
 - **`04_TechCorp_Companies_Data.sql`** - Company information
 - **`04_TechCorp_Companies_Data_Individual.sql`** - Individual company records
-- **`05_TechCorp_Departments_Data.sql`** - Department structure
+- **`05_TechCorp_Departments_Data.sql`** - d.DepartmentName structure
 - **`06_TechCorp_Employees_Leadership.sql`** - Leadership team data
 - **`07_TechCorp_Employees_Regular.sql`** - Regular employee data
 - **`08_TechCorp_Advanced_Tables.sql`** - Complex table relationships

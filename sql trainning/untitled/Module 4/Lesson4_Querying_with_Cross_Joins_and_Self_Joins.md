@@ -144,7 +144,7 @@ A self join is a join where a table is joined with itself. This is useful for co
 │                                                                             │
 │  Find employees with same BaseSalary:                                          │
 │  ┌─────────────────────────────────────────┐                               │
-│  │ EmpID │ Name  │ BaseSalary │ Department     │                               │
+│  │ EmpID │ Name  │ BaseSalary │ d.DepartmentName     │                               │
 │  ├─────────────────────────────────────────┤                               │
 │  │   1   │ John  │ 75000  │ IT             │ ◄─┐                           │
 │  │   2   │ Jane  │ 80000  │ Finance        │   │                           │
@@ -283,7 +283,7 @@ FROM Products p
 CROSS JOIN Categories c
 WHERE p.IsActive = 1
   AND c.IsActive = 1
-  AND p.Price BETWEEN 10 AND 100;  -- Reduce result set size
+  AND p.UnitPrice BETWEEN 10 AND 100;  -- Reduce result set size
 
 -- Consider using EXISTS instead of cross join for existence checks
 ```
@@ -339,7 +339,7 @@ CROSS JOIN Shifts s
 CROSS JOIN Employees e
 WHERE d.IsWorkDay = 1
   AND s.IsActive = 1
-  AND e.DepartmentID = 5;  -- Only operations department
+  AND e.DepartmentID = 5;  -- Only operations d.DepartmentName
 ```
 
 ## Common Use Cases

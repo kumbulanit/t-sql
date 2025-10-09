@@ -28,7 +28,7 @@ These exercises are designed to test your understanding of the core concepts cov
 - "Executive": > $90,000
 Show employee name, BaseSalary, and category.
 
-**Question 1.1.3**: Write a query to find the employee(s) with the longest tenure in each department. Include department name, employee name, and years of service.
+**Question 1.1.3**: Write a query to find the employee(s) with the longest tenure in each department. Include d.DepartmentName name, employee name, and years of service.
 
 **Question 1.1.4**: Create a query that shows employees hired in the same month across different years. Group results by month and show hire month, year, and employee details.
 
@@ -41,9 +41,9 @@ Show employee name, BaseSalary, and category.
 ### 2.1 Set Operations (6 points each)
 
 **Question 2.1.1**: Using set operations, create a report that shows:
-- All department names that either have a budget > $300,000 OR have employees with average BaseSalary > $70,000
+- All d.DepartmentName names that either have a budget > $300,000 OR have employees with average BaseSalary > $70,000
 - Use UNION to combine these two conditions
-- Show department name and the reason (budget or BaseSalary) why it was included
+- Show d.DepartmentName name and the reason (budget or BaseSalary) why it was included
 
 **Question 2.1.2**: Find employees who work on projects with the same status as their department's primary focus:
 - Use INTERSECT to find the overlap between employee project statuses and some business rule
@@ -74,8 +74,8 @@ Use appropriate set operations to create these categories.
 
 **Question 2.2.2**: Create a query using EXISTS to find departments where:
 - At least one employee earns more than the department's average BaseSalary
-- At least one project is assigned to department employees
-- The department budget is justified by employee productivity
+- At least one project is assigned to d.DepartmentName employees
+- The d.DepartmentName budget is justified by employee productivity
 
 **Question 2.2.3**: Write a query using NOT EXISTS to identify:
 - Projects with no employee assignments
@@ -119,7 +119,7 @@ ORDER BY ProjectCount DESC;
 
 **Question 3.1.3**: Create a query that demonstrates the difference between WHERE and HAVING by:
 - Filtering employees hired after 2020 (use WHERE)
-- Grouping by department
+- Grouping by d.DepartmentName
 - Showing only departments with average BaseSalary > $65,000 (use HAVING)
 - Explain why each filter belongs in its respective clause
 
@@ -131,9 +131,9 @@ ORDER BY ProjectCount DESC;
 
 **Question 4.1.1**: **Management Dashboard Query**
 Create a single query that provides a management dashboard showing:
-- Department performance metrics (employee count, avg BaseSalary, project count)
+- d.DepartmentName performance metrics (employee count, avg BaseSalary, project count)
 - Resource utilization (total hours allocated vs worked across all projects)
-- Department ranking based on productivity
+- d.DepartmentName ranking based on productivity
 - Identify departments that may need attention
 Use multiple concepts: joins, aggregation, window functions, case statements, and proper filtering.
 

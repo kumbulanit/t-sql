@@ -496,9 +496,9 @@ SELECT
     COUNT(*) AS TotalProducts,
     COUNT(BaseSalary) AS ProductsWithPrice,
     COUNT(UnitsInStock) AS ProductsWithStock,
-    AVG(BaseSalary) AS AvgPrice,
+    AVG(e.BaseSalary) AS AvgPrice,
     AVG(UnitsInStock) AS AvgStock,
-    SUM(BaseSalary) AS TotalPrice,
+    SUM(e.BaseSalary) AS TotalPrice,
     SUM(UnitsInStock) AS TotalStock
 FROM Products
 
@@ -509,9 +509,9 @@ SELECT
     COUNT(*),
     COUNT(BaseSalary),
     COUNT(UnitsInStock),
-    AVG(BaseSalary),
+    AVG(e.BaseSalary),
     AVG(UnitsInStock),
-    SUM(BaseSalary),
+    SUM(e.BaseSalary),
     SUM(UnitsInStock)
 FROM Products
 WHERE BaseSalary IS NOT NULL AND UnitsInStock IS NOT NULL;
@@ -679,7 +679,7 @@ SELECT
         WHEN ProductName LIKE '%Beer%' OR ProductName LIKE '%Wine%' THEN 'Alcoholic Beverage'
         WHEN ProductName LIKE '%Coffee%' OR ProductName LIKE '%Tea%' THEN 'Hot Beverage'
         ELSE 'Other Product'
-    END AS DepartmentName
+    END AS d.DepartmentName
 FROM Products
 WHERE ProductName LIKE '%Cheese%'
    OR ProductName LIKE '%Sauce%'
@@ -687,7 +687,7 @@ WHERE ProductName LIKE '%Cheese%'
    OR ProductName LIKE '%Wine%'
    OR ProductName LIKE '%Coffee%'
    OR ProductName LIKE '%Tea%'
-ORDER BY DepartmentName, ProductName;
+ORDER BY d.DepartmentName, ProductName;
 ```
 
 ## Exercise 6: Advanced Sorting and Filtering Combinations - Answers

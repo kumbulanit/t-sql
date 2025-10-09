@@ -240,7 +240,7 @@ CREATE TABLE Employees (
 -- Departments table
 CREATE TABLE Departments (
     DepartmentID INT PRIMARY KEY,
-    DepartmentName NVARCHAR(50),
+    d.DepartmentName NVARCHAR(50),
     Location NVARCHAR(50)
 );
 
@@ -254,7 +254,7 @@ INSERT INTO Employees VALUES
 (101, 'John', 'Smith', 1, NULL),
 (102, 'Jane', 'Doe', 1, 101),
 (103, 'Bob', 'Johnson', 2, NULL),
-(104, 'Alice', 'Brown', NULL, NULL); -- No department
+(104, 'Alice', 'Brown', NULL, NULL); -- No d.DepartmentName
 ```
 
 ### Basic Inner Join Example
@@ -282,7 +282,7 @@ SELECT
 FROM Employees e
 LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
--- Result: John, Jane, Bob, Alice (Alice shows NULL for department info)
+-- Result: John, Jane, Bob, Alice (Alice shows NULL for d.DepartmentName info)
 ```
 
 ## Intermediate Examples
@@ -306,12 +306,11 @@ ORDER BY d.DepartmentName, e.LastName;
 
 ### Join with Aggregation
 ```sql
--- Count employees by department
-SELECT 
-    d.DepartmentName,
+-- Count employees by d.DepartmentName
+SELECT d.DepartmentName,
     d.Location,
     COUNT(e.EmployeeID) AS EmployeeCount,
-    AVG(e.BaseSalary) AS AverageSalary
+    AVG(e.BaseSalary) AS AverageBaseSalary
 FROM Departments d
 LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID
 GROUP BY d.DepartmentID, d.DepartmentName, d.Location
@@ -344,7 +343,7 @@ WITH EmployeeSummary AS (
     SELECT 
         e.EmployeeID,
         e.FirstName + ' ' + e.LastName AS EmployeeName,
-        e.Title,
+        e.JobTitle,
         e.BaseSalary,
         e.HireDate,
         d.DepartmentName,
@@ -359,7 +358,7 @@ WITH EmployeeSummary AS (
     LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'Active'
     WHERE e.IsActive = 1
-    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.BaseSalary, 
+    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.BaseSalary, 
              e.HireDate, d.DepartmentName, d.Location, mgr.FirstName, mgr.LastName
 )
 SELECT 
@@ -384,7 +383,7 @@ SELECT
         WHEN AverageHourlyRate >= 75 THEN 'Standard Rate'
         ELSE 'Junior Rate'
     END AS RateCategory
-FROM EmployeeSummary
+FROM Employees eummary
 ORDER BY DepartmentIDName, BaseSalary DESC;
 ```
 
@@ -462,9 +461,9 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 SELECT 
     Employees.FirstName,
     Employees.LastName,
-    Departments.DepartmentName
+    Departments.d.DepartmentName
 FROM Employees
-INNER JOIN Departments ON Employees.DepartmentID = Departments.DepartmentID;
+INNER JOIN Departments d ON Employees.DepartmentID = Departments.DepartmentID;
 ```
 
 ### 2. Be Explicit About Join Types
@@ -501,7 +500,7 @@ LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID
 SELECT 
     e.FirstName,
     e.LastName,
-    ISNULL(d.DepartmentName, 'No Department') AS Department,
+    ISNULL(d.DepartmentName, 'No Department') AS DepartmentName,
     ISNULL(d.Location, 'Unknown') AS Location
 FROM Employees e
 LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID;
@@ -568,7 +567,7 @@ WHERE sc.Grade >= 'B';
 ### 1. Cartesian Products
 ```sql
 -- WRONG: Missing join condition
-SELECT * FROM Employees, Departments;
+SELECT * FROM Employees e, Departments;
 
 -- CORRECT: Always specify join relationship
 SELECT * FROM Employees e
@@ -584,7 +583,7 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 -- This excludes employees without departments
 
 -- CORRECT: Use LEFT JOIN to include all employees
-SELECT e.FirstName, ISNULL(d.DepartmentName, 'No Department') AS Department
+SELECT e.FirstName, ISNULL(d.DepartmentName, 'No Department') AS d.DepartmentName
 FROM Employees e
 LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 ```
@@ -592,7 +591,7 @@ LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 ### 3. Ambiguous Column References
 ```sql
 -- WRONG: Ambiguous column name
-SELECT EmployeeID, DepartmentName
+SELECT EmployeeID, d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 -- Error if both tables have EmployeeID column

@@ -114,7 +114,7 @@ CREATE PROCEDURE sp_SearchEmployeesDynamic
     @FirstName VARCHAR(50) = NULL,
     @LastName VARCHAR(50) = NULL,
     @DepartmentID INT = NULL,
-    @DepartmentName VARCHAR(100) = NULL,
+    @d.DepartmentName VARCHAR(100) = NULL,
     @JobTitleSearch VARCHAR(100) = NULL,
     @MinSalary DECIMAL(10,2) = NULL,
     @MaxSalary DECIMAL(10,2) = NULL,
@@ -135,7 +135,7 @@ BEGIN
     IF @PageSize <= 0 OR @PageSize > 1000 SET @PageSize = 50;
     
     -- Validate sort column (whitelist approach for security)
-    IF @SortBy NOT IN ('FirstName', 'LastName', 'JobTitle', 'BaseSalary', 'HireDate', 'DepartmentName')
+    IF @SortBy NOT IN ('FirstName', 'LastName', 'JobTitle', 'BaseSalary', 'HireDate', 'd.DepartmentName')
         SET @SortBy = 'LastName';
     
     -- Validate sort order
@@ -180,7 +180,7 @@ BEGIN
             WHEN 'JobTitle' THEN 'e.JobTitle'
             WHEN 'BaseSalary' THEN 'e.BaseSalary'
             WHEN 'HireDate' THEN 'e.HireDate'
-            WHEN 'DepartmentName' THEN 'd.DepartmentName'
+            WHEN 'd.DepartmentName' THEN 'd.DepartmentName'
             ELSE 'e.LastName'
         END + ' ' + @SortOrder + ') AS RowNum
     FROM Employees e
@@ -209,7 +209,7 @@ BEGIN
         SET @Params = @Params + '@DepartmentIDParam INT, ';
     END
     
-    IF @DepartmentName IS NOT NULL
+    IF @d.DepartmentName IS NOT NULL
     BEGIN
         SET @WhereClause = @WhereClause + ' AND d.DepartmentName LIKE @DepartmentNameParam';
         SET @Params = @Params + '@DepartmentNameParam VARCHAR(102), ';
@@ -288,7 +288,7 @@ BEGIN
         DECLARE @TotalRecords INT;
         
         -- Build count query (reuse WHERE clause)
-        SET @TotalCountSQL = 'SELECT @TotalOut = COUNT(*) FROM Employees e 
+        SET @TotalCountSQL = 'SELECT @TotalOut = COUNT(*) FROM Employees e
                               INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID' + @WhereClause;
         SET @TotalCountParams = REPLACE(@Params, '@PageNumberParam INT, @PageSizeParam INT', '') + '@TotalOut INT OUTPUT';
         
@@ -345,7 +345,7 @@ EXEC sp_SearchEmployeesDynamic
 
 ### 2. Dynamic Reporting with Variable Columns
 
-#### TechCorp Example: Configurable Department Report Generator
+#### TechCorp Example: Configurable d.DepartmentName Report Generator
 
 ```sql
 -- Create dynamic reporting procedure with configurable columns
@@ -401,11 +401,11 @@ BEGIN
         SUM(CASE WHEN e.IsActive = 0 THEN 1 ELSE 0 END) AS InactiveEmployees';
     END
     
-    -- Add salary statistics if requested
+    -- Add BaseSalary statistics if requested
     IF @IncludeSalaryStats = 1
     BEGIN
         SET @SelectClause = @SelectClause + ',
-        FORMAT(AVG(CASE WHEN e.IsActive = 1 THEN e.BaseSalary END), ''C'') AS AverageSalary,
+        FORMAT(AVG(CASE WHEN e.IsActive = 1 THEN e.BaseSalary END), ''C'') AS AverageBaseSalary,
         FORMAT(SUM(CASE WHEN e.IsActive = 1 THEN e.BaseSalary ELSE 0 END), ''C'') AS TotalPayroll,
         FORMAT(MIN(CASE WHEN e.IsActive = 1 THEN e.BaseSalary END), ''C'') AS MinSalary,
         FORMAT(MAX(CASE WHEN e.IsActive = 1 THEN e.BaseSalary END), ''C'') AS MaxSalary';
@@ -461,7 +461,7 @@ BEGIN
     -- Build WHERE clause
     SET @WhereClause = ' WHERE d.IsActive = 1';
     
-    -- Add department filter if specified
+    -- Add d.DepartmentName filter if specified
     IF @DepartmentIDs IS NOT NULL AND LTRIM(RTRIM(@DepartmentIDs)) != ''
     BEGIN
         SET @WhereClause = @WhereClause + ' AND d.DepartmentID IN (SELECT value FROM STRING_SPLIT(@DeptIDs, '',''))';
@@ -732,7 +732,7 @@ BEGIN
         SET @Params = @Params + ', @EmployeeIDsParam VARCHAR(1000)';
     END
     
-    -- Add department filter
+    -- Add d.DepartmentName filter
     IF @DepartmentIDs IS NOT NULL AND LTRIM(RTRIM(@DepartmentIDs)) != ''
     BEGIN
         SET @WhereClause = @WhereClause + ' AND e.DepartmentID IN (SELECT value FROM STRING_SPLIT(@DepartmentIDsParam, '',''))';

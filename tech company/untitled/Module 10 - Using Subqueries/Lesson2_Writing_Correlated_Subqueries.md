@@ -5,7 +5,7 @@ Correlated subqueries are dependent queries that reference columns from the oute
 
 ## 🏢 TechCorp Business Context
 **Correlated Subqueries in Business Analysis:**
-- **Employee Comparisons**: Comparing each employee to their department average
+- **Employee Comparisons**: Comparing each employee to their d.DepartmentName average
 - **Hierarchical Analysis**: Finding managers and their direct reports
 - **Time-Series Analysis**: Comparing current performance to historical data
 - **Competitive Analysis**: Comparing departments or projects against peers
@@ -41,7 +41,7 @@ A correlated subquery is a nested query that:
 │                                                                             │
 │  Row 1: Employee John (DepartmentID = 2001)                               │
 │  ┌─────────────────────────────────────┐                                   │
-│  │ SELECT AVG(BaseSalary)              │                                   │
+│  │ SELECT AVG(e.BaseSalary)              │                                   │
 │  │ FROM Employees                      │  →  Returns: 75000 (Eng Avg)     │
 │  │ WHERE DepartmentID = 2001          │      ↑                           │
 │  │   AND IsActive = 1                 │      │ References outer row       │
@@ -49,13 +49,13 @@ A correlated subquery is a nested query that:
 │                                              │                           │
 │  Row 2: Employee Jane (DepartmentID = 2002)                               │
 │  ┌─────────────────────────────────────┐      │                           │
-│  │ SELECT AVG(BaseSalary)              │      │                           │
+│  │ SELECT AVG(e.BaseSalary)              │      │                           │
 │  │ FROM Employees                      │  →  Returns: 68000 (Sales Avg)   │
 │  │ WHERE DepartmentID = 2002          │      │                           │
 │  │   AND IsActive = 1                 │      │ Different result per row   │
 │  └─────────────────────────────────────┘      │                           │
 │                                              │                           │
-│  Result: Each employee compared to their own department average            │
+│  Result: Each employee compared to their own d.DepartmentName average            │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -64,9 +64,9 @@ A correlated subquery is a nested query that:
 
 ### 1. Departmental Comparisons
 
-#### TechCorp Example: Employees Above Department Average
+#### TechCorp Example: Employees Above d.DepartmentName Average
 ```sql
--- Find employees earning above their department average
+-- Find employees earning above their d.DepartmentName average
 SELECT 
     e.FirstName,
     e.LastName,
@@ -92,11 +92,10 @@ WHERE e.BaseSalary > (
 ORDER BY d.DepartmentName, e.BaseSalary DESC;
 ```
 
-#### TechCorp Example: Department Performance Ranking
+#### TechCorp Example: d.DepartmentName Performance Ranking
 ```sql
--- Rank each department by its position relative to other departments
-SELECT 
-    d.DepartmentName,
+-- Rank each d.DepartmentName by its position relative to other departments
+SELECT d.DepartmentName,
     d.Budget,
     (SELECT COUNT(*)
      FROM Departments d2
@@ -114,13 +113,14 @@ ORDER BY d.Budget DESC;
 
 #### TechCorp Example: Managers and Direct Reports
 ```sql
--- Find managers with their direct report count and average team salary
+-- Find managers with their direct report count and average team BaseSalary
 SELECT 
     mgr.FirstName + ' ' + mgr.LastName AS ManagerName,
     mgr.JobTitle,
     d.DepartmentName,
     (SELECT COUNT(*)
      FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
      WHERE e.ManagerID = mgr.EmployeeID
        AND e.IsActive = 1) AS DirectReports,
     (SELECT AVG(e.BaseSalary)
@@ -144,7 +144,7 @@ ORDER BY DirectReports DESC;
 
 #### TechCorp Example: Employee Tenure Comparison
 ```sql
--- Compare each employee's tenure to others in their department
+-- Compare each employee's tenure to others in their d.DepartmentName
 SELECT 
     e.FirstName,
     e.LastName,
@@ -195,7 +195,7 @@ ORDER BY p.StartDate;
 
 #### TechCorp Example: Employee Performance Analysis
 ```sql
--- Identify high performers: above dept average salary + above avg project hours
+-- Identify high performers: above dept average BaseSalary + above avg project hours
 SELECT 
     e.FirstName,
     e.LastName,
@@ -236,7 +236,7 @@ ORDER BY d.DepartmentName, e.BaseSalary DESC;
 
 #### TechCorp Example: Sales Performance Rankings
 ```sql
--- Rank employees by their order performance within department
+-- Rank employees by their order performance within d.DepartmentName
 SELECT 
     e.FirstName,
     e.LastName,
@@ -324,7 +324,7 @@ FROM (
         FirstName, 
         LastName, 
         BaseSalary,
-        AVG(BaseSalary) OVER (PARTITION BY DepartmentID) AS DeptAvgSalary
+        AVG(e.BaseSalary) OVER (PARTITION BY DepartmentID) AS DeptAvgSalary
     FROM Employees
     WHERE IsActive = 1
 ) ranked
@@ -334,15 +334,14 @@ WHERE BaseSalary > DeptAvgSalary;
 #### JOIN Alternative
 ```sql
 -- Correlated subquery for counting
-SELECT 
-    d.DepartmentName,
-    (SELECT COUNT(*) FROM Employees e WHERE e.DepartmentID = d.DepartmentID AND e.IsActive = 1) AS EmpCount
+SELECT d.DepartmentName,
+    (SELECT COUNT(*) FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE e.DepartmentID = d.DepartmentID AND e.IsActive = 1) AS EmpCount
 FROM Departments d
 WHERE d.IsActive = 1;
 
 -- JOIN alternative (usually faster)
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     COUNT(e.EmployeeID) AS EmpCount
 FROM Departments d
 LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID AND e.IsActive = 1
@@ -361,7 +360,7 @@ SELECT
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     e.BaseSalary,
     d.DepartmentName,
-    -- Salary percentile within department
+    -- BaseSalary percentile within d.DepartmentName
     (SELECT COUNT(*)
      FROM Employees e2
      WHERE e2.DepartmentID = e.DepartmentID
@@ -392,15 +391,15 @@ ORDER BY d.DepartmentName, SalaryPercentileInDept DESC;
 
 ### 2. Resource Allocation Analysis
 
-#### TechCorp Example: Department Resource Utilization
+#### TechCorp Example: d.DepartmentName Resource Utilization
 ```sql
--- Analyze department efficiency relative to peers
-SELECT 
-    d.DepartmentName,
+-- Analyze d.DepartmentName efficiency relative to peers
+SELECT d.DepartmentName,
     d.Budget,
     -- Employee efficiency: budget per employee vs company average
     d.Budget / NULLIF((SELECT COUNT(*) 
-                       FROM Employees e 
+                       FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
                        WHERE e.DepartmentID = d.DepartmentID 
                          AND e.IsActive = 1), 0) AS BudgetPerEmployee,
     (SELECT AVG(dept_budget_per_emp)
@@ -525,14 +524,15 @@ LEFT JOIN (
 SELECT e.FirstName, e.LastName
 FROM Employees e
 WHERE e.BaseSalary > (
-    SELECT AVG(BaseSalary)
-    FROM Employees
-    -- Missing correlation - compares to company average, not department
+    SELECT AVG(e.BaseSalary)
+    FROM Employees e
+    -- Missing correlation - compares to company average, not d.DepartmentName
 );
 
 -- ✅ SOLUTION: Ensure proper correlation
 SELECT e.FirstName, e.LastName
 FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.BaseSalary > (
     SELECT AVG(e2.BaseSalary)
     FROM Employees e2

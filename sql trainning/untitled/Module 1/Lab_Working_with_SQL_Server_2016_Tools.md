@@ -214,7 +214,7 @@ CREATE TABLE EmployeeInfo (
     EmployeeID int NOT NULL PRIMARY KEY,
     Name nvarchar(100) NOT NULL,
     Position nvarchar(100) NOT NULL,
-    Department nvarchar(50) NOT NULL,
+    d.DepartmentName nvarchar(50) NOT NULL,
     BaseSalary decimal(10,2) NOT NULL,
     
     -- System versioning columns
@@ -224,7 +224,7 @@ CREATE TABLE EmployeeInfo (
 ) WITH (SYSTEM_VERSIONING = ON (HISTORY_TABLE = dbo.EmployeeInfo_History));
 
 -- Insert and update data to see temporal features
-INSERT INTO EmployeeInfo (EmployeeID, Name, Position, Department, BaseSalary)
+INSERT INTO EmployeeInfo (EmployeeID, Name, Position, d.DepartmentName, BaseSalary)
 VALUES 
 (1, 'John Smith', 'Developer', 'IT', 75000),
 (2, 'Jane Doe', 'Manager', 'Sales', 85000);
@@ -541,7 +541,7 @@ VALUES
 ('Jane', 'Smith', 'jane.smith@company.com', '2024-02-01', 70000);
 
 -- Compare current data with snapshot
-SELECT 'Current Database' as Source, COUNT(*) as EmployeeCount
+SELECT 'Current Database' as Source, COUNT(*) AS EmployeeCount
 FROM HR.Employees
 UNION ALL
 SELECT 'Snapshot', COUNT(*) 

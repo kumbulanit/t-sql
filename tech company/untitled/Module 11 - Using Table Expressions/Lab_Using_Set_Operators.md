@@ -35,7 +35,7 @@ EmployeeArchive: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, Term
 
 ### 1.1 Data Consolidation Challenge
 
-**Business Problem:** The HR department needs a comprehensive contact directory that includes both active employees and key customer contacts for emergency communication purposes.
+**Business Problem:** The HR d.DepartmentName needs a comprehensive contact directory that includes both active employees and key customer contacts for emergency communication purposes.
 
 **Your Task:** Create a unified contact list that combines employee and customer contact information with proper categorization.
 
@@ -63,14 +63,14 @@ EmployeeArchive: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, Term
 
 **Business Problem:** Management wants to analyze total compensation costs including both current employees and recently terminated employees for budget planning.
 
-**Your Task:** Create a comprehensive salary analysis that includes current employees and employees terminated within the last 12 months.
+**Your Task:** Create a comprehensive BaseSalary analysis that includes current employees and employees terminated within the last 12 months.
 
 **Expected Output Columns:**
 - Employee Status (Active/Terminated)
 - Full Name
-- Department Name
+- d.DepartmentName Name
 - Job Title
-- Last Known Salary
+- Last Known BaseSalary
 - Employment Duration (in years)
 - Status Date (Hire Date for active, Termination Date for terminated)
 
@@ -88,23 +88,23 @@ EmployeeArchive: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, Term
 
 ### 2.1 Data Quality Analysis Challenge
 
-**Business Problem:** The IT department suspects there are employees in the system who have never been assigned to any projects, which may indicate data quality issues or underutilized resources.
+**Business Problem:** The IT d.DepartmentName suspects there are employees in the system who have never been assigned to any projects, which may indicate data quality issues or underutilized resources.
 
 **Your Task:** Identify employees who exist in the employee database but have no project assignments.
 
 **Expected Output Columns:**
 - Employee Name
 - Job Title
-- Department Name
+- d.DepartmentName Name
 - Hire Date
 - Years with Company
-- Current Salary
+- Current BaseSalary
 
 **Requirements:**
 - Include only active employees
 - Show employees with zero project assignments
 - Calculate years with company based on hire date
-- Order by department, then by hire date
+- ORDER BY d.DepartmentName, then by hire date
 
 ```sql
 -- Write your solution here:
@@ -116,12 +116,12 @@ EmployeeArchive: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, Term
 
 **Business Problem:** TechCorp has a policy that all employees earning over $75,000 should have management responsibilities (direct reports). Find employees who violate this policy.
 
-**Your Task:** Identify high-earning employees who should be managers based on salary but currently have no direct reports.
+**Your Task:** Identify high-earning employees who should be managers based on BaseSalary but currently have no direct reports.
 
 **Expected Output Columns:**
 - Employee Name
-- Current Salary
-- Department Name
+- Current BaseSalary
+- d.DepartmentName Name
 - Job Title
 - Years with Company
 
@@ -145,7 +145,7 @@ EmployeeArchive: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, Term
 
 **Expected Output Columns:**
 - Employee Name
-- Department Name
+- d.DepartmentName Name
 - Job Title
 - Projects Managed
 - Orders Processed
@@ -192,28 +192,28 @@ EmployeeArchive: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, Term
 
 ### 4.1 Top Performers Analysis Challenge
 
-**Business Problem:** Senior management wants a department-by-department analysis showing the top 3 employees in each department based on a comprehensive performance score.
+**Business Problem:** Senior management wants a department-by-department analysis showing the top 3 employees in each d.DepartmentName based on a comprehensive performance score.
 
-**Your Task:** Create a performance dashboard that shows the top 3 performers in each department using a weighted scoring system.
+**Your Task:** Create a performance dashboard that shows the top 3 performers in each d.DepartmentName using a weighted scoring system.
 
 **Performance Scoring Criteria:**
-- Salary percentile within department (30% weight)
+- BaseSalary percentile within d.DepartmentName (30% weight)
 - Number of projects managed (25% weight)
 - Total orders processed (25% weight)
 - Years of experience (20% weight)
 
 **Expected Output Columns:**
-- Department Name
+- d.DepartmentName Name
 - Employee Name
 - Job Title
 - Performance Score
-- Performance Rank within Department
-- Salary
+- Performance Rank within d.DepartmentName
+- BaseSalary
 - Projects Managed
 - Orders Processed
 
 **Requirements:**
-- Use CROSS APPLY for top 3 per department
+- Use CROSS APPLY for top 3 per d.DepartmentName
 - Calculate composite performance scores
 - Handle employees with no projects or orders appropriately
 
@@ -272,10 +272,10 @@ EmployeeArchive: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, Term
 **Your Task:** Build a unified business metrics report that combines data from multiple sources using various set operators.
 
 **Required Metrics Categories:**
-- Employee metrics (count, average salary, top performers)
+- Employee metrics (count, average BaseSalary, top performers)
 - Project metrics (active projects, budget utilization, completion rates)
 - Sales metrics (order volume, revenue trends, customer metrics)
-- Department metrics (performance comparisons, resource allocation)
+- d.DepartmentName metrics (performance comparisons, resource allocation)
 
 **Expected Output Structure:**
 - Metric Category
@@ -375,7 +375,7 @@ ORDER BY ContactType, FullName;
 ### Solution 1.2: Historical Data Integration Challenge
 
 ```sql
--- Management: Comprehensive Salary Analysis
+-- Management: Comprehensive BaseSalary Analysis
 SELECT 
     'Active' AS EmployeeStatus,
     e.FirstName + ' ' + e.LastName AS FullName,
@@ -445,7 +445,7 @@ WHERE e.IsActive = 1
   AND d.IsActive = 1
   AND ep.IsActive = 1
 
-ORDER BY DepartmentName, HireDate;
+ORDER BY d.DepartmentName, HireDate;
 ```
 
 **Key Learning Points:**
@@ -608,14 +608,13 @@ ORDER BY
 ### Solution 4.1: Top Performers Analysis Challenge
 
 ```sql
--- Senior Management: Department Performance Dashboard
-SELECT 
-    d.DepartmentName,
+-- Senior Management: d.DepartmentName Performance Dashboard
+SELECT d.DepartmentName,
     top_performers.EmployeeName,
     top_performers.JobTitle,
     CAST(top_performers.PerformanceScore AS DECIMAL(8,2)) AS PerformanceScore,
     top_performers.PerformanceRank,
-    FORMAT(top_performers.BaseSalary, 'C') AS Salary,
+    FORMAT(top_performers.BaseSalary, 'C') AS BaseSalary,
     top_performers.ProjectsManaged,
     top_performers.OrdersProcessed
 FROM Departments d
@@ -626,7 +625,7 @@ CROSS APPLY (
         e.BaseSalary,
         -- Calculate comprehensive performance score
         (
-            -- Salary percentile (30% weight)
+            -- BaseSalary percentile (30% weight)
             (CAST((SELECT COUNT(*) FROM Employees e2 
                    WHERE e2.DepartmentID = e.DepartmentID 
                      AND e2.BaseSalary <= e.BaseSalary 
@@ -684,6 +683,7 @@ CROSS APPLY (
                   AND o.IsActive = 1), 0) AS OrdersProcessed
     
     FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.DepartmentID = d.DepartmentID
       AND e.IsActive = 1
     ORDER BY PerformanceScore DESC
@@ -696,7 +696,7 @@ ORDER BY d.DepartmentName, top_performers.PerformanceRank;
 - CROSS APPLY enables per-department Top-N analysis
 - Complex scoring algorithms using weighted metrics
 - Correlated subqueries for dynamic calculations
-- ROW_NUMBER() for ranking within each department
+- ROW_NUMBER() for ranking within each d.DepartmentName
 
 ### Solution 4.2: Customer Relationship Analysis Challenge
 

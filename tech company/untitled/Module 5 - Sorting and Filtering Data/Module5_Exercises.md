@@ -1,41 +1,38 @@
-# Module 5 Exercises: Sorting and Filtering Data - TechCorp Business Intelligence
-
-## 🏢 TechCorp Business Context
-**TechCorp Solutions** needs sophisticated data sorting and filtering capabilities to support their consulting operations. As a technology consulting company, they require precise data analysis for employee performance tracking, project management, client reporting, and financial analysis.
+# Module 5 Exercises: Sorting and Filtering Data
 
 ## Exercise Set 1: Sorting Data (Lesson 1)
 
-### Exercise 1.1: Basic Sorting Operations - TechCorp Reports
+### Exercise 1.1: Basic Sorting Operations
 
-**Business Scenario**: TechCorp's management team needs various sorted reports for operational decision-making and client presentations.
+**Scenario**: You need to create various sorted reports from the Northwind database.
 
-**Business Tasks**:
+**Tasks**:
 
-1. **Client Directory Report**: Write a query to list all TechCorp client companies sorted by company name in ascending order for the annual client directory.
+1. Write a query to list all customers sorted by company name in ascending order.
 
-2. **High-Value Project Analysis**: Create a query showing all TechCorp projects sorted by budget in descending order to identify the most valuable engagements.
+2. Create a query showing all products sorted by unit price in descending order.
 
-3. **Employee Contact List**: Write a query to display all TechCorp employees sorted first by last name, then by first name for the company directory.
+3. Write a query to display all employees sorted first by last name, then by first name.
 
-4. **Recent Project Timeline**: Create a query showing TechCorp projects sorted by start date (newest first), and for projects starting on the same date, sort by project priority level.
+4. Create a query showing orders sorted by order date (newest first), and for orders on the same date, sort by customer ID.
 
-**Business Analysis Questions**:
+**Questions**:
 
-1. If TechCorp's project reports don't specify ASC or DESC in ORDER BY, how will the data appear?
-2. Can TechCorp sort employee reports by BaseSalary bands without showing actual BaseSalary amounts in the output?
-3. What's the performance impact when TechCorp sorts large datasets during month-end reporting processes?
+1. What happens if you don't specify ASC or DESC in an ORDER BY clause?
+2. Can you sort by columns that are not included in the SELECT list?
+3. What is the performance impact of sorting large result sets?
 
-### Exercise 1.2: Advanced Sorting Techniques - TechCorp Strategic Reports
+### Exercise 1.2: Advanced Sorting Techniques
 
-**Business Tasks**:
+**Tasks**:
 
-1. **Skills Inventory Report**: Write a query to sort TechCorp employees by skill category, but show only employee name and proficiency level in the results for skills assessment.
+1. Write a query to sort products by category name, but show only product name and unit price in the results.
 
-2. **Employee Tenure Analysis**: Create a query that sorts TechCorp employees by hire date, but handles NULL values (temporary contractors) by showing them last.
+2. Create a query that sorts employees by hire date, but handles NULL values by showing them last.
 
-3. **Project IsActive Priority Report**: Write a query using a CASE expression in ORDER BY to sort TechCorp projects as follows: First show overdue projects, then active projects by budget (highest first), then completed projects.
+3. Write a query using a CASE expression in ORDER BY to sort products as follows: First show discontinued products, then active products by price (highest first).
 
-4. **Geographic Client Analysis**: Create a query that sorts TechCorp clients by country/region, but with 'United States' always appearing first (primary market), followed by other countries alphabetically.
+4. Create a query that sorts customers by country, but with 'USA' always appearing first, followed by other countries alphabetically.
 
 **Questions**:
 

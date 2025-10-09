@@ -45,7 +45,7 @@ The HAVING clause transforms your GROUP BY analysis from comprehensive reporting
 
 **Business Impact**: Strategic filtering = focused insights = targeted actions = optimized results
 
-### Exercise 1.1: High-Performance Department Identification (🔴 ADVANCED)
+### Exercise 1.1: High-Performance d.DepartmentName Identification (🔴 ADVANCED)
 
 **Scenario**: Identify TechCorp departments that exceed performance thresholds for recognition, investment, and best practice sharing.
 
@@ -54,11 +54,10 @@ The HAVING clause transforms your GROUP BY analysis from comprehensive reporting
 USE TechCorpDB;
 GO
 
--- Lab 9.3.1: High-Performance Department Analysis
+-- Lab 9.3.1: High-Performance d.DepartmentName Analysis
 -- Business scenario: Identify departments exceeding strategic performance thresholds
 
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     
     -- EMPLOYEE METRICS
     COUNT(DISTINCT e.EmployeeID) AS TotalEmployees,

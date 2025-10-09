@@ -38,7 +38,7 @@ TechCorp Solutions helps businesses transform their operations through technolog
 - **Senior Level** - Experienced professionals with 5+ years
 - **Lead Level** - Team leaders who manage projects and people
 - **Principal Level** - Senior experts who guide technical decisions
-- **Director Level** - Department heads who set strategy
+- **Director Level** - d.DepartmentName heads who set strategy
 - **VP Level** - Executive leadership
 
 ## 💼 Types of Projects We Handle

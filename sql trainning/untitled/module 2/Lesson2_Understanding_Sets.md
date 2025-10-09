@@ -185,8 +185,8 @@ ActiveHighValueCustomers AS (
     SELECT CustomerID FROM RecentCustomers
 )
 SELECT 
-    c.FirstName,
-    c.LastName,
+    c.ContactFirstName,
+    c.ContactLastName,
     hvc.TotalSpent
 FROM Customers c
 INNER JOIN HighValueCustomers hvc ON c.CustomerID = hvc.CustomerID
@@ -200,7 +200,7 @@ WITH EmployeeSkills AS (
     SELECT 
         EmployeeID,
         STRING_AGG(SkillName, ',') WITHIN GROUP (ORDER BY SkillName) AS SkillSet
-    FROM EmployeeSkills es
+    FROM Employees ekills es
     INNER JOIN Skills s ON es.SkillID = s.SkillID
     GROUP BY EmployeeID
 )
@@ -212,7 +212,7 @@ FROM Employees e
 INNER JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
 WHERE es.SkillSet NOT IN (
     SELECT SkillSet 
-    FROM EmployeeSkills 
+    FROM Employees ekills 
     WHERE EmployeeID != e.EmployeeID
 );
 ```
@@ -241,7 +241,7 @@ ProductsOrderedByAll AS (
 )
 SELECT 
     p.ProductName,
-    p.Price
+    p.UnitPrice
 FROM Products p
 WHERE p.ProductID IN (SELECT ProductID FROM ProductsOrderedByAll);
 ```
@@ -254,7 +254,7 @@ WHERE p.ProductID IN (SELECT ProductID FROM ProductsOrderedByAll);
 DECLARE @EmployeeID INT;
 DECLARE @TotalSales DECIMAL(10,2);
 DECLARE employee_cursor CURSOR FOR 
-    SELECT EmployeeID FROM Employees;
+    SELECT EmployeeID FROM Employees e;
 
 OPEN employee_cursor;
 FETCH NEXT FROM employee_cursor INTO @EmployeeID;

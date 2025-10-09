@@ -45,7 +45,7 @@ SELECT
     
     -- Mask sensitive data
     LEFT(SSN, 3) + '-XX-' + RIGHT(SSN, 4) AS MaskedSSN
-FROM Employees;
+FROM Employees e;
 ```
 
 ---
@@ -59,7 +59,7 @@ SELECT
     FirstName,
     PATINDEX('%[0-9]%', FirstName) AS FirstDigitPosition,
     PATINDEX('%[^A-Za-z]%', FirstName) AS FirstNonLetterPosition
-FROM Employees;
+FROM Employees e;
 
 -- STRING_SPLIT (SQL Server 2016+)
 SELECT 
@@ -130,7 +130,7 @@ SELECT
         THEN 1 
         ELSE 0 
     END AS ExactAge
-FROM Employees;
+FROM Employees e;
 ```
 
 ---
@@ -208,7 +208,7 @@ SELECT
     -- Statistical functions
     SIGN(BaseSalary - 50000) AS SalaryComparison,
     ABS(BaseSalary - 65000) AS SalaryDeviation
-FROM Employees;
+FROM Employees e;
 ```
 
 ---
@@ -262,7 +262,7 @@ SELECT
     
     -- NULLIF to convert values to NULL
     NULLIF(Department, 'Unknown') AS CleanDepartment
-FROM Employees;
+FROM Employees e;
 ```
 
 ---
@@ -316,13 +316,13 @@ SELECT
     DENSE_RANK() OVER (ORDER BY YEAR(HireDate)) AS HireYearRank,
     
     -- Aggregate window functions
-    AVG(BaseSalary) OVER (PARTITION BY DepartmentIDID) AS DeptAvgSalary,
-    SUM(BaseSalary) OVER (ORDER BY EmployeeID ROWS UNBOUNDED PRECEDING) AS RunningTotal,
+    AVG(e.BaseSalary) OVER (PARTITION BY DepartmentIDID) AS DeptAvgSalary,
+    SUM(e.BaseSalary) OVER (ORDER BY EmployeeID ROWS UNBOUNDED PRECEDING) AS RunningTotal,
     
     -- Lead/Lag functions
     LAG(BaseSalary, 1, 0) OVER (ORDER BY HireDate) AS PreviousEmployeeSalary,
     LEAD(HireDate, 1) OVER (ORDER BY HireDate) AS NextEmployeeHireDate
-FROM Employees;
+FROM Employees e;
 ```
 
 ---
@@ -361,7 +361,7 @@ SELECT
         THEN 'Valid'
         ELSE 'Invalid'
     END AS PhoneValidation
-FROM Employees;
+FROM Employees e;
 ```
 
 ---
@@ -421,7 +421,7 @@ SELECT
         THEN 'Eligible for 5-year bonus'
         ELSE 'Not eligible'
     END AS BonusEligibility
-FROM Employees;
+FROM Employees e;
 ```
 
 ---
@@ -452,7 +452,7 @@ RETURN
 );
 
 -- Usage
-SELECT dbo.CalculateAge(BirthDate) AS Age FROM Employees;
+SELECT dbo.CalculateAge(BirthDate) AS Age FROM Employees e;
 SELECT * FROM dbo.GetEmployeesInDepartment(1);
 ```
 
@@ -475,10 +475,10 @@ SELECT * FROM dbo.GetEmployeesInDepartment(1);
 ```sql
 -- Performance comparison
 -- Slow: Scalar UDF in SELECT
-SELECT EmployeeID, dbo.ComplexCalculation(BaseSalary) FROM Employees;
+SELECT EmployeeID, dbo.ComplexCalculation(BaseSalary) FROM Employees e;
 
 -- Fast: Inline calculation or computed column
-SELECT EmployeeID, BaseSalary * 1.05 * POWER(1.03, 5) FROM Employees;
+SELECT EmployeeID, BaseSalary * 1.05 * POWER(1.03, 5) FROM Employees e;
 ```
 
 ---
@@ -574,7 +574,7 @@ FROM TestCases;
 SELECT 
     DepartmentID,
     COUNT(*) AS EmployeeCount,
-    AVG(BaseSalary) AS AvgSalary,
+    AVG(e.BaseSalary) AS AvgSalary,
     STDEV(BaseSalary) AS SalaryStdDev,
     VAR(BaseSalary) AS SalaryVariance,
     

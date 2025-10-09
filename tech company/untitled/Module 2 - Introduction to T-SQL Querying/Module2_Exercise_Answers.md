@@ -43,7 +43,7 @@ ORDER BY BaseSalary DESC;
 
 **Explanation**: Uses CASE statement with BETWEEN for range categorization, ordered by BaseSalary for easy verification.
 
-**Answer 1.1.3**: Longest Tenure by Department
+**Answer 1.1.3**: Longest Tenure by d.DepartmentName
 ```sql
 WITH EmployeeTenure AS (
     SELECT 
@@ -56,8 +56,7 @@ WITH EmployeeTenure AS (
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.IsActive = 1
 )
-SELECT 
-    DepartmentName,
+SELECT d.DepartmentName,
     EmployeeName,
     YearsOfService
 FROM EmployeeTenure
@@ -65,7 +64,7 @@ WHERE TenureRank = 1
 ORDER BY YearsOfService DESC;
 ```
 
-**Explanation**: Uses CTE with ROW_NUMBER() window function to rank employees by hire date within each department, then filters for the most senior employee.
+**Explanation**: Uses CTE with ROW_NUMBER() window function to rank employees by hire date within each d.DepartmentName, then filters for the most senior employee.
 
 **Answer 1.1.4**: Employees Hired in Same Month
 ```sql
@@ -94,7 +93,7 @@ WITH EmailBase AS (
         FirstName + ' ' + LastName AS EmployeeName,
         LOWER(FirstName + '.' + LastName) AS PotentialEmail,
         WorkEmail
-    FROM Employees
+    FROM Employees e
 )
 SELECT 
     eb1.EmployeeName AS Employee1,
@@ -116,7 +115,7 @@ ORDER BY eb1.PotentialEmail;
 
 **Answer 2.1.1**: Departments by Budget or BaseSalary Criteria
 ```sql
-SELECT DepartmentName, 'High Budget' AS Reason
+SELECT d.DepartmentName, 'High Budget' AS Reason
 FROM Departments
 WHERE Budget > 300000
 
@@ -127,6 +126,7 @@ FROM Departments d
 WHERE d.DepartmentID IN (
     SELECT e.DepartmentID
     FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.IsActive = 1
     GROUP BY e.DepartmentID
     HAVING AVG(e.BaseSalary) > 70000
@@ -155,7 +155,7 @@ INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE e.DepartmentID = 4 AND p.IsActive = 'Completed';
 ```
 
-**Explanation**: INTERSECT finds employees whose project assignments align with department expectations.
+**Explanation**: INTERSECT finds employees whose project assignments align with d.DepartmentName expectations.
 
 **Answer 2.1.3**: Well-Funded But Unassigned Employees
 ```sql
@@ -242,7 +242,7 @@ EmployeeActualSkills AS (
     FROM Employees e WHERE e.DepartmentID = 1
     UNION
     SELECT e.EmployeeID, 'Web Development'
-    FROM Employees e WHERE e.Title LIKE '%Developer%'
+    FROM Employees e WHERE e.JobTitle LIKE '%Developer%'
 )
 -- Find employees on projects lacking required skills
 SELECT DISTINCT e.FirstName + ' ' + e.LastName AS Employee, 
@@ -271,13 +271,13 @@ SELECT
     e.BaseSalary,
     d.DepartmentName,
     e.MiddleName,
-    e.Title
+    e.JobTitle
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND (e.HireDate > '2020-12-31' OR e.BaseSalary > 80000)
   AND d.Budget > 200000
-  AND (e.MiddleName IS NULL OR e.Title LIKE '%Director%')
+  AND (e.MiddleName IS NULL OR e.JobTitle LIKE '%Director%')
 ORDER BY e.BaseSalary DESC;
 ```
 
@@ -288,7 +288,7 @@ ORDER BY e.BaseSalary DESC;
 SELECT DISTINCT d.DepartmentName
 FROM Departments d
 WHERE EXISTS (
-    -- At least one employee earns more than department average
+    -- At least one employee earns more than d.DepartmentName average
     SELECT 1
     FROM Employees e1
     WHERE e1.DepartmentID = d.DepartmentID
@@ -299,7 +299,7 @@ WHERE EXISTS (
       )
 )
 AND EXISTS (
-    -- At least one project assigned to department employees
+    -- At least one project assigned to d.DepartmentName employees
     SELECT 1
     FROM Employees e
     INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
@@ -309,6 +309,7 @@ AND d.Budget > (
     -- Budget justified by employee cost
     SELECT SUM(e.BaseSalary) * 1.5  -- 50% overhead assumption
     FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.DepartmentID = d.DepartmentID
 );
 ```
@@ -373,8 +374,7 @@ WHERE d.Budget > 300000
 -- 3. Logical order: FROM -> JOIN -> WHERE -> GROUP BY -> HAVING -> SELECT -> ORDER BY
 
 -- CORRECTED VERSION:
-SELECT 
-    d.DepartmentName, 
+SELECT d.DepartmentName, 
     AVG(e.BaseSalary) as AvgSal,
     COUNT(*) as TeamSize
 FROM Departments d
@@ -445,8 +445,7 @@ ORDER BY ProjectCount DESC;
 
 **Answer 3.1.3**: WHERE vs HAVING Demonstration
 ```sql
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount,
     AVG(e.BaseSalary) AS AvgSalary
 FROM Employees e
@@ -464,7 +463,7 @@ HAVING AVG(e.BaseSalary) > 65000;    -- HAVING: filters groups after aggregation
 
 -- HAVING filters are applied to grouped results AFTER aggregation
 -- - AVG(e.BaseSalary) > 65000: filters departments based on calculated average
--- This filter can only work after the GROUP BY creates department groups
+-- This filter can only work after the GROUP BY creates d.DepartmentName groups
 ```
 
 **Explanation**:
@@ -487,7 +486,7 @@ WITH DepartmentMetrics AS (
         d.Budget,
         COUNT(e.EmployeeID) AS EmployeeCount,
         AVG(e.BaseSalary) AS AvgSalary,
-        SUM(e.BaseSalary) AS TotalSalaryCost,
+        SUM(e.BaseSalary) AS TotalBaseSalaryCost,
         COUNT(DISTINCT ep.ProjectID) AS ProjectCount
     FROM Departments d
     LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID AND e.IsActive = 1
@@ -528,8 +527,7 @@ DepartmentRanking AS (
     FROM DepartmentMetrics dm
     LEFT JOIN ResourceUtilization ru ON dm.DepartmentID = ru.DepartmentID
 )
-SELECT 
-    DepartmentName,
+SELECT d.DepartmentName,
     EmployeeCount,
     FORMAT(AvgSalary, 'C0') AS AvgSalary,
     ProjectCount,
@@ -542,7 +540,7 @@ FROM DepartmentRanking
 ORDER BY ProductivityRank;
 ```
 
-**Explanation**: Multi-CTE approach calculating department metrics, resource utilization, and providing management insights with ranking and attention flags.
+**Explanation**: Multi-CTE approach calculating d.DepartmentName metrics, resource utilization, and providing management insights with ranking and attention flags.
 
 **Answer 4.1.2**: Employee Career Path Analysis
 ```sql
@@ -550,7 +548,7 @@ WITH EmployeeMetrics AS (
     SELECT 
         e.EmployeeID,
         e.FirstName + ' ' + e.LastName AS EmployeeName,
-        e.Title,
+        e.JobTitle,
         e.BaseSalary,
         e.HireDate,
         d.DepartmentName,
@@ -561,13 +559,12 @@ WITH EmployeeMetrics AS (
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     WHERE e.IsActive = 1
-    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.BaseSalary, 
+    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.BaseSalary, 
              e.HireDate, d.DepartmentName
 ),
 DepartmentBenchmarks AS (
-    SELECT 
-        DepartmentName,
-        AVG(BaseSalary) AS DeptAvgSalary,
+    SELECT d.DepartmentName,
+        AVG(e.BaseSalary) AS DeptAvgSalary,
         AVG(TenureMonths) AS DeptAvgTenure,
         PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY BaseSalary) 
             OVER (PARTITION BY DepartmentIDName) AS Salary75thPercentile
@@ -600,7 +597,7 @@ CareerAnalysis AS (
             ELSE 'Current Role Appropriate'
         END AS DevelopmentOpportunity
     FROM EmployeeMetrics em
-    INNER JOIN DepartmentBenchmarks db ON em.DepartmentName = db.DepartmentName
+    INNER JOIN DepartmentBenchmarks db ON em.DepartmentName = db.d.DepartmentName
 )
 SELECT 
     EmployeeName,
@@ -639,7 +636,7 @@ WITH EmployeeWorkload AS (
         e.FirstName + ' ' + e.LastName AS EmployeeName,
         e.DepartmentID,
         d.DepartmentName,
-        e.Title,
+        e.JobTitle,
         ISNULL(SUM(ep.HoursAllocated), 0) AS TotalAllocated,
         ISNULL(SUM(ep.HoursWorked), 0) AS TotalWorked,
         ISNULL(SUM(ep.HoursAllocated) - SUM(ep.HoursWorked), 0) AS VarianceHours,
@@ -649,7 +646,7 @@ WITH EmployeeWorkload AS (
     LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     WHERE e.IsActive = 1
     GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.DepartmentID, 
-             d.DepartmentName, e.Title
+             d.DepartmentName, e.JobTitle
 ),
 WorkloadCategories AS (
     SELECT *,
@@ -728,20 +725,19 @@ OptimizationOpportunities AS (
     WHERE pa.IsActive = 'In Progress' AND pa.ProjectCompletion < 75
 ),
 ImpactAnalysis AS (
-    SELECT 
-        wc.DepartmentName,
+    SELECT wc.d.DepartmentName,
         COUNT(CASE WHEN wc.WorkloadIsActive = 'Overallocated' THEN 1 END) AS OverallocatedCount,
         COUNT(CASE WHEN wc.WorkloadIsActive = 'Underutilized' THEN 1 END) AS UnderutilizedCount,
         COUNT(CASE WHEN wc.WorkloadIsActive = 'Unassigned' THEN 1 END) AS UnassignedCount,
         AVG(wc.UtilizationRate) AS DeptUtilizationRate,
         SUM(ABS(wc.VarianceHours)) AS TotalVarianceHours
     FROM WorkloadCategories wc
-    GROUP BY wc.DepartmentName
+    GROUP BY wc.d.DepartmentName
 )
 -- Final Results: Management Action Plan
 SELECT 
     'RESOURCE OPTIMIZATION SUMMARY' AS ReportSection,
-    '' AS Department,
+    '' AS DepartmentName,
     '' AS Employee_Project,
     '' AS IsActive_Priority,
     'Total Issues: ' + CAST(COUNT(*) AS VARCHAR) AS Recommendation

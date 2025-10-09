@@ -18,7 +18,7 @@ These exercises test your mastery of all join types and multi-table querying tec
 
 **Question 1.1.1**: Employee Project Performance Analysis
 Create a query that shows the performance of employees on their current projects. Include:
-- Employee name, title, and department
+- Employee name, title, and d.DepartmentName
 - Project name, status, and priority
 - Role on project and hours worked vs allocated
 - Efficiency percentage (hours worked / hours allocated * 100)
@@ -26,9 +26,9 @@ Create a query that shows the performance of employees on their current projects
 - Only include active employees on in-progress projects
 - Order by efficiency percentage descending
 
-**Question 1.1.2**: Department Resource Utilization
-Build a comprehensive department analysis showing:
-- Department name, budget, and location
+**Question 1.1.2**: d.DepartmentName Resource Utilization
+Build a comprehensive d.DepartmentName analysis showing:
+- d.DepartmentName name, budget, and location
 - Number of active employees
 - Total BaseSalary expense and percentage of budget used
 - Number of active projects and total project hours
@@ -59,7 +59,7 @@ Create a client-focused analysis showing:
 **Question 1.1.5**: High-Value Employee Identification
 Identify top-performing employees using multiple criteria:
 - Employee name, title, and years of service
-- Department and current manager
+- d.DepartmentName and current manager
 - Number of active projects and total hours committed
 - Average hourly rate across all projects
 - Total potential project earnings
@@ -76,21 +76,21 @@ Identify top-performing employees using multiple criteria:
 **Question 2.1.1**: Complete Employee Integration Assessment
 Create a comprehensive employee status report using LEFT JOINs:
 - All active employees (regardless of assignments)
-- Department assignment status (assigned/unassigned)
+- d.DepartmentName assignment status (assigned/unassigned)
 - Manager assignment status (has manager/no manager)
 - Project involvement (number of projects, 0 if none)
 - Skills registration status (has skills/no skills)
 - Integration score based on completeness of assignments
 - Flag employees requiring immediate attention
 
-**Question 2.1.2**: Department Efficiency and Capacity Analysis
-Build a complete department overview including empty departments:
+**Question 2.1.2**: d.DepartmentName Efficiency and Capacity Analysis
+Build a complete d.DepartmentName overview including empty departments:
 - All departments (active and inactive)
 - Current headcount (0 if no employees)
 - Budget vs actual BaseSalary costs
 - Project portfolio size and status
 - Average employee efficiency across projects
-- Skills coverage within department
+- Skills coverage within d.DepartmentName
 - Capacity recommendations (hiring/restructuring needs)
 
 **Question 2.1.3**: Project Staffing and Resource Gaps
@@ -130,7 +130,7 @@ Complete organizational hierarchy and management analysis:
 **Question 3.1.1**: Strategic Workforce Planning Dashboard
 Create an executive-level workforce analysis that integrates:
 - Employee demographics and performance metrics
-- Department efficiency and budget utilization
+- d.DepartmentName efficiency and budget utilization
 - Project portfolio health and resource allocation
 - Skills inventory and market alignment
 - Succession planning readiness indicators
@@ -179,7 +179,7 @@ Build a comprehensive organizational structure analysis:
 
 **Question 4.1.2**: Employee Peer Comparison and Benchmarking
 Create a sophisticated peer analysis system:
-- Compare employees within same department and level
+- Compare employees within same d.DepartmentName and level
 - BaseSalary equity analysis with experience adjustment
 - Skills portfolio comparison and gaps
 - Project performance benchmarking
@@ -232,7 +232,7 @@ Create a comprehensive career development planning system:
 **Requirements:**
 
 **1. Financial Performance Module (8 points)**
-- Department budget performance and forecasting
+- d.DepartmentName budget performance and forecasting
 - Employee cost analysis and ROI calculations
 - Project profitability and portfolio optimization
 - Client value analysis and retention strategies

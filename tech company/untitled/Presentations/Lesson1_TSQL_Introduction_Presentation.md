@@ -141,7 +141,7 @@ SELECT
     [Last Name],           -- Brackets for spaces
     Department_Name,       -- Underscore allowed
     "Quoted Identifier"    -- Double quotes allowed
-FROM Employees;
+FROM Employees e;
 ```
 
 **Best Practices**:
@@ -202,10 +202,10 @@ SELECT
     EmployeeID,
     FirstName,
     LastName,
-    Department,
+    d.DepartmentName,
     BaseSalary
 FROM Employees
-WHERE Department = 'Information Technology'
+WHERE d.DepartmentName = 'Information Technology'
 ORDER BY LastName;
 ```
 
@@ -224,17 +224,17 @@ ORDER BY LastName;
 ```sql
 -- Variable declaration
 DECLARE @EmployeeCount INT;
-DECLARE @DepartmentName NVARCHAR(50) = 'IT';
+DECLARE @d.DepartmentName NVARCHAR(50) = 'IT';
 DECLARE @AverageSalary MONEY;
 
 -- Variable assignment
-SET @EmployeeCount = (SELECT COUNT(*) FROM Employees);
-SELECT @AverageSalary = AVG(BaseSalary) FROM Employees;
+SET @EmployeeCount = (SELECT COUNT(*) FROM Employees e);
+SELECT @AverageSalary = AVG(e.BaseSalary) FROM Employees e;
 
 -- Variable usage
 SELECT *
 FROM Employees
-WHERE Department = @DepartmentName
+WHERE d.DepartmentName = @d.DepartmentName
   AND BaseSalary > @AverageSalary;
 ```
 
@@ -261,14 +261,14 @@ SELECT
     BaseSalary + 5000 AS SalaryPlusBonus,      -- Addition
     BaseSalary / 12 AS MonthlySalary,          -- Division
     BaseSalary % 1000 AS SalaryRemainder       -- Modulo
-FROM Employees;
+FROM Employees e;
 ```
 
 **Comparison Operators**:
 ```sql
 WHERE BaseSalary > 50000              -- Greater than
   AND HireDate <= '2023-01-01'    -- Less than or equal
-  AND d.DepartmentName <> 'HR'          -- Not equal
+  AND d.d.DepartmentName <> 'HR'          -- Not equal
   AND EmployeeID BETWEEN 100 AND 200  -- Range
   AND LastName LIKE 'Sm%'         -- Pattern matching
 ```
@@ -290,7 +290,7 @@ SELECT
     LEN(LastName) AS LastNameLength,
     SUBSTRING(WorkEmail, 1, CHARINDEX('@', WorkEmail) - 1) AS Username,
     CONCAT(FirstName, ' ', LastName) AS FullName
-FROM Employees;
+FROM Employees e;
 ```
 
 **Date Functions**:
@@ -300,17 +300,17 @@ SELECT
     YEAR(HireDate) AS HireYear,
     DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsEmployed,
     DATEADD(YEAR, 1, HireDate) AS OneYearAnniversary
-FROM Employees;
+FROM Employees e;
 ```
 
 **Aggregate Functions**:
 ```sql
 SELECT 
     COUNT(*) AS TotalEmployees,
-    AVG(BaseSalary) AS AverageSalary,
+    AVG(e.BaseSalary) AS AverageBaseSalary,
     MIN(HireDate) AS EarliestHire,
-    MAX(BaseSalary) AS HighestSalary
-FROM Employees;
+    MAX(e.BaseSalary) AS HighestBaseSalary
+FROM Employees e;
 ```
 
 ---
@@ -326,7 +326,7 @@ FROM Employees;
    and documentation */
    
 -- TechCorp Employee Query
--- Purpose: Retrieve IT department employees with high salaries
+-- Purpose: Retrieve IT d.d.DepartmentName employees with high salaries
 -- Author: Database Team
 -- Date: 2024-01-15
 SELECT 
@@ -335,7 +335,7 @@ SELECT
     LastName,            -- Employee last name
     BaseSalary               -- Annual BaseSalary in USD
 FROM Employees
-WHERE d.DepartmentName = 'Engineering'  -- Filter for IT department only
+WHERE d.DepartmentName = 'Engineering'  -- Filter for IT d.d.DepartmentName only
   AND BaseSalary > 70000;    -- High BaseSalary threshold
 ```
 
@@ -418,10 +418,10 @@ WHERE EmployeeID = 100;  -- Use indexed columns in WHERE
 -- Avoid SELECT *
 -- Specify only needed columns
 SELECT FirstName, LastName  -- Not SELECT *
-FROM Employees;
+FROM Employees e;
 
 -- Use appropriate JOINs instead of subqueries when possible
-SELECT e.FirstName, d.DepartmentName
+SELECT e.FirstName, d.d.d.DepartmentName
 FROM Employees e
 JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 ```
@@ -444,7 +444,7 @@ SELECT
     emp.EmployeeID,
     emp.FirstName,
     emp.LastName,
-    dept.DepartmentName
+    dept.d.DepartmentName
 FROM Employees emp
     INNER JOIN Departments dept 
         ON emp.DepartmentID = dept.DepartmentID
@@ -477,7 +477,7 @@ ORDER BY emp.LastName, emp.FirstName;
 SELECT 
     emp.EmployeeID,
     emp.FirstName + ' ' + emp.LastName AS FullName,
-    emp.Department,
+    emp.DepartmentName,
     emp.BaseSalary,
     CASE 
         WHEN emp.BaseSalary > 80000 THEN 'High'
@@ -490,12 +490,11 @@ WHERE emp.IsActive = 1;
 
 **Financial Analysis**:
 ```sql
--- Department BaseSalary analysis
-SELECT 
-    Department,
+-- d.d.DepartmentName BaseSalary analysis
+SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount,
-    AVG(BaseSalary) AS AverageSalary,
-    SUM(BaseSalary) AS TotalPayroll
+    AVG(e.BaseSalary) AS AverageBaseSalary,
+    SUM(e.BaseSalary) AS TotalPayroll
 FROM Employees
 GROUP BY DepartmentID
 ORDER BY TotalPayroll DESC;
@@ -512,7 +511,7 @@ ORDER BY TotalPayroll DESC;
 SELECT FirstName, LastName;
 
 -- Correct
-SELECT FirstName, LastName FROM Employees;
+SELECT FirstName, LastName FROM Employees e;
 
 -- Incorrect (mixing aggregate and non-aggregate)
 SELECT DepartmentID, FirstName, COUNT(*)

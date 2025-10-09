@@ -91,7 +91,7 @@ CREATE TABLE IntegerExamples (
     
     -- SMALLINT: Good for moderate-sized numbers
     YearFounded SMALLINT,           -- Years typically fit in SMALLINT
-    DepartmentCode SMALLINT,        -- Department codes
+    DepartmentCode SMALLINT,        -- d.DepartmentName codes
     
     -- INT: Most common choice for IDs and general integers
     EmployeeID INT IDENTITY(1,1),   -- Auto-incrementing primary key
@@ -666,7 +666,7 @@ CREATE TABLE EmployeeHistory (
     FirstName NVARCHAR(50) NOT NULL,
     LastName NVARCHAR(50) NOT NULL,
     BaseSalary DECIMAL(10,2),
-    Department NVARCHAR(50),
+    d.DepartmentName NVARCHAR(50),
     
     -- Required for temporal tables
     ValidFrom DATETIME2 GENERATED ALWAYS AS ROW START,

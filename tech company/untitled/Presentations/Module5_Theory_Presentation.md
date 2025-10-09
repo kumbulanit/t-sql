@@ -108,7 +108,7 @@ WHERE HireDate <= GETDATE()
 
 -- Combining conditions
 WHERE BaseSalary BETWEEN 40000 AND 80000
-WHERE Department IN ('IT', 'HR', 'Finance')
+WHERE d.DepartmentName IN ('IT', 'HR', 'Finance')
 ```
 
 ---
@@ -143,12 +143,12 @@ WHERE BaseSalary BETWEEN 40000 AND 60000
 WHERE HireDate BETWEEN '2020-01-01' AND '2020-12-31'
 
 -- IN (set membership)
-WHERE Department IN ('IT', 'HR', 'Finance')
-WHERE EmployeeID IN (SELECT ManagerID FROM Employees)
+WHERE d.DepartmentName IN ('IT', 'HR', 'Finance')
+WHERE EmployeeID IN (SELECT ManagerID FROM Employees e)
 
 -- NOT versions
 WHERE BaseSalary NOT BETWEEN 40000 AND 60000
-WHERE Department NOT IN ('IT', 'HR')
+WHERE d.DepartmentName NOT IN ('IT', 'HR')
 ```
 
 ---
@@ -187,7 +187,7 @@ WHERE d.DepartmentName = 'Engineering' OR d.DepartmentName = 'HR'
 
 -- NOT (negates condition)
 WHERE NOT (d.DepartmentName = 'Engineering')
-WHERE NOT Department IN ('IT', 'HR')
+WHERE NOT d.DepartmentName IN ('IT', 'HR')
 
 -- Precedence (use parentheses for clarity)
 WHERE (Department = 'IT' OR d.DepartmentName = 'HR') 
@@ -270,7 +270,7 @@ WHERE ABS(BaseSalary - 50000) < 5000  -- Within $5K of $50K
 
 ```sql
 -- Scalar subquery
-WHERE BaseSalary > (SELECT AVG(BaseSalary) FROM Employees)
+WHERE BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees e)
 
 -- EXISTS subquery
 WHERE EXISTS (
@@ -286,7 +286,7 @@ WHERE DepartmentID IN (
 
 -- Correlated subquery
 WHERE BaseSalary > (
-    SELECT AVG(BaseSalary) FROM Employees e2 
+    SELECT AVG(e.BaseSalary) FROM Employees e2 
     WHERE e2.DepartmentID = Employees.DepartmentID
 )
 ```
@@ -393,19 +393,19 @@ SELECT
     BaseSalary,
     ROW_NUMBER() OVER (ORDER BY BaseSalary DESC) AS SalaryRank,
     RANK() OVER (ORDER BY BaseSalary DESC) AS SalaryRankWithTies
-FROM Employees
+FROM Employees e
 
 -- Partition and sort
 SELECT 
     FirstName,
     LastName,
-    Department,
+    d.DepartmentName,
     BaseSalary,
     ROW_NUMBER() OVER (
         PARTITION BY DepartmentID 
         ORDER BY BaseSalary DESC
     ) AS DeptSalaryRank
-FROM Employees
+FROM Employees e
 ```
 
 ---
@@ -479,7 +479,7 @@ WHERE LastName COLLATE SQL_Latin1_General_CP1_CI_AS = 'smith'
 DECLARE @Department NVARCHAR(50) = NULL;
 DECLARE @MinSalary MONEY = NULL;
 
-SELECT FirstName, LastName, Department, BaseSalary
+SELECT FirstName, LastName, d.DepartmentName, BaseSalary
 FROM Employees
 WHERE (@Department IS NULL OR d.DepartmentName = @Department)
     AND (@MinSalary IS NULL OR BaseSalary >= @MinSalary)

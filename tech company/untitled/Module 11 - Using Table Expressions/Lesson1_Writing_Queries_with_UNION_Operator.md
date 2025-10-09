@@ -177,7 +177,7 @@ ORDER BY EmployeeStatus, LastName, FirstName;
 SELECT 
     'Employee Performance' AS MetricCategory,
     d.DepartmentName AS BusinessUnit,
-    'Salary Analysis' AS MetricType,
+    'BaseSalary Analysis' AS MetricType,
     COUNT(*) AS RecordCount,
     AVG(e.BaseSalary) AS AverageValue,
     MAX(e.BaseSalary) AS MaxValue,
@@ -433,8 +433,8 @@ UNION ALL
 SELECT 
     FORMAT(GETDATE(), 'MMMM yyyy') AS ReportPeriod,
     'Employee Metrics' AS Category,
-    'Average Salary' AS Metric,
-    FORMAT(AVG(BaseSalary), 'C') AS Value,
+    'Average BaseSalary' AS Metric,
+    FORMAT(AVG(e.BaseSalary), 'C') AS Value,
     'Currency' AS Unit
 FROM Employees 
 WHERE IsActive = 1
@@ -495,8 +495,7 @@ ORDER BY Category, Metric;
 #### TechCorp Example: Data Consistency Check
 ```sql
 -- Identify data inconsistencies across related tables
-SELECT 
-    'Missing Department References' AS IssueType,
+SELECT 'Missing d.DepartmentName References' AS IssueType,
     'Employees without valid departments' AS Description,
     CAST(COUNT(*) AS VARCHAR(50)) AS Count,
     'Critical' AS Severity
@@ -662,7 +661,7 @@ SELECT ContactName, CompanyName, 'Customer' AS Type FROM Customers;
 #### Problem and Solution
 ```sql
 -- ❌ PROBLEM: Incompatible data types
-SELECT EmployeeID, BaseSalary FROM Employees  -- INT, DECIMAL
+SELECT EmployeeID, BaseSalary FROM Employees e  -- INT, DECIMAL
 UNION
 SELECT CompanyName, ContactName FROM Customers;  -- VARCHAR, VARCHAR
 

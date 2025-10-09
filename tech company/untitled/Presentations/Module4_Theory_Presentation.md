@@ -103,10 +103,10 @@ CREATE TABLE EmployeeSecurityClearance (
 
 #### **One-to-Many (1:M) Relationships**
 ```sql
--- One-to-Many: Department to Employees
+-- One-to-Many: d.DepartmentName to Employees
 CREATE TABLE Departments (
     DepartmentID int PRIMARY KEY,
-    DepartmentName varchar(100),
+    d.DepartmentName varchar(100),
     ManagerID int
 );
 
@@ -649,7 +649,7 @@ FROM Employees e
 
 ```sql
 -- Missing JOIN condition (Cartesian product)
-SELECT * FROM Employees, Departments;
+SELECT * FROM Employees e, Departments;
 
 -- Wrong JOIN type
 SELECT e.FirstName, p.ProjectName
@@ -667,10 +667,9 @@ WHERE p.ProjectName IS NOT NULL  -- May eliminate intended results
 **Grouping Joined Data**
 
 ```sql
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     COUNT(e.EmployeeID) AS EmployeeCount,
-    AVG(e.BaseSalary) AS AverageSalary,
+    AVG(e.BaseSalary) AS AverageBaseSalary,
     MAX(e.HireDate) AS MostRecentHire
 FROM Departments d
 LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID
@@ -765,7 +764,7 @@ WHERE e.IsActive = 0;
 SELECT 
     e.FirstName,
     e.LastName,
-    ISNULL(d.DepartmentName, 'Unassigned') AS Department,
+    ISNULL(d.DepartmentName, 'Unassigned') AS DepartmentName,
     COALESCE(p.ProjectName, 'No Project') AS Project
 FROM Employees e
     LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID

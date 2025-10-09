@@ -28,13 +28,13 @@ SELECT 'EmployeeProjects', COUNT(*) FROM EmployeeProjects;
 -- Show data type diversity for filtering exercises
 SELECT 
     'Sample data types for filtering' as Info,
-    MIN(BaseSalary) as MinSalary,
-    MAX(BaseSalary) as MaxSalary,
+    MIN(e.BaseSalary) as MinSalary,
+    MAX(e.BaseSalary) as MaxSalary,
     MIN(HireDate) as EarliestHire,
     MAX(HireDate) as LatestHire,
     COUNT(CASE WHEN TerminationDate IS NULL THEN 1 END) as ActiveEmployees,
     COUNT(CASE WHEN TerminationDate IS NOT NULL THEN 1 END) as FormerEmployees
-FROM Employees;
+FROM Employees e;
 ```
 
 ## Exercise 1: Basic Sorting Operations - TechCorp Employee Data
@@ -71,7 +71,7 @@ ORDER BY HireDate DESC;
 Write queries using multiple columns in ORDER BY with TechCorp organizational data.
 
 ```sql
--- TODO: Sort employees by company, then by department within each company
+-- TODO: Sort employees by company, then by d.DepartmentName within each company
 -- Expected: Companies in order, departments alphabetically within each company
 SELECT 
     c.CompanyName,

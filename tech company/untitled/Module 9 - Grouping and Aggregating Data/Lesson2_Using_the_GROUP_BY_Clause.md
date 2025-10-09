@@ -8,9 +8,9 @@ Imagine you have a bag of different colored marbles and want to sort them by col
 
 GROUP BY is like organizing things into separate piles:
 
-- **Sort employees** by department (IT pile, Sales pile, etc.)
+- **Sort employees** by d.DepartmentName (IT pile, Sales pile, etc.)
 - **Count** how many are in each pile
-- **Add up salaries** for each department separately  
+- **Add up salaries** for each d.DepartmentName separately  
 - **Compare** different departments side by side
 
 Think of it as making separate mini-reports for each group.
@@ -35,7 +35,7 @@ Imagine you work at a fruit store and have 100 apples of different colors:
 
 GROUP BY does the same thing with database data!
 
-### Exercise 1.1: Count Employees by Department (🟢 SUPER BASIC)
+### Exercise 1.1: Count Employees by d.DepartmentName (🟢 SUPER BASIC)
 
 **Question**: "How many people work in each department?"
 
@@ -43,176 +43,44 @@ GROUP BY does the same thing with database data!
 -- Connect to database
 USE TechCorpDB;
 
--- Count employees in each department
-SELECT 
-    Department,
-    COUNT(*) AS NumberOfEmployees
-FROM Employees
-GROUP BY Department;
-```
-
-**What this does:**
-- `GROUP BY Department` sorts employees into department groups
-- `COUNT(*)` counts how many employees are in each group
-- You get one row for each department
-
-**Expected Result:**
-```
-Department  | NumberOfEmployees
-IT          | 5
-Sales       | 4  
-Marketing   | 3
-HR          | 2
-```
-
-**In plain English**: "SQL, sort employees by department, then count how many are in each department"
-
-### Exercise 1.2: Your Turn - Count Projects by Status (🟢 SUPER BASIC)
-
-```sql
--- Count projects by their status
-SELECT 
-    ProjectStatus,
-    COUNT(*) AS NumberOfProjects
-FROM Projects  
-GROUP BY ProjectStatus;
-```
-
-## Part 2: Adding Up Numbers by Group 📊
-
-### 🎓 Adding Money by Department
-
-Now let's add up salaries for each department separately.
-
-### Exercise 2.1: Total Salary Cost per Department (🟢 SUPER BASIC)
-
-**Question**: "How much does each department cost in salaries?"
-
-```sql
--- Add up salaries by department
-SELECT 
-    Department,
-    SUM(Salary) AS TotalDepartmentCost
-FROM Employees
-GROUP BY Department;
+-- Count employees in each d.DepartmentName
+SELECT d.DepartmentName,
+    COUNT(*) AS EmployeeCount
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+GROUP BY d.DepartmentName;
 ```
 
 **Expected Result:**
 ```
-Department  | TotalDepartmentCost
-IT          | 275000
-Sales       | 200000  
-Marketing   | 150000
-HR          | 90000
-```
-
-**What this means**: IT department costs $275,000 in salaries, Sales costs $200,000, etc.
-
-### Exercise 2.2: Budget Totals by Project Status (🟢 SUPER BASIC)
-
-```sql
--- Add up project budgets by status
-SELECT 
-    ProjectStatus,
-    SUM(Budget) AS TotalBudgetByStatus
-FROM Projects
-GROUP BY ProjectStatus;
-```
-
-## Part 3: Finding Averages by Group 📊
-
-### Exercise 3.1: Average Salary per Department (🟢 SUPER BASIC)
-
-**Question**: "What's the typical salary in each department?"
-
-```sql
--- Calculate average salary by department
-SELECT 
-    Department,
-    AVG(Salary) AS AverageSalary
-FROM Employees
-GROUP BY Department;
-```
-
-**Expected Result:**
-```
-Department  | AverageSalary
+d.DepartmentName  | AverageSalary
 IT          | 55000
 Sales       | 50000
 Marketing   | 50000  
 HR          | 45000
 ```
 
-**What this means**: Typical IT salary is $55,000, typical Sales salary is $50,000, etc.
+**What this means**: Typical IT BaseSalary is $55,000, typical Sales BaseSalary is $50,000, etc.
 
 ## Part 4: Multiple Calculations per Group 📊
 
-### Exercise 4.1: Complete Department Report (🟢 BASIC)
+### Exercise 4.1: Complete d.DepartmentName Report (🟢 BASIC)
 
-**Goal**: Get count, total, and average for each department in one query.
+**Goal**: Get count, total, and average for each d.DepartmentName in one query.
 
 ```sql
--- Complete department analysis
-SELECT 
-    Department,
-    COUNT(*) AS EmployeeCount,
-    SUM(Salary) AS TotalSalaries,
-    AVG(Salary) AS AverageSalary
-FROM Employees
-GROUP BY Department
-ORDER BY Department;
+-- Complete d.DepartmentName analysis
+SELECT d.DepartmentName,
+    COUNT(*) AS EmployeeCount
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+GROUP BY d.DepartmentName, JobLevel
+ORDER BY d.DepartmentName, JobLevel;
 ```
 
 **Expected Result:**
 ```
-Department | EmployeeCount | TotalSalaries | AverageSalary
-HR         | 2             | 90000         | 45000
-IT         | 5             | 275000        | 55000
-Marketing  | 3             | 150000        | 50000
-Sales      | 4             | 200000        | 50000
-```
-
-**In plain English**: This shows everything about each department in one table!
-
-### Exercise 4.2: Project Analysis by Status (🟢 BASIC)
-
-```sql
--- Complete project status analysis  
-SELECT 
-    ProjectStatus,
-    COUNT(*) AS ProjectCount,
-    SUM(Budget) AS TotalBudget,
-    AVG(Budget) AS AverageBudget
-FROM Projects
-GROUP BY ProjectStatus
-ORDER BY TotalBudget DESC;
-```
-
-## Part 5: Grouping by Multiple Things 📊
-
-### 🎓 Double Grouping: Department AND Job Level
-
-Sometimes you want to group by two things at once, like department AND job level.
-
-### Exercise 5.1: Group by Department and Level (🟢 INTERMEDIATE)
-
-**Question**: "How many junior vs senior employees are in each department?"
-
-```sql
--- Group by both department and job level
-SELECT 
-    Department,
-    JobLevel,
-    COUNT(*) AS EmployeeCount,
-    AVG(Salary) AS AverageSalary
-FROM Employees  
-GROUP BY Department, JobLevel
-ORDER BY Department, JobLevel;
-```
-
-**Expected Result:**
-```
-Department | JobLevel | EmployeeCount | AverageSalary
+d.DepartmentName | JobLevel | EmployeeCount | AverageSalary
 IT         | Junior   | 2             | 45000
 IT         | Senior   | 3             | 62000  
 Sales      | Junior   | 1             | 40000
@@ -261,18 +129,20 @@ ORDER BY ProjectYear, ProjectMonth;
 
 ✅ **CORRECT**: Only SELECT grouped columns or math functions
 ```sql
--- Good: Department is in GROUP BY, COUNT is a math function
-SELECT Department, COUNT(*)
-FROM Employees
-GROUP BY Department;
+-- Good: d.DepartmentName is in GROUP BY, COUNT is a math function
+SELECT d.DepartmentName, COUNT(*)
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+GROUP BY d.DepartmentName;
 ```
 
 ❌ **WRONG**: Selecting columns not in GROUP BY
 ```sql  
 -- Bad: EmployeeName is not in GROUP BY
-SELECT Department, EmployeeName, COUNT(*)
-FROM Employees
-GROUP BY Department;
+SELECT d.DepartmentName, EmployeeName, COUNT(*)
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+GROUP BY d.DepartmentName;
 ```
 
 ### Key Rules:

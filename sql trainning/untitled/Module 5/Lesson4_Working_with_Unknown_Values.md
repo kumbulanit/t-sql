@@ -123,7 +123,7 @@ SELECT
     FirstName,
     LastName,
     COALESCE(HomePhone, Extension, 'No Phone') AS ContactNumber
-FROM Employees;
+FROM Employees e;
 ```
 
 ### NULLIF Function
@@ -313,15 +313,15 @@ FROM Customers;
 ```sql
 -- Problem: NULL makes entire result NULL
 SELECT FirstName + ' ' + LastName AS FullName
-FROM Employees;
+FROM Employees e;
 
 -- Solution: Use CONCAT or handle NULLs
 SELECT CONCAT(FirstName, ' ', LastName) AS FullName
-FROM Employees;
+FROM Employees e;
 
 -- Alternative solution
 SELECT ISNULL(FirstName, '') + ' ' + ISNULL(LastName, '') AS FullName
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 2. Unexpected Results in Conditions

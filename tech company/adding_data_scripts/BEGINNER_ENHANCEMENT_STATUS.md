@@ -51,28 +51,28 @@ SELECT * FROM Products;
 -- Now using TechCorp context:
 SELECT FirstName, LastName, JobTitle, BaseSalary 
 FROM Employees 
-WHERE DepartmentID = 2001; -- Engineering Department
+WHERE DepartmentID = 2001; -- Engineering d.d.DepartmentName
 
 🎯 Business Context: "Find all engineers for team meeting"
 📊 Expected Result: List of 23 engineering employees with their details
-💡 Real Use Case: HR planning, team organization, salary analysis
+💡 Real Use Case: HR planning, team organization, BaseSalary analysis
 ```
 
 #### **3. Step-by-Step Query Explanations**
 ```sql
 -- BEFORE: Just the query
-SELECT AVG(BaseSalary) FROM Employees;
+SELECT AVG(e.BaseSalary) FROM Employees e;
 
 -- AFTER: Complete beginner explanation
--- Step 1: Calculate average salary
-SELECT AVG(BaseSalary) FROM Employees WHERE IsActive = 1;
+-- Step 1: Calculate average BaseSalary
+SELECT AVG(e.BaseSalary) FROM Employees WHERE IsActive = 1;
 
 🎯 Beginner Breakdown:
 • AVG() function calculates the average (mean) of all numbers
-• BaseSalary column contains employee salary amounts  
+• BaseSalary column contains employee BaseSalary amounts  
 • WHERE IsActive = 1 filters to only current employees
-• Expected Result: One number showing company average salary
-• Business Use: Salary benchmarking, budget planning, HR analysis
+• Expected Result: One number showing company average BaseSalary
+• Business Use: BaseSalary benchmarking, budget planning, HR analysis
 ```
 
 #### **4. Common Mistakes & Tips**
@@ -94,8 +94,8 @@ SELECT AVG(BaseSalary) FROM Employees WHERE IsActive = 1;
 📊 Expected Output:
 • 23 rows (current active engineers)
 • Columns: FirstName, LastName, JobTitle, BaseSalary
-• Sorted by salary (highest first)
-• Typical salary range: $65,000 - $125,000
+• Sorted by BaseSalary (highest first)
+• Typical BaseSalary range: $65,000 - $125,000
 
 ✅ How to Verify:
 • Row count should match active engineering headcount
@@ -113,7 +113,7 @@ SELECT AVG(BaseSalary) FROM Employees WHERE IsActive = 1;
 |---------------|-------------|-------------------|-------------------|
 | `Title` | `JobTitle` | Employees | 3, 4, 5, 10, 15 |
 | `p.IsActive` | `p.Status` | Projects | 3, 4, 8, 9 |
-| `Salary` | `BaseSalary` | Employees | All modules |
+| `BaseSalary` | `BaseSalary` | Employees | All modules |
 | `State` | `StateProvince` | Addresses | Various |
 | `UnitsInStock` | `StockQuantity` | Products | 7 |
 

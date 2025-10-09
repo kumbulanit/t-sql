@@ -131,9 +131,9 @@ WHERE p.IsActive = 1
 
 ### 2. Change Detection and Auditing
 
-#### TechCorp Example: Department Budget Changes
+#### TechCorp Example: d.DepartmentName Budget Changes
 ```sql
--- Compare current department budgets with previous month
+-- Compare current d.DepartmentName budgets with previous month
 -- (Assuming we have a DepartmentHistory table)
 SELECT 
     d.DepartmentID,
@@ -189,7 +189,7 @@ WHERE YEAR(o.OrderDate) = YEAR(GETDATE())
 
 #### TechCorp Example: Compliance Check
 ```sql
--- Find employees who should be managers based on salary but aren't
+-- Find employees who should be managers based on BaseSalary but aren't
 SELECT 
     e.EmployeeID,
     e.FirstName,
@@ -198,7 +198,7 @@ SELECT
     d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE e.BaseSalary > 80000  -- High salary employees
+WHERE e.BaseSalary > 80000  -- High BaseSalary employees
   AND e.IsActive = 1
 
 EXCEPT
@@ -265,7 +265,7 @@ SELECT DISTINCT
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
 INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
-WHERE e.DepartmentID = 2001  -- Sales Department
+WHERE e.DepartmentID = 2001  -- Sales d.DepartmentName
   AND c.IsActive = 1
   AND o.IsActive = 1
 
@@ -279,7 +279,7 @@ SELECT DISTINCT
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
 INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
-WHERE e.DepartmentID = 2002  -- Marketing Department
+WHERE e.DepartmentID = 2002  -- Marketing d.DepartmentName
   AND c.IsActive = 1
   AND o.IsActive = 1;
 ```
@@ -357,7 +357,7 @@ HAVING COUNT(o.OrderID) > 5;
 #### TechCorp Example: Elite Employee Identification
 ```sql
 -- Find employees who meet multiple performance criteria
--- High salary AND project management experience
+-- High BaseSalary AND project management experience
 SELECT 
     e.EmployeeID,
     e.FirstName,
@@ -366,7 +366,7 @@ SELECT
     d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE e.BaseSalary > (SELECT AVG(BaseSalary) * 1.5 FROM Employees WHERE IsActive = 1)
+WHERE e.BaseSalary > (SELECT AVG(e.BaseSalary) * 1.5 FROM Employees WHERE IsActive = 1)
   AND e.IsActive = 1
 
 INTERSECT
@@ -577,7 +577,7 @@ SELECT
     e.BaseSalary
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE e.BaseSalary > (SELECT AVG(BaseSalary) FROM Employees WHERE IsActive = 1)
+WHERE e.BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees WHERE IsActive = 1)
   AND e.IsActive = 1
 
 EXCEPT
@@ -662,7 +662,7 @@ SELECT ContactName FROM Customers;
 -- This is NOT the same as:
 SELECT ContactName FROM Customers
 EXCEPT
-SELECT FirstName FROM Employees;
+SELECT FirstName FROM Employees e;
 
 -- ✅ SOLUTION: Be explicit about what you want
 -- Employees who are not also customer contacts

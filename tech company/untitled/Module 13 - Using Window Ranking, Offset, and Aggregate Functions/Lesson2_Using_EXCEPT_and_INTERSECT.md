@@ -113,7 +113,7 @@ WHERE e.IsActive = 1
   AND d.IsActive = 1
   AND ep.IsActive = 1
 
-ORDER BY DepartmentName, YearsOfService DESC;
+ORDER BY d.DepartmentName, YearsOfService DESC;
 ```
 
 #### TechCorp Example: Customers Without Recent Orders
@@ -175,7 +175,7 @@ ORDER BY DaysSinceLastOrder DESC;
 
 #### TechCorp Example: High Earners Without Management Responsibilities
 ```sql
--- Identify employees violating company policy: high salary without management duties
+-- Identify employees violating company policy: high BaseSalary without management duties
 SELECT 
     e.EmployeeID,
     e.FirstName + ' ' + e.LastName AS EmployeeName,
@@ -183,10 +183,10 @@ SELECT
     e.JobTitle,
     d.DepartmentName,
     DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
-    'Policy Violation: High Salary Without Management' AS ComplianceIssue
+    'Policy Violation: High BaseSalary Without Management' AS ComplianceIssue
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE e.BaseSalary > 85000  -- High salary threshold
+WHERE e.BaseSalary > 85000  -- High BaseSalary threshold
   AND e.IsActive = 1
   AND d.IsActive = 1
 
@@ -199,7 +199,7 @@ SELECT
     mgr.JobTitle,
     d.DepartmentName,
     DATEDIFF(YEAR, mgr.HireDate, GETDATE()) AS YearsOfService,
-    'Policy Violation: High Salary Without Management' AS ComplianceIssue
+    'Policy Violation: High BaseSalary Without Management' AS ComplianceIssue
 FROM Employees mgr
 INNER JOIN Departments d ON mgr.DepartmentID = d.DepartmentID
 WHERE mgr.IsActive = 1
@@ -265,7 +265,7 @@ WHERE e.IsActive = 1
   AND e.HireDate >= DATEADD(MONTH, -2, GETDATE())  -- Previous period hires
   AND e.HireDate < DATEADD(MONTH, -1, GETDATE())
 
-ORDER BY HireDate DESC, DepartmentName;
+ORDER BY HireDate DESC, d.DepartmentName;
 ```
 
 ## INTERSECT Operations for Common Analysis
@@ -396,7 +396,7 @@ WHERE e.IsActive = 1
   AND ep1.IsActive = 1
   AND p1.IsActive = 1
   AND mgr1.IsActive = 1
-  AND mgr1.DepartmentID = 2001  -- Sales department projects
+  AND mgr1.DepartmentID = 2001  -- Sales d.DepartmentName projects
 
 INTERSECT
 
@@ -424,7 +424,7 @@ WHERE e.IsActive = 1
   AND ep2.IsActive = 1
   AND p2.IsActive = 1
   AND mgr2.IsActive = 1
-  AND mgr2.DepartmentID = 2002  -- Marketing department projects
+  AND mgr2.DepartmentID = 2002  -- Marketing d.DepartmentName projects
 
 ORDER BY CrossDeptProjects DESC, HomeDepartment;
 ```
@@ -447,7 +447,7 @@ WITH HighPerformers AS (
         'High Performer' AS Classification
     FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    WHERE e.BaseSalary > (SELECT AVG(BaseSalary) * 1.2 FROM Employees WHERE IsActive = 1)
+    WHERE e.BaseSalary > (SELECT AVG(e.BaseSalary) * 1.2 FROM Employees WHERE IsActive = 1)
       AND e.IsActive = 1
       AND d.IsActive = 1
 ),
@@ -548,7 +548,7 @@ SELECT
     e.EmployeeID,
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     e.JobTitle,
-    FORMAT(e.BaseSalary, 'C') AS Salary
+    FORMAT(e.BaseSalary, 'C') AS BaseSalary
 FROM Employees e
 WHERE e.IsActive = 1
   AND e.BaseSalary > 70000
@@ -559,14 +559,14 @@ SELECT
     e.EmployeeID,
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     e.JobTitle,
-    FORMAT(e.BaseSalary, 'C') AS Salary
+    FORMAT(e.BaseSalary, 'C') AS BaseSalary
 FROM Employees e
 INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
 WHERE e.IsActive = 1
   AND p.IsActive = 1
   AND e.BaseSalary > 70000
 
-ORDER BY Salary DESC;
+ORDER BY BaseSalary DESC;
 ```
 
 ### 2. Alternative Approaches for Better Performance
@@ -624,7 +624,7 @@ SELECT
     'Underutilized High Earners' AS KPIName,
     COUNT(*) AS KPIValue,
     'Critical' AS AlertLevel,
-    'High-salary employees without project assignments may indicate resource inefficiency' AS BusinessImpact
+    'High-BaseSalary employees without project assignments may indicate resource inefficiency' AS BusinessImpact
 FROM (
     SELECT e.EmployeeID
     FROM Employees e
@@ -708,7 +708,7 @@ WHERE e.IsActive = 1
   AND p.IsActive = 1
   AND DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 5
 
-ORDER BY YearsOfService DESC, DepartmentName;
+ORDER BY YearsOfService DESC, d.DepartmentName;
 ```
 
 ### 2. Data Validation Patterns
@@ -718,7 +718,7 @@ ORDER BY YearsOfService DESC, DepartmentName;
 -- Multi-layered data validation using set operations
 SELECT ValidationResults.*
 FROM (
-    -- Check 1: Employees without valid department assignments
+    -- Check 1: Employees without valid d.DepartmentName assignments
     SELECT 
         'Data Integrity' AS ValidationCategory,
         'Employees with Invalid Departments' AS ValidationRule,
@@ -727,6 +727,7 @@ FROM (
     FROM (
         SELECT e.EmployeeID
         FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
         WHERE e.IsActive = 1
         EXCEPT
         SELECT e.EmployeeID
@@ -791,7 +792,7 @@ WHERE IsActive = 1 AND WorkEmail IS NOT NULL;
 #### Problem and Solution
 ```sql
 -- ❌ PROBLEM: Inconsistent column types or order
-SELECT EmployeeID, BaseSalary FROM Employees  -- INT, DECIMAL
+SELECT EmployeeID, BaseSalary FROM Employees e  -- INT, DECIMAL
 EXCEPT
 SELECT CustomerID, CompanyName FROM Customers;  -- INT, VARCHAR
 

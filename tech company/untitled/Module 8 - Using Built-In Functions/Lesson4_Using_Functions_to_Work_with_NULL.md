@@ -72,7 +72,7 @@ SELECT
     ISNULL(CONVERT(VARCHAR, e.HireDate, 101), 'Hire Date Unknown') AS HireDate,
     
     -- Handle missing department/manager information
-    ISNULL(d.DepartmentName, 'Department TBD') AS Department,
+    ISNULL(d.DepartmentName, 'Department TBD') AS DepartmentName,
     ISNULL(jl.LevelName, 'Level Not Assigned') AS JobLevel,
     
     -- Manager information with NULL handling
@@ -118,7 +118,7 @@ FROM Employees e
     LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID
     LEFT JOIN JobLevels jl ON e.JobLevelID = jl.JobLevelID
 ORDER BY 
-    ISNULL(d.DepartmentName, 'ZZZ Department TBD'), 
+    ISNULL(d.DepartmentName, 'ZZZ d.DepartmentName TBD'), 
     ISNULL(e.LastName, 'ZZZ Not Provided');
 
 -- Lab 8.4.2: ISNULL in Financial Calculations
@@ -172,8 +172,8 @@ SELECT
         ELSE 'Duration Unknown'
     END AS ActualDuration,
     
-    -- IsActive with comprehensive NULL handling
-    ISNULL(p.IsActive, 'IsActive Not Set') AS ProjectIsActive,
+    -- Status with comprehensive NULL handling
+    ISNULL(p.Status, 'Status Not Set') AS Status,
     
     -- Risk assessment with missing data consideration
     CASE 
@@ -219,7 +219,7 @@ WITH MonthlyMetrics AS (
         
         -- NULL-safe calculations for KPIs
         COUNT(CASE WHEN p.ActualEndDate IS NOT NULL THEN 1 END) AS CompletedProjects,
-        COUNT(CASE WHEN p.ActualEndDate IS NULL AND p.IsActive = 'Active' THEN 1 END) AS ActiveProjects,
+        COUNT(CASE WHEN p.ActualEndDate IS NULL AND p.Status = 'Active' THEN 1 END) AS ActiveProjects,
         COUNT(CASE WHEN ISNULL(p.ActualCost, 0) > ISNULL(p.Budget, 0) THEN 1 END) AS OverBudgetProjects
         
     FROM Projects p
@@ -271,11 +271,10 @@ SELECT
 FROM MonthlyMetrics
 ORDER BY ProjectYear DESC, ProjectMonth DESC;
 
--- Lab 8.4.4: Department Performance with NULL Handling
--- Business scenario: Department analysis that handles incomplete data professionally
+-- Lab 8.4.4: d.DepartmentName Performance with NULL Handling
+-- Business scenario: d.DepartmentName analysis that handles incomplete data professionally
 
-SELECT 
-    ISNULL(d.DepartmentName, 'Unassigned Department') AS Department,
+SELECT ISNULL(d.DepartmentName, 'Unassigned Department') AS DepartmentName,
     COUNT(e.EmployeeID) AS TotalEmployees,
     
     -- BaseSalary analysis with NULL protection
@@ -319,7 +318,7 @@ SELECT
         'N1'
     ) + '%' AS DataCompletenessScore,
     
-    -- Department health indicator
+    -- d.DepartmentName health indicator
     CASE 
         WHEN COUNT(CASE WHEN e.BaseSalary IS NULL OR e.HireDate IS NULL THEN 1 END) = 0 
         THEN '✅ Excellent Data Quality'
@@ -531,7 +530,7 @@ SELECT
         '1900-01-01'
     ) AS EffectiveStartDate,
     
-    -- Department information with fallbacks
+    -- d.DepartmentName information with fallbacks
     COALESCE(
         d.DepartmentName,
         e.TempDepartment,
@@ -784,7 +783,7 @@ SELECT
     'Critical Employee Data Issues' AS ReportSection,
     e.EmployeeID,
     ISNULL(e.FirstName + ' ' + e.LastName, 'Name Missing') AS EmployeeName,
-    ISNULL(d.DepartmentName, 'No Department') AS Department,
+    ISNULL(d.DepartmentName, 'No Department') AS DepartmentName,
     
     -- Flag each missing critical field
     CASE WHEN e.FirstName IS NULL OR e.FirstName = '' THEN '❌ Missing' ELSE '✅ Present' END AS FirstName,

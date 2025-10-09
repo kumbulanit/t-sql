@@ -149,10 +149,10 @@ WHERE d.DepartmentName = 'Engineering';
 **Execution Options**:
 ```sql
 -- Execute current query (F5 or Ctrl+E)
-SELECT * FROM Employees;
+SELECT * FROM Employees e;
 
 -- Execute selected text
-SELECT COUNT(*) FROM Employees;
+SELECT COUNT(*) FROM Employees e;
 
 -- Parse query without execution (Ctrl+F5)
 ```

@@ -9,7 +9,7 @@
 
 ```sql
 -- Answer 1: Basic Selection
-SELECT * FROM Employees;
+SELECT * FROM Employees e;
 ```
 
 #### Question 2: Column Selection
@@ -18,7 +18,7 @@ SELECT * FROM Employees;
 ```sql
 -- Answer 2: Column Selection
 SELECT FirstName, LastName, BaseSalary 
-FROM Employees;
+FROM Employees e;
 ```
 
 #### Question 3: Calculated Columns
@@ -30,7 +30,7 @@ SELECT
     FirstName + ' ' + LastName AS FullName,
     BaseSalary AS AnnualSalary,
     BaseSalary / 12 AS MonthlySalary
-FROM Employees;
+FROM Employees e;
 ```
 
 #### Question 4: String Functions
@@ -43,7 +43,7 @@ SELECT
     LEFT(WorkEmail, CHARINDEX('@', WorkEmail) - 1) AS EmailUsername,
     SUBSTRING(WorkEmail, CHARINDEX('@', WorkEmail) + 1, LEN(WorkEmail)) AS EmailDomain,
     UPPER(FirstName + ' ' + LastName) AS FullNameUpper
-FROM Employees;
+FROM Employees e;
 ```
 
 #### Question 5: Date Functions
@@ -56,7 +56,7 @@ SELECT
     HireDate,
     DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsOfService,
     YEAR(HireDate) AS HireYear
-FROM Employees;
+FROM Employees e;
 ```
 
 ### Exercise 1.2: Filtering Data - Answers
@@ -81,12 +81,12 @@ FROM Employees
 WHERE HireDate > '2021-01-01';
 ```
 
-#### Question 3: Department Filter
-**Task:** Find all employees in the IT department (DepartmentID = 1).
+#### Question 3: d.DepartmentName Filter
+**Task:** Find all employees in the IT d.DepartmentName (DepartmentID = 1).
 
 ```sql
--- Answer 3: Department Filter
-SELECT FirstName, LastName, JobTitle, DepartmentID
+-- Answer 3: d.DepartmentName Filter
+SELECT FirstName, LastName, Title, DepartmentID
 FROM Employees
 WHERE DepartmentID = 1;
 ```
@@ -184,7 +184,7 @@ SELECT FirstName FROM Employees WHERE DepartmentID >= 3;
 ```
 
 #### Question 2: INTERSECT Operation
-**Task:** Find department IDs that have both high-BaseSalary and low-BaseSalary employees.
+**Task:** Find d.DepartmentName IDs that have both high-BaseSalary and low-BaseSalary employees.
 
 ```sql
 -- Answer 2: INTERSECT Operation
@@ -206,7 +206,7 @@ SELECT EmployeeID FROM EmployeeProjects;
 ### Exercise 2.2: Set Membership - Answers
 
 #### Question 1: IN Operator
-**Task:** Find employees whose department ID is in the list (1, 3, 5).
+**Task:** Find employees whose d.DepartmentName ID is in the list (1, 3, 5).
 
 ```sql
 -- Answer 1: IN Operator
@@ -232,10 +232,11 @@ WHERE p.IsActive = 'In Progress';
 
 ```sql
 -- Answer 3: EXISTS Operation
-SELECT DepartmentName
+SELECT d.DepartmentName
 FROM Departments d
 WHERE EXISTS (
-    SELECT 1 FROM Employees e 
+    SELECT 1 FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.DepartmentID = d.DepartmentID
 );
 ```
@@ -301,6 +302,7 @@ FROM Departments d
 WHERE NOT EXISTS (
     SELECT 1
     FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.DepartmentID = d.DepartmentID
     AND e.BaseSalary <= 55000
 )
@@ -350,7 +352,7 @@ SELECT
     END AS FullName,
     -- Alternative using ISNULL:
     FirstName + ' ' + ISNULL(MiddleName + ' ', '') + LastName AS FullNameAlt
-FROM Employees;
+FROM Employees e;
 ```
 
 #### Question 4: Top-Level Managers
@@ -365,11 +367,11 @@ WHERE ManagerID IS NULL;
 
 ### Exercise 3.2: Complex Predicates - Answers
 
-#### Question 1: Complex BaseSalary and Department Logic
-**Task:** Find employees where (BaseSalary > $70k AND department is IT) OR (BaseSalary > $80k).
+#### Question 1: Complex BaseSalary and d.DepartmentName Logic
+**Task:** Find employees where (BaseSalary > $70k AND d.DepartmentName is IT) OR (BaseSalary > $80k).
 
 ```sql
--- Answer 1: Complex BaseSalary and Department Logic
+-- Answer 1: Complex BaseSalary and d.DepartmentName Logic
 SELECT FirstName, LastName, BaseSalary, DepartmentID
 FROM Employees
 WHERE (BaseSalary > 70000 AND DepartmentID = 1) 
@@ -430,7 +432,7 @@ ORDER BY FullName, AnnualSalary;
 -- INCORRECT: Cannot use alias in WHERE clause (processed before SELECT)
 -- This would cause an error:
 -- SELECT FirstName + ' ' + LastName AS FullName
--- FROM Employees
+-- FROM Employees e
 -- WHERE FullName LIKE 'J%';
 
 -- CORRECT: Use the actual expression in WHERE clause
@@ -447,10 +449,9 @@ ORDER BY FullName;
 
 ```sql
 -- Answer 1: Complex Query with All Clauses
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     COUNT(e.EmployeeID) AS EmployeeCount,
-    AVG(e.BaseSalary) AS AverageSalary,
+    AVG(e.BaseSalary) AS AverageBaseSalary,
     MIN(e.HireDate) AS EarliestHireDate,
     MAX(e.HireDate) AS LatestHireDate
 FROM Employees e                                      -- 1. FROM
@@ -472,7 +473,7 @@ ORDER BY AverageSalary DESC;                          -- 5. ORDER BY
 SELECT FirstName, LastName, BaseSalary
 FROM Employees
 WHERE BaseSalary > (
-    SELECT AVG(BaseSalary) 
+    SELECT AVG(e.BaseSalary) 
     FROM Employees 
     WHERE IsActive = 1
 );
@@ -482,8 +483,8 @@ SELECT
     FirstName,
     LastName,
     BaseSalary,
-    (SELECT AVG(BaseSalary) FROM Employees) AS CompanyAverageSalary,
-    BaseSalary - (SELECT AVG(BaseSalary) FROM Employees) AS SalaryDifference
+    (SELECT AVG(e.BaseSalary) FROM Employees e) AS CompanyAverageSalary,
+    BaseSalary - (SELECT AVG(e.BaseSalary) FROM Employees e) AS SalaryDifference
 FROM Employees
 WHERE IsActive = 1;
 
@@ -511,7 +512,7 @@ ORDER BY e1.DepartmentID, e1.BaseSalary DESC;
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     d.DepartmentName,
-    e.Title,
+    e.JobTitle,
     e.BaseSalary,
     DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
     COALESCE(
@@ -551,15 +552,14 @@ HAVING COUNT(ep.EmployeeID) > 0
 ORDER BY CompletionPercentage DESC;
 ```
 
-#### Scenario 3: Department Budget Analysis
+#### Scenario 3: d.DepartmentName Budget Analysis
 ```sql
--- Answer: Department Budget Analysis
-SELECT 
-    d.DepartmentName,
+-- Answer: d.DepartmentName Budget Analysis
+SELECT d.DepartmentName,
     d.Budget AS DepartmentBudget,
     COUNT(e.EmployeeID) AS EmployeeCount,
-    SUM(e.BaseSalary) AS TotalSalaries,
-    AVG(e.BaseSalary) AS AverageSalary,
+    SUM(e.BaseSalary) AS TotalBaseSalaries,
+    AVG(e.BaseSalary) AS AverageBaseSalary,
     d.Budget - SUM(e.BaseSalary) AS BudgetRemaining,
     CASE 
         WHEN SUM(e.BaseSalary) > d.Budget THEN 'Over Budget'

@@ -1,22 +1,14 @@
-# Module 3 Exercises: Writing Basic SELECT Statements - TechCorp Business Intelligence
+# Module 3 Exercises: Writing Basic SELECT Statements
 
 ## Exercise Set Overview
-These exercises test your mastery of fundamental SELECT statement concepts using **TechCorp Solutions** business scenarios: basic queries, DISTINCT operations, aliases, and CASE expressions. You'll create business intelligence reports that help TechCorp make data-driven decisions.
-
-## 🏢 TechCorp Business Context
-**TechCorp Solutions** needs powerful SELECT queries to:
-- Generate employee performance reports for management
-- Analyze project profitability and resource allocation
-- Track client relationships and business growth
-- Support HR decisions with compensation analysis
-- Create executive dashboards with key business metrics
+These exercises test your mastery of fundamental SELECT statement concepts: basic queries, DISTINCT operations, aliases, and CASE expressions. Each exercise builds upon previous concepts while introducing new challenges.
 
 ## Instructions
-- Complete all exercises in order using TechCorp's business requirements
-- Write clean, well-formatted SQL queries with business context
-- Use meaningful aliases that reflect TechCorp's business terminology
-- Include comments explaining the business value of complex logic
-- Test all queries against the TechCorpDB database
+- Complete all exercises in order
+- Write clean, well-formatted SQL queries
+- Use meaningful aliases throughout
+- Include comments for complex logic
+- Test all queries against the sample database
 
 ---
 
@@ -24,36 +16,26 @@ These exercises test your mastery of fundamental SELECT statement concepts using
 
 ### 1.1 Basic Query Construction (4 points each)
 
-**Question 1.1.1**: TechCorp's HR department needs a comprehensive employee directory for their annual review process. Create a query to display TechCorp employee information with the following business requirements:
-- Show employee full name (handle middle names properly for professional communications)
-- Display formatted BaseSalary as currency for compensation reviews
-- Calculate and show current age in years for demographic analysis
-- Show hire date in "Month DD, YYYY" format for tenure tracking
-- Include formatted phone number as (XXX) XXX-XXXX for contact purposes
-- Add department and job title for organizational context
-- Include email address for digital communications
+**Question 1.1.1**: Create a query to display employee information with the following requirements:
+- Show employee full name (handle middle names properly)
+- Display formatted BaseSalary as currency
+- Calculate and show age in years
+- Show hire date in "Month DD, YYYY" format
+- Include phone number formatted as (XXX) XXX-XXXX
 
-**Question 1.1.2**: TechCorp's project management office needs a comprehensive project analysis dashboard. Build a query that shows critical project metrics:
-- Project name and current status for executive visibility
-- Budget utilization percentage (actual cost / budget * 100) for financial control
-- Days elapsed since project start for timeline tracking
-- Projected vs actual timeline variance in days for performance analysis
-- Client type classification (Internal vs External) for business segment analysis
-- Project manager information for accountability
-- Risk level assessment based on budget variance and timeline delays
-- Expected revenue and profit margin calculations
+**Question 1.1.2**: Build a project analysis query that shows:
+- Project name and status
+- Budget utilization percentage (actual cost / budget * 100)
+- Days elapsed since project start
+- Projected vs actual timeline variance in days
+- Client type classification (Internal vs External)
 
-**Question 1.1.3**: TechCorp's finance team requires a comprehensive department overview for budget planning and organizational analysis. Create a query showing:
-- Department name and physical location for facilities management
-- Budget formatted with commas and dollar sign for financial reports
-- Cost center information for accounting purposes
-- Department manager information (if available) for organizational structure
-- Department size category based on budget ranges:
-  - "Small Department": < $300,000
-  - "Medium Department": $300,000 - $600,000
-  - "Large Department": > $600,000
-- Employee headcount for resource planning
-- Average BaseSalary per department for compensation analysis
+**Question 1.1.3**: Create a d.DepartmentName overview showing:
+- d.DepartmentName name and location
+- Budget formatted with commas and dollar sign
+- Cost center information
+- Manager information (if available)
+- d.DepartmentName size category based on budget ranges
 
 **Question 1.1.4**: Write a query for employee contact management:
 - Employee name and title
@@ -104,7 +86,7 @@ These exercises test your mastery of fundamental SELECT statement concepts using
 - Determine training program priorities
 
 **Question 2.1.5**: Perform organizational structure analysis:
-- Find unique department and title combinations
+- Find unique d.DepartmentName and title combinations
 - Identify career path diversity within departments
 - Analyze management structure patterns
 - Show hierarchy distribution
@@ -258,7 +240,7 @@ Develop a sophisticated project analysis system that:
 1. **Employee Excellence Engine**: Identify top performers, flight risks, and development candidates
 2. **Project Success Predictor**: Forecast project outcomes and recommend interventions
 3. **Skills Investment Optimizer**: Determine optimal training and hiring strategies
-4. **Organizational Health Monitor**: Assess department effectiveness and balance
+4. **Organizational Health Monitor**: Assess d.DepartmentName effectiveness and balance
 
 **Technical Constraints:**
 - Single query result set suitable for executive visualization

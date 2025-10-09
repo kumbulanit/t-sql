@@ -54,12 +54,12 @@ SELECT
 -- ================================
 
 -- Set #1: ALL employees (complete set)
-SELECT * FROM Employees;
+SELECT * FROM Employees e;
 -- This returns the COMPLETE SET of all employee records
 
 -- Set #2: Only Engineering employees (filtered subset)  
 SELECT * FROM Employees 
-WHERE DepartmentName = 'Engineering';
+WHERE d.DepartmentName = 'Engineering';
 -- This returns a SUBSET - only engineering employees
 
 -- Set #3: Active employees (another subset)
@@ -98,7 +98,7 @@ SELECT
     EmployeeID,
     FirstName + ' ' + LastName as FullName,
     BaseSalary,
-    DepartmentName
+    d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE 
@@ -116,7 +116,7 @@ WHERE
    
    This query finds employees who are EITHER:
    1. In Sales AND make more than $75,000, OR
-   2. In Engineering (regardless of salary)
+   2. In Engineering (regardless of BaseSalary)
 */
 ```
 
@@ -199,7 +199,7 @@ SELECT
     FirstName,                           -- Given name
     LastName,                            -- Family name  
     BaseSalary                           -- Annual compensation
-FROM Employees                           -- Source table
+FROM Employees e                           -- Source table
 WHERE IsActive = 1                       -- Only current employees
 ORDER BY LastName ASC,                   -- Sort by last name alphabetically
          FirstName ASC;                  -- Then by first name if last names match
@@ -245,11 +245,11 @@ FROM Employees
 WHERE IsActive = 1
 ORDER BY JobTitle;
 
--- Find all unique department names  
-SELECT DISTINCT DepartmentName
+-- Find all unique d.d.DepartmentName names  
+SELECT DISTINCT d.d.DepartmentName
 FROM Departments
 WHERE IsActive = 1
-ORDER BY DepartmentName;
+ORDER BY d.d.DepartmentName;
 
 -- Show the difference: WITH and WITHOUT DISTINCT
 -- WITHOUT DISTINCT (shows duplicates)
@@ -273,7 +273,7 @@ SELECT DISTINCT
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
-ORDER BY DepartmentName, JobTitle;
+ORDER BY d.DepartmentName, JobTitle;
 
 /* DISTINCT RULES:
    - Removes duplicate rows from the result set
@@ -308,8 +308,8 @@ SELECT
     e.EmployeeID,
     e.FirstName + ' ' + e.LastName as [Full Name],      -- Column alias with spaces
     e.JobTitle as [Job Position],                       -- Descriptive alias
-    FORMAT(e.BaseSalary, 'C') as [Annual Salary],      -- Formatted currency alias
-    d.DepartmentName as Department                      -- Simple alias
+    FORMAT(e.BaseSalary, 'C') as [Annual BaseSalary],      -- Formatted currency alias
+    d.DepartmentName AS d.DepartmentName                      -- Simple alias
 FROM Employees e                                        -- Table alias 'e'
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID  -- Table alias 'd'
 WHERE e.IsActive = 1
@@ -321,7 +321,8 @@ SELECT
     e.FirstName FullFirst,              -- Without 'as' keyword  
     e.LastName [Last Name],             -- Brackets for spaces
     e.BaseSalary "Annual Pay"           -- Double quotes (less common)
-FROM Employees e;
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
 -- Why use table aliases? Compare these two queries:
 
@@ -329,15 +330,15 @@ FROM Employees e;
 SELECT 
     Employees.FirstName,
     Employees.LastName,
-    Departments.DepartmentName
+    Departments.d.DepartmentName
 FROM Employees 
-INNER JOIN Departments ON Employees.DepartmentID = Departments.DepartmentID;
+INNER JOIN Departments d ON Employees.DepartmentID = Departments.DepartmentID;
 
 -- WITH aliases (clean and professional):
 SELECT 
     e.FirstName,
     e.LastName, 
-    d.DepartmentName
+    d.d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
@@ -369,13 +370,13 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 -- Learning: Creating calculated columns based on conditions
 -- ================================
 
--- Categorize employees by salary ranges
+-- Categorize employees by BaseSalary ranges
 SELECT 
     EmployeeID,
     FirstName + ' ' + LastName as EmployeeName,
     BaseSalary,
     
-    -- Simple CASE expression for salary categories
+    -- Simple CASE expression for BaseSalary categories
     CASE 
         WHEN BaseSalary < 50000 THEN 'Entry Level'
         WHEN BaseSalary BETWEEN 50000 AND 80000 THEN 'Mid Level'  
@@ -466,8 +467,8 @@ FOREIGN KEY RELATIONSHIPS EXPLAINED:
 Employees table has DepartmentID (foreign key)
 Departments table has DepartmentID (primary key)
 
-This creates a relationship: Each employee belongs to ONE department,
-but each department can have MANY employees.
+This creates a relationship: Each employee belongs to ONE d.DepartmentName,
+but each d.d.DepartmentName can have MANY employees.
 
 This is called a "One-to-Many" relationship.
 */
@@ -488,7 +489,7 @@ SELECT
     e.EmployeeID,
     e.FirstName + ' ' + e.LastName as EmployeeName,
     e.DepartmentID,                     -- Foreign key value
-    d.DepartmentName                    -- Related department name
+    d.d.DepartmentName                    -- Related d.d.DepartmentName name
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1;
@@ -510,7 +511,7 @@ WHERE IsActive = 1;
    Without JOINS, we'd only see foreign key numbers, not meaningful data
    
    Types of relationships:
-   - One-to-Many: One department, many employees  
+   - One-to-Many: One d.DepartmentName, many employees  
    - Many-to-Many: Many employees, many projects (through junction table)
    - One-to-One: One employee, one employee detail record
 */
@@ -560,9 +561,8 @@ INNER JOIN Companies c ON d.CompanyID = c.CompanyID              -- Second join
 WHERE e.IsActive = 1
 ORDER BY c.CompanyName, d.DepartmentName, e.LastName;
 
--- INNER JOIN with aggregation: Count employees per department
-SELECT 
-    d.DepartmentName,
+-- INNER JOIN with aggregation: Count employees per d.d.DepartmentName
+SELECT d.d.DepartmentName,
     COUNT(e.EmployeeID) as EmployeeCount,
     AVG(e.BaseSalary) as AverageSalary,
     MIN(e.BaseSalary) as MinSalary,
@@ -570,7 +570,7 @@ SELECT
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
-GROUP BY d.DepartmentID, d.DepartmentName           -- Group by department
+GROUP BY d.DepartmentID, d.d.DepartmentName           -- GROUP BY d.d.DepartmentName
 HAVING COUNT(e.EmployeeID) > 0                      -- Only departments with employees
 ORDER BY EmployeeCount DESC;
 
@@ -637,14 +637,14 @@ FROM Departments d                              -- Left table (all records kept)
 LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID    -- Right table (matched records only)
     AND e.IsActive = 1                          -- Additional condition in JOIN
 WHERE d.IsActive = 1
-GROUP BY d.DepartmentID, d.DepartmentName
+GROUP BY d.DepartmentID, d.d.DepartmentName
 ORDER BY EmployeeCount DESC;
 
 -- RIGHT JOIN: Show ALL employees, even those without valid departments
 SELECT 
     e.EmployeeID,
     e.FirstName + ' ' + e.LastName as EmployeeName,
-    ISNULL(d.DepartmentName, 'No Department Assigned') as DepartmentName,
+    ISNULL(d.DepartmentName, 'No d.DepartmentName Assigned') as DepartmentName,
     e.BaseSalary
 FROM Departments d                              -- Left table (matched records only)
 RIGHT JOIN Employees e ON d.DepartmentID = e.DepartmentID   -- Right table (all records kept)
@@ -652,8 +652,7 @@ WHERE e.IsActive = 1
 ORDER BY d.DepartmentName, e.LastName;
 
 -- FULL OUTER JOIN: Show ALL departments AND ALL employees
-SELECT 
-    ISNULL(d.DepartmentName, 'Unknown Department') as Department,
+SELECT ISNULL(d.d.DepartmentName, 'Unknown Department') AS DepartmentName,
     ISNULL(e.FirstName + ' ' + e.LastName, 'No Employees') as Employee,
     e.BaseSalary
 FROM Departments d
@@ -663,8 +662,7 @@ WHERE d.IsActive = 1 OR d.DepartmentID IS NULL
 ORDER BY d.DepartmentName, e.LastName;
 
 -- Practical business use: Find departments that need staffing
-SELECT 
-    d.DepartmentName,
+SELECT d.d.DepartmentName,
     COUNT(e.EmployeeID) as CurrentEmployees,
     CASE 
         WHEN COUNT(e.EmployeeID) = 0 THEN 'URGENT: No employees assigned'
@@ -674,7 +672,7 @@ SELECT
 FROM Departments d
 LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID AND e.IsActive = 1
 WHERE d.IsActive = 1
-GROUP BY d.DepartmentID, d.DepartmentName
+GROUP BY d.DepartmentID, d.d.DepartmentName
 ORDER BY CurrentEmployees ASC;
 
 /* OUTER JOIN TYPES:
@@ -746,7 +744,7 @@ SELECT
     e.FirstName + ' ' + e.LastName as EmployeeName,
     e.JobTitle,
     p.ProjectName,
-    p.ProjectStatus,
+    p.Status,
     CASE 
         WHEN e.JobTitle LIKE '%Engineer%' AND p.ProjectName LIKE '%Software%' 
         THEN 'Good Match'
@@ -757,7 +755,7 @@ SELECT
 FROM Employees e
 CROSS JOIN Projects p
 WHERE e.IsActive = 1 
-    AND p.ProjectStatus IN ('Planning', 'Active')
+    AND p.Status IN ('Planning', 'Active')
     AND e.DepartmentID IN (1, 2)    -- Limit to specific departments to reduce results
 ORDER BY e.LastName, p.ProjectName;
 
@@ -776,7 +774,7 @@ CROSS JOIN (
         ('15:00-16:00', 'Afternoon Block 2')
 ) ts(TimeSlot, TimeSlotDescription)
 WHERE e.IsActive = 1 
-    AND e.DepartmentID = 1    -- Limit to one department
+    AND e.DepartmentID = 1    -- Limit to one d.d.DepartmentName
 ORDER BY e.LastName, ts.TimeSlot;
 
 /* SELF JOIN vs CROSS JOIN:
@@ -816,7 +814,7 @@ ORDER BY e.LastName, ts.TimeSlot;
 -- Learning: Control how results are presented
 -- ================================
 
--- Multi-level sorting: Department, then salary, then name
+-- Multi-level sorting: d.DepartmentName, then BaseSalary, then name
 SELECT 
     e.EmployeeID,
     d.DepartmentName,
@@ -828,8 +826,8 @@ FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 ORDER BY 
-    d.DepartmentName ASC,          -- Primary sort: Department A-Z
-    e.BaseSalary DESC,             -- Secondary sort: Highest salary first
+    d.DepartmentName ASC,          -- Primary sort: d.d.DepartmentName A-Z
+    e.BaseSalary DESC,             -- Secondary sort: Highest BaseSalary first
     e.LastName ASC,                -- Tertiary sort: Last name A-Z
     e.FirstName ASC;               -- Quaternary sort: First name A-Z (for ties)
 
@@ -841,7 +839,7 @@ SELECT
     BaseSalary
 FROM Employees
 WHERE IsActive = 1
-ORDER BY BaseSalary ASC;           -- Lowest to highest salary
+ORDER BY BaseSalary ASC;           -- Lowest to highest BaseSalary
 
 -- DESC (Descending)
 SELECT 
@@ -850,7 +848,7 @@ SELECT
     BaseSalary
 FROM Employees
 WHERE IsActive = 1
-ORDER BY BaseSalary DESC;          -- Highest to lowest salary
+ORDER BY BaseSalary DESC;          -- Highest to lowest BaseSalary
 
 -- Sorting by calculated columns
 SELECT 
@@ -882,7 +880,7 @@ ORDER BY
         WHEN 'Senior Manager' THEN 5
         ELSE 6
     END,                           -- Custom hierarchy order
-    BaseSalary DESC;               -- Then by salary within each level
+    BaseSalary DESC;               -- Then by BaseSalary within each level
 
 /* SORTING RULES:
    
@@ -929,7 +927,7 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1                           -- Basic equality
     AND e.HireDate > '2020-01-01'              -- Date comparison
     AND e.BaseSalary BETWEEN 60000 AND 100000  -- Range operator
-    AND d.DepartmentName IN ('Engineering', 'Sales', 'Marketing')  -- List operator
+    AND d.d.DepartmentName IN ('Engineering', 'Sales', 'Marketing')  -- List operator
     AND e.JobTitle LIKE '%Engineer%'           -- Pattern matching
 ORDER BY d.DepartmentName, e.BaseSalary DESC;
 
@@ -950,10 +948,10 @@ SELECT
     e.EmployeeID,
     e.FirstName + ' ' + e.LastName as EmployeeName,
     e.JobTitle,
-    d.DepartmentName
+    d.d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID  
-WHERE d.DepartmentName IN (                    -- Multiple departments
+WHERE d.d.DepartmentName IN (                    -- Multiple departments
     'Engineering', 
     'Sales', 
     'Marketing',
@@ -1014,7 +1012,7 @@ WHERE (
     (e.JobTitle LIKE '%Manager%' OR e.JobTitle LIKE '%Director%')
 )
     AND e.IsActive = 1
-    AND d.DepartmentName NOT IN ('HR', 'Finance')  -- Exclude certain departments
+    AND d.d.DepartmentName NOT IN ('HR', 'Finance')  -- Exclude certain departments
 ORDER BY e.BaseSalary DESC;
 
 /* PREDICATE OPERATORS:
@@ -1082,7 +1080,7 @@ SELECT TOP 5 WITH TIES
 FROM Employees
 WHERE IsActive = 1
 ORDER BY BaseSalary DESC;
--- If multiple employees have the same 5th-highest salary, all are included
+-- If multiple employees have the same 5th-highest BaseSalary, all are included
 
 -- OFFSET-FETCH for pagination (SQL Server 2012+)
 -- Page 1: First 10 records
@@ -1138,32 +1136,30 @@ ORDER BY BaseSalary DESC
 OFFSET (@PageNumber - 1) * @PageSize ROWS 
 FETCH NEXT @PageSize ROWS ONLY;
 
--- Practical business example: Top performers by department
-SELECT 
-    d.DepartmentName,
+-- Practical business example: Top performers by d.d.DepartmentName
+SELECT d.d.DepartmentName,
     e.EmployeeID,
     e.FirstName + ' ' + e.LastName as EmployeeName,
     e.BaseSalary,
-    ROW_NUMBER() OVER (PARTITION BY d.DepartmentName ORDER BY e.BaseSalary DESC) as RankInDepartment
+    ROW_NUMBER() OVER (PARTITION BY d.d.DepartmentName ORDER BY e.BaseSalary DESC) as RankInDepartment
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
-    AND ROW_NUMBER() OVER (PARTITION BY d.DepartmentName ORDER BY e.BaseSalary DESC) <= 3
+    AND ROW_NUMBER() OVER (PARTITION BY d.d.DepartmentName ORDER BY e.BaseSalary DESC) <= 3
 ORDER BY d.DepartmentName, e.BaseSalary DESC;
 
--- Alternative using subquery for top 3 per department
+-- Alternative using subquery for top 3 per d.d.DepartmentName
 SELECT * FROM (
-    SELECT 
-        d.DepartmentName,
+    SELECT d.d.DepartmentName,
         e.FirstName + ' ' + e.LastName as EmployeeName,
         e.BaseSalary,
-        ROW_NUMBER() OVER (PARTITION BY d.DepartmentName ORDER BY e.BaseSalary DESC) as RowNum
+        ROW_NUMBER() OVER (PARTITION BY d.d.DepartmentName ORDER BY e.BaseSalary DESC) as RowNum
     FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.IsActive = 1
 ) ranked
 WHERE RowNum <= 3
-ORDER BY DepartmentName, BaseSalary DESC;
+ORDER BY d.DepartmentName, BaseSalary DESC;
 
 /* TOP vs OFFSET-FETCH:
    
@@ -1281,8 +1277,8 @@ SELECT
     COUNT(*) as TotalEmployees,                    -- Counts all rows
     COUNT(Phone) as EmployeesWithPhone,            -- Counts non-NULL phones only
     COUNT(MiddleName) as EmployeesWithMiddleName,  -- Counts non-NULL middle names
-    AVG(BaseSalary) as AvgSalary,                 -- NULLs ignored in average
-    SUM(BaseSalary) as TotalSalary                -- NULLs ignored in sum
+    AVG(e.BaseSalary) as AvgSalary,                 -- NULLs ignored in average
+    SUM(e.BaseSalary) as TotalSalary                -- NULLs ignored in sum
 FROM Employees
 WHERE IsActive = 1;
 

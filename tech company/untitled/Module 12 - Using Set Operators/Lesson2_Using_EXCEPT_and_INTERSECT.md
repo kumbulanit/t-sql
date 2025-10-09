@@ -90,14 +90,14 @@ WHERE e.IsActive = 1
 AND ep.IsActive = 1
 AND (ep.EndDate IS NULL OR ep.EndDate > GETDATE())
 
-ORDER BY DepartmentName, EmployeeName;
+ORDER BY d.DepartmentName, EmployeeName;
 
--- Verification: Count available employees by department
+-- Verification: Count available employees by d.DepartmentName
 SELECT 
     'Available Resource Summary' AS ReportType,
     d.DepartmentName,
     COUNT(*) AS AvailableEmployees,
-    AVG(e.BaseSalary) AS AverageSalary
+    AVG(e.BaseSalary) AS AverageBaseSalary
 FROM (
     SELECT 
         e.EmployeeID,
@@ -166,7 +166,7 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 WHERE e.IsActive = 1 AND ep.IsActive = 1
 
-ORDER BY DepartmentName, EmployeeName;
+ORDER BY d.DepartmentName, EmployeeName;
 
 -- Extended analysis: Show their dual roles
 SELECT 
@@ -386,7 +386,7 @@ FROM (
 -- TechCorp Example: High-Value Employee Identification
 -- Find employees who meet multiple high-performance criteria
 
--- Criteria 1: High salary employees (top 25% in their department)
+-- Criteria 1: High BaseSalary employees (top 25% in their department)
 WITH HighSalaryEmployees AS (
     SELECT 
         e.EmployeeID,
@@ -478,11 +478,11 @@ SELECT
      WHERE ep.EmployeeID = high_value.EmployeeID 
      AND ep.IsActive = 1 
      AND ep.StartDate >= DATEADD(YEAR, -1, GETDATE())) AS RecentProjects,
-    (SELECT AVG(BaseSalary) 
+    (SELECT AVG(e.BaseSalary) 
      FROM Employees 
      WHERE DepartmentID = e.DepartmentID 
      AND IsActive = 1) AS DepartmentAvgSalary,
-    FORMAT((high_value.BaseSalary / (SELECT AVG(BaseSalary) 
+    FORMAT((high_value.BaseSalary / (SELECT AVG(e.BaseSalary) 
                                     FROM Employees 
                                     WHERE DepartmentID = e.DepartmentID 
                                     AND IsActive = 1) - 1) * 100, 'N1') + '%' AS SalaryAboveAverage
@@ -651,11 +651,10 @@ The APPLY operator enables you to invoke a table-valued function for each row of
 
 ```sql
 -- TechCorp Example: Using CROSS APPLY for correlated operations
--- Find top 3 highest-paid employees in each department
+-- Find top 3 highest-paid employees in each d.DepartmentName
 
--- Using CROSS APPLY to get top employees per department
-SELECT 
-    d.DepartmentName,
+-- Using CROSS APPLY to get top employees per d.DepartmentName
+SELECT d.DepartmentName,
     top_employees.EmployeeRank,
     top_employees.EmployeeName,
     top_employees.JobTitle,
@@ -670,6 +669,7 @@ CROSS APPLY (
         e.BaseSalary,
         e.HireDate
     FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.DepartmentID = d.DepartmentID
     AND e.IsActive = 1
     ORDER BY e.BaseSalary DESC
@@ -678,25 +678,25 @@ WHERE d.IsActive = 1
 ORDER BY d.DepartmentName, top_employees.EmployeeRank;
 
 -- Using OUTER APPLY to include departments without employees
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     d.Budget AS DepartmentBudget,
     ISNULL(emp_stats.EmployeeCount, 0) AS EmployeeCount,
     ISNULL(emp_stats.TotalSalaryExpense, 0) AS TotalSalaryExpense,
-    ISNULL(emp_stats.AverageSalary, 0) AS AverageSalary,
+    ISNULL(emp_stats.AverageSalary, 0) AS AverageBaseSalary,
     CASE 
         WHEN emp_stats.EmployeeCount IS NULL THEN 'No Employees'
-        WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.8 THEN 'High Salary Utilization'
-        WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.6 THEN 'Moderate Salary Utilization'
-        ELSE 'Low Salary Utilization'
+        WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.8 THEN 'High BaseSalary Utilization'
+        WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.6 THEN 'Moderate BaseSalary Utilization'
+        ELSE 'Low BaseSalary Utilization'
     END AS BudgetUtilizationStatus
 FROM Departments d
 OUTER APPLY (
     SELECT 
         COUNT(*) AS EmployeeCount,
         SUM(e.BaseSalary) AS TotalSalaryExpense,
-        AVG(e.BaseSalary) AS AverageSalary
+        AVG(e.BaseSalary) AS AverageBaseSalary
     FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.DepartmentID = d.DepartmentID
     AND e.IsActive = 1
 ) AS emp_stats

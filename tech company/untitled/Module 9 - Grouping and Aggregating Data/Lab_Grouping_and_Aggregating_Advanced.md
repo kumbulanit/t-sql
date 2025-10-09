@@ -60,29 +60,29 @@ WITH ExecutiveIntelligence AS (
         AVG(CASE WHEN p.Budget > 0 THEN (ISNULL(p.Budget, 0) - ISNULL(p.ActualCost, 0)) / p.Budget END) AS AvgProfitMargin,
         
         -- DELIVERY PERFORMANCE
-        COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
-        COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeCompletions,
-        AVG(CASE WHEN p.IsActive = 'Completed' THEN DATEDIFF(DAY, p.StartDate, p.ActualEndDate) END) AS AvgProjectDuration,
+        COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) AS CompletedProjects,
+        COUNT(CASE WHEN p.Status = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeCompletions,
+        AVG(CASE WHEN p.Status = 'Completed' THEN DATEDIFF(DAY, p.StartDate, p.ActualEndDate) END) AS AvgProjectDuration,
         
         -- GROWTH METRICS
         SUM(p.Budget) - LAG(SUM(p.Budget), 1, 0) OVER (ORDER BY YEAR(p.StartDate), MONTH(p.StartDate)) AS MonthOverMonthGrowth,
         COUNT(p.ProjectID) - LAG(COUNT(p.ProjectID), 1, 0) OVER (ORDER BY YEAR(p.StartDate), MONTH(p.StartDate)) AS VolumeGrowth
         
     FROM Projects p
-    WHERE p.IsActive = 1 
+    WHERE p.Status = 'Active'
         AND p.StartDate >= DATEADD(YEAR, -3, GETDATE())
         AND p.StartDate IS NOT NULL
     GROUP BY YEAR(p.StartDate), MONTH(p.StartDate)
     
     UNION ALL
     
-    -- Department performance intelligence
+    -- d.DepartmentName performance intelligence
     SELECT 
         'DEPARTMENT_PERFORMANCE' AS IntelligenceCategory,
         NULL AS AnalysisYear,
         d.DepartmentID AS AnalysisMonth,
         
-        -- DEPARTMENT METRICS
+        -- d.DepartmentName METRICS
         COUNT(DISTINCT e.EmployeeID) AS EmployeeCount,
         SUM(p.Budget) AS DepartmentRevenue,
         AVG(p.Budget) AS AvgProjectValue,
@@ -90,12 +90,12 @@ WITH ExecutiveIntelligence AS (
         SUM(e.BaseSalary) AS PayrollCosts,
         SUM(p.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) AS RevenuePerEmployee,
         
-        -- DEPARTMENT PROFITABILITY
+        -- d.DepartmentName PROFITABILITY
         SUM(ISNULL(p.ActualCost, 0)) AS DepartmentCosts,
         SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)) AS DepartmentProfit,
         AVG(CASE WHEN p.Budget > 0 THEN (ISNULL(p.Budget, 0) - ISNULL(p.ActualCost, 0)) / p.Budget END) AS AvgProfitMargin,
         
-        -- DEPARTMENT DELIVERY
+        -- d.DepartmentName DELIVERY
         COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
         COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeCompletions,
         AVG(DATEDIFF(YEAR, e.HireDate, GETDATE())) AS AvgTenure,
@@ -258,7 +258,7 @@ SELECT
      FROM ExecutiveIntelligence 
      WHERE IntelligenceCategory = 'FINANCIAL_PERFORMANCE' AND MonthOverMonthGrowth IS NOT NULL) AS GrowthTrend,
     
-    -- Department Performance
+    -- d.DepartmentName Performance
     (SELECT 'Top Department: ' + 
         CASE AnalysisMonth
             WHEN 1 THEN 'Engineering'
@@ -346,7 +346,7 @@ SELECT
     
     'Next Board Review: ' + FORMAT(DATEADD(MONTH, 1, GETDATE()), 'MMMM dd, yyyy') AS NextBoardReview,
     'Quarterly Strategy Session: ' + FORMAT(DATEADD(DAY, -DAY(GETDATE()) + 1, DATEADD(MONTH, ((MONTH(GETDATE()) - 1) / 3 + 1) * 3 + 1, DATEADD(YEAR, DATEDIFF(YEAR, 0, GETDATE()), 0))), 'MMMM dd, yyyy') AS NextStrategySession,
-    'Performance Review Cycle: Monthly department reviews, quarterly client reviews' AS ReviewCycle,
+    'Performance Review Cycle: Monthly d.DepartmentName reviews, quarterly client reviews' AS ReviewCycle,
     'Competitive Analysis Update: Bi-annual market position assessment' AS CompetitiveReview
 
 UNION ALL
@@ -495,23 +495,23 @@ TrendAnalysis AS (
         
         -- TREND CALCULATIONS
         AVG(MonthlyRevenue) OVER (
-            PARTITION BY Industry, DepartmentName 
+            PARTITION BY Industry, d.DepartmentName 
             ORDER BY PerformanceYear, PerformanceMonth 
             ROWS BETWEEN 5 PRECEDING AND CURRENT ROW
         ) AS SixMonthAvgRevenue,
         
         STDEV(MonthlyRevenue) OVER (
-            PARTITION BY Industry, DepartmentName 
+            PARTITION BY Industry, d.DepartmentName 
             ORDER BY PerformanceYear, PerformanceMonth 
             ROWS BETWEEN 11 PRECEDING AND CURRENT ROW
         ) AS TwelveMonthVolatility,
         
         -- GROWTH TREND ANALYSIS
         (MonthlyRevenue - LAG(MonthlyRevenue, 12) OVER (
-            PARTITION BY Industry, DepartmentName 
+            PARTITION BY Industry, d.DepartmentName 
             ORDER BY PerformanceYear, PerformanceMonth
         )) * 100.0 / NULLIF(LAG(MonthlyRevenue, 12) OVER (
-            PARTITION BY Industry, DepartmentName 
+            PARTITION BY Industry, d.DepartmentName 
             ORDER BY PerformanceYear, PerformanceMonth
         ), 0) AS YearOverYearGrowthPercent,
         
@@ -522,15 +522,15 @@ TrendAnalysis AS (
         
         -- MOMENTUM INDICATORS
         CASE 
-            WHEN MonthlyRevenue > LAG(MonthlyRevenue, 1) OVER (PARTITION BY Industry, DepartmentName ORDER BY PerformanceYear, PerformanceMonth)
-                 AND LAG(MonthlyRevenue, 1) OVER (PARTITION BY Industry, DepartmentName ORDER BY PerformanceYear, PerformanceMonth) > 
-                     LAG(MonthlyRevenue, 2) OVER (PARTITION BY Industry, DepartmentName ORDER BY PerformanceYear, PerformanceMonth)
+            WHEN MonthlyRevenue > LAG(MonthlyRevenue, 1) OVER (PARTITION BY Industry, d.DepartmentName ORDER BY PerformanceYear, PerformanceMonth)
+                 AND LAG(MonthlyRevenue, 1) OVER (PARTITION BY Industry, d.DepartmentName ORDER BY PerformanceYear, PerformanceMonth) > 
+                     LAG(MonthlyRevenue, 2) OVER (PARTITION BY Industry, d.DepartmentName ORDER BY PerformanceYear, PerformanceMonth)
             THEN 'ACCELERATING'
-            WHEN MonthlyRevenue > LAG(MonthlyRevenue, 1) OVER (PARTITION BY Industry, DepartmentName ORDER BY PerformanceYear, PerformanceMonth)
+            WHEN MonthlyRevenue > LAG(MonthlyRevenue, 1) OVER (PARTITION BY Industry, d.DepartmentName ORDER BY PerformanceYear, PerformanceMonth)
             THEN 'GROWING'
-            WHEN MonthlyRevenue < LAG(MonthlyRevenue, 1) OVER (PARTITION BY Industry, DepartmentName ORDER BY PerformanceYear, PerformanceMonth)
-                 AND LAG(MonthlyRevenue, 1) OVER (PARTITION BY Industry, DepartmentName ORDER BY PerformanceYear, PerformanceMonth) < 
-                     LAG(MonthlyRevenue, 2) OVER (PARTITION BY Industry, DepartmentName ORDER BY PerformanceYear, PerformanceMonth)
+            WHEN MonthlyRevenue < LAG(MonthlyRevenue, 1) OVER (PARTITION BY Industry, d.DepartmentName ORDER BY PerformanceYear, PerformanceMonth)
+                 AND LAG(MonthlyRevenue, 1) OVER (PARTITION BY Industry, d.DepartmentName ORDER BY PerformanceYear, PerformanceMonth) < 
+                     LAG(MonthlyRevenue, 2) OVER (PARTITION BY Industry, d.DepartmentName ORDER BY PerformanceYear, PerformanceMonth)
             THEN 'DECLINING'
             ELSE 'STABLE'
         END AS MomentumTrend
@@ -573,7 +573,7 @@ ForecastingModel AS (
         
     FROM TrendAnalysis
     WHERE PerformanceYear >= YEAR(GETDATE()) - 2  -- Focus on recent data for accuracy
-    GROUP BY Industry, DepartmentName
+    GROUP BY Industry, d.DepartmentName
     HAVING COUNT(*) >= 12  -- Minimum one year of data for forecasting
 )
 
@@ -682,13 +682,13 @@ SELECT
     END AS InvestmentStrategy,
     
     -- Resource Allocation
-    (SELECT TOP 1 'Focus Investment: ' + Industry + ' - ' + DepartmentName + ' (Growth: ' + FORMAT(AvgGrowthRate, 'N1') + '%)'
+    (SELECT TOP 1 'Focus Investment: ' + Industry + ' - ' + d.DepartmentName + ' (Growth: ' + FORMAT(AvgGrowthRate, 'N1') + '%)'
      FROM ForecastingModel 
      WHERE AvgGrowthRate > 0 AND AvgVolatility / HistoricalAvgRevenue <= 0.3
      ORDER BY AvgGrowthRate DESC) AS TopInvestmentOpportunity,
     
     -- Risk Mitigation
-    (SELECT TOP 1 'Risk Mitigation: ' + Industry + ' - ' + DepartmentName + ' (Decline: ' + FORMAT(AvgGrowthRate, 'N1') + '%)'
+    (SELECT TOP 1 'Risk Mitigation: ' + Industry + ' - ' + d.DepartmentName + ' (Decline: ' + FORMAT(AvgGrowthRate, 'N1') + '%)'
      FROM ForecastingModel 
      WHERE AvgGrowthRate < -5
      ORDER BY AvgGrowthRate ASC) AS TopRiskMitigation,
@@ -775,7 +775,7 @@ ORDER BY
 - **Performance Measurement**: KPIs, benchmarking, and comparative analysis
 
 **🎲 GROUP BY EXCELLENCE**:
-- **Single Dimension Analysis**: Department, client, industry breakdowns
+- **Single Dimension Analysis**: d.DepartmentName, client, industry breakdowns
 - **Multi-Dimensional Intelligence**: Cross-category insights and patterns
 - **Temporal Analysis**: Time-based trending and seasonality patterns
 
@@ -794,7 +794,7 @@ ORDER BY
 - **Board-Level Reporting**: Executive dashboards with strategic KPIs
 - **Strategic Planning**: Multi-year forecasting and trend analysis
 - **Competitive Analysis**: Market positioning and opportunity identification
-- **Performance Management**: Department and employee productivity analysis
+- **Performance Management**: d.DepartmentName and employee productivity analysis
 - **Financial Planning**: Budget forecasting and variance analysis
 - **Risk Management**: Early warning systems and performance monitoring
 

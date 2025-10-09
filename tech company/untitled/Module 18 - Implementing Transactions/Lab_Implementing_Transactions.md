@@ -99,19 +99,19 @@ WHERE session_id = @@SPID;
 
 ## 🏋️‍♂️ Exercise 1: Basic Transaction Control
 
-### 🎯 Exercise 1.1: Employee Salary Update Transaction (⭐ BEGINNER)
+### 🎯 Exercise 1.1: Employee BaseSalary Update Transaction (⭐ BEGINNER)
 
-**Business Scenario:** Implement a salary update process that maintains data consistency between employee records and department budgets.
+**Business Scenario:** Implement a BaseSalary update process that maintains data consistency between employee records and d.DepartmentName budgets.
 
 ```sql
--- Challenge: Create a transaction-controlled salary update procedure
--- Requirements: Update employee salary and adjust department budget accordingly
+-- Challenge: Create a transaction-controlled BaseSalary update procedure
+-- Requirements: Update employee BaseSalary and adjust d.DepartmentName budget accordingly
 
 CREATE OR ALTER PROCEDURE sp_UpdateEmployeeSalary
     @EmployeeID INT,
     @NewSalary DECIMAL(10,2),
     @EffectiveDate DATE = NULL,
-    @Reason NVARCHAR(200) = 'Salary Adjustment'
+    @Reason NVARCHAR(200) = 'BaseSalary Adjustment'
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -120,7 +120,7 @@ BEGIN
     -- Your implementation should include:
     -- 1. Input validation
     -- 2. Transaction control with proper error handling
-    -- 3. Salary update with department budget adjustment
+    -- 3. BaseSalary update with d.DepartmentName budget adjustment
     -- 4. Audit trail creation
     -- 5. Return appropriate status messages
     
@@ -140,16 +140,16 @@ BEGIN
         -- Step 1: Validate and get current employee details
         -- YOUR CODE HERE
         
-        -- Step 2: Validate new salary amount
+        -- Step 2: Validate new BaseSalary amount
         -- YOUR CODE HERE
         
-        -- Step 3: Check department budget availability
+        -- Step 3: Check d.DepartmentName budget availability
         -- YOUR CODE HERE
         
-        -- Step 4: Update employee salary
+        -- Step 4: Update employee BaseSalary
         -- YOUR CODE HERE
         
-        -- Step 5: Adjust department budget
+        -- Step 5: Adjust d.DepartmentName budget
         -- YOUR CODE HERE
         
         -- Step 6: Create audit record
@@ -165,7 +165,7 @@ BEGIN
             @NewSalary AS NewSalary,
             @SalaryDifference AS SalaryIncrease,
             'SUCCESS' AS Status,
-            'Salary updated successfully' AS Message;
+            'BaseSalary updated successfully' AS Message;
         
     END TRY
     BEGIN CATCH
@@ -194,7 +194,7 @@ CREATE OR ALTER PROCEDURE sp_UpdateEmployeeSalary_Solution
     @EmployeeID INT,
     @NewSalary DECIMAL(10,2),
     @EffectiveDate DATE = NULL,
-    @Reason NVARCHAR(200) = 'Salary Adjustment'
+    @Reason NVARCHAR(200) = 'BaseSalary Adjustment'
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -218,23 +218,23 @@ BEGIN
             RAISERROR('Employee not found or inactive', 16, 1);
         
         IF @NewSalary <= 0
-            RAISERROR('Invalid salary amount', 16, 1);
+            RAISERROR('Invalid BaseSalary amount', 16, 1);
         
         SET @SalaryDifference = @NewSalary - @CurrentSalary;
         
-        -- Check department budget
+        -- Check d.DepartmentName budget
         SELECT @DepartmentBudget = Budget 
         FROM Departments WHERE DepartmentID = @DepartmentID;
         
         IF @DepartmentBudget < @SalaryDifference
-            RAISERROR('Insufficient department budget', 16, 1);
+            RAISERROR('Insufficient d.DepartmentName budget', 16, 1);
         
-        -- Update employee salary
+        -- Update employee BaseSalary
         UPDATE Employees 
         SET BaseSalary = @NewSalary, ModifiedDate = @EffectiveDate
         WHERE EmployeeID = @EmployeeID;
         
-        -- Adjust department budget
+        -- Adjust d.DepartmentName budget
         UPDATE Departments 
         SET Budget = Budget - @SalaryDifference, ModifiedDate = @EffectiveDate
         WHERE DepartmentID = @DepartmentID;
@@ -467,7 +467,7 @@ BEGIN
         -- Phase 4: Process budget allocations
         -- YOUR CODE HERE
         -- Parse JSON budget allocations
-        -- Validate department budgets and allocate
+        -- Validate d.DepartmentName budgets and allocate
         -- Create savepoint after this phase
         
         PRINT 'Phase 4 Complete: Budget allocated';
@@ -519,7 +519,7 @@ EXEC sp_SetupComplexProject
 
 ## 🏋️‍♂️ Exercise 3: Isolation Levels and Concurrency Control
 
-### 🎯 Exercise 3.1: Concurrent Salary Processing (⭐⭐⭐ ADVANCED)
+### 🎯 Exercise 3.1: Concurrent BaseSalary Processing (⭐⭐⭐ ADVANCED)
 
 **Business Scenario:** Implement a payroll processing system that handles concurrent operations with appropriate isolation levels.
 

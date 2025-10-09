@@ -30,21 +30,21 @@ SELECT
     FirstName AS First,
     LastName AS Last,
     BaseSalary AS AnnualSalary
-FROM Employees;
+FROM Employees e;
 
 -- Without AS keyword (also valid)
 SELECT 
     FirstName First,
     LastName Last,
     BaseSalary AnnualSalary
-FROM Employees;
+FROM Employees e;
 
 -- Aliases with spaces (requires brackets or quotes)
 SELECT 
     FirstName AS [First Name],
     LastName AS [Last Name],
     BaseSalary AS [Annual BaseSalary]
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 2. Column Aliases for Calculated Fields
@@ -57,7 +57,7 @@ SELECT
     BaseSalary / 12 AS MonthlySalary,
     BaseSalary * 0.15 AS EstimatedTax,
     BaseSalary * 0.85 AS NetSalary
-FROM Employees;
+FROM Employees e;
 
 -- String operations with aliases
 SELECT 
@@ -65,7 +65,7 @@ SELECT
     UPPER(FirstName) AS UpperFirstName,
     LEN(FirstName) AS FirstNameLength,
     LEFT(WorkEmail, CHARINDEX('@', WorkEmail) - 1) AS Username
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 3. Basic Table Aliases
@@ -103,7 +103,7 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 -- Multiple table aliases
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
-    d.DepartmentName AS Department,
+    d.DepartmentName AS DepartmentName,
     m.FirstName + ' ' + m.LastName AS ManagerName,
     e.BaseSalary AS [Employee BaseSalary]
 FROM Employees e
@@ -157,15 +157,13 @@ FROM Employees e;
 ### 4. Aliases in Subqueries
 ```sql
 -- Subquery with table alias
-SELECT 
-    dept_stats.DepartmentName,
+SELECT dept_stats.d.DepartmentName,
     dept_stats.EmployeeCount,
     dept_stats.AverageSalary
 FROM (
-    SELECT 
-        d.DepartmentName,
+    SELECT d.DepartmentName,
         COUNT(e.EmployeeID) AS EmployeeCount,
-        AVG(e.BaseSalary) AS AverageSalary
+        AVG(e.BaseSalary) AS AverageBaseSalary
     FROM Departments d
     LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID
     GROUP BY d.DepartmentName
@@ -180,7 +178,7 @@ WHERE dept_stats.EmployeeCount > 2;
 -- Advanced scenario with multiple aliases and calculations
 SELECT 
     emp.FirstName + ' ' + emp.LastName AS EmployeeName,
-    dept.DepartmentName AS Department,
+    dept.DepartmentName AS DepartmentName,
     proj.ProjectName AS CurrentProject,
     emp.BaseSalary AS BaseSalary,
     ep.HoursWorked AS ProjectHours,
@@ -204,7 +202,7 @@ WHERE emp.IsActive = 1;
 -- Window functions with meaningful aliases
 SELECT 
     emp.FirstName + ' ' + emp.LastName AS EmployeeName,
-    dept.DepartmentName AS Department,
+    dept.DepartmentName AS DepartmentName,
     emp.BaseSalary AS CurrentSalary,
     RANK() OVER (ORDER BY emp.BaseSalary DESC) AS CompanywideSalaryRank,
     RANK() OVER (PARTITION BY emp.DepartmentID ORDER BY emp.BaseSalary DESC) AS DepartmentSalaryRank,
@@ -226,7 +224,7 @@ WITH EmployeePerformanceMetrics AS (
         e.FirstName + ' ' + e.LastName AS FullName,
         e.BaseSalary AS BaseSalary,
         e.HireDate AS StartDate,
-        d.DepartmentName AS Department,
+        d.DepartmentName AS DepartmentName,
         DATEDIFF(MONTH, e.HireDate, GETDATE()) AS TenureInMonths,
         COUNT(ep.ProjectID) AS ActiveProjects,
         ISNULL(SUM(ep.HoursWorked), 0) AS TotalHoursWorked,
@@ -239,33 +237,31 @@ WITH EmployeePerformanceMetrics AS (
              e.HireDate, d.DepartmentName
 ),
 DepartmentBenchmarks AS (
-    SELECT 
-        Department,
-        AVG(BaseSalary) AS DepartmentAverageSalary,
+    SELECT d.DepartmentName,
+        AVG(e.BaseSalary) AS DepartmentAverageSalary,
         AVG(TenureInMonths) AS DepartmentAverageTenure,
         AVG(TotalHoursWorked) AS DepartmentAverageHours
     FROM EmployeePerformanceMetrics
     GROUP BY DepartmentID
 )
 SELECT 
-    emp.FirstName + ' ' + emp.LastName AS EmployeeName,
-    d.DepartmentName AS DepartmentName,
-    emp.BaseSalary AS CurrentSalary,
-    FORMAT(emp.BaseSalary, 'C') AS FormattedSalary,
-    DATEDIFF(MONTH, emp.HireDate, GETDATE()) AS MonthsEmployed,
-    emp.ProjectCount AS ProjectCount,
-    emp.BaseSalary * 2080 AS EstimatedAnnualHours, -- Assuming 40 hrs/week * 52 weeks
-    AVG(emp2.BaseSalary) OVER (PARTITION BY d.DepartmentID) AS DeptAvgSalary,
-    emp.BaseSalary - AVG(emp2.BaseSalary) OVER (PARTITION BY d.DepartmentID) AS SalaryDifferenceFromAvg,
+    epm.FullName AS EmployeeName,
+    epm.DepartmentName AS DepartmentName,
+    epm.BaseSalary AS CurrentSalary,
+    FORMAT(epm.BaseSalary, 'C') AS FormattedSalary,
+    epm.TenureInMonths AS MonthsEmployed,
+    epm.ActiveProjects AS ProjectCount,
+    epm.TotalHoursWorked AS HoursWorked,
+    db.DepartmentAverageSalary AS DeptAvgSalary,
+    epm.BaseSalary - db.DepartmentAverageSalary AS SalaryDifferenceFromAvg,
     CASE 
-        WHEN emp.BaseSalary > AVG(emp2.BaseSalary) OVER (PARTITION BY d.DepartmentID) * 1.2 THEN 'Above Market'
-        WHEN emp.BaseSalary < AVG(emp2.BaseSalary) OVER (PARTITION BY d.DepartmentID) * 0.8 THEN 'Below Market'
+        WHEN epm.BaseSalary > db.DepartmentAverageSalary * 1.2 THEN 'Above Market'
+        WHEN epm.BaseSalary < db.DepartmentAverageSalary * 0.8 THEN 'Below Market'
         ELSE 'Market Rate'
     END AS SalaryPosition
-FROM Employees emp
-INNER JOIN Departments d ON emp.DepartmentID = d.DepartmentID
-CROSS JOIN Employees emp2 -- For calculating department averages
-ORDER BY d.DepartmentName, emp.BaseSalary DESC;
+FROM EmployeePerformanceMetrics epm
+INNER JOIN DepartmentBenchmarks db ON epm.DepartmentName = db.d.DepartmentName
+ORDER BY epm.DepartmentName, epm.BaseSalary DESC;
 ```
 
 ### 4. Dynamic Aliases with Pivot Operations
@@ -275,7 +271,7 @@ WITH MonthlySales AS (
     SELECT 
         emp.FirstName + ' ' + emp.LastName AS SalesPersonName,
         DATENAME(MONTH, ord.OrderDate) AS SalesMonth,
-        SUM(ord.TotalAmount) AS MonthlyTotal
+        SUM(ord.OrderTotal) AS MonthlyTotal
     FROM Employees emp
     INNER JOIN Orders ord ON emp.EmployeeID = ord.EmployeeID
     WHERE YEAR(ord.OrderDate) = 2023
@@ -354,8 +350,8 @@ LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID;
 --     LastName,         -- Which table's LastName?
 --     DepartmentName,
 --     ProjectName
--- FROM Employees
--- INNER JOIN Departments ON Employees.DepartmentID = Departments.DepartmentID;
+-- FROM Employees e
+-- INNER JOIN Departments d ON Employees.DepartmentID = Departments.DepartmentID;
 ```
 
 ### 4. Short but Meaningful Table Aliases
@@ -384,14 +380,14 @@ SELECT
     FirstName AS [Order],    -- 'Order' is reserved
     LastName AS [Group],     -- 'Group' is reserved
     BaseSalary AS [Select]       -- 'Select' is reserved
-FROM Employees;
+FROM Employees e;
 
 -- Better: Use descriptive, non-reserved words
 SELECT 
     FirstName AS EmployeeFirstName,
     LastName AS EmployeeLastName,
     BaseSalary AS EmployeeSalary
-FROM Employees;
+FROM Employees e;
 ```
 
 ### 2. Alias Scope Confusion
@@ -415,7 +411,7 @@ WITH NamedEmployees AS (
     SELECT 
         FirstName + ' ' + LastName AS FullName,
         BaseSalary
-    FROM Employees
+    FROM Employees e
 )
 SELECT *
 FROM NamedEmployees
@@ -429,7 +425,7 @@ SELECT
     e.FirstName,
     LastName,           -- Should be e.LastName
     e.BaseSalary,
-    DepartmentName      -- Should be d.DepartmentName
+    d.DepartmentName      -- Should be d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
@@ -468,7 +464,7 @@ FROM Employees e;
 SELECT 
     emp.EmployeeID AS EmployeeID,
     emp.FirstName + ' ' + emp.LastName AS EmployeeName,
-    dept.DepartmentName AS Department,
+    dept.DepartmentName AS DepartmentName,
     emp.BaseSalary AS CurrentSalary,
     AVG(emp.BaseSalary) OVER (PARTITION BY emp.DepartmentID) AS DepartmentAverage
 FROM Employees emp
@@ -485,7 +481,7 @@ SELECT
     ROW_NUMBER() OVER (ORDER BY e.LastName, e.FirstName) AS [Row #],
     e.FirstName + ' ' + e.LastName AS [Employee Name],
     d.DepartmentName AS [Department],
-    e.Title AS [Job Title],
+    e.JobTitle AS [Job Title],
     FORMAT(e.BaseSalary, 'C') AS [Annual BaseSalary],
     DATEDIFF(YEAR, e.HireDate, GETDATE()) AS [Years of Service],
     CASE 
@@ -507,8 +503,8 @@ SELECT
     e.FirstName AS FirstName,
     e.LastName AS LastName,
     e.WorkEmail AS email_address,
-    d.DepartmentName AS department,
-    e.Title AS job_title,
+    d.DepartmentName AS DepartmentName,
+    e.JobTitle AS job_title,
     e.BaseSalary AS annual_salary,
     FORMAT(e.HireDate, 'yyyy-MM-dd') AS hire_date,
     CASE WHEN e.IsActive = 1 THEN 'Y' ELSE 'N' END AS is_active

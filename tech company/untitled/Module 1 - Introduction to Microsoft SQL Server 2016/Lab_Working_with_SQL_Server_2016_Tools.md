@@ -27,14 +27,14 @@ This is your first hands-on lab! You'll learn SQL Server basics while building a
 ### Modules 2-3: Simple Queries
 **🟢 STILL BEGINNER** - Learn to ask questions of your data
 - "Who are all the employees?"
-- "Which department does John work in?"
+- "Which d.DepartmentName does John work in?"
 - "Show me all projects started this year"
 
 ### Modules 4-5: Connecting Information  
 **🟡 GETTING INTERMEDIATE** - Learn to combine information from multiple places
 - "Which employees work on which projects?"
 - "Show me all projects and their managers"
-- "List employees with their department and company info"
+- "List employees with their d.DepartmentName and company info"
 
 ### Modules 6-7: Advanced Business Analysis
 **🔴 BECOMING EXPERT** - Handle complex business scenarios
@@ -264,7 +264,7 @@ CREATE TABLE Companies (
 CREATE TABLE Departments (
     DepartmentID INT PRIMARY KEY IDENTITY(2001,1),
     CompanyID INT NOT NULL,
-    DepartmentName NVARCHAR(100) NOT NULL,
+    d.DepartmentName NVARCHAR(100) NOT NULL,
     DepartmentCode NVARCHAR(10) NOT NULL,
     ManagerEmployeeID INT NULL, -- Self-referencing, will be added later
     CostCenter NVARCHAR(20) NULL,
@@ -729,7 +729,7 @@ CREATE TABLE EmployeeInfo (
     EmployeeID int NOT NULL PRIMARY KEY,
     Name nvarchar(100) NOT NULL,
     Position nvarchar(100) NOT NULL,
-    Department nvarchar(50) NOT NULL,
+    d.DepartmentName nvarchar(50) NOT NULL,
     BaseSalary decimal(10,2) NOT NULL,
     
     -- System versioning columns
@@ -739,7 +739,7 @@ CREATE TABLE EmployeeInfo (
 ) WITH (SYSTEM_VERSIONING = ON (HISTORY_TABLE = dbo.EmployeeInfo_History));
 
 -- Insert and update data to see temporal features
-INSERT INTO EmployeeInfo (EmployeeID, Name, Position, Department, BaseSalary)
+INSERT INTO EmployeeInfo (EmployeeID, Name, Position, d.DepartmentName, BaseSalary)
 VALUES 
 (1, 'John Smith', 'Developer', 'IT', 75000),
 (2, 'Jane Doe', 'Manager', 'Sales', 85000);
@@ -1056,7 +1056,7 @@ VALUES
 ('Jane', 'Smith', 'jane.smith@company.com', '2024-02-01', 70000);
 
 -- Compare current data with snapshot
-SELECT 'Current Database' as Source, COUNT(*) as EmployeeCount
+SELECT 'Current Database' as Source, COUNT(*) AS EmployeeCount
 FROM HR.Employees
 UNION ALL
 SELECT 'Snapshot', COUNT(*) 

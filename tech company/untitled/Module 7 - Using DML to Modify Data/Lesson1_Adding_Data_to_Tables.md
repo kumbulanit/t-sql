@@ -1,15 +1,7 @@
-# Lesson 1: Adding Data to Tables - TechCorp Data Management
+# Lesson 1: Adding Data to Tables
 
 ## Overview
-The INSERT statement is how **TechCorp Solutions** adds new business data to their SQL Server database. As a growing technology consulting company, TechCorp regularly needs to insert new employee records, client information, project details, and performance metrics. This lesson covers all aspects of inserting data using TechCorp's business scenarios, from basic single-row inserts (like adding a new employee) to complex multi-table scenarios (like setting up a complete new client engagement).
-
-## 🏢 TechCorp Business Context
-**TechCorp Solutions** uses INSERT statements for:
-- **New Employee Onboarding**: Adding employee records, skills, and department assignments
-- **Client Management**: Inserting new client companies and contact information
-- **Project Setup**: Creating project records with budgets, timelines, and team assignments
-- **Performance Tracking**: Recording time entries, performance reviews, and achievement metrics
-- **Financial Operations**: Adding invoices, payments, and expense records
+The INSERT statement is the primary method for adding data to tables in SQL Server. This lesson covers all aspects of inserting data, from basic single-row inserts to complex multi-table scenarios. Understanding proper INSERT techniques is fundamental to effective database management and application development.
 
 ## INSERT Statement Fundamentals
 
@@ -75,7 +67,7 @@ CREATE TABLE Employees (
 
 CREATE TABLE Departments (
     DepartmentID INT IDENTITY(1,1) PRIMARY KEY,
-    DepartmentName NVARCHAR(100) NOT NULL UNIQUE,
+    d.DepartmentName NVARCHAR(100) NOT NULL UNIQUE,
     Location NVARCHAR(100),
     ManagerID INT,
     Budget DECIMAL(12,2),
@@ -158,7 +150,7 @@ VALUES
     ('Security Audit', 'Comprehensive security assessment and remediation', '2024-01-10', '2024-04-30', 75000.00, 'In Progress');
 
 -- Verify multiple row inserts
-SELECT COUNT(*) AS EmployeeCount FROM Employees;
+SELECT COUNT(*) AS EmployeeCount FROM Employees e;
 SELECT COUNT(*) AS ProjectCount FROM Projects;
 ```
 
@@ -168,7 +160,7 @@ SELECT COUNT(*) AS ProjectCount FROM Projects;
 INSERT INTO Employees (FirstName, LastName, WorkEmail, BaseSalary, DepartmentID, HireDate)
 VALUES 
     ('Thomas', 'Anderson', 'thomas.anderson@company.com', 
-     (SELECT AVG(BaseSalary) * 1.1 FROM Employees WHERE DepartmentID = 1), -- 10% above IT average
+     (SELECT AVG(e.BaseSalary) * 1.1 FROM Employees WHERE DepartmentID = 1), -- 10% above IT average
      1, 
      DATEADD(DAY, 30, GETDATE())); -- Start date 30 days from now
 
@@ -205,12 +197,12 @@ CREATE TABLE EmployeeBackup (
     LastName NVARCHAR(50),
     WorkEmail NVARCHAR(100),
     BaseSalary DECIMAL(10,2),
-    DepartmentName NVARCHAR(100),
+    d.DepartmentName NVARCHAR(100),
     BackupDate DATETIME2 DEFAULT SYSDATETIME()
 );
 
 -- INSERT...SELECT with JOIN
-INSERT INTO EmployeeBackup (EmployeeID, FirstName, LastName, WorkEmail, BaseSalary, DepartmentName)
+INSERT INTO EmployeeBackup (EmployeeID, FirstName, LastName, WorkEmail, BaseSalary, d.DepartmentName)
 SELECT 
     e.EmployeeID,
     e.FirstName,
@@ -229,7 +221,7 @@ SELECT * FROM EmployeeBackup ORDER BY EmployeeID;
 CREATE TABLE DepartmentSummary (
     SummaryID INT IDENTITY(1,1) PRIMARY KEY,
     DepartmentID INT,
-    DepartmentName NVARCHAR(100),
+    d.DepartmentName NVARCHAR(100),
     EmployeeCount INT,
     AverageSalary DECIMAL(10,2),
     TotalSalary DECIMAL(12,2),
@@ -241,7 +233,7 @@ SELECT
     d.DepartmentID,
     d.DepartmentName,
     COUNT(e.EmployeeID) AS EmployeeCount,
-    AVG(e.BaseSalary) AS AverageSalary,
+    AVG(e.BaseSalary) AS AverageBaseSalary,
     SUM(e.BaseSalary) AS TotalSalary
 FROM Departments d
 LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID
@@ -261,7 +253,7 @@ CREATE TABLE HighPerformers (
     LastName NVARCHAR(50),
     CurrentSalary DECIMAL(10,2),
     SalaryRank INT,
-    DepartmentName NVARCHAR(100),
+    d.DepartmentName NVARCHAR(100),
     PerformanceCategory NVARCHAR(50),
     IdentifiedDate DATETIME2 DEFAULT SYSDATETIME()
 );
@@ -278,7 +270,7 @@ SELECT
     CASE 
         WHEN RANK() OVER (PARTITION BY d.DepartmentName ORDER BY e.BaseSalary DESC) = 1 THEN 'Top Performer'
         WHEN RANK() OVER (PARTITION BY d.DepartmentName ORDER BY e.BaseSalary DESC) <= 2 THEN 'High Performer'
-        WHEN e.BaseSalary > (SELECT AVG(BaseSalary) FROM Employees WHERE DepartmentID = e.DepartmentID) THEN 'Above Average'
+        WHEN e.BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees WHERE DepartmentID = e.DepartmentID) THEN 'Above Average'
         ELSE 'Standard'
     END AS PerformanceCategory
 FROM Employees e
@@ -286,7 +278,7 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1 
   AND e.BaseSalary IS NOT NULL
   AND (RANK() OVER (PARTITION BY d.DepartmentName ORDER BY e.BaseSalary DESC) <= 2 
-       OR e.BaseSalary > (SELECT AVG(BaseSalary) FROM Employees WHERE DepartmentID = e.DepartmentID));
+       OR e.BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees WHERE DepartmentID = e.DepartmentID));
 
 SELECT * FROM HighPerformers ORDER BY DepartmentIDName, SalaryRank;
 
@@ -297,7 +289,7 @@ CREATE TABLE AllContacts (
     FirstName NVARCHAR(50),
     LastName NVARCHAR(50),
     WorkEmail NVARCHAR(100),
-    Department NVARCHAR(100),
+    d.DepartmentName NVARCHAR(100),
     ContactDate DATETIME2 DEFAULT SYSDATETIME()
 );
 
@@ -423,7 +415,7 @@ SELECT
 FROM Projects p
 CROSS JOIN Employees e
 WHERE p.IsActive = 'Planning' 
-  AND e.DepartmentID = 1  -- IT Department
+  AND e.DepartmentID = 1  -- IT d.DepartmentName
   AND e.IsActive = 1;
 
 -- View the assignment results
@@ -467,7 +459,7 @@ END TRY
 BEGIN CATCH
     PRINT 'Foreign key violation: ' + ERROR_MESSAGE();
     
-    -- Handle the error by using a valid department
+    -- Handle the error by using a valid d.DepartmentName
     INSERT INTO Employees (FirstName, LastName, WorkEmail, BaseSalary, DepartmentID)
     VALUES ('Corrected', 'Employee', 'corrected.employee@company.com', 65000.00, 1);
     
@@ -524,7 +516,7 @@ BEGIN
     
     IF NOT EXISTS (SELECT 1 FROM Departments WHERE DepartmentID = @DepartmentID)
     BEGIN
-        SET @ErrorMessage = @ErrorMessage + 'Invalid department ID. ';
+        SET @ErrorMessage = @ErrorMessage + 'Invalid d.DepartmentName ID. ';
         SET @ValidationPassed = 0;
     END
     
@@ -752,7 +744,7 @@ CREATE TABLE EmployeePerformanceRanking (
     RankingID INT IDENTITY(1,1) PRIMARY KEY,
     EmployeeID INT,
     EmployeeName NVARCHAR(101),
-    DepartmentName NVARCHAR(100),
+    d.DepartmentName NVARCHAR(100),
     BaseSalary DECIMAL(10,2),
     DepartmentRank INT,
     OverallRank INT,

@@ -80,19 +80,19 @@ BEGIN
             RAISERROR('Employee is already in the target department', 16, 1);
         END;
         
-        -- Step 2: Validate new department and check budget capacity
+        -- Step 2: Validate new d.DepartmentName and check budget capacity
         SELECT @NewDepartmentBudget = Budget
         FROM Departments 
         WHERE DepartmentID = @NewDepartmentID AND IsActive = 1;
         
         IF @NewDepartmentBudget IS NULL
         BEGIN
-            RAISERROR('Target department not found or inactive: %d', 16, 1, @NewDepartmentID);
+            RAISERROR('Target d.DepartmentName not found or inactive: %d', 16, 1, @NewDepartmentID);
         END;
         
         IF @NewDepartmentBudget < @CurrentSalary
         BEGIN
-            RAISERROR('Insufficient budget in target department for employee salary', 16, 1);
+            RAISERROR('Insufficient budget in target d.DepartmentName for employee BaseSalary', 16, 1);
         END;
         
         -- Step 3: Record transfer in audit table (before making changes)
@@ -105,19 +105,19 @@ BEGIN
          GETDATE(),
          @Reason);
         
-        -- Step 4: Update employee department
+        -- Step 4: Update employee d.DepartmentName
         UPDATE Employees 
         SET DepartmentID = @NewDepartmentID,
             ModifiedDate = @TransferDate
         WHERE EmployeeID = @EmployeeID;
         
-        -- Step 5: Update old department budget (free up budget)
+        -- Step 5: Update old d.DepartmentName budget (free up budget)
         UPDATE Departments 
         SET Budget = Budget + @CurrentSalary,
             ModifiedDate = @TransferDate
         WHERE DepartmentID = @CurrentDepartmentID;
         
-        -- Step 6: Update new department budget (allocate budget)
+        -- Step 6: Update new d.DepartmentName budget (allocate budget)
         UPDATE Departments 
         SET Budget = Budget - @CurrentSalary,
             ModifiedDate = @TransferDate
@@ -277,13 +277,13 @@ BEGIN
         
         PRINT 'Phase 2 Complete: ' + CAST(@MemberCount AS NVARCHAR(10)) + ' team members assigned';
         
-        -- Phase 3: Allocate department budgets
+        -- Phase 3: Allocate d.DepartmentName budgets
         DECLARE @ManagerDepartmentID INT;
         SELECT @ManagerDepartmentID = DepartmentID 
         FROM Employees 
         WHERE EmployeeID = @ProjectManagerID;
         
-        -- Check if department has sufficient budget
+        -- Check if d.DepartmentName has sufficient budget
         DECLARE @DepartmentBudget DECIMAL(15,2);
         SELECT @DepartmentBudget = Budget 
         FROM Departments 
@@ -291,10 +291,10 @@ BEGIN
         
         IF @DepartmentBudget < @Budget
         BEGIN
-            RAISERROR('Insufficient department budget for project', 16, 1);
+            RAISERROR('Insufficient d.DepartmentName budget for project', 16, 1);
         END;
         
-        -- Allocate budget from department
+        -- Allocate budget from d.DepartmentName
         UPDATE Departments 
         SET Budget = Budget - @Budget,
             ModifiedDate = GETDATE()
@@ -303,7 +303,7 @@ BEGIN
         -- Create savepoint after budget allocation
         SAVE TRANSACTION @BudgetSavePoint;
         
-        PRINT 'Phase 3 Complete: Budget allocated from department';
+        PRINT 'Phase 3 Complete: Budget allocated FROM Departments';
         
         -- Phase 4: Final validations and setup
         -- Update project with final team count
@@ -440,7 +440,7 @@ BEGIN
         FROM Employees 
         WHERE EmployeeID = @EmployeeID;
         
-        PRINT 'Initial salary read: ' + CAST(@InitialSalary AS NVARCHAR(20));
+        PRINT 'Initial BaseSalary read: ' + CAST(@InitialSalary AS NVARCHAR(20));
         
         -- Simulate processing time to allow concurrent modifications
         PRINT 'Simulating processing time (5 seconds)...';
@@ -451,13 +451,13 @@ BEGIN
         FROM Employees 
         WHERE EmployeeID = @EmployeeID;
         
-        PRINT 'Final salary read: ' + CAST(@FinalSalary AS NVARCHAR(20));
+        PRINT 'Final BaseSalary read: ' + CAST(@FinalSalary AS NVARCHAR(20));
         
         -- Check for phantom reads or non-repeatable reads
         IF @InitialSalary <> @FinalSalary
         BEGIN
             PRINT 'WARNING: Non-repeatable read detected!';
-            PRINT 'Salary changed from ' + CAST(@InitialSalary AS NVARCHAR(20)) + 
+            PRINT 'BaseSalary changed from ' + CAST(@InitialSalary AS NVARCHAR(20)) + 
                   ' to ' + CAST(@FinalSalary AS NVARCHAR(20));
         END
         ELSE
@@ -513,7 +513,7 @@ BEGIN
         -- Create temporary table for report data
         CREATE TABLE #ReportData (
             DepartmentID INT,
-            DepartmentName NVARCHAR(100),
+            d.DepartmentName NVARCHAR(100),
             EmployeeCount INT,
             TotalSalary DECIMAL(15,2),
             AverageSalary DECIMAL(10,2),
@@ -521,14 +521,14 @@ BEGIN
             ReportTimestamp DATETIME
         );
         
-        -- Collect department statistics (consistent view)
+        -- Collect d.DepartmentName statistics (consistent view)
         INSERT INTO #ReportData
         SELECT 
             d.DepartmentID,
             d.DepartmentName,
             COUNT(DISTINCT e.EmployeeID) AS EmployeeCount,
             SUM(e.BaseSalary) AS TotalSalary,
-            AVG(e.BaseSalary) AS AverageSalary,
+            AVG(e.BaseSalary) AS AverageBaseSalary,
             COUNT(DISTINCT p.ProjectID) AS ProjectCount,
             GETDATE() AS ReportTimestamp
         FROM Departments d
@@ -545,17 +545,16 @@ BEGIN
         WAITFOR DELAY '00:00:03';
         
         -- Generate final report
-        SELECT 
-            'TechCorp Department Analysis Report' AS ReportTitle,
+        SELECT 'TechCorp d.DepartmentName Analysis Report' AS ReportTitle,
             @ReportDate AS ReportDate,
             DepartmentName,
             EmployeeCount,
             FORMAT(TotalSalary, 'C') AS TotalSalary,
-            FORMAT(AverageSalary, 'C') AS AverageSalary,
+            FORMAT(AverageSalary, 'C') AS AverageBaseSalary,
             ProjectCount,
             ReportTimestamp
         FROM #ReportData
-        ORDER BY DepartmentName;
+        ORDER BY d.DepartmentName;
         
         -- Summary statistics
         SELECT 
@@ -645,7 +644,7 @@ BEGIN
         
         -- Calculate total payroll amount
         DECLARE @TotalPayrollAmount DECIMAL(15,2);
-        SELECT @TotalPayrollAmount = SUM(BaseSalary)
+        SELECT @TotalPayrollAmount = SUM(e.BaseSalary)
         FROM Employees 
         WHERE IsActive = 1;
         

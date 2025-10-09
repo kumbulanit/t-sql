@@ -134,11 +134,11 @@ LEFT JOIN          RIGHT JOIN         FULL OUTER JOIN
 
 ### Basic LEFT JOIN
 ```sql
--- All employees with their department info (includes employees without departments)
+-- All employees with their d.DepartmentName info (includes employees without departments)
 SELECT 
     e.FirstName,
     e.LastName,
-    e.Title,
+    e.JobTitle,
     ISNULL(d.DepartmentName, 'No Department') AS DepartmentName,
     ISNULL(d.Location, 'Unknown') AS Location
 FROM Employees e
@@ -151,12 +151,11 @@ ORDER BY e.LastName;
 ### Basic RIGHT JOIN
 ```sql
 -- All departments with their employees (includes departments with no employees)
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     d.Location,
     d.Budget,
     ISNULL(e.FirstName + ' ' + e.LastName, 'No Employees') AS EmployeeName,
-    ISNULL(e.Title, 'Vacant') AS Title
+    ISNULL(e.JobTitle, 'Vacant') AS Title
 FROM Employees e
 RIGHT JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1 OR e.IsActive IS NULL  -- Include active employees or no employees
@@ -170,7 +169,7 @@ ORDER BY d.DepartmentName, e.LastName;
 -- Complete view of employees and departments relationship
 SELECT 
     ISNULL(e.FirstName + ' ' + e.LastName, 'No Employee') AS EmployeeName,
-    ISNULL(e.Title, 'N/A') AS Title,
+    ISNULL(e.JobTitle, 'N/A') AS Title,
     ISNULL(d.DepartmentName, 'No Department') AS DepartmentName,
     ISNULL(d.Location, 'Unknown') AS Location,
     CASE 
@@ -192,7 +191,7 @@ ORDER BY AssignmentIsActive, d.DepartmentName, e.LastName;
 -- Find employees who are NOT assigned to any projects
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
-    e.Title,
+    e.JobTitle,
     d.DepartmentName,
     e.HireDate,
     DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
@@ -207,9 +206,8 @@ ORDER BY d.DepartmentName, e.HireDate;
 
 ### LEFT JOIN with Aggregation
 ```sql
--- Department headcount including departments with zero employees
-SELECT 
-    d.DepartmentName,
+-- d.DepartmentName headcount including departments with zero employees
+SELECT d.DepartmentName,
     d.Location,
     d.Budget,
     COUNT(e.EmployeeID) AS CurrentHeadcount,
@@ -237,12 +235,12 @@ ORDER BY COUNT(e.EmployeeID) DESC, d.DepartmentName;
 -- Comprehensive employee profile with optional data
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
-    e.Title,
+    e.JobTitle,
     e.WorkEmail,
     FORMAT(e.BaseSalary, 'C0') AS BaseSalary,
     
-    -- Department info (might be NULL)
-    ISNULL(d.DepartmentName, 'Unassigned') AS Department,
+    -- d.DepartmentName info (might be NULL)
+    ISNULL(d.DepartmentName, 'Unassigned') AS DepartmentName,
     ISNULL(d.Location, 'Remote/Unknown') AS Location,
     
     -- Manager info (might be NULL)
@@ -256,7 +254,7 @@ SELECT
     
     -- Employment status analysis
     CASE 
-        WHEN d.DepartmentID IS NULL THEN 'Needs Department Assignment'
+        WHEN d.DepartmentID IS NULL THEN 'Needs d.DepartmentName Assignment'
         WHEN COUNT(ep.ProjectID) = 0 THEN 'Available for Projects'
         WHEN COUNT(es.SkillID) = 0 THEN 'Needs Skills Assessment'
         ELSE 'Fully Integrated'
@@ -268,7 +266,7 @@ LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'In Progress'
 LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
 WHERE e.IsActive = 1
-GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.WorkEmail, e.BaseSalary,
+GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.WorkEmail, e.BaseSalary,
          d.DepartmentID, d.DepartmentName, d.Location,
          mgr.FirstName, mgr.LastName
 ORDER BY IntegrationIsActive, d.DepartmentName, e.LastName;
@@ -384,12 +382,12 @@ FROM Employees e
 LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID
 LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
 LEFT JOIN (SELECT DISTINCT EmployeeID FROM EmployeeProjects) ep ON e.EmployeeID = ep.EmployeeID
-LEFT JOIN (SELECT DISTINCT EmployeeID FROM EmployeeSkills) es ON e.EmployeeID = es.EmployeeID
+LEFT JOIN (SELECT DISTINCT EmployeeID FROM Employees ekills) es ON e.EmployeeID = es.EmployeeID
 WHERE e.IsActive = 1
 
 UNION ALL
 
--- Department utilization analysis
+-- d.DepartmentName utilization analysis
 SELECT 
     'Department Utilization' AS AnalysisType,
     COUNT(*) AS TotalDepartments,
@@ -424,7 +422,7 @@ WITH DepartmentMetrics AS (
         d.Location,
         COUNT(e.EmployeeID) AS EmployeeCount,
         AVG(e.BaseSalary) AS AvgSalary,
-        SUM(e.BaseSalary) AS TotalSalaries,
+        SUM(e.BaseSalary) AS TotalBaseSalaries,
         COUNT(DISTINCT ep.ProjectID) AS ActiveProjects,
         SUM(ep.HoursAllocated) AS TotalHoursAllocated,
         SUM(ep.HoursWorked) AS TotalHoursWorked
@@ -445,8 +443,7 @@ SkillsMetrics AS (
     WHERE e.IsActive = 1
     GROUP BY e.DepartmentID
 )
-SELECT 
-    dm.DepartmentName AS [Department],
+SELECT dm.d.DepartmentName AS [Department],
     dm.Location AS [Location],
     FORMAT(dm.Budget, 'C0') AS [Annual Budget],
     
@@ -478,7 +475,7 @@ SELECT
         ELSE 0 
     END AS [Budget Utilization %],
     
-    -- Department health assessment
+    -- d.DepartmentName health assessment
     CASE 
         WHEN dm.EmployeeCount = 0 THEN 'Inactive Department'
         WHEN dm.ActiveProjects = 0 THEN 'No Active Projects'
@@ -490,7 +487,7 @@ SELECT
     
     -- Strategic recommendations
     CASE 
-        WHEN dm.EmployeeCount = 0 THEN 'Consider department consolidation or hiring'
+        WHEN dm.EmployeeCount = 0 THEN 'Consider d.DepartmentName consolidation or hiring'
         WHEN dm.ActiveProjects = 0 AND dm.EmployeeCount > 0 THEN 'Identify project opportunities'
         WHEN dm.Budget > dm.TotalSalaries * 1.5 THEN 'Expansion opportunity - under-utilized budget'
         WHEN sm.UniqueSkills < dm.EmployeeCount THEN 'Invest in skills development'
@@ -516,7 +513,7 @@ ORDER BY
 SELECT 
     e.FirstName,
     e.LastName,
-    ISNULL(d.DepartmentName, 'Unassigned') AS Department,
+    ISNULL(d.DepartmentName, 'Unassigned') AS DepartmentName,
     ISNULL(d.Location, 'Remote') AS Location,
     COALESCE(e.Phone, e.AlternatePhone, 'No Phone') AS ContactNumber
 FROM Employees e
@@ -526,8 +523,7 @@ LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 ### 2. Use Meaningful Default Values
 ```sql
 -- Provide business-meaningful defaults
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     COUNT(e.EmployeeID) AS EmployeeCount,
     CASE 
         WHEN COUNT(e.EmployeeID) = 0 THEN 'Vacant Department'
@@ -601,7 +597,7 @@ LEFT JOIN Shipping s ON o.OrderID = s.OrderID;
 -- Employee hierarchy with optional managers
 SELECT 
     e.FirstName + ' ' + e.LastName AS Employee,
-    e.Title,
+    e.JobTitle,
     ISNULL(m.FirstName + ' ' + m.LastName, 'No Manager') AS Manager,
     CASE 
         WHEN e.ManagerID IS NULL THEN 'Executive Level'

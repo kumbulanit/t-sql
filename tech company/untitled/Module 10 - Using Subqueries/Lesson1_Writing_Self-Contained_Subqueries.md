@@ -5,7 +5,7 @@ Self-contained subqueries are independent queries nested within another SQL stat
 
 ## 🏢 TechCorp Business Context
 **Subqueries in Business Intelligence:**
-- **Employee Analysis**: Finding employees above average salary, top performers by department
+- **Employee Analysis**: Finding employees above average BaseSalary, top performers by d.DepartmentName
 - **Departmental Reporting**: Identifying departments with specific characteristics
 - **Project Management**: Locating projects with certain budget or timeline criteria
 - **Customer Intelligence**: Finding high-value customers, frequent buyers
@@ -44,7 +44,7 @@ A self-contained subquery is a nested query that:
 │                                                                             │
 │  Step 1: Execute Inner Query (Subquery)                                    │
 │  ┌─────────────────────────────────────┐                                   │
-│  │ SELECT AVG(BaseSalary)              │  →  Returns: 75000                │
+│  │ SELECT AVG(e.BaseSalary)              │  →  Returns: 75000                │
 │  │ FROM Employees                      │                                   │
 │  │ WHERE IsActive = 1                  │                                   │
 │  └─────────────────────────────────────┘                                   │
@@ -67,7 +67,7 @@ A self-contained subquery is a nested query that:
 ### 1. Scalar Subqueries
 Return a single value (one row, one column)
 
-#### TechCorp Example: Above Average Salary
+#### TechCorp Example: Above Average BaseSalary
 ```sql
 -- Find employees earning above company average
 SELECT 
@@ -75,18 +75,17 @@ SELECT
     FirstName,
     LastName,
     BaseSalary,
-    BaseSalary - (SELECT AVG(BaseSalary) FROM Employees WHERE IsActive = 1) AS SalaryDifferenceFromAvg
+    BaseSalary - (SELECT AVG(e.BaseSalary) FROM Employees WHERE IsActive = 1) AS SalaryDifferenceFromAvg
 FROM Employees
-WHERE BaseSalary > (SELECT AVG(BaseSalary) FROM Employees WHERE IsActive = 1)
+WHERE BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees WHERE IsActive = 1)
   AND IsActive = 1
 ORDER BY BaseSalary DESC;
 ```
 
-#### TechCorp Example: Department Budget Analysis
+#### TechCorp Example: d.DepartmentName Budget Analysis
 ```sql
 -- Find departments with budgets above company average
-SELECT 
-    DepartmentName,
+SELECT d.DepartmentName,
     Budget,
     FORMAT(Budget, 'C') AS FormattedBudget
 FROM Departments
@@ -147,19 +146,17 @@ ORDER BY p.Budget DESC;
 ### 3. Table-Valued Subqueries
 Return multiple rows and columns (used in FROM clause)
 
-#### TechCorp Example: Department Summary Statistics
+#### TechCorp Example: d.DepartmentName Summary Statistics
 ```sql
--- Create department summary and find above-average departments
-SELECT 
-    ds.DepartmentName,
+-- Create d.DepartmentName summary and find above-average departments
+SELECT ds.d.DepartmentName,
     ds.EmployeeCount,
     ds.AverageSalary,
     ds.TotalSalaryBudget
 FROM (
-    SELECT 
-        d.DepartmentName,
+    SELECT d.DepartmentName,
         COUNT(e.EmployeeID) AS EmployeeCount,
-        AVG(e.BaseSalary) AS AverageSalary,
+        AVG(e.BaseSalary) AS AverageBaseSalary,
         SUM(e.BaseSalary) AS TotalSalaryBudget
     FROM Departments d
     INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
@@ -274,11 +271,11 @@ SELECT
     e.BaseSalary,
     d.DepartmentName,
     CASE 
-        WHEN e.BaseSalary >= (SELECT MAX(BaseSalary) * 0.9 FROM Employees WHERE IsActive = 1) 
+        WHEN e.BaseSalary >= (SELECT MAX(e.BaseSalary) * 0.9 FROM Employees WHERE IsActive = 1) 
             THEN 'Top Tier'
-        WHEN e.BaseSalary >= (SELECT AVG(BaseSalary) FROM Employees WHERE IsActive = 1)
+        WHEN e.BaseSalary >= (SELECT AVG(e.BaseSalary) FROM Employees WHERE IsActive = 1)
             THEN 'Above Average'
-        WHEN e.BaseSalary >= (SELECT MIN(BaseSalary) FROM Employees WHERE IsActive = 1)
+        WHEN e.BaseSalary >= (SELECT MIN(e.BaseSalary) FROM Employees WHERE IsActive = 1)
             THEN 'Below Average'
         ELSE 'Entry Level'
     END AS SalaryTier,
@@ -298,11 +295,10 @@ ORDER BY e.BaseSalary DESC, e.HireDate;
 
 ### 2. Subqueries with Aggregation Functions
 
-#### TechCorp Example: Department Performance Analysis
+#### TechCorp Example: d.DepartmentName Performance Analysis
 ```sql
 -- Departments with above-average employee retention and high budgets
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     d.Budget,
     dept_stats.EmployeeCount,
     dept_stats.AvgTenure,
@@ -313,7 +309,7 @@ INNER JOIN (
         DepartmentID,
         COUNT(*) AS EmployeeCount,
         AVG(DATEDIFF(YEAR, HireDate, GETDATE())) AS AvgTenure,
-        AVG(BaseSalary) AS AvgSalary
+        AVG(e.BaseSalary) AS AvgSalary
     FROM Employees
     WHERE IsActive = 1
     GROUP BY DepartmentID
@@ -344,7 +340,7 @@ ORDER BY dept_stats.AvgSalary DESC;
 SELECT FirstName, LastName, BaseSalary
 FROM Employees
 WHERE BaseSalary > (
-    SELECT AVG(BaseSalary)
+    SELECT AVG(e.BaseSalary)
     FROM Employees
     WHERE IsActive = 1  -- Filter in subquery
 )
@@ -365,7 +361,7 @@ WHERE BaseSalary > (
 -- Subquery approach
 SELECT e.FirstName, e.LastName, e.BaseSalary
 FROM Employees e
-WHERE e.BaseSalary > (SELECT AVG(BaseSalary) FROM Employees WHERE IsActive = 1)
+WHERE e.BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees WHERE IsActive = 1)
   AND e.IsActive = 1;
 
 -- Window function alternative (often more efficient)
@@ -375,7 +371,7 @@ FROM (
         FirstName, 
         LastName, 
         BaseSalary,
-        AVG(BaseSalary) OVER() AS AvgSalary
+        AVG(e.BaseSalary) OVER() AS AvgSalary
     FROM Employees
     WHERE IsActive = 1
 ) ranked
@@ -400,13 +396,13 @@ WHERE BaseSalary > AvgSalary;
 ```sql
 -- Always validate subquery results make business sense
 -- Test the subquery alone first:
-SELECT AVG(BaseSalary) FROM Employees WHERE IsActive = 1;
--- Result: Should be a reasonable salary figure
+SELECT AVG(e.BaseSalary) FROM Employees WHERE IsActive = 1;
+-- Result: Should be a reasonable BaseSalary figure
 
 -- Then use in main query:
 SELECT COUNT(*) AS AboveAverageEmployees
 FROM Employees
-WHERE BaseSalary > (SELECT AVG(BaseSalary) FROM Employees WHERE IsActive = 1)
+WHERE BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees WHERE IsActive = 1)
   AND IsActive = 1;
 -- Result: Should be roughly half of total employees
 ```
@@ -418,14 +414,14 @@ WHERE BaseSalary > (SELECT AVG(BaseSalary) FROM Employees WHERE IsActive = 1)
 -- ❌ PROBLEM: Subquery might return NULL
 SELECT FirstName, LastName
 FROM Employees
-WHERE BaseSalary > (SELECT MAX(BaseSalary) FROM Employees WHERE DepartmentID = 999);
--- Returns no rows if department 999 doesn't exist
+WHERE BaseSalary > (SELECT MAX(e.BaseSalary) FROM Employees WHERE DepartmentID = 999);
+-- Returns no rows if d.DepartmentName 999 doesn't exist
 
 -- ✅ SOLUTION: Handle NULLs explicitly
 SELECT FirstName, LastName
 FROM Employees
 WHERE BaseSalary > ISNULL((
-    SELECT MAX(BaseSalary) 
+    SELECT MAX(e.BaseSalary) 
     FROM Employees 
     WHERE DepartmentID = 999
 ), 0);
@@ -467,7 +463,7 @@ Self-contained subqueries are powerful tools for:
 
 **TechCorp Applications:**
 - Employee performance analysis
-- Department budget comparisons
+- d.DepartmentName budget comparisons
 - Project profitability analysis
 - Customer value segmentation
 

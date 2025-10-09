@@ -9,7 +9,7 @@ The APPLY operator is a unique SQL Server feature that enables row-by-row operat
 **APPLY Operations in Advanced Analytics:**
 
 - **Dynamic Reporting**: Creating reports where each row determines subsequent query logic
-- **Top-N Analysis**: Finding top performers per department, project, or other groupings
+- **Top-N Analysis**: Finding top performers per d.DepartmentName, project, or other groupings
 - **Complex Aggregations**: Performing calculations that depend on individual row values
 - **Data Transformation**: Applying complex transformations based on row-specific criteria
 - **Hierarchical Analysis**: Processing organizational structures and reporting chains
@@ -57,14 +57,13 @@ CROSS APPLY returns only rows from the left table where the right table expressi
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### TechCorp Example: Top Performers by Department
+### TechCorp Example: Top Performers by d.DepartmentName
 
 ```sql
--- Example: Find top 3 highest-paid employees in each department
+-- Example: Find top 3 highest-paid employees in each d.DepartmentName
 -- This demonstrates how CROSS APPLY enables dynamic top-N analysis
 
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     d.Budget AS DepartmentBudget,
     top_performers.EmployeeRank,
     top_performers.EmployeeName,
@@ -83,6 +82,7 @@ CROSS APPLY (
         e.HireDate,
         NTILE(4) OVER (ORDER BY e.BaseSalary) AS SalaryPercentileInDept
     FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.DepartmentID = d.DepartmentID
     AND e.IsActive = 1
     ORDER BY e.BaseSalary DESC
@@ -90,9 +90,8 @@ CROSS APPLY (
 WHERE d.IsActive = 1
 ORDER BY d.DepartmentName, top_performers.EmployeeRank;
 
--- Enhanced analysis: Include department statistics
-SELECT 
-    d.DepartmentName,
+-- Enhanced analysis: Include d.DepartmentName statistics
+SELECT d.DepartmentName,
     top_performers.EmployeeRank,
     top_performers.EmployeeName,
     top_performers.BaseSalary,
@@ -111,6 +110,7 @@ CROSS APPLY (
         e.FirstName + ' ' + e.LastName AS EmployeeName,
         e.BaseSalary
     FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.DepartmentID = d.DepartmentID
     AND e.IsActive = 1
     ORDER BY e.BaseSalary DESC
@@ -136,7 +136,7 @@ ORDER BY d.DepartmentName, top_performers.EmployeeRank;
 OUTER APPLY returns all rows from the left table, regardless of whether the right table expression returns results, similar to a LEFT OUTER JOIN.
 
 ```sql
--- TechCorp Example: Department Analysis with Employee Statistics
+-- TechCorp Example: d.DepartmentName Analysis with Employee Statistics
 -- Shows all departments, even those without employees
 
 SELECT 
@@ -146,15 +146,15 @@ SELECT
     d.Location,
     ISNULL(emp_stats.EmployeeCount, 0) AS EmployeeCount,
     ISNULL(emp_stats.TotalSalaryExpense, 0) AS TotalSalaryExpense,
-    ISNULL(emp_stats.AverageSalary, 0) AS AverageSalary,
+    ISNULL(emp_stats.AverageSalary, 0) AS AverageBaseSalary,
     ISNULL(emp_stats.MinSalary, 0) AS MinSalary,
     ISNULL(emp_stats.MaxSalary, 0) AS MaxSalary,
     CASE 
         WHEN emp_stats.EmployeeCount IS NULL THEN 'No Employees'
-        WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.8 THEN 'High Salary Utilization'
-        WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.6 THEN 'Moderate Salary Utilization'
-        WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.4 THEN 'Low Salary Utilization'
-        ELSE 'Very Low Salary Utilization'
+        WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.8 THEN 'High BaseSalary Utilization'
+        WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.6 THEN 'Moderate BaseSalary Utilization'
+        WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.4 THEN 'Low BaseSalary Utilization'
+        ELSE 'Very Low BaseSalary Utilization'
     END AS BudgetUtilizationStatus,
     CASE 
         WHEN emp_stats.EmployeeCount IS NULL THEN NULL
@@ -165,20 +165,20 @@ OUTER APPLY (
     SELECT 
         COUNT(*) AS EmployeeCount,
         SUM(e.BaseSalary) AS TotalSalaryExpense,
-        AVG(e.BaseSalary) AS AverageSalary,
+        AVG(e.BaseSalary) AS AverageBaseSalary,
         MIN(e.BaseSalary) AS MinSalary,
         MAX(e.BaseSalary) AS MaxSalary,
         COUNT(CASE WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 5 THEN 1 END) AS LongTenureEmployees
     FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE e.DepartmentID = d.DepartmentID
     AND e.IsActive = 1
 ) AS emp_stats
 WHERE d.IsActive = 1
 ORDER BY emp_stats.EmployeeCount DESC NULLS LAST, d.DepartmentName;
 
--- Department planning recommendations based on analysis
-SELECT 
-    main_analysis.DepartmentName,
+-- d.DepartmentName planning recommendations based on analysis
+SELECT main_analysis.d.DepartmentName,
     main_analysis.EmployeeCount,
     main_analysis.BudgetUtilizationStatus,
     main_analysis.BudgetUtilizationPercent,
@@ -186,15 +186,14 @@ SELECT
     recommendations.Recommendation
 FROM (
     -- Previous query results as subquery
-    SELECT 
-        d.DepartmentName,
+    SELECT d.DepartmentName,
         ISNULL(emp_stats.EmployeeCount, 0) AS EmployeeCount,
         CASE 
             WHEN emp_stats.EmployeeCount IS NULL THEN 'No Employees'
-            WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.8 THEN 'High Salary Utilization'
-            WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.6 THEN 'Moderate Salary Utilization'
-            WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.4 THEN 'Low Salary Utilization'
-            ELSE 'Very Low Salary Utilization'
+            WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.8 THEN 'High BaseSalary Utilization'
+            WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.6 THEN 'Moderate BaseSalary Utilization'
+            WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.4 THEN 'Low BaseSalary Utilization'
+            ELSE 'Very Low BaseSalary Utilization'
         END AS BudgetUtilizationStatus,
         CASE 
             WHEN emp_stats.EmployeeCount IS NULL THEN NULL
@@ -208,6 +207,7 @@ FROM (
             COUNT(*) AS EmployeeCount,
             SUM(e.BaseSalary) AS TotalSalaryExpense
         FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
         WHERE e.DepartmentID = d.DepartmentID
         AND e.IsActive = 1
     ) AS emp_stats
@@ -217,14 +217,14 @@ CROSS APPLY (
     SELECT 
         CASE 
             WHEN main_analysis.EmployeeCount = 0 THEN 'HIRING'
-            WHEN main_analysis.BudgetUtilizationStatus = 'High Salary Utilization' THEN 'BUDGET_REVIEW'
-            WHEN main_analysis.BudgetUtilizationStatus = 'Very Low Salary Utilization' THEN 'EXPANSION'
+            WHEN main_analysis.BudgetUtilizationStatus = 'High BaseSalary Utilization' THEN 'BUDGET_REVIEW'
+            WHEN main_analysis.BudgetUtilizationStatus = 'Very Low BaseSalary Utilization' THEN 'EXPANSION'
             ELSE 'OPTIMIZATION'
         END AS RecommendationCategory,
         CASE 
             WHEN main_analysis.EmployeeCount = 0 THEN 'Consider hiring employees for this department'
-            WHEN main_analysis.BudgetUtilizationStatus = 'High Salary Utilization' THEN 'Review budget allocation or salary structure'
-            WHEN main_analysis.BudgetUtilizationStatus = 'Very Low Salary Utilization' THEN 'Opportunity for team expansion or salary increases'
+            WHEN main_analysis.BudgetUtilizationStatus = 'High BaseSalary Utilization' THEN 'Review budget allocation or BaseSalary structure'
+            WHEN main_analysis.BudgetUtilizationStatus = 'Very Low BaseSalary Utilization' THEN 'Opportunity for team expansion or BaseSalary increases'
             ELSE 'Continue monitoring and optimize as needed'
         END AS Recommendation
 ) AS recommendations
@@ -481,8 +481,7 @@ WITH DepartmentPerformanceMetrics AS (
     GROUP BY d.DepartmentID, d.DepartmentName, d.Budget
 )
 
-SELECT 
-    dpm.DepartmentName,
+SELECT dpm.d.DepartmentName,
     dpm.TotalEmployees,
     dpm.AvgSalary,
     top_contributors.EmployeeName,
@@ -616,7 +615,7 @@ CROSS APPLY (
     AND ep.StartDate >= DATEADD(MONTH, -6, GETDATE())
 ) AS project_analysis
 
--- Dynamic salary comparison within department
+-- Dynamic BaseSalary comparison within d.DepartmentName
 CROSS APPLY (
     SELECT 
         AVG(dept_emp.BaseSalary) AS DeptAvgSalary,

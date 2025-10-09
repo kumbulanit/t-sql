@@ -70,7 +70,7 @@ CREATE TABLE Employees (
     EmployeeID INT PRIMARY KEY,    -- Ensures uniqueness
     FirstName NVARCHAR(50),
     LastName NVARCHAR(50),
-    Department NVARCHAR(50)
+    d.d.DepartmentName NVARCHAR(50)
 );
 
 -- Each row is an element in the Employees set
@@ -100,7 +100,7 @@ INSERT INTO Employees VALUES
 
 **T-SQL Membership Examples**:
 ```sql
--- Check if employee belongs to IT department set
+-- Check if employee belongs to IT d.d.DepartmentName set
 SELECT 
     EmployeeID,
     FirstName,
@@ -109,11 +109,11 @@ SELECT
         WHEN d.DepartmentName = 'Engineering' THEN 'Member of IT Set'
         ELSE 'Not Member of IT Set'
     END AS SetMembership
-FROM Employees;
+FROM Employees e;
 
 -- Using WHERE clause for set membership
 SELECT * FROM Employees 
-WHERE Department IN ('IT', 'Finance');  -- Members of specified set
+WHERE d.d.DepartmentName IN ('IT', 'Finance');  -- Members of specified set
 
 -- BaseSalary range membership
 SELECT * FROM Employees
@@ -129,7 +129,7 @@ WHERE BaseSalary BETWEEN 60000 AND 80000;   -- Members of BaseSalary range set
 ```sql
 -- Query returning no results = Empty Set
 SELECT * FROM Employees 
-WHERE Department = 'NonExistentDept';   -- Returns empty set
+WHERE d.DepartmentName = 'NonExistentDept';   -- Returns empty set
 
 -- Checking for empty results
 IF NOT EXISTS (SELECT * FROM Employees WHERE BaseSalary > 200000)
@@ -139,7 +139,7 @@ IF NOT EXISTS (SELECT * FROM Employees WHERE BaseSalary > 200000)
 **Universal Set**:
 ```sql
 -- All employees = Universal set for this context
-SELECT * FROM Employees;  -- Universal set of all employees
+SELECT * FROM Employees e;  -- Universal set of all employees
 
 -- All records in database context
 SELECT * FROM Employees 
@@ -175,22 +175,22 @@ SELECT EmployeeID, FirstName, LastName, 'HR' AS Source
 FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Human Resources';
 
 -- Union of BaseSalary ranges
-SELECT DISTINCT BaseSalary FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Engineering'
+SELECT DISTINCT BaseSalary FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.d.DepartmentName = 'Engineering'
 UNION
-SELECT DISTINCT BaseSalary FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Finance';
+SELECT DISTINCT BaseSalary FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.d.DepartmentName = 'Finance';
 ```
 
 **UNION vs UNION ALL**:
 ```sql
 -- UNION (removes duplicates - true set operation)
-SELECT Department FROM Employees
+SELECT d.d.DepartmentName FROM Employees
 UNION
-SELECT Department FROM Departments;
+SELECT d.d.DepartmentName FROM Departments;
 
 -- UNION ALL (keeps duplicates - bag operation)
-SELECT Department FROM Employees
+SELECT d.d.DepartmentName FROM Employees
 UNION ALL
-SELECT Department FROM Departments;
+SELECT d.d.DepartmentName FROM Departments;
 ```
 
 ---
@@ -287,17 +287,17 @@ WHERE d.DepartmentName = 'Engineering'
 -- Cartesian product (usually unintentional)
 SELECT 
     e.FirstName + ' ' + e.LastName AS Employee,
-    d.DepartmentName
+    d.d.DepartmentName
 FROM Employees e, Departments d;  -- Missing JOIN condition
 
 -- More explicit syntax
 SELECT 
     e.FirstName + ' ' + e.LastName AS Employee,
-    d.DepartmentName
+    d.d.DepartmentName
 FROM Employees e
 CROSS JOIN Departments d;
 
--- Result: Every employee paired with every department
+-- Result: Every employee paired with every d.d.DepartmentName
 -- If 10 employees and 4 departments = 40 result rows
 ```
 
@@ -316,25 +316,25 @@ CROSS JOIN Departments d;
 **True Sets (No Duplicates)**:
 ```sql
 -- DISTINCT enforces set behavior
-SELECT DISTINCT Department FROM Employees;
+SELECT DISTINCT d.d.d.DepartmentName FROM Employees e;
 -- Result: {'IT', 'HR', 'Finance', 'Marketing'}
 
 -- UNION removes duplicates (set operation)
-SELECT Department FROM Employees
+SELECT d.d.DepartmentName FROM Employees
 UNION
-SELECT Department FROM NewEmployees;
+SELECT d.d.DepartmentName FROM NewEmployees;
 ```
 
 **Multisets/Bags (Allow Duplicates)**:
 ```sql
 -- Default SQL behavior allows duplicates
-SELECT Department FROM Employees;
+SELECT d.d.DepartmentName FROM Employees e;
 -- Result: {'IT', 'IT', 'HR', 'Finance', 'IT', 'Marketing'}
 
 -- UNION ALL preserves duplicates (multiset operation)
-SELECT Department FROM Employees
+SELECT d.d.DepartmentName FROM Employees
 UNION ALL
-SELECT Department FROM NewEmployees;
+SELECT d.d.DepartmentName FROM NewEmployees;
 ```
 
 **When to Use Each**:
@@ -350,14 +350,15 @@ SELECT Department FROM NewEmployees;
 ```sql
 -- IN operator (element of set)
 SELECT * FROM Employees 
-WHERE Department IN ('IT', 'Finance', 'HR');
+WHERE d.d.DepartmentName IN ('IT', 'Finance', 'HR');
 
 -- NOT IN operator (not element of set)
 SELECT * FROM Employees 
-WHERE Department NOT IN ('Marketing', 'Sales');
+WHERE d.d.DepartmentName NOT IN ('Marketing', 'Sales');
 
 -- EXISTS (non-empty set test)
 SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE EXISTS (
     SELECT 1 FROM Projects p 
     WHERE p.ManagerID = e.EmployeeID
@@ -383,22 +384,22 @@ WHERE BaseSalary BETWEEN 50000 AND 80000;  -- [50000, 80000] set
 ```sql
 -- NULL values in set membership
 SELECT * FROM Employees 
-WHERE Department IN ('IT', NULL, 'HR');  -- NULL doesn't match anything
+WHERE d.d.DepartmentName IN ('IT', NULL, 'HR');  -- NULL doesn't match anything
 
 -- NULL-safe comparisons
 SELECT * FROM Employees 
-WHERE Department IS NULL;  -- Correct way to check for NULL
+WHERE d.d.DepartmentName IS NULL;  -- Correct way to check for NULL
 
 -- NULL in set operations
-SELECT Department FROM Employees    -- NULLs included
+SELECT d.d.DepartmentName FROM Employees e    -- NULLs included
 UNION
-SELECT Department FROM Contractors;  -- NULLs consolidated to one
+SELECT d.d.DepartmentName FROM Contractors;  -- NULLs consolidated to one
 
 -- Handling NULLs in business logic
 SELECT 
     EmployeeID,
-    ISNULL(Department, 'Unassigned') AS Department
-FROM Employees;
+    ISNULL(Department, 'Unassigned') AS d.DepartmentName
+FROM Employees e;
 ```
 
 **Best Practices for NULLs**:
@@ -455,7 +456,7 @@ WHERE IsActive = 1
 INTERSECT
 
 SELECT EmployeeID, FirstName, LastName
-FROM EmployeeSkills es
+FROM Employees ekills es
 INNER JOIN Skills s ON es.SkillID = s.SkillID
 WHERE s.SkillName IN ('C#', 'SQL Server', 'Azure');
 ```
@@ -475,12 +476,12 @@ WHERE ProjectIsActive = 'Active'
 
 **Reporting and Analytics**:
 ```sql
--- Department union for company-wide reports
-SELECT DepartmentID, COUNT(*) as EmployeeCount
+-- d.d.DepartmentName union for company-wide reports
+SELECT DepartmentID, COUNT(*) AS EmployeeCount
 FROM (
-    SELECT Department FROM FullTimeEmployees
+    SELECT d.d.DepartmentName FROM FullTimeEmployees
     UNION ALL
-    SELECT Department FROM ContractEmployees
+    SELECT d.d.DepartmentName FROM ContractEmployees
 ) AS AllEmployees
 GROUP BY DepartmentID;
 ```
@@ -506,7 +507,7 @@ WHERE d.DepartmentName = 'Engineering'
 
 -- Avoid: Row-by-row processing
 DECLARE employee_cursor CURSOR FOR 
-    SELECT EmployeeID FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Engineering';
+    SELECT EmployeeID FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.d.DepartmentName = 'Engineering';
 -- ... cursor processing logic
 ```
 
@@ -523,19 +524,19 @@ DECLARE employee_cursor CURSOR FOR
 **Duplicate Handling Errors**:
 ```sql
 -- Mistake: Expecting set behavior but getting multiset
-SELECT Department FROM Employees;  -- May have duplicates
+SELECT d.d.DepartmentName FROM Employees e;  -- May have duplicates
 
 -- Correct: Explicitly use DISTINCT for set behavior
-SELECT DISTINCT Department FROM Employees;
+SELECT DISTINCT d.d.d.DepartmentName FROM Employees e;
 ```
 
 **NULL Handling Mistakes**:
 ```sql
 -- Mistake: NULL equality comparison
-WHERE Department = NULL;  -- Always false
+WHERE d.DepartmentName = NULL;  -- Always false
 
 -- Correct: IS NULL comparison
-WHERE Department IS NULL;
+WHERE d.d.DepartmentName IS NULL;
 ```
 
 **Set Operation Confusion**:
@@ -573,12 +574,12 @@ SELECT
 **Set Equivalence**:
 ```sql
 -- Compare two sets for equality
-WITH Set1 AS (SELECT DISTINCT Department FROM Employees),
-     Set2 AS (SELECT DISTINCT DepartmentName AS Department FROM Departments)
+WITH Set1 AS (SELECT DISTINCT d.d.d.DepartmentName FROM Employees e),
+     Set2 AS (SELECT DISTINCT d.DepartmentName AS d.DepartmentName FROM Departments)
 SELECT 
     CASE 
-        WHEN NOT EXISTS (SELECT Department FROM Set1 EXCEPT SELECT Department FROM Set2)
-         AND NOT EXISTS (SELECT Department FROM Set2 EXCEPT SELECT Department FROM Set1)
+        WHEN NOT EXISTS (SELECT d.d.DepartmentName FROM Set1 EXCEPT SELECT d.d.DepartmentName FROM Set2)
+         AND NOT EXISTS (SELECT d.d.DepartmentName FROM Set2 EXCEPT SELECT d.d.DepartmentName FROM Set1)
         THEN 'Sets are equivalent'
         ELSE 'Sets are different'
     END AS SetComparison;

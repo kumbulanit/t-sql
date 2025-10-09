@@ -119,11 +119,10 @@ FROM Projects p
 WHERE p.IsActive = 1 
     AND p.StartDate >= DATEADD(YEAR, -2, GETDATE()); -- Last 2 years of data
 
--- Lab 9.1.2: Department Performance Analysis
+-- Lab 9.1.2: d.DepartmentName Performance Analysis
 -- Business scenario: Departmental comparison for resource allocation decisions
 
-SELECT 
-    d.DepartmentName,
+SELECT d.DepartmentName,
     
     -- EMPLOYEE METRICS
     COUNT(DISTINCT e.EmployeeID) AS TotalEmployees,
@@ -131,9 +130,9 @@ SELECT
     
     -- COMPENSATION ANALYSIS
     FORMAT(SUM(e.BaseSalary), 'C0') AS TotalPayrollCost,
-    FORMAT(AVG(e.BaseSalary), 'C0') AS AverageSalary,
-    FORMAT(MIN(e.BaseSalary), 'C0') AS LowestSalary,
-    FORMAT(MAX(e.BaseSalary), 'C0') AS HighestSalary,
+    FORMAT(AVG(e.BaseSalary), 'C0') AS AverageBaseSalary,
+    FORMAT(MIN(e.BaseSalary), 'C0') AS LowestBaseSalary,
+    FORMAT(MAX(e.BaseSalary), 'C0') AS HighestBaseSalary,
     
     -- EXPERIENCE METRICS
     AVG(DATEDIFF(YEAR, e.HireDate, GETDATE())) AS AvgYearsOfService,
@@ -149,7 +148,7 @@ SELECT
     COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeProjects,
     COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
     
-    -- SUCCESS RATE by department
+    -- SUCCESS RATE by d.DepartmentName
     FORMAT(
         COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
         NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0), 

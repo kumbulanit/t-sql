@@ -27,7 +27,7 @@ CREATE TABLE Employees (
 -- Departments table
 CREATE TABLE Departments (
     DepartmentID INT PRIMARY KEY IDENTITY(1,1),
-    DepartmentName NVARCHAR(50) NOT NULL,
+    d.DepartmentName NVARCHAR(50) NOT NULL,
     Budget DECIMAL(12,2) NOT NULL,
     ManagerID INT NULL
 );
@@ -129,7 +129,7 @@ Write queries to:
 
 2. Find all employees hired after January 1, 2021.
 
-3. Find all employees in the IT department (DepartmentID = 1).
+3. Find all employees in the IT d.DepartmentName (DepartmentID = 1).
 
 4. Find all employees whose first name starts with 'J'.
 
@@ -155,14 +155,14 @@ Write queries to:
 
 1. **UNION**: Get a list of all first names from both Employees and a hypothetical Customers table (use Employees twice with different filters).
 
-2. **INTERSECT**: Find department IDs that have both high-BaseSalary employees (>$70k) and low-BaseSalary employees (<$60k).
+2. **INTERSECT**: Find d.DepartmentName IDs that have both high-BaseSalary employees (>$70k) and low-BaseSalary employees (<$60k).
 
 3. **EXCEPT**: Find employees who are not assigned to any projects.
 
 #### Exercise 2.2: Set Membership
 Write queries to:
 
-1. Find employees whose department ID is in the list (1, 3, 5).
+1. Find employees whose d.DepartmentName ID is in the list (1, 3, 5).
 
 2. Find employees who work on projects with status 'In Progress'.
 
@@ -195,7 +195,7 @@ Write queries to:
 #### Exercise 3.2: Complex Predicates
 Write queries to:
 
-1. Find employees where (BaseSalary > $70k AND department is IT) OR (BaseSalary > $80k).
+1. Find employees where (BaseSalary > $70k AND d.DepartmentName is IT) OR (BaseSalary > $80k).
 
 2. Find projects that are either completed OR have a budget > $100k.
 
@@ -218,7 +218,7 @@ Write queries to:
 For each query, explain the logical processing order:
 
 1. ```sql
-   SELECT DepartmentID, AVG(BaseSalary) as AvgSalary
+   SELECT DepartmentID, AVG(e.BaseSalary) as AvgSalary
    FROM Employees
    WHERE IsActive = 1
    GROUP BY DepartmentIDID
@@ -227,11 +227,11 @@ For each query, explain the logical processing order:
    ```
 
 2. ```sql
-   SELECT e.FirstName, e.LastName, d.DepartmentName
+   SELECT e.FirstName, e.LastName, d.d.d.DepartmentName
    FROM Employees e
    JOIN Departments d ON e.DepartmentID = d.DepartmentID
    WHERE e.BaseSalary > 60000
-   ORDER BY d.DepartmentName;
+   ORDER BY d.d.DepartmentName;
    ```
 
 #### Exercise 4.2: Alias Usage
@@ -257,13 +257,13 @@ Write queries using appropriate filtering:
 
 2. Find employees in departments where the average BaseSalary is > $65,000.
 
-3. Show department statistics, but only for departments with budget > $250,000.
+3. Show d.DepartmentName statistics, but only for departments with budget > $250,000.
 
 ### Section 5: Comprehensive Challenges
 
-#### Challenge 1: Department Analysis
-Create a comprehensive department report showing:
-- Department name
+#### Challenge 1: d.DepartmentName Analysis
+Create a comprehensive d.DepartmentName report showing:
+- d.DepartmentName name
 - Number of active employees
 - Average BaseSalary
 - Highest and lowest salaries
@@ -274,7 +274,7 @@ Only include departments with at least 2 employees.
 #### Challenge 2: Employee Performance Analysis
 Create a report showing:
 - Employee name and title
-- Department name
+- d.DepartmentName name
 - Number of projects assigned
 - Total hours allocated vs hours worked
 - Performance ratio (hours worked / hours allocated)

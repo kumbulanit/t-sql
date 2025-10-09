@@ -14,7 +14,7 @@ Instead of writing the same complex query every time:
 ```sql
 -- Instead of writing this repeatedly:
 SELECT e.FirstName, e.LastName, e.JobTitle, d.DepartmentName, e.BaseSalary
-FROM Employees e 
+FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1 AND d.DepartmentName = 'Engineering'
 ORDER BY e.BaseSalary DESC;
@@ -35,7 +35,7 @@ EXEC GetEngineeringEmployees;
 - **📝 Standard Forms:** Everyone uses the same format
 
 **Real TechCorp Benefits:**
-- **Consistency:** Every department gets employee reports the same way
+- **Consistency:** Every d.DepartmentName gets employee reports the same way
 - **Speed:** Pre-optimized queries run faster than ad-hoc queries
 - **Security:** Users can run procedures without accessing tables directly
 - **Maintenance:** Fix the procedure once, all applications benefit
@@ -120,9 +120,9 @@ EXECUTE procedure_name value1, value2;  -- Positional parameters
 
 ### 1. Employee Information Retrieval
 
-#### TechCorp Example: Department Employee Listing
+#### TechCorp Example: d.DepartmentName Employee Listing
 ```sql
--- Create stored procedure for department employee analysis
+-- Create stored procedure for d.DepartmentName employee analysis
 CREATE PROCEDURE sp_GetDepartmentEmployees
     @DepartmentID INT = NULL,
     @IncludeInactive BIT = 0,
@@ -185,15 +185,15 @@ BEGIN
             WHEN @SortBy = 'LastName' THEN e.LastName
             WHEN @SortBy = 'FirstName' THEN e.FirstName
             WHEN @SortBy = 'HireDate' THEN CAST(e.HireDate AS VARCHAR)
-            WHEN @SortBy = 'Salary' THEN CAST(e.BaseSalary AS VARCHAR)
+            WHEN @SortBy = 'BaseSalary' THEN CAST(e.BaseSalary AS VARCHAR)
             ELSE e.LastName
         END,
         e.FirstName;
 END;
 
 -- Example executions
-EXEC sp_GetDepartmentEmployees @DepartmentID = 2001;  -- IT Department
-EXEC sp_GetDepartmentEmployees @DepartmentID = 2002, @SortBy = 'Salary';  -- HR by Salary
+EXEC sp_GetDepartmentEmployees @DepartmentID = 2001;  -- IT d.DepartmentName
+EXEC sp_GetDepartmentEmployees @DepartmentID = 2002, @SortBy = 'BaseSalary';  -- HR by BaseSalary
 EXEC sp_GetDepartmentEmployees @IncludeInactive = 1, @SortBy = 'HireDate';  -- All employees by hire date
 ```
 
@@ -304,9 +304,9 @@ EXEC sp_GetEmployeePerformanceSummary @PerformancePeriodMonths = 24;  -- All emp
 
 ### 2. Financial and Business Analysis
 
-#### TechCorp Example: Department Financial Analysis
+#### TechCorp Example: d.DepartmentName Financial Analysis
 ```sql
--- Create comprehensive department financial analysis procedure
+-- Create comprehensive d.DepartmentName financial analysis procedure
 CREATE PROCEDURE sp_GetDepartmentFinancialAnalysis
     @DepartmentID INT = NULL,
     @AnalysisPeriodMonths INT = 12,
@@ -330,8 +330,8 @@ BEGIN
         FORMAT(d.Budget, 'C') AS AllocatedBudget,
         -- Employee cost analysis
         employee_costs.ActiveEmployeeCount,
-        FORMAT(employee_costs.TotalSalaryCost, 'C') AS TotalSalaryCost,
-        FORMAT(employee_costs.AverageSalary, 'C') AS AverageSalary,
+        FORMAT(employee_costs.TotalSalaryCost, 'C') AS TotalBaseSalaryCost,
+        FORMAT(employee_costs.AverageSalary, 'C') AS AverageBaseSalary,
         -- Project financial metrics
         ISNULL(project_financials.ActiveProjectCount, 0) AS ActiveProjectCount,
         ISNULL(FORMAT(project_financials.TotalProjectBudget, 'C'), '$0') AS TotalProjectBudget,
@@ -383,11 +383,11 @@ BEGIN
         -- Strategic recommendations
         CASE 
             WHEN ISNULL(revenue_metrics.TotalRevenue, 0) = 0 AND employee_costs.TotalSalaryCost > 200000
-                THEN 'Critical: High cost department with no revenue - requires strategic review'
+                THEN 'Critical: High cost d.DepartmentName with no revenue - requires strategic review'
             WHEN ISNULL(revenue_metrics.TotalRevenue, 0) / NULLIF(employee_costs.TotalSalaryCost, 0) >= 4.0
                 THEN 'Excellent ROI - consider expansion and investment'
             WHEN employee_costs.ActiveEmployeeCount < 3 AND ISNULL(project_financials.ActiveProjectCount, 0) = 0
-                THEN 'Small department with low activity - evaluate necessity'
+                THEN 'Small d.DepartmentName with low activity - evaluate necessity'
             WHEN (employee_costs.TotalSalaryCost * 100.0 / NULLIF(d.Budget, 0)) < 60
                 THEN 'Under-utilized budget - opportunity for growth or reallocation'
             ELSE 'Department performing within normal parameters'
@@ -398,9 +398,10 @@ BEGIN
         SELECT 
             e.DepartmentID,
             COUNT(*) AS ActiveEmployeeCount,
-            SUM(e.BaseSalary) AS TotalSalaryCost,
-            AVG(e.BaseSalary) AS AverageSalary
+            SUM(e.BaseSalary) AS TotalBaseSalaryCost,
+            AVG(e.BaseSalary) AS AverageBaseSalary
         FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
         WHERE e.IsActive = 1
         GROUP BY e.DepartmentID
     ) employee_costs ON d.DepartmentID = employee_costs.DepartmentID
@@ -444,7 +445,7 @@ BEGIN
 END;
 
 -- Example executions
-EXEC sp_GetDepartmentFinancialAnalysis @DepartmentID = 2001;  -- IT Department analysis
+EXEC sp_GetDepartmentFinancialAnalysis @DepartmentID = 2001;  -- IT d.DepartmentName analysis
 EXEC sp_GetDepartmentFinancialAnalysis @AnalysisPeriodMonths = 6, @IncludeBudgetVariance = 1;  -- All departments, 6 months
 EXEC sp_GetDepartmentFinancialAnalysis @AnalysisPeriodMonths = 24, @IncludeBudgetVariance = 0;  -- 2-year analysis without budget comparison
 ```
@@ -615,10 +616,10 @@ EXEC sp_GetCustomerRelationshipAnalysis @AnalysisPeriodMonths = 6, @MinimumOrder
 EXEC sp_GetDepartmentEmployees 
     @DepartmentID = 2001, 
     @IncludeInactive = 0, 
-    @SortBy = 'Salary';
+    @SortBy = 'BaseSalary';
 
 -- Method 2: Positional parameters (must match parameter order)
-EXEC sp_GetDepartmentEmployees 2001, 0, 'Salary';
+EXEC sp_GetDepartmentEmployees 2001, 0, 'BaseSalary';
 
 -- Method 3: Mixed approach (named after positional)
 EXEC sp_GetDepartmentEmployees 2001, @SortBy = 'LastName';
@@ -669,7 +670,7 @@ BEGIN
             e.JobTitle,
             d.DepartmentName,
             d.Location,
-            FORMAT(e.BaseSalary, 'C') AS Salary,
+            FORMAT(e.BaseSalary, 'C') AS BaseSalary,
             e.WorkEmail,
             e.HireDate,
             DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
@@ -832,6 +833,7 @@ BEGIN
             COUNT(*) AS EmployeeCount,
             SUM(e.BaseSalary) AS TotalSalary
         FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
         WHERE e.IsActive = 1
         GROUP BY e.DepartmentID
     ) emp_count ON d.DepartmentID = emp_count.DepartmentID
@@ -856,7 +858,7 @@ Querying data with stored procedures provides TechCorp with powerful enterprise 
 - Employee performance analysis and reporting
 - Financial analysis and budget monitoring
 - Customer relationship management and analysis
-- Department operational metrics and KPIs
+- d.DepartmentName operational metrics and KPIs
 - Executive dashboard data provisioning
 
 **Technical Advantages:**

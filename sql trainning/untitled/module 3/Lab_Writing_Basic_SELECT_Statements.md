@@ -33,7 +33,7 @@ CREATE TABLE Employees (
 -- Departments table (expanded)
 CREATE TABLE Departments (
     DepartmentID INT PRIMARY KEY IDENTITY(1,1),
-    DepartmentName NVARCHAR(50) NOT NULL,
+    d.DepartmentName NVARCHAR(50) NOT NULL,
     DepartmentCode NVARCHAR(10) NOT NULL,
     Budget DECIMAL(12,2) NOT NULL,
     ManagerID INT NULL,
@@ -231,7 +231,7 @@ Write queries to:
 1. **Unique Values Analysis**:
    - Find all unique job titles in the company
    - List all unique cities where employees live
-   - Show all unique department locations
+   - Show all unique d.DepartmentName locations
    - Find all unique project statuses and priorities
 
 2. **Data Profiling**:
@@ -244,7 +244,7 @@ Write queries to:
 Write queries to:
 
 1. **Combination Analysis**:
-   - Find unique department and title combinations
+   - Find unique d.DepartmentName and title combinations
    - List unique city and state combinations
    - Show unique project status and priority combinations
    - Find unique skill category and difficulty level pairs
@@ -252,7 +252,7 @@ Write queries to:
 2. **Business Intelligence**:
    - Identify unique employee role types across projects
    - Find unique client and project status combinations
-   - Show unique hire year and department combinations
+   - Show unique hire year and d.DepartmentName combinations
 
 #### Exercise 2.3: Advanced DISTINCT Applications
 Write queries to:
@@ -275,7 +275,7 @@ Write queries to:
 1. **Professional Report Headers**:
    - Create a employee directory with professional column names
    - Generate a project status report with business-friendly headers
-   - Produce a department budget report with formatted column names
+   - Produce a d.DepartmentName budget report with formatted column names
 
 2. **Calculated Field Aliases**:
    - Create meaningful names for all calculated fields
@@ -334,7 +334,7 @@ Write queries to:
    - Develop employee career track recommendations
 
 2. **Multi-Criteria Classification**:
-   - Combine BaseSalary, tenure, and department for employee segmentation
+   - Combine BaseSalary, tenure, and d.DepartmentName for employee segmentation
    - Use project budget, duration, and status for project classification
    - Create comprehensive skill level assessments
 
@@ -342,7 +342,7 @@ Write queries to:
 Write queries to:
 
 1. **Conditional Calculations**:
-   - Calculate different bonus amounts based on department and performance
+   - Calculate different bonus amounts based on d.DepartmentName and performance
    - Determine project completion bonuses with complex criteria
    - Create dynamic hourly rate adjustments
 
@@ -357,7 +357,7 @@ Write queries to:
 Create a comprehensive query that includes:
 - Employee demographics with proper aliases
 - Service tenure categorization using CASE
-- BaseSalary position analysis within department
+- BaseSalary position analysis within d.DepartmentName
 - Project involvement summary
 - Performance indicators using complex business rules
 - Professional presentation with meaningful column names
@@ -371,8 +371,8 @@ Build a detailed project analysis including:
 - Risk assessment using multiple criteria
 - Executive summary format with business aliases
 
-#### Challenge 3: Department Optimization Report
-Develop a department analysis featuring:
+#### Challenge 3: d.DepartmentName Optimization Report
+Develop a d.DepartmentName analysis featuring:
 - Budget utilization and efficiency metrics
 - Employee distribution and diversity analysis
 - Skill gap identification across departments

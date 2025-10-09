@@ -70,7 +70,7 @@ ORDER BY HireDate ASC;  -- ASC is optional (default)
 
 ### Multi-Column Sorting
 ```sql
--- Sort by department first, then by BaseSalary within department
+-- Sort by d.DepartmentName first, then by BaseSalary within d.DepartmentName
 SELECT 
     FirstName,
     LastName,
@@ -116,7 +116,7 @@ SELECT
     FirstName,
     LastName,
     BaseSalary,
-    DepartmentName
+    d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 ORDER BY 
@@ -153,7 +153,7 @@ SELECT
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 ORDER BY 
-    CASE DepartmentName
+    CASE d.DepartmentName
         WHEN 'Executive' THEN 1
         WHEN 'Finance' THEN 2
         WHEN 'IT' THEN 3
@@ -204,7 +204,7 @@ WITH EmployeeMetrics AS (
         e.EmployeeID,
         e.FirstName,
         e.LastName,
-        e.Title,
+        e.JobTitle,
         e.BaseSalary,
         e.HireDate,
         d.DepartmentName,
@@ -218,7 +218,7 @@ WITH EmployeeMetrics AS (
     LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'Active'
     LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
     WHERE e.IsActive = 1
-    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.Title, e.BaseSalary, 
+    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.BaseSalary, 
              e.HireDate, d.DepartmentName
 )
 SELECT 
@@ -233,8 +233,8 @@ SELECT
     SkillCount
 FROM EmployeeMetrics
 ORDER BY 
-    -- Primary: Department priority
-    CASE DepartmentName
+    -- Primary: d.DepartmentName priority
+    CASE d.DepartmentName
         WHEN 'Executive' THEN 1
         WHEN 'Finance' THEN 2
         WHEN 'IT' THEN 3
@@ -273,7 +273,7 @@ SELECT
     Title,
     BaseSalary,
     HireDate,
-    DepartmentName
+    d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 ORDER BY 
@@ -313,7 +313,7 @@ SELECT
     LastName,
     DepartmentName,
     BaseSalary,
-    -- Ranking within department
+    -- Ranking within d.DepartmentName
     RANK() OVER (PARTITION BY DepartmentIDName ORDER BY BaseSalary DESC) AS DeptSalaryRank,
     -- Overall ranking
     DENSE_RANK() OVER (ORDER BY BaseSalary DESC) AS OverallSalaryRank,
@@ -323,7 +323,7 @@ FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 ORDER BY 
-    DeptSalaryRank,           -- Department rank first
+    DeptSalaryRank,           -- d.DepartmentName rank first
     OverallSalaryRank,        -- Then overall rank
     SalaryPercentile DESC;    -- Then percentile
 ```
@@ -483,11 +483,10 @@ ORDER BY
 ### Business Reporting Sorts
 ```sql
 -- Executive summary sorting
-SELECT 
-    DepartmentName,
+SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount,
-    AVG(BaseSalary) AS AvgSalary,
-    MAX(BaseSalary) AS MaxSalary
+    AVG(e.BaseSalary) AS AvgSalary,
+    MAX(e.BaseSalary) AS MaxSalary
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
@@ -564,7 +563,7 @@ ORDER BY BaseSalary DESC;
 
 -- Avoid: Sorting by functions without corresponding index
 -- SELECT FirstName, LastName, BaseSalary
--- FROM Employees  
+-- FROM Employees e  
 -- ORDER BY UPPER(LastName);  -- Forces table scan + sort
 
 -- Better: Use computed column with index or handle in application
