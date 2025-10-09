@@ -12,16 +12,16 @@ This document provides complete solutions to all exercises in Module 2, with exp
 **Answer 1.1.1**: Employee Information with Formatting
 ```sql
 SELECT 
-    LastName + ', ' + FirstName + 
+    e.LastName + ', ' + e.FirstName + 
     CASE 
         WHEN MiddleName IS NOT NULL THEN ' ' + LEFT(MiddleName, 1) + '.'
         ELSE ''
     END AS FullName,
-    FORMAT(BaseSalary, 'C', 'en-US') AS FormattedSalary,
-    DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsOfService,
+    FORMAT(e.BaseSalary, 'C', 'en-US') AS FormattedSalary,
+    DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
     SUBSTRING(WorkEmail, CHARINDEX('@', WorkEmail) + 1, LEN(WorkEmail)) AS EmailDomain
-FROM Employees
-ORDER BY LastName, FirstName;
+FROM Employees e
+ORDER BY e.LastName, e.FirstName;
 ```
 
 **Explanation**: Uses CASE for NULL handling, FORMAT for currency display, DATEDIFF for tenure calculation, and string functions for email parsing.
@@ -29,16 +29,16 @@ ORDER BY LastName, FirstName;
 **Answer 1.1.2**: Employee BaseSalary Categorization
 ```sql
 SELECT 
-    FirstName + ' ' + LastName AS EmployeeName,
-    BaseSalary,
+    e.FirstName + ' ' + e.LastName AS EmployeeName,
+    e.BaseSalary,
     CASE 
-        WHEN BaseSalary < 55000 THEN 'Entry Level'
-        WHEN BaseSalary BETWEEN 55000 AND 75000 THEN 'Mid Level'
-        WHEN BaseSalary BETWEEN 75001 AND 90000 THEN 'Senior Level'
+        WHEN e.BaseSalary < 55000 THEN 'Entry Level'
+        WHEN e.BaseSalary BETWEEN 55000 AND 75000 THEN 'Mid Level'
+        WHEN e.BaseSalary BETWEEN 75001 AND 90000 THEN 'Senior Level'
         ELSE 'Executive'
     END AS SalaryCategory
-FROM Employees
-ORDER BY BaseSalary DESC;
+FROM Employees e
+ORDER BY e.BaseSalary DESC;
 ```
 
 **Explanation**: Uses CASE statement with BETWEEN for range categorization, ordered by BaseSalary for easy verification.
@@ -51,9 +51,9 @@ WITH EmployeeTenure AS (
         e.FirstName + ' ' + e.LastName AS EmployeeName,
         d.DepartmentName,
         DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
-        ROW_NUMBER() OVER (PARTITION BY e.DepartmentID ORDER BY e.HireDate ASC) AS TenureRank
+        ROW_NUMBER() OVER (PARTITION BY e.d.DepartmentID ORDER BY e.HireDate ASC) AS TenureRank
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
     WHERE e.IsActive = 1
 )
 SELECT d.DepartmentName,
@@ -69,18 +69,18 @@ ORDER BY YearsOfService DESC;
 **Answer 1.1.4**: Employees Hired in Same Month
 ```sql
 SELECT 
-    DATENAME(MONTH, HireDate) AS HireMonth,
-    YEAR(HireDate) AS HireYear,
-    FirstName + ' ' + LastName AS EmployeeName,
-    HireDate
-FROM Employees
-WHERE MONTH(HireDate) IN (
-    SELECT MONTH(HireDate)
-    FROM Employees
-    GROUP BY MONTH(HireDate)
+    DATENAME(MONTH, e.HireDate) AS HireMonth,
+    YEAR(e.HireDate) AS HireYear,
+    e.FirstName + ' ' + e.LastName AS EmployeeName,
+    e.HireDate
+FROM Employees e
+WHERE MONTH(e.HireDate) IN (
+    SELECT MONTH(e.HireDate)
+    FROM Employees e
+    GROUP BY MONTH(e.HireDate)
     HAVING COUNT(*) > 1
 )
-ORDER BY MONTH(HireDate), YEAR(HireDate);
+ORDER BY MONTH(e.HireDate), YEAR(e.HireDate);
 ```
 
 **Explanation**: Subquery identifies months with multiple hires, main query shows all employees hired in those months.
@@ -89,9 +89,9 @@ ORDER BY MONTH(HireDate), YEAR(HireDate);
 ```sql
 WITH EmailBase AS (
     SELECT 
-        EmployeeID,
-        FirstName + ' ' + LastName AS EmployeeName,
-        LOWER(FirstName + '.' + LastName) AS PotentialEmail,
+        e.EmployeeID,
+        e.FirstName + ' ' + e.LastName AS EmployeeName,
+        LOWER(e.FirstName + '.' + e.LastName) AS PotentialEmail,
         WorkEmail
     FROM Employees e
 )
@@ -101,7 +101,7 @@ SELECT
     eb1.PotentialEmail AS ConflictingEmailPattern
 FROM EmailBase eb1
 INNER JOIN EmailBase eb2 ON eb1.PotentialEmail = eb2.PotentialEmail
-    AND eb1.EmployeeID < eb2.EmployeeID
+    AND eb1.e.EmployeeID < eb2.e.EmployeeID
 ORDER BY eb1.PotentialEmail;
 ```
 
@@ -113,22 +113,22 @@ ORDER BY eb1.PotentialEmail;
 
 ### 2.1 Set Operations Solutions
 
-**Answer 2.1.1**: Departments by Budget or BaseSalary Criteria
+**Answer 2.1.1**: Departments by d.Budget or BaseSalary Criteria
 ```sql
-SELECT d.DepartmentName, 'High Budget' AS Reason
-FROM Departments
-WHERE Budget > 300000
+SELECT d.DepartmentName, 'High d.Budget' AS Reason
+FROM Departments d
+WHERE d.Budget > 300000
 
 UNION
 
-SELECT d.DepartmentName, 'High Average BaseSalary' AS Reason
+SELECT d.DepartmentName, 'High Average e.BaseSalary' AS Reason
 FROM Departments d
 WHERE d.DepartmentID IN (
-    SELECT e.DepartmentID
+    SELECT e.d.DepartmentID
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
     WHERE e.IsActive = 1
-    GROUP BY e.DepartmentID
+    GROUP BY e.d.DepartmentID
     HAVING AVG(e.BaseSalary) > 70000
 )
 ORDER BY DepartmentIDName;
@@ -141,18 +141,18 @@ ORDER BY DepartmentIDName;
 -- Employees in IT working on "In Progress" projects
 SELECT e.EmployeeID
 FROM Employees e
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-WHERE e.DepartmentID = 1 AND p.IsActive = 'In Progress'
+WHERE e.d.DepartmentID = 1 AND p.IsActive = 'In Progress'
 
 INTERSECT
 
 -- Employees in Marketing working on "Completed" projects
 SELECT e.EmployeeID
 FROM Employees e
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-WHERE e.DepartmentID = 4 AND p.IsActive = 'Completed';
+WHERE e.d.DepartmentID = 4 AND p.IsActive = 'Completed';
 ```
 
 **Explanation**: INTERSECT finds employees whose project assignments align with d.DepartmentName expectations.
@@ -165,9 +165,9 @@ SELECT
     d.Budget,
     'Potential underutilization' AS ManagementConcern
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE e.DepartmentID IN (
-    SELECT DepartmentID FROM Departments WHERE Budget > 250000
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+WHERE e.d.DepartmentID IN (
+    SELECT d.DepartmentID FROM Departments d WHERE d.Budget > 250000
 )
 
 EXCEPT
@@ -178,8 +178,8 @@ SELECT
     d.Budget,
     'Potential underutilization'
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID;
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID;
 ```
 
 **Explanation**: EXCEPT identifies employees in well-funded departments who aren't assigned to projects.
@@ -192,9 +192,9 @@ SELECT
     'Project Leader' AS Category
 FROM Employees e
 WHERE e.EmployeeID IN (
-    SELECT EmployeeID 
+    SELECT e.EmployeeID 
     FROM EmployeeProjects 
-    GROUP BY EmployeeID 
+    GROUP BY e.EmployeeID 
     HAVING COUNT(*) >= 2
 )
 
@@ -206,9 +206,9 @@ SELECT
     'Contributor'
 FROM Employees e
 WHERE e.EmployeeID IN (
-    SELECT EmployeeID 
+    SELECT e.EmployeeID 
     FROM EmployeeProjects 
-    GROUP BY EmployeeID 
+    GROUP BY e.EmployeeID 
     HAVING COUNT(*) = 1
 )
 
@@ -220,7 +220,7 @@ SELECT
     'Available'
 FROM Employees e
 WHERE e.EmployeeID NOT IN (
-    SELECT DISTINCT EmployeeID FROM EmployeeProjects
+    SELECT DISTINCT e.EmployeeID FROM EmployeeProjects
 )
 ORDER BY Category, EmployeeName;
 ```
@@ -232,14 +232,14 @@ ORDER BY Category, EmployeeName;
 -- Assuming a Skills table exists, this would identify gaps
 WITH ProjectRequiredSkills AS (
     -- Hypothetical: projects require certain skills
-    SELECT ProjectID, 'Database Design' AS RequiredSkill FROM Projects WHERE ProjectName LIKE '%ERP%'
+    SELECT ProjectID, 'Database Design' AS RequiredSkill FROM Projects p WHERE ProjectName LIKE '%ERP%'
     UNION
-    SELECT ProjectID, 'Web Development' FROM Projects WHERE ProjectName LIKE '%Website%'
+    SELECT ProjectID, 'Web Development' FROM Projects p WHERE ProjectName LIKE '%Website%'
 ),
 EmployeeActualSkills AS (
     -- Hypothetical: employee actual skills
     SELECT e.EmployeeID, 'Database Design' AS Skill
-    FROM Employees e WHERE e.DepartmentID = 1
+    FROM Employees e WHERE e.d.DepartmentID = 1
     UNION
     SELECT e.EmployeeID, 'Web Development'
     FROM Employees e WHERE e.JobTitle LIKE '%Developer%'
@@ -249,12 +249,12 @@ SELECT DISTINCT e.FirstName + ' ' + e.LastName AS Employee,
        p.ProjectName,
        prs.RequiredSkill
 FROM Employees e
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 INNER JOIN ProjectRequiredSkills prs ON p.ProjectID = prs.ProjectID
 WHERE NOT EXISTS (
     SELECT 1 FROM EmployeeActualSkills eas 
-    WHERE eas.EmployeeID = e.EmployeeID 
+    WHERE eas.e.EmployeeID = e.EmployeeID 
     AND eas.Skill = prs.RequiredSkill
 );
 ```
@@ -273,7 +273,7 @@ SELECT
     e.MiddleName,
     e.JobTitle
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND (e.HireDate > '2020-12-31' OR e.BaseSalary > 80000)
   AND d.Budget > 200000
@@ -290,27 +290,27 @@ FROM Departments d
 WHERE EXISTS (
     -- At least one employee earns more than d.DepartmentName average
     SELECT 1
-    FROM Employees e1
-    WHERE e1.DepartmentID = d.DepartmentID
-      AND e1.BaseSalary > (
-          SELECT AVG(e2.BaseSalary)
-          FROM Employees e2
-          WHERE e2.DepartmentID = d.DepartmentID
+    FROM Employees e e1
+    WHERE e1.d.DepartmentID = d.DepartmentID
+      AND e1.e.BaseSalary > (
+          SELECT AVG(e2.e.BaseSalary)
+          FROM Employees e e2
+          WHERE e2.d.DepartmentID = d.DepartmentID
       )
 )
 AND EXISTS (
     -- At least one project assigned to d.DepartmentName employees
     SELECT 1
     FROM Employees e
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-    WHERE e.DepartmentID = d.DepartmentID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    WHERE e.d.DepartmentID = d.DepartmentID
 )
 AND d.Budget > (
-    -- Budget justified by employee cost
+    -- d.Budget justified by employee cost
     SELECT SUM(e.BaseSalary) * 1.5  -- 50% overhead assumption
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    WHERE e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    WHERE e.d.DepartmentID = d.DepartmentID
 );
 ```
 
@@ -334,9 +334,9 @@ FROM Departments d
 WHERE NOT EXISTS (
     SELECT 1 
     FROM Employees e
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-    WHERE e.DepartmentID = d.DepartmentID
+    WHERE e.d.DepartmentID = d.DepartmentID
       AND p.IsActive = 'In Progress'
 )
 
@@ -349,9 +349,9 @@ WHERE d.Budget > 300000
   AND NOT EXISTS (
       SELECT 1
       FROM Employees e
-      INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-      WHERE e.DepartmentID = d.DepartmentID
-      GROUP BY e.DepartmentID
+      INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+      WHERE e.d.DepartmentID = d.DepartmentID
+      GROUP BY e.d.DepartmentID
       HAVING COUNT(*) >= 2
   );
 ```
@@ -378,7 +378,7 @@ SELECT d.DepartmentName,
     AVG(e.BaseSalary) as AvgSal,
     COUNT(*) as TeamSize
 FROM Departments d
-JOIN Employees e ON d.DepartmentID = e.DepartmentID
+JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
 WHERE e.IsActive = 1  -- Use actual column in WHERE
 GROUP BY d.DepartmentName
 HAVING COUNT(*) > 2   -- Use HAVING for aggregate conditions
@@ -404,16 +404,16 @@ ORDER BY AvgSal DESC;
 SELECT *
 FROM (
     SELECT 
-        EmployeeID,
-        FirstName + ' ' + LastName AS FullName,
+        e.EmployeeID,
+        e.FirstName + ' ' + e.LastName AS FullName,
         ISNULL(ProjectCount, 0) AS ProjectCount,
         CASE WHEN ISNULL(ProjectCount, 0) > 1 THEN 'Multi-Project' ELSE 'Single-Project' END AS Category
     FROM Employees e
     LEFT JOIN (
-        SELECT EmployeeID, COUNT(*) AS ProjectCount
+        SELECT e.EmployeeID, COUNT(*) AS ProjectCount
         FROM EmployeeProjects 
-        GROUP BY EmployeeID
-    ) p ON e.EmployeeID = p.EmployeeID
+        GROUP BY e.EmployeeID
+    ) p ON e.EmployeeID = p.e.EmployeeID
 ) emp_with_category
 WHERE Category = 'Multi-Project'
 ORDER BY ProjectCount DESC;
@@ -421,16 +421,16 @@ ORDER BY ProjectCount DESC;
 -- CORRECTED VERSION - Option 2 (CTE):
 WITH EmployeeProjects AS (
     SELECT 
-        EmployeeID,
-        FirstName + ' ' + LastName AS FullName,
+        e.EmployeeID,
+        e.FirstName + ' ' + e.LastName AS FullName,
         ISNULL(ProjectCount, 0) AS ProjectCount,
         CASE WHEN ISNULL(ProjectCount, 0) > 1 THEN 'Multi-Project' ELSE 'Single-Project' END AS Category
     FROM Employees e
     LEFT JOIN (
-        SELECT EmployeeID, COUNT(*) AS ProjectCount
+        SELECT e.EmployeeID, COUNT(*) AS ProjectCount
         FROM EmployeeProjects 
-        GROUP BY EmployeeID
-    ) p ON e.EmployeeID = p.EmployeeID
+        GROUP BY e.EmployeeID
+    ) p ON e.EmployeeID = p.e.EmployeeID
 )
 SELECT *
 FROM EmployeeProjects
@@ -449,7 +449,7 @@ SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount,
     AVG(e.BaseSalary) AS AvgSalary
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.HireDate > '2020-12-31'  -- WHERE: filters individual rows before grouping
   AND e.IsActive = 1             -- WHERE: row-level filter
 GROUP BY d.DepartmentName
@@ -489,13 +489,13 @@ WITH DepartmentMetrics AS (
         SUM(e.BaseSalary) AS TotalBaseSalaryCost,
         COUNT(DISTINCT ep.ProjectID) AS ProjectCount
     FROM Departments d
-    LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID AND e.IsActive = 1
-    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+    LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
+    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
     GROUP BY d.DepartmentID, d.DepartmentName, d.Budget
 ),
 ResourceUtilization AS (
     SELECT 
-        e.DepartmentID,
+        e.d.DepartmentID,
         SUM(ep.HoursAllocated) AS TotalHoursAllocated,
         SUM(ep.HoursWorked) AS TotalHoursWorked,
         CASE 
@@ -504,8 +504,8 @@ ResourceUtilization AS (
             ELSE 0 
         END AS UtilizationPercent
     FROM Employees e
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-    GROUP BY e.DepartmentID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    GROUP BY e.d.DepartmentID
 ),
 DepartmentRanking AS (
     SELECT 
@@ -521,11 +521,11 @@ DepartmentRanking AS (
             WHEN dm.EmployeeCount = 0 THEN 'No Active Employees'
             WHEN dm.ProjectCount = 0 THEN 'No Project Assignments'
             WHEN ISNULL(ru.UtilizationPercent, 0) < 70 THEN 'Low Utilization'
-            WHEN dm.TotalSalaryCost > dm.Budget * 0.8 THEN 'High BaseSalary Burden'
+            WHEN dm.TotalSalaryCost > dm.d.Budget * 0.8 THEN 'High e.BaseSalary Burden'
             ELSE 'Good Performance'
         END AS AttentionFlag
     FROM DepartmentMetrics dm
-    LEFT JOIN ResourceUtilization ru ON dm.DepartmentID = ru.DepartmentID
+    LEFT JOIN ResourceUtilization ru ON dm.d.DepartmentID = ru.d.DepartmentID
 )
 SELECT d.DepartmentName,
     EmployeeCount,
@@ -557,7 +557,7 @@ WITH EmployeeMetrics AS (
         AVG(ep.HoursWorked) AS AvgProjectHours
     FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
     WHERE e.IsActive = 1
     GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.BaseSalary, 
              e.HireDate, d.DepartmentName
@@ -566,7 +566,7 @@ DepartmentBenchmarks AS (
     SELECT d.DepartmentName,
         AVG(e.BaseSalary) AS DeptAvgSalary,
         AVG(TenureMonths) AS DeptAvgTenure,
-        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY BaseSalary) 
+        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY e.BaseSalary) 
             OVER (PARTITION BY DepartmentIDName) AS Salary75thPercentile
     FROM EmployeeMetrics
     GROUP BY DepartmentIDName
@@ -578,19 +578,19 @@ CareerAnalysis AS (
         db.DeptAvgTenure,
         db.Salary75thPercentile,
         CASE 
-            WHEN em.BaseSalary >= db.Salary75thPercentile THEN 'High Performer'
-            WHEN em.BaseSalary >= db.DeptAvgSalary THEN 'Above Average'
+            WHEN em.e.BaseSalary >= db.Salary75thPercentile THEN 'High Performer'
+            WHEN em.e.BaseSalary >= db.DeptAvgSalary THEN 'Above Average'
             ELSE 'Below Average'
         END AS SalaryPosition,
         CASE 
-            WHEN em.TenureMonths >= 36 AND em.BaseSalary < db.DeptAvgSalary THEN 'Promotion Candidate'
+            WHEN em.TenureMonths >= 36 AND em.e.BaseSalary < db.DeptAvgSalary THEN 'Promotion Candidate'
             WHEN em.TenureMonths >= 24 AND em.ProjectCount >= 2 THEN 'Development Ready'
             WHEN em.TenureMonths < 12 THEN 'New Employee'
             ELSE 'Stable'
         END AS CareerStage,
         CASE 
             WHEN em.Title NOT LIKE '%Senior%' AND em.TenureMonths >= 36 
-                 AND em.BaseSalary >= db.DeptAvgSalary THEN 'Senior Role Transition'
+                 AND em.e.BaseSalary >= db.DeptAvgSalary THEN 'Senior Role Transition'
             WHEN em.Title NOT LIKE '%Manager%' AND em.Title NOT LIKE '%Director%' 
                  AND em.TenureMonths >= 60 AND em.ProjectCount >= 3 THEN 'Leadership Track'
             WHEN em.ProjectCount = 0 AND em.TenureMonths >= 6 THEN 'Project Assignment Needed'
@@ -603,7 +603,7 @@ SELECT
     EmployeeName,
     Title,
     DepartmentName,
-    FORMAT(BaseSalary, 'C0') AS CurrentSalary,
+    FORMAT(e.BaseSalary, 'C0') AS CurrentSalary,
     TenureMonths,
     ProjectCount,
     SalaryPosition,
@@ -643,7 +643,7 @@ WITH EmployeeWorkload AS (
         COUNT(ep.ProjectID) AS ProjectCount
     FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
     WHERE e.IsActive = 1
     GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.DepartmentID, 
              d.DepartmentName, e.JobTitle
@@ -669,7 +669,7 @@ ProjectAnalysis AS (
         p.ProjectName,
         p.IsActive,
         p.Budget,
-        COUNT(ep.EmployeeID) AS AssignedEmployees,
+        COUNT(ep.e.EmployeeID) AS AssignedEmployees,
         SUM(ep.HoursAllocated) AS ProjectHoursAllocated,
         SUM(ep.HoursWorked) AS ProjectHoursWorked,
         CASE 

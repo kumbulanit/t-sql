@@ -324,8 +324,8 @@ GROUP BY ec.CategoryName;
 -- Validation 3: Retry mechanism effectiveness
 SELECT 
     'Retry Effectiveness' AS Metric,
-    COUNT(CASE WHEN Status = 'COMPLETED' THEN 1 END) AS SuccessfulRetries,
-    COUNT(CASE WHEN Status = 'FAILED' THEN 1 END) AS FailedRetries,
+    COUNT(CASE WHEN IsActive = 'COMPLETED' THEN 1 END) AS SuccessfulRetries,
+    COUNT(CASE WHEN IsActive = 'FAILED' THEN 1 END) AS FailedRetries,
     AVG(TotalAttempts) AS AvgAttempts
 FROM ExecutionLog
 WHERE StartTime >= DATEADD(HOUR, -1, GETDATE());

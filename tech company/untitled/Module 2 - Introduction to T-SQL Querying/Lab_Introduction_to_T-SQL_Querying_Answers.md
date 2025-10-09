@@ -13,11 +13,11 @@ SELECT * FROM Employees e;
 ```
 
 #### Question 2: Column Selection
-**Task:** Select only FirstName, LastName, and BaseSalary from Employees.
+**Task:** Select only FirstName, LastName, and BaseSalary FROM Employees e.
 
 ```sql
 -- Answer 2: Column Selection
-SELECT FirstName, LastName, BaseSalary 
+SELECT e.FirstName, e.LastName, e.BaseSalary 
 FROM Employees e;
 ```
 
@@ -27,9 +27,9 @@ FROM Employees e;
 ```sql
 -- Answer 3: Calculated Columns
 SELECT 
-    FirstName + ' ' + LastName AS FullName,
-    BaseSalary AS AnnualSalary,
-    BaseSalary / 12 AS MonthlySalary
+    e.FirstName + ' ' + e.LastName AS FullName,
+    e.BaseSalary AS AnnualSalary,
+    e.BaseSalary / 12 AS MonthlySalary
 FROM Employees e;
 ```
 
@@ -39,10 +39,10 @@ FROM Employees e;
 ```sql
 -- Answer 4: String Functions
 SELECT 
-    FirstName + ' ' + LastName AS FullName,
+    e.FirstName + ' ' + e.LastName AS FullName,
     LEFT(WorkEmail, CHARINDEX('@', WorkEmail) - 1) AS EmailUsername,
     SUBSTRING(WorkEmail, CHARINDEX('@', WorkEmail) + 1, LEN(WorkEmail)) AS EmailDomain,
-    UPPER(FirstName + ' ' + LastName) AS FullNameUpper
+    UPPER(e.FirstName + ' ' + e.LastName) AS FullNameUpper
 FROM Employees e;
 ```
 
@@ -52,10 +52,10 @@ FROM Employees e;
 ```sql
 -- Answer 5: Date Functions
 SELECT 
-    FirstName + ' ' + LastName AS EmployeeName,
-    HireDate,
-    DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsOfService,
-    YEAR(HireDate) AS HireYear
+    e.FirstName + ' ' + e.LastName AS EmployeeName,
+    e.HireDate,
+    DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
+    YEAR(e.HireDate) AS HireYear
 FROM Employees e;
 ```
 
@@ -65,10 +65,10 @@ FROM Employees e;
 **Task:** Find all employees with BaseSalary greater than $70,000.
 
 ```sql
--- Answer 1: BaseSalary Filter
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
-WHERE BaseSalary > 70000;
+-- Answer 1: e.BaseSalary Filter
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+WHERE e.BaseSalary > 70000;
 ```
 
 #### Question 2: Hire Date Filter
@@ -76,19 +76,20 @@ WHERE BaseSalary > 70000;
 
 ```sql
 -- Answer 2: Hire Date Filter
-SELECT FirstName, LastName, HireDate
-FROM Employees
-WHERE HireDate > '2021-01-01';
+SELECT e.FirstName, e.LastName, e.HireDate
+FROM Employees e
+WHERE e.HireDate > '2021-01-01';
 ```
 
 #### Question 3: d.DepartmentName Filter
-**Task:** Find all employees in the IT d.DepartmentName (DepartmentID = 1).
+**Task:** Find all employees in the IT d.DepartmentName (d.DepartmentID = 1).
 
 ```sql
 -- Answer 3: d.DepartmentName Filter
-SELECT FirstName, LastName, Title, DepartmentID
-FROM Employees
-WHERE DepartmentID = 1;
+SELECT e.FirstName, e.LastName, Title, d.DepartmentID
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+WHERE d.DepartmentID = 1;
 ```
 
 #### Question 4: Name Pattern Filter
@@ -96,9 +97,9 @@ WHERE DepartmentID = 1;
 
 ```sql
 -- Answer 4: Name Pattern Filter
-SELECT FirstName, LastName
-FROM Employees
-WHERE FirstName LIKE 'J%';
+SELECT e.FirstName, e.LastName
+FROM Employees e
+WHERE e.FirstName LIKE 'J%';
 ```
 
 #### Question 5: Middle Name Filter
@@ -106,8 +107,8 @@ WHERE FirstName LIKE 'J%';
 
 ```sql
 -- Answer 5: Middle Name Filter
-SELECT FirstName, MiddleName, LastName
-FROM Employees
+SELECT e.FirstName, MiddleName, e.LastName
+FROM Employees e
 WHERE MiddleName IS NOT NULL;
 ```
 
@@ -116,10 +117,10 @@ WHERE MiddleName IS NOT NULL;
 
 ```sql
 -- Answer 6: Range Filter
-SELECT FirstName, LastName, BaseSalary, IsActive
-FROM Employees
+SELECT e.FirstName, e.LastName, e.BaseSalary, IsActive
+FROM Employees e
 WHERE IsActive = 1 
-  AND BaseSalary BETWEEN 50000 AND 80000;
+  AND e.BaseSalary BETWEEN 50000 AND 80000;
 ```
 
 ### Exercise 1.3: Advanced Filtering - Answers
@@ -129,8 +130,8 @@ WHERE IsActive = 1
 
 ```sql
 -- Answer 1: WorkEmail Pattern Filter
-SELECT FirstName, LastName, WorkEmail
-FROM Employees
+SELECT e.FirstName, e.LastName, WorkEmail
+FROM Employees e
 WHERE WorkEmail LIKE '%gmail%' 
    OR WorkEmail LIKE '%company%';
 ```
@@ -140,11 +141,11 @@ WHERE WorkEmail LIKE '%gmail%'
 
 ```sql
 -- Answer 2: Year Range Filter
-SELECT FirstName, LastName, HireDate
-FROM Employees
-WHERE YEAR(HireDate) IN (2021, 2022);
+SELECT e.FirstName, e.LastName, e.HireDate
+FROM Employees e
+WHERE YEAR(e.HireDate) IN (2021, 2022);
 -- Alternative solution:
--- WHERE HireDate >= '2021-01-01' AND HireDate < '2023-01-01';
+-- WHERE e.HireDate >= '2021-01-01' AND e.HireDate < '2023-01-01';
 ```
 
 #### Question 3: Complex Logic Filter
@@ -152,10 +153,10 @@ WHERE YEAR(HireDate) IN (2021, 2022);
 
 ```sql
 -- Answer 3: Complex Logic Filter
-SELECT FirstName, LastName, BaseSalary, DepartmentID
-FROM Employees
-WHERE BaseSalary > 60000 
-  AND (DepartmentID = 1 OR DepartmentID = 4);
+SELECT e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID
+FROM Employees e
+WHERE e.BaseSalary > 60000 
+  AND (d.DepartmentID = 1 OR d.DepartmentID = 4);
 ```
 
 #### Question 4: Name Suffix Filter
@@ -163,10 +164,10 @@ WHERE BaseSalary > 60000
 
 ```sql
 -- Answer 4: Name Suffix Filter
-SELECT FirstName, LastName
-FROM Employees
-WHERE LastName LIKE '%son' 
-   OR LastName LIKE '%er';
+SELECT e.FirstName, e.LastName
+FROM Employees e
+WHERE e.LastName LIKE '%son' 
+   OR e.LastName LIKE '%er';
 ```
 
 ## Section 2: Set Operations (Lesson 2) - Answers
@@ -178,9 +179,9 @@ WHERE LastName LIKE '%son'
 
 ```sql
 -- Answer 1: UNION Operation
-SELECT FirstName FROM Employees WHERE DepartmentID <= 2
+SELECT e.FirstName FROM Employees e WHERE d.DepartmentID <= 2
 UNION
-SELECT FirstName FROM Employees WHERE DepartmentID >= 3;
+SELECT e.FirstName FROM Employees e WHERE d.DepartmentID >= 3;
 ```
 
 #### Question 2: INTERSECT Operation
@@ -188,9 +189,9 @@ SELECT FirstName FROM Employees WHERE DepartmentID >= 3;
 
 ```sql
 -- Answer 2: INTERSECT Operation
-SELECT DepartmentID FROM Employees WHERE BaseSalary > 70000
+SELECT d.DepartmentID FROM Employees e WHERE e.BaseSalary > 70000
 INTERSECT
-SELECT DepartmentID FROM Employees WHERE BaseSalary < 60000;
+SELECT d.DepartmentID FROM Employees e WHERE e.BaseSalary < 60000;
 ```
 
 #### Question 3: EXCEPT Operation
@@ -198,9 +199,9 @@ SELECT DepartmentID FROM Employees WHERE BaseSalary < 60000;
 
 ```sql
 -- Answer 3: EXCEPT Operation
-SELECT EmployeeID FROM Employees
+SELECT e.EmployeeID FROM Employees e
 EXCEPT
-SELECT EmployeeID FROM EmployeeProjects;
+SELECT e.EmployeeID FROM EmployeeProjects;
 ```
 
 ### Exercise 2.2: Set Membership - Answers
@@ -210,9 +211,9 @@ SELECT EmployeeID FROM EmployeeProjects;
 
 ```sql
 -- Answer 1: IN Operator
-SELECT FirstName, LastName, DepartmentID
-FROM Employees
-WHERE DepartmentID IN (1, 3, 5);
+SELECT e.FirstName, e.LastName, d.DepartmentID
+FROM Employees e
+WHERE d.DepartmentID IN (1, 3, 5);
 ```
 
 #### Question 2: Project IsActive Filter
@@ -222,7 +223,7 @@ WHERE DepartmentID IN (1, 3, 5);
 -- Answer 2: Project IsActive Filter
 SELECT DISTINCT e.FirstName, e.LastName
 FROM Employees e
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE p.IsActive = 'In Progress';
 ```
@@ -236,8 +237,8 @@ SELECT d.DepartmentName
 FROM Departments d
 WHERE EXISTS (
     SELECT 1 FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    WHERE e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    WHERE e.d.DepartmentID = d.DepartmentID
 );
 ```
 
@@ -246,11 +247,11 @@ WHERE EXISTS (
 
 ```sql
 -- Answer 4: Manager Filter
-SELECT FirstName, LastName
-FROM Employees e1
-WHERE e1.EmployeeID NOT IN (
+SELECT e.FirstName, e.LastName
+FROM Employees e e1
+WHERE e1.e.EmployeeID NOT IN (
     SELECT DISTINCT ManagerID 
-    FROM Employees e2 
+    FROM Employees e e2 
     WHERE ManagerID IS NOT NULL
 );
 ```
@@ -271,7 +272,7 @@ WHERE NOT EXISTS (
     AND p.ProjectID NOT IN (
         SELECT ep.ProjectID
         FROM EmployeeProjects ep
-        WHERE ep.EmployeeID = e.EmployeeID
+        WHERE ep.e.EmployeeID = e.EmployeeID
     )
 );
 ```
@@ -283,11 +284,11 @@ WHERE NOT EXISTS (
 -- Answer 2: Same Projects as Employee 2
 SELECT DISTINCT e.FirstName, e.LastName
 FROM Employees e
-INNER JOIN EmployeeProjects ep1 ON e.EmployeeID = ep1.EmployeeID
+INNER JOIN EmployeeProjects ep1 ON e.EmployeeID = ep1.e.EmployeeID
 WHERE ep1.ProjectID IN (
     SELECT ep2.ProjectID
     FROM EmployeeProjects ep2
-    WHERE ep2.EmployeeID = 2
+    WHERE ep2.e.EmployeeID = 2
 )
 AND e.EmployeeID != 2;
 ```
@@ -296,20 +297,20 @@ AND e.EmployeeID != 2;
 **Task:** Find departments where ALL employees earn more than $55,000.
 
 ```sql
--- Answer 3: High-BaseSalary Departments
+-- Answer 3: High-e.BaseSalary Departments
 SELECT d.DepartmentName
 FROM Departments d
 WHERE NOT EXISTS (
     SELECT 1
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    WHERE e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    WHERE e.d.DepartmentID = d.DepartmentID
     AND e.BaseSalary <= 55000
 )
 AND EXISTS (
     SELECT 1
     FROM Employees e
-    WHERE e.DepartmentID = d.DepartmentID
+    WHERE e.d.DepartmentID = d.DepartmentID
 );
 ```
 
@@ -322,8 +323,8 @@ AND EXISTS (
 
 ```sql
 -- Answer 1: No Middle Name
-SELECT FirstName, LastName, MiddleName
-FROM Employees
+SELECT e.FirstName, e.LastName, MiddleName
+FROM Employees e
 WHERE MiddleName IS NULL;
 ```
 
@@ -332,8 +333,8 @@ WHERE MiddleName IS NULL;
 
 ```sql
 -- Answer 2: NULL or Empty Middle Name
-SELECT FirstName, LastName, MiddleName
-FROM Employees
+SELECT e.FirstName, e.LastName, MiddleName
+FROM Employees e
 WHERE MiddleName IS NULL OR MiddleName = '';
 ```
 
@@ -343,15 +344,15 @@ WHERE MiddleName IS NULL OR MiddleName = '';
 ```sql
 -- Answer 3: Full Names with NULL Handling
 SELECT 
-    FirstName,
+    e.FirstName,
     MiddleName,
-    LastName,
+    e.LastName,
     CASE 
-        WHEN MiddleName IS NULL THEN FirstName + ' ' + LastName
-        ELSE FirstName + ' ' + MiddleName + ' ' + LastName
+        WHEN MiddleName IS NULL THEN e.FirstName + ' ' + e.LastName
+        ELSE e.FirstName + ' ' + MiddleName + ' ' + e.LastName
     END AS FullName,
     -- Alternative using ISNULL:
-    FirstName + ' ' + ISNULL(MiddleName + ' ', '') + LastName AS FullNameAlt
+    e.FirstName + ' ' + ISNULL(MiddleName + ' ', '') + e.LastName AS FullNameAlt
 FROM Employees e;
 ```
 
@@ -360,8 +361,8 @@ FROM Employees e;
 
 ```sql
 -- Answer 4: Top-Level Managers
-SELECT FirstName, LastName, Title, ManagerID
-FROM Employees
+SELECT e.FirstName, e.LastName, Title, ManagerID
+FROM Employees e
 WHERE ManagerID IS NULL;
 ```
 
@@ -371,22 +372,23 @@ WHERE ManagerID IS NULL;
 **Task:** Find employees where (BaseSalary > $70k AND d.DepartmentName is IT) OR (BaseSalary > $80k).
 
 ```sql
--- Answer 1: Complex BaseSalary and d.DepartmentName Logic
-SELECT FirstName, LastName, BaseSalary, DepartmentID
-FROM Employees
-WHERE (BaseSalary > 70000 AND DepartmentID = 1) 
-   OR (BaseSalary > 80000);
+-- Answer 1: Complex e.BaseSalary and d.DepartmentName Logic
+SELECT e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+WHERE (e.BaseSalary > 70000 AND d.DepartmentID = 1) 
+   OR (e.BaseSalary > 80000);
 ```
 
-#### Question 2: Project IsActive and Budget Logic
+#### Question 2: Project IsActive and d.Budget Logic
 **Task:** Find projects that are either completed OR have a budget > $100k.
 
 ```sql
--- Answer 2: Project IsActive and Budget Logic
-SELECT ProjectName, IsActive, Budget
-FROM Projects
+-- Answer 2: Project IsActive and d.Budget Logic
+SELECT ProjectName, IsActive, d.Budget
+FROM Projects p
 WHERE IsActive = 'Completed' 
-   OR Budget > 100000;
+   OR d.Budget > 100000;
 ```
 
 ## Section 4: Logical Order of Operations (Lesson 4) - Answers
@@ -408,7 +410,7 @@ SELECT
         ELSE 'Low'
     END AS SalaryCategory
 FROM Employees e                                      -- 1. FROM
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1                                  -- 2. WHERE
   AND e.HireDate >= '2020-01-01'
 GROUP BY e.FirstName, e.LastName, e.BaseSalary, d.DepartmentName  -- 3. GROUP BY
@@ -424,21 +426,21 @@ ORDER BY e.BaseSalary DESC;                               -- 6. ORDER BY
 
 -- CORRECT: Using alias in ORDER BY (processed after SELECT)
 SELECT 
-    FirstName + ' ' + LastName AS FullName,
-    BaseSalary * 12 AS AnnualSalary
-FROM Employees
+    e.FirstName + ' ' + e.LastName AS FullName,
+    e.BaseSalary * 12 AS AnnualSalary
+FROM Employees e
 ORDER BY FullName, AnnualSalary;
 
 -- INCORRECT: Cannot use alias in WHERE clause (processed before SELECT)
 -- This would cause an error:
--- SELECT FirstName + ' ' + LastName AS FullName
+-- SELECT e.FirstName + ' ' + e.LastName AS FullName
 -- FROM Employees e
 -- WHERE FullName LIKE 'J%';
 
 -- CORRECT: Use the actual expression in WHERE clause
-SELECT FirstName + ' ' + LastName AS FullName
-FROM Employees
-WHERE FirstName + ' ' + LastName LIKE 'J%'
+SELECT e.FirstName + ' ' + e.LastName AS FullName
+FROM Employees e
+WHERE e.FirstName + ' ' + e.LastName LIKE 'J%'
 ORDER BY FullName;
 ```
 
@@ -455,7 +457,7 @@ SELECT d.DepartmentName,
     MIN(e.HireDate) AS EarliestHireDate,
     MAX(e.HireDate) AS LatestHireDate
 FROM Employees e                                      -- 1. FROM
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1                                  -- 2. WHERE
   AND e.BaseSalary > 40000
 GROUP BY d.DepartmentName                             -- 3. GROUP BY
@@ -470,36 +472,36 @@ ORDER BY AverageSalary DESC;                          -- 5. ORDER BY
 -- Answer 2: Subquery Processing Order
 
 -- Subquery in WHERE clause (processed during WHERE phase)
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
-WHERE BaseSalary > (
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+WHERE e.BaseSalary > (
     SELECT AVG(e.BaseSalary) 
-    FROM Employees 
+    FROM Employees e 
     WHERE IsActive = 1
 );
 
 -- Subquery in SELECT clause (processed during SELECT phase)
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
     (SELECT AVG(e.BaseSalary) FROM Employees e) AS CompanyAverageSalary,
-    BaseSalary - (SELECT AVG(e.BaseSalary) FROM Employees e) AS SalaryDifference
-FROM Employees
+    e.BaseSalary - (SELECT AVG(e.BaseSalary) FROM Employees e) AS SalaryDifference
+FROM Employees e
 WHERE IsActive = 1;
 
 -- Correlated subquery example
 SELECT 
-    e1.FirstName,
-    e1.LastName,
-    e1.BaseSalary,
+    e1.e.FirstName,
+    e1.e.LastName,
+    e1.e.BaseSalary,
     (SELECT COUNT(*) 
-     FROM Employees e2 
-     WHERE e2.DepartmentID = e1.DepartmentID 
-       AND e2.BaseSalary > e1.BaseSalary) AS HigherPaidInDept
-FROM Employees e1
+     FROM Employees e e2 
+     WHERE e2.d.DepartmentID = e1.d.DepartmentID 
+       AND e2.e.BaseSalary > e1.e.BaseSalary) AS HigherPaidInDept
+FROM Employees e e1
 WHERE e1.IsActive = 1
-ORDER BY e1.DepartmentID, e1.BaseSalary DESC;
+ORDER BY e1.d.DepartmentID, e1.e.BaseSalary DESC;
 ```
 
 ## Additional Practice Queries - Answers
@@ -518,7 +520,7 @@ SELECT
     COALESCE(
         (SELECT COUNT(*) 
          FROM EmployeeProjects ep 
-         WHERE ep.EmployeeID = e.EmployeeID), 0
+         WHERE ep.e.EmployeeID = e.EmployeeID), 0
     ) AS ProjectCount,
     CASE 
         WHEN e.BaseSalary > 80000 THEN 'Senior Level'
@@ -526,7 +528,7 @@ SELECT
         ELSE 'Junior Level'
     END AS SalaryLevel
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 ORDER BY d.DepartmentName, e.BaseSalary DESC;
 ```
@@ -537,7 +539,7 @@ ORDER BY d.DepartmentName, e.BaseSalary DESC;
 SELECT 
     p.ProjectName,
     p.IsActive,
-    p.Budget,
+    p.d.Budget,
     COUNT(ep.EmployeeID) AS AssignedEmployees,
     SUM(ep.HoursAllocated) AS TotalHoursAllocated,
     SUM(ep.HoursWorked) AS TotalHoursWorked,
@@ -547,14 +549,14 @@ SELECT
     END AS CompletionPercentage
 FROM Projects p
 LEFT JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
-GROUP BY p.ProjectID, p.ProjectName, p.IsActive, p.Budget
+GROUP BY p.ProjectID, p.ProjectName, p.IsActive, p.d.Budget
 HAVING COUNT(ep.EmployeeID) > 0
 ORDER BY CompletionPercentage DESC;
 ```
 
-#### Scenario 3: d.DepartmentName Budget Analysis
+#### Scenario 3: d.DepartmentName d.Budget Analysis
 ```sql
--- Answer: d.DepartmentName Budget Analysis
+-- Answer: d.DepartmentName d.Budget Analysis
 SELECT d.DepartmentName,
     d.Budget AS DepartmentBudget,
     COUNT(e.EmployeeID) AS EmployeeCount,
@@ -562,12 +564,12 @@ SELECT d.DepartmentName,
     AVG(e.BaseSalary) AS AverageBaseSalary,
     d.Budget - SUM(e.BaseSalary) AS BudgetRemaining,
     CASE 
-        WHEN SUM(e.BaseSalary) > d.Budget THEN 'Over Budget'
-        WHEN SUM(e.BaseSalary) > d.Budget * 0.9 THEN 'Near Budget Limit'
-        ELSE 'Within Budget'
+        WHEN SUM(e.BaseSalary) > d.Budget THEN 'Over d.Budget'
+        WHEN SUM(e.BaseSalary) > d.Budget * 0.9 THEN 'Near d.Budget Limit'
+        ELSE 'Within d.Budget'
     END AS BudgetIsActive
 FROM Departments d
-LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID 
+LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID 
     AND e.IsActive = 1
 GROUP BY d.DepartmentID, d.DepartmentName, d.Budget
 ORDER BY BudgetRemaining ASC;

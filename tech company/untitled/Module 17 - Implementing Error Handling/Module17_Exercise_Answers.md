@@ -14,11 +14,11 @@ This document provides complete solutions and explanations for all exercises and
 -- Comprehensive Employee Management Procedure with Error Handling
 CREATE OR ALTER PROCEDURE ManageEmployee
     @Operation NVARCHAR(10), -- 'INSERT', 'UPDATE', 'DELETE'
-    @EmployeeID INT = NULL,
-    @FirstName NVARCHAR(50) = NULL,
-    @LastName NVARCHAR(50) = NULL,
-    @BaseSalary MONEY = NULL,
-    @DepartmentID INT = NULL,
+    @e.EmployeeID INT = NULL,
+    @e.FirstName NVARCHAR(50) = NULL,
+    @e.LastName NVARCHAR(50) = NULL,
+    @e.BaseSalary MONEY = NULL,
+    @d.DepartmentID INT = NULL,
     @ManagerID INT = NULL,
     @UpdatedBy NVARCHAR(100)
 AS
@@ -47,110 +47,110 @@ BEGIN
         IF @Operation = 'INSERT'
         BEGIN
             -- Validate required fields for INSERT
-            IF @FirstName IS NULL OR LEN(TRIM(@FirstName)) = 0
+            IF @e.FirstName IS NULL OR LEN(TRIM(@e.FirstName)) = 0
             BEGIN
                 RAISERROR('First name is required for new employee.', 16, 1);
             END
             
-            IF @LastName IS NULL OR LEN(TRIM(@LastName)) = 0
+            IF @e.LastName IS NULL OR LEN(TRIM(@e.LastName)) = 0
             BEGIN
                 RAISERROR('Last name is required for new employee.', 16, 1);
             END
             
-            IF @BaseSalary IS NULL OR @BaseSalary <= 0
+            IF @e.BaseSalary IS NULL OR @e.BaseSalary <= 0
             BEGIN
-                RAISERROR('Valid base BaseSalary is required for new employee.', 16, 1);
+                RAISERROR('Valid base e.BaseSalary is required for new employee.', 16, 1);
             END
             
-            IF @DepartmentID IS NULL
+            IF @d.DepartmentID IS NULL
             BEGIN
                 RAISERROR('Department ID is required for new employee.', 16, 1);
             END
             
             -- Validate d.DepartmentName exists
-            IF NOT EXISTS (SELECT 1 FROM Departments WHERE DepartmentID = @DepartmentID AND IsActive = 1)
+            IF NOT EXISTS (SELECT 1 FROM Departments d WHERE d.DepartmentID = @d.DepartmentID AND IsActive = 1)
             BEGIN
-                RAISERROR('Department ID %d does not exist or is inactive. Please select a valid department.', 16, 1, @DepartmentID);
+                RAISERROR('Department ID %d does not exist or is inactive. Please select a valid department.', 16, 1, @d.DepartmentID);
             END
             
             -- Validate manager if provided
             IF @ManagerID IS NOT NULL
             BEGIN
-                IF NOT EXISTS (SELECT 1 FROM Employees WHERE EmployeeID = @ManagerID AND IsActive = 1)
+                IF NOT EXISTS (SELECT 1 FROM Employees e WHERE e.EmployeeID = @ManagerID AND IsActive = 1)
                 BEGIN
                     RAISERROR('Manager ID %d does not exist or is inactive. Please select a valid manager.', 16, 1, @ManagerID);
                 END
                 
                 -- Validate manager is in same or parent d.DepartmentName (business rule)
                 IF NOT EXISTS (
-                    SELECT 1 FROM Employees e1
-                    INNER JOIN Employees e2 ON e1.DepartmentID IN (e2.DepartmentID, 
-                        (SELECT ParentDepartmentID FROM Departments WHERE DepartmentID = e2.DepartmentID))
-                    WHERE e1.EmployeeID = @ManagerID AND e2.DepartmentID = @DepartmentID
+                    SELECT 1 FROM Employees e e1
+                    INNER JOIN Employees e2 ON e1.d.DepartmentID IN (e2.d.DepartmentID, 
+                        (SELECT ParentDepartmentID FROM Departments d WHERE d.DepartmentID = e2.d.DepartmentID))
+                    WHERE e1.e.EmployeeID = @ManagerID AND e2.d.DepartmentID = @d.DepartmentID
                 )
                 BEGIN
                     RAISERROR('Manager must be in the same d.DepartmentName or a parent department.', 16, 1);
                 END
             END
             
-            -- Business rule: BaseSalary range validation
+            -- Business rule: e.BaseSalary range validation
             DECLARE @DeptMinSalary MONEY, @DeptMaxSalary MONEY;
             SELECT @DeptMinSalary = MinSalary, @DeptMaxSalary = MaxSalary 
-            FROM DepartmentSalaryRanges 
-            WHERE DepartmentID = @DepartmentID;
+            FROM Departments dalaryRanges 
+            WHERE d.DepartmentID = @d.DepartmentID;
             
-            IF @DeptMinSalary IS NOT NULL AND @BaseSalary < @DeptMinSalary
+            IF @DeptMinSalary IS NOT NULL AND @e.BaseSalary < @DeptMinSalary
             BEGIN
-                RAISERROR('BaseSalary $%.2f is below d.DepartmentName minimum of $%.2f for this position.', 16, 1, @BaseSalary, @DeptMinSalary);
+                RAISERROR('e.BaseSalary $%.2f is below d.DepartmentName minimum of $%.2f for this position.', 16, 1, @e.BaseSalary, @DeptMinSalary);
             END
             
-            IF @DeptMaxSalary IS NOT NULL AND @BaseSalary > @DeptMaxSalary
+            IF @DeptMaxSalary IS NOT NULL AND @e.BaseSalary > @DeptMaxSalary
             BEGIN
-                RAISERROR('BaseSalary $%.2f exceeds d.DepartmentName maximum of $%.2f for this position.', 16, 1, @BaseSalary, @DeptMaxSalary);
+                RAISERROR('e.BaseSalary $%.2f exceeds d.DepartmentName maximum of $%.2f for this position.', 16, 1, @e.BaseSalary, @DeptMaxSalary);
             END
             
             BEGIN TRANSACTION InsertEmployee;
             
             -- Generate new employee ID
             DECLARE @NewEmployeeID INT;
-            SELECT @NewEmployeeID = ISNULL(MAX(EmployeeID), 3000) + 1 FROM Employees e;
+            SELECT @NewEmployeeID = ISNULL(MAX(e.EmployeeID), 3000) + 1 FROM Employees e;
             
             INSERT INTO Employees (
-                EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, 
-                ManagerID, HireDate, IsActive, CreatedBy, CreatedDate
+                e.EmployeeID, e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID, 
+                ManagerID, e.HireDate, IsActive, CreatedBy, CreatedDate
             )
             VALUES (
-                @NewEmployeeID, @FirstName, @LastName, @BaseSalary, @DepartmentID,
+                @NewEmployeeID, @e.FirstName, @e.LastName, @e.BaseSalary, @d.DepartmentID,
                 @ManagerID, GETDATE(), 1, @UpdatedBy, GETDATE()
             );
             
             SET @AffectedRows = @@ROWCOUNT;
-            SET @EmployeeID = @NewEmployeeID;
-            SET @EmployeeName = @FirstName + ' ' + @LastName;
+            SET @e.EmployeeID = @NewEmployeeID;
+            SET @EmployeeName = @e.FirstName + ' ' + @e.LastName;
             
             -- Log audit trail
             INSERT INTO AuditTrail (
                 TableName, Operation, PrimaryKeyValue, NewValues, ChangedBy, ChangeDate
             )
             VALUES (
-                'Employees', 'INSERT', @EmployeeID,
-                'FirstName: ' + @FirstName + ', LastName: ' + @LastName + 
-                ', BaseSalary: $' + FORMAT(@BaseSalary, 'N2') + ', DepartmentID: ' + CAST(@DepartmentID AS VARCHAR(10)),
+                'Employees', 'INSERT', @e.EmployeeID,
+                'e.FirstName: ' + @e.FirstName + ', e.LastName: ' + @e.LastName + 
+                ', e.BaseSalary: $' + FORMAT(@e.BaseSalary, 'N2') + ', d.DepartmentID: ' + CAST(@d.DepartmentID AS VARCHAR(10)),
                 @UpdatedBy, GETDATE()
             );
             
             COMMIT TRANSACTION InsertEmployee;
             
             PRINT 'Employee successfully created:';
-            PRINT 'Employee ID: ' + CAST(@EmployeeID AS VARCHAR(10));
+            PRINT 'Employee ID: ' + CAST(@e.EmployeeID AS VARCHAR(10));
             PRINT 'Name: ' + @EmployeeName;
-            PRINT 'BaseSalary: $' + FORMAT(@BaseSalary, 'N2');
+            PRINT 'e.BaseSalary: $' + FORMAT(@e.BaseSalary, 'N2');
         END
         
         ELSE IF @Operation = 'UPDATE'
         BEGIN
             -- Validate employee ID for UPDATE
-            IF @EmployeeID IS NULL
+            IF @e.EmployeeID IS NULL
             BEGIN
                 RAISERROR('Employee ID is required for update operation.', 16, 1);
             END
@@ -160,44 +160,44 @@ BEGIN
             DECLARE @CurrentSalary MONEY, @CurrentDepartmentID INT;
             
             SELECT 
-                @CurrentFirstName = FirstName,
-                @CurrentLastName = LastName,
-                @CurrentSalary = BaseSalary,
-                @CurrentDepartmentID = DepartmentID
-            FROM Employees 
-            WHERE EmployeeID = @EmployeeID AND IsActive = 1;
+                @CurrentFirstName = e.FirstName,
+                @CurrentLastName = e.LastName,
+                @CurrentSalary = e.BaseSalary,
+                @CurrentDepartmentID = d.DepartmentID
+            FROM Employees e 
+            WHERE e.EmployeeID = @e.EmployeeID AND IsActive = 1;
             
             IF @CurrentFirstName IS NULL
             BEGIN
-                RAISERROR('Employee ID %d not found or is inactive. Cannot update.', 16, 1, @EmployeeID);
+                RAISERROR('Employee ID %d not found or is inactive. Cannot update.', 16, 1, @e.EmployeeID);
             END
             
             -- Use existing values if not provided
-            SET @FirstName = ISNULL(@FirstName, @CurrentFirstName);
-            SET @LastName = ISNULL(@LastName, @CurrentLastName);
-            SET @BaseSalary = ISNULL(@BaseSalary, @CurrentSalary);
-            SET @DepartmentID = ISNULL(@DepartmentID, @CurrentDepartmentID);
+            SET @e.FirstName = ISNULL(@e.FirstName, @CurrentFirstName);
+            SET @e.LastName = ISNULL(@e.LastName, @CurrentLastName);
+            SET @e.BaseSalary = ISNULL(@e.BaseSalary, @CurrentSalary);
+            SET @d.DepartmentID = ISNULL(@d.DepartmentID, @CurrentDepartmentID);
             
             -- Validate new values
-            IF @BaseSalary <= 0
+            IF @e.BaseSalary <= 0
             BEGIN
-                RAISERROR('Base BaseSalary must be greater than zero.', 16, 1);
+                RAISERROR('Base e.BaseSalary must be greater than zero.', 16, 1);
             END
             
-            IF NOT EXISTS (SELECT 1 FROM Departments WHERE DepartmentID = @DepartmentID AND IsActive = 1)
+            IF NOT EXISTS (SELECT 1 FROM Departments d WHERE d.DepartmentID = @d.DepartmentID AND IsActive = 1)
             BEGIN
-                RAISERROR('Department ID %d does not exist or is inactive.', 16, 1, @DepartmentID);
+                RAISERROR('Department ID %d does not exist or is inactive.', 16, 1, @d.DepartmentID);
             END
             
             -- Validate manager if changing
             IF @ManagerID IS NOT NULL
             BEGIN
-                IF @ManagerID = @EmployeeID
+                IF @ManagerID = @e.EmployeeID
                 BEGIN
                     RAISERROR('Employee cannot be their own manager.', 16, 1);
                 END
                 
-                IF NOT EXISTS (SELECT 1 FROM Employees WHERE EmployeeID = @ManagerID AND IsActive = 1)
+                IF NOT EXISTS (SELECT 1 FROM Employees e WHERE e.EmployeeID = @ManagerID AND IsActive = 1)
                 BEGIN
                     RAISERROR('Manager ID %d does not exist or is inactive.', 16, 1, @ManagerID);
                 END
@@ -211,32 +211,32 @@ BEGIN
             DECLARE @OldValues NVARCHAR(MAX) = '';
             DECLARE @NewValues NVARCHAR(MAX) = '';
             
-            IF @FirstName != @CurrentFirstName
+            IF @e.FirstName != @CurrentFirstName
             BEGIN
-                SET @SetClauses = @SetClauses + 'FirstName = @FirstName, ';
-                SET @OldValues = @OldValues + 'FirstName: ' + @CurrentFirstName + ', ';
-                SET @NewValues = @NewValues + 'FirstName: ' + @FirstName + ', ';
+                SET @SetClauses = @SetClauses + 'e.FirstName = @e.FirstName, ';
+                SET @OldValues = @OldValues + 'e.FirstName: ' + @CurrentFirstName + ', ';
+                SET @NewValues = @NewValues + 'e.FirstName: ' + @e.FirstName + ', ';
             END
             
-            IF @LastName != @CurrentLastName
+            IF @e.LastName != @CurrentLastName
             BEGIN
-                SET @SetClauses = @SetClauses + 'LastName = @LastName, ';
-                SET @OldValues = @OldValues + 'LastName: ' + @CurrentLastName + ', ';
-                SET @NewValues = @NewValues + 'LastName: ' + @LastName + ', ';
+                SET @SetClauses = @SetClauses + 'e.LastName = @e.LastName, ';
+                SET @OldValues = @OldValues + 'e.LastName: ' + @CurrentLastName + ', ';
+                SET @NewValues = @NewValues + 'e.LastName: ' + @e.LastName + ', ';
             END
             
-            IF @BaseSalary != @CurrentSalary
+            IF @e.BaseSalary != @CurrentSalary
             BEGIN
-                SET @SetClauses = @SetClauses + 'BaseSalary = @BaseSalary, ';
-                SET @OldValues = @OldValues + 'BaseSalary: $' + FORMAT(@CurrentSalary, 'N2') + ', ';
-                SET @NewValues = @NewValues + 'BaseSalary: $' + FORMAT(@BaseSalary, 'N2') + ', ';
+                SET @SetClauses = @SetClauses + 'e.BaseSalary = @e.BaseSalary, ';
+                SET @OldValues = @OldValues + 'e.BaseSalary: $' + FORMAT(@CurrentSalary, 'N2') + ', ';
+                SET @NewValues = @NewValues + 'e.BaseSalary: $' + FORMAT(@e.BaseSalary, 'N2') + ', ';
             END
             
-            IF @DepartmentID != @CurrentDepartmentID
+            IF @d.DepartmentID != @CurrentDepartmentID
             BEGIN
-                SET @SetClauses = @SetClauses + 'DepartmentID = @DepartmentID, ';
-                SET @OldValues = @OldValues + 'DepartmentID: ' + CAST(@CurrentDepartmentID AS VARCHAR(10)) + ', ';
-                SET @NewValues = @NewValues + 'DepartmentID: ' + CAST(@DepartmentID AS VARCHAR(10)) + ', ';
+                SET @SetClauses = @SetClauses + 'd.DepartmentID = @d.DepartmentID, ';
+                SET @OldValues = @OldValues + 'd.DepartmentID: ' + CAST(@CurrentDepartmentID AS VARCHAR(10)) + ', ';
+                SET @NewValues = @NewValues + 'd.DepartmentID: ' + CAST(@d.DepartmentID AS VARCHAR(10)) + ', ';
             END
             
             IF @ManagerID IS NOT NULL
@@ -253,17 +253,17 @@ BEGIN
                 SET @SetClauses = LEFT(@SetClauses, LEN(@SetClauses) - 1);
             
             UPDATE Employees 
-            SET FirstName = @FirstName,
-                LastName = @LastName,
-                BaseSalary = @BaseSalary,
-                DepartmentID = @DepartmentID,
+            SET e.FirstName = @e.FirstName,
+                e.LastName = @e.LastName,
+                e.BaseSalary = @e.BaseSalary,
+                d.DepartmentID = @d.DepartmentID,
                 ManagerID = @ManagerID,
                 LastModifiedBy = @UpdatedBy,
                 LastModifiedDate = GETDATE()
-            WHERE EmployeeID = @EmployeeID;
+            WHERE e.EmployeeID = @e.EmployeeID;
             
             SET @AffectedRows = @@ROWCOUNT;
-            SET @EmployeeName = @FirstName + ' ' + @LastName;
+            SET @EmployeeName = @e.FirstName + ' ' + @e.LastName;
             
             -- Log audit trail only if changes were made
             IF LEN(@OldValues) > 0
@@ -272,7 +272,7 @@ BEGIN
                     TableName, Operation, PrimaryKeyValue, OldValues, NewValues, ChangedBy, ChangeDate
                 )
                 VALUES (
-                    'Employees', 'UPDATE', @EmployeeID,
+                    'Employees', 'UPDATE', @e.EmployeeID,
                     LEFT(@OldValues, LEN(@OldValues) - 2), -- Remove trailing comma and space
                     LEFT(@NewValues, LEN(@NewValues) - 2),
                     @UpdatedBy, GETDATE()
@@ -282,7 +282,7 @@ BEGIN
             COMMIT TRANSACTION UpdateEmployee;
             
             PRINT 'Employee successfully updated:';
-            PRINT 'Employee ID: ' + CAST(@EmployeeID AS VARCHAR(10));
+            PRINT 'Employee ID: ' + CAST(@e.EmployeeID AS VARCHAR(10));
             PRINT 'Name: ' + @EmployeeName;
             PRINT 'Changes made: ' + ISNULL(LEFT(@NewValues, LEN(@NewValues) - 2), 'No changes');
         END
@@ -290,45 +290,45 @@ BEGIN
         ELSE IF @Operation = 'DELETE'
         BEGIN
             -- Validate employee ID for DELETE
-            IF @EmployeeID IS NULL
+            IF @e.EmployeeID IS NULL
             BEGIN
                 RAISERROR('Employee ID is required for delete operation.', 16, 1);
             END
             
             -- Check if employee exists
-            SELECT @EmployeeName = FirstName + ' ' + LastName
-            FROM Employees 
-            WHERE EmployeeID = @EmployeeID AND IsActive = 1;
+            SELECT @EmployeeName = e.FirstName + ' ' + e.LastName
+            FROM Employees e 
+            WHERE e.EmployeeID = @e.EmployeeID AND IsActive = 1;
             
             IF @EmployeeName IS NULL
             BEGIN
-                RAISERROR('Employee ID %d not found or already inactive. Cannot delete.', 16, 1, @EmployeeID);
+                RAISERROR('Employee ID %d not found or already inactive. Cannot delete.', 16, 1, @e.EmployeeID);
             END
             
             -- Check for dependencies (cannot delete if employee is a manager)
             DECLARE @ManagedEmployees INT;
             SELECT @ManagedEmployees = COUNT(*)
-            FROM Employees 
-            WHERE ManagerID = @EmployeeID AND IsActive = 1;
+            FROM Employees e 
+            WHERE ManagerID = @e.EmployeeID AND IsActive = 1;
             
             IF @ManagedEmployees > 0
             BEGIN
                 RAISERROR('Cannot delete employee %s (ID: %d) who manages %d other employees. Please reassign managed employees first.', 
-                         16, 1, @EmployeeName, @EmployeeID, @ManagedEmployees);
+                         16, 1, @EmployeeName, @e.EmployeeID, @ManagedEmployees);
             END
             
             -- Check for active project assignments
             DECLARE @ActiveProjects INT;
             SELECT @ActiveProjects = COUNT(*)
             FROM EmployeeProjects 
-            WHERE EmployeeID = @EmployeeID 
+            WHERE e.EmployeeID = @e.EmployeeID 
             AND IsActive = 1 
             AND (EndDate IS NULL OR EndDate > GETDATE());
             
             IF @ActiveProjects > 0
             BEGIN
                 RAISERROR('Cannot delete employee %s (ID: %d) who has %d active project assignments. Please end project assignments first.', 
-                         16, 1, @EmployeeName, @EmployeeID, @ActiveProjects);
+                         16, 1, @EmployeeName, @e.EmployeeID, @ActiveProjects);
             END
             
             BEGIN TRANSACTION DeleteEmployee;
@@ -338,7 +338,7 @@ BEGIN
             SET IsActive = 0,
                 LastModifiedBy = @UpdatedBy,
                 LastModifiedDate = GETDATE()
-            WHERE EmployeeID = @EmployeeID;
+            WHERE e.EmployeeID = @e.EmployeeID;
             
             SET @AffectedRows = @@ROWCOUNT;
             
@@ -347,7 +347,7 @@ BEGIN
                 TableName, Operation, PrimaryKeyValue, OldValues, ChangedBy, ChangeDate
             )
             VALUES (
-                'Employees', 'DELETE', @EmployeeID,
+                'Employees', 'DELETE', @e.EmployeeID,
                 'Employee: ' + @EmployeeName + ' marked as inactive',
                 @UpdatedBy, GETDATE()
             );
@@ -355,7 +355,7 @@ BEGIN
             COMMIT TRANSACTION DeleteEmployee;
             
             PRINT 'Employee successfully deleted (marked inactive):';
-            PRINT 'Employee ID: ' + CAST(@EmployeeID AS VARCHAR(10));
+            PRINT 'Employee ID: ' + CAST(@e.EmployeeID AS VARCHAR(10));
             PRINT 'Name: ' + @EmployeeName;
         END
         
@@ -365,7 +365,7 @@ BEGIN
             RowsAffected, ExecutedBy, ExecutionDate
         )
         VALUES (
-            @ProcedureName, @Operation, @EmployeeID, 'SUCCESS', 
+            @ProcedureName, @Operation, @e.EmployeeID, 'SUCCESS', 
             DATEDIFF(MILLISECOND, @OperationStartTime, GETDATE()),
             @AffectedRows, @UpdatedBy, GETDATE()
         );
@@ -392,8 +392,8 @@ BEGIN
             @ErrorNumber, @ErrorMessage, @ProcedureName, @ErrorLine,
             @ErrorSeverity, @ErrorState, @UpdatedBy, GETDATE(),
             'Operation: ' + @Operation + 
-            ', EmployeeID: ' + ISNULL(CAST(@EmployeeID AS VARCHAR(10)), 'NULL') +
-            ', Name: ' + ISNULL(@FirstName + ' ' + @LastName, 'NULL')
+            ', e.EmployeeID: ' + ISNULL(CAST(@e.EmployeeID AS VARCHAR(10)), 'NULL') +
+            ', Name: ' + ISNULL(@e.FirstName + ' ' + @e.LastName, 'NULL')
         );
         
         -- Log failed operation
@@ -402,7 +402,7 @@ BEGIN
             ErrorMessage, ExecutedBy, ExecutionDate
         )
         VALUES (
-            @ProcedureName, @Operation, @EmployeeID, 'FAILED',
+            @ProcedureName, @Operation, @e.EmployeeID, 'FAILED',
             DATEDIFF(MILLISECOND, @OperationStartTime, GETDATE()),
             @ErrorMessage, @UpdatedBy, GETDATE()
         );
@@ -434,23 +434,23 @@ END;
 PRINT 'Test 1: Insert new employee';
 EXEC ManageEmployee 
     @Operation = 'INSERT',
-    @FirstName = 'John',
-    @LastName = 'Doe',
-    @BaseSalary = 75000,
-    @DepartmentID = 2001,
+    @e.FirstName = 'John',
+    @e.LastName = 'Doe',
+    @e.BaseSalary = 75000,
+    @d.DepartmentID = 2001,
     @UpdatedBy = 'HR Admin';
 
 PRINT CHAR(13) + CHAR(10) + 'Test 2: Update employee';
 EXEC ManageEmployee 
     @Operation = 'UPDATE',
-    @EmployeeID = 3001,
-    @BaseSalary = 80000,
+    @e.EmployeeID = 3001,
+    @e.BaseSalary = 80000,
     @UpdatedBy = 'Manager';
 
 PRINT CHAR(13) + CHAR(10) + 'Test 3: Invalid operation (should fail)';
 EXEC ManageEmployee 
     @Operation = 'INVALID',
-    @EmployeeID = 3001,
+    @e.EmployeeID = 3001,
     @UpdatedBy = 'Test User';
 ```
 
@@ -460,7 +460,7 @@ EXEC ManageEmployee
 -- Transaction-Safe Order Processing with Comprehensive Error Handling
 CREATE OR ALTER PROCEDURE ProcessOrderWithInventory
     @CustomerID INT,
-    @EmployeeID INT,
+    @e.EmployeeID INT,
     @OrderItems NVARCHAR(MAX), -- JSON: [{"ProductID":1,"Quantity":2,"Price":100}]
     @OrderDate DATE = NULL,
     @ProcessedBy NVARCHAR(100)
@@ -494,7 +494,7 @@ BEGIN
                 RAISERROR('Valid Customer ID is required.', 16, 1);
             END
             
-            IF @EmployeeID IS NULL OR @EmployeeID <= 0
+            IF @e.EmployeeID IS NULL OR @e.EmployeeID <= 0
             BEGIN
                 RAISERROR('Valid Employee ID is required.', 16, 1);
             END
@@ -522,13 +522,13 @@ BEGIN
             
             -- Validate employee exists and is active
             DECLARE @EmployeeName NVARCHAR(100);
-            SELECT @EmployeeName = FirstName + ' ' + LastName
-            FROM Employees 
-            WHERE EmployeeID = @EmployeeID AND IsActive = 1;
+            SELECT @EmployeeName = e.FirstName + ' ' + e.LastName
+            FROM Employees e 
+            WHERE e.EmployeeID = @e.EmployeeID AND IsActive = 1;
             
             IF @EmployeeName IS NULL
             BEGIN
-                RAISERROR('Employee ID %d not found or inactive.', 16, 1, @EmployeeID);
+                RAISERROR('Employee ID %d not found or inactive.', 16, 1, @e.EmployeeID);
             END
             
             -- Start transaction with retry-safe naming
@@ -537,11 +537,11 @@ BEGIN
             
             -- Create order header
             INSERT INTO Orders (
-                CustomerID, EmployeeID, OrderDate, TotalAmount, 
+                CustomerID, e.EmployeeID, OrderDate, TotalAmount, 
                 Status, IsActive, CreatedBy, CreatedDate
             )
             VALUES (
-                @CustomerID, @EmployeeID, @OrderDate, 0, -- TotalAmount calculated later
+                @CustomerID, @e.EmployeeID, @OrderDate, 0, -- TotalAmount calculated later
                 'PROCESSING', 1, @ProcessedBy, GETDATE()
             );
             
@@ -670,18 +670,18 @@ BEGIN
             -- Update order total
             UPDATE Orders 
             SET TotalAmount = @TotalAmount,
-                Status = 'COMPLETED',
+                IsActive = 'COMPLETED',
                 LastModifiedBy = @ProcessedBy,
                 LastModifiedDate = GETDATE()
             WHERE OrderID = @OrderID;
             
             -- Log successful order
             INSERT INTO OrderAudit (
-                OrderID, CustomerID, EmployeeID, TotalAmount, 
+                OrderID, CustomerID, e.EmployeeID, TotalAmount, 
                 ItemCount, Status, ProcessedBy, ProcessedDate
             )
             VALUES (
-                @OrderID, @CustomerID, @EmployeeID, @TotalAmount,
+                @OrderID, @CustomerID, @e.EmployeeID, @TotalAmount,
                 @ItemsProcessed, 'COMPLETED', @ProcessedBy, GETDATE()
             );
             
@@ -745,7 +745,7 @@ BEGIN
                 @ErrorSeverity, @ErrorState, @ProcessedBy, GETDATE(),
                 'Attempt: ' + CAST(@RetryCount AS VARCHAR(2)) + 
                 ', CustomerID: ' + CAST(@CustomerID AS VARCHAR(10)) +
-                ', EmployeeID: ' + CAST(@EmployeeID AS VARCHAR(10)) +
+                ', e.EmployeeID: ' + CAST(@e.EmployeeID AS VARCHAR(10)) +
                 ', TotalAmount: $' + FORMAT(@TotalAmount, 'N2')
             );
             
@@ -756,11 +756,11 @@ BEGIN
                 IF @OrderID IS NOT NULL
                 BEGIN
                     INSERT INTO OrderAudit (
-                        OrderID, CustomerID, EmployeeID, TotalAmount,
+                        OrderID, CustomerID, e.EmployeeID, TotalAmount,
                         ItemCount, Status, ProcessedBy, ProcessedDate, ErrorMessage
                     )
                     VALUES (
-                        @OrderID, @CustomerID, @EmployeeID, @TotalAmount,
+                        @OrderID, @CustomerID, @e.EmployeeID, @TotalAmount,
                         @ItemsProcessed, 'FAILED', @ProcessedBy, GETDATE(), @ErrorMessage
                     );
                 END
@@ -806,7 +806,7 @@ DECLARE @OrderItems NVARCHAR(MAX) = '[
 
 EXEC ProcessOrderWithInventory 
     @CustomerID = 6001,
-    @EmployeeID = 3001,
+    @e.EmployeeID = 3001,
     @OrderItems = @OrderItems,
     @ProcessedBy = 'Sales Representative';
 ```

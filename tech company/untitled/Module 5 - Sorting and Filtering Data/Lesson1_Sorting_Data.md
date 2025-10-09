@@ -35,14 +35,14 @@ ORDER BY column1 [ASC|DESC], column2 [ASC|DESC], ...
 │                                                                             │
 │  Multi-Column Sorting Priority:                                            │
 │  ┌─────────────────────────────────────────────────────────────────────────┤
-│  │ ORDER BY LastName, FirstName, HireDate                                 │
+│  │ ORDER BY e.LastName, e.FirstName, e.HireDate                                 │
 │  │           ▲          ▲          ▲                                      │
 │  │        1st Priority 2nd Priority 3rd Priority                         │
 │  │                                                                        │
 │  │ Result Order:                                                          │
-│  │ 1. Sort by LastName first                                              │
-│  │ 2. Within same LastName, sort by FirstName                            │
-│  │ 3. Within same LastName+FirstName, sort by HireDate                   │
+│  │ 1. Sort by e.LastName first                                              │
+│  │ 2. Within same e.LastName, sort by e.FirstName                            │
+│  │ 3. Within same e.LastName+e.FirstName, sort by e.HireDate                   │
 │  └─────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -53,55 +53,55 @@ ORDER BY column1 [ASC|DESC], column2 [ASC|DESC], ...
 ### Basic Single Column Sorting
 ```sql
 -- Sort employees by last name (ascending - default)
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
-ORDER BY LastName;
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+ORDER BY e.LastName;
 
--- Sort employees by BaseSalary (descending - highest first)
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
-ORDER BY BaseSalary DESC;
+-- Sort employees by e.BaseSalary (descending - highest first)
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+ORDER BY e.BaseSalary DESC;
 
 -- Sort by hire date (oldest first)
-SELECT FirstName, LastName, HireDate
-FROM Employees
-ORDER BY HireDate ASC;  -- ASC is optional (default)
+SELECT e.FirstName, e.LastName, e.HireDate
+FROM Employees e
+ORDER BY e.HireDate ASC;  -- ASC is optional (default)
 ```
 
 ### Multi-Column Sorting
 ```sql
--- Sort by d.DepartmentName first, then by BaseSalary within d.DepartmentName
+-- Sort by d.DepartmentName first, then by e.BaseSalary within d.DepartmentName
 SELECT 
-    FirstName,
-    LastName,
+    e.FirstName,
+    e.LastName,
     DepartmentName,
-    BaseSalary
+    e.BaseSalary
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-ORDER BY DepartmentIDName, BaseSalary DESC;
+ORDER BY DepartmentIDName, e.BaseSalary DESC;
 
 -- Sort by multiple criteria with different directions
 SELECT 
-    FirstName,
-    LastName,
-    HireDate,
-    BaseSalary
-FROM Employees
+    e.FirstName,
+    e.LastName,
+    e.HireDate,
+    e.BaseSalary
+FROM Employees e
 ORDER BY 
-    HireDate ASC,     -- Oldest employees first
-    BaseSalary DESC;      -- Within same hire date, highest BaseSalary first
+    e.HireDate ASC,     -- Oldest employees first
+    e.BaseSalary DESC;      -- Within same hire date, highest e.BaseSalary first
 ```
 
 ### Sorting by Column Aliases
 ```sql
 -- Sort by calculated columns using aliases
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
-    BaseSalary * 12 AS AnnualSalary,
-    DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsOfService
-FROM Employees
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
+    e.BaseSalary * 12 AS AnnualSalary,
+    DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService
+FROM Employees e
 ORDER BY 
     YearsOfService DESC,    -- Sort by alias
     AnnualSalary DESC;      -- Then by another alias
@@ -113,26 +113,26 @@ ORDER BY
 ```sql
 -- Sort by calculated expressions
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
     d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 ORDER BY 
-    LEN(FirstName + LastName),  -- Sort by total name length
-    BaseSalary / DATEDIFF(YEAR, HireDate, GETDATE()) DESC;  -- BaseSalary per year of service
+    LEN(e.FirstName + e.LastName),  -- Sort by total name length
+    e.BaseSalary / DATEDIFF(YEAR, e.HireDate, GETDATE()) DESC;  -- e.BaseSalary per year of service
 ```
 
 ### Conditional Sorting with CASE
 ```sql
 -- Custom sort order using CASE expressions
 SELECT 
-    FirstName,
-    LastName,
+    e.FirstName,
+    e.LastName,
     Title,
-    BaseSalary
-FROM Employees
+    e.BaseSalary
+FROM Employees e
 ORDER BY 
     CASE Title
         WHEN 'CEO' THEN 1
@@ -141,15 +141,15 @@ ORDER BY
         WHEN 'Manager' THEN 4
         ELSE 5
     END,
-    BaseSalary DESC;
+    e.BaseSalary DESC;
 
 -- Sort with business logic
 SELECT 
-    FirstName,
-    LastName,
+    e.FirstName,
+    e.LastName,
     DepartmentName,
-    BaseSalary,
-    HireDate
+    e.BaseSalary,
+    e.HireDate
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 ORDER BY 
@@ -160,37 +160,37 @@ ORDER BY
         ELSE 4
     END,
     CASE 
-        WHEN BaseSalary >= 100000 THEN 1  -- High earners first
-        WHEN BaseSalary >= 70000 THEN 2   -- Medium earners
+        WHEN e.BaseSalary >= 100000 THEN 1  -- High earners first
+        WHEN e.BaseSalary >= 70000 THEN 2   -- Medium earners
         ELSE 3                        -- Others
     END,
-    HireDate;  -- Within same category, by seniority
+    e.HireDate;  -- Within same category, by seniority
 ```
 
 ### Sorting with String Functions
 ```sql
 -- Sort by string manipulations
 SELECT 
-    FirstName,
-    LastName,
+    e.FirstName,
+    e.LastName,
     WorkEmail,
     Phone
-FROM Employees
+FROM Employees e
 ORDER BY 
     RIGHT(WorkEmail, LEN(WorkEmail) - CHARINDEX('@', WorkEmail)),  -- Sort by email domain
     LEFT(Phone, 3),                                    -- Sort by area code
-    LastName;
+    e.LastName;
 
 -- Sort by name variations
 SELECT 
-    FirstName,
-    LastName,
-    FirstName + ' ' + LastName AS FullName
-FROM Employees
+    e.FirstName,
+    e.LastName,
+    e.FirstName + ' ' + e.LastName AS FullName
+FROM Employees e
 ORDER BY 
     CASE 
-        WHEN LEN(FirstName) <= 4 THEN FirstName  -- Short names first
-        ELSE LastName                            -- Then by last name
+        WHEN LEN(e.FirstName) <= 4 THEN e.FirstName  -- Short names first
+        ELSE e.LastName                            -- Then by last name
     END;
 ```
 
@@ -214,19 +214,19 @@ WITH EmployeeMetrics AS (
         COUNT(es.SkillID) AS SkillCount
     FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
     LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'Active'
-    LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
+    LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.e.EmployeeID
     WHERE e.IsActive = 1
     GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.BaseSalary, 
              e.HireDate, d.DepartmentName
 )
 SELECT 
-    FirstName,
-    LastName,
+    e.FirstName,
+    e.LastName,
     Title,
     DepartmentName,
-    FORMAT(BaseSalary, 'C') AS FormattedSalary,
+    FORMAT(e.BaseSalary, 'C') AS FormattedSalary,
     YearsOfService,
     ActiveProjects,
     CAST(ISNULL(AvgEfficiency * 100, 0) AS DECIMAL(5,1)) AS EfficiencyPercent,
@@ -256,52 +256,52 @@ ORDER BY
         (CASE WHEN ActiveProjects >= 3 THEN 3 WHEN ActiveProjects >= 1 THEN 2 ELSE 1 END) +
         (CASE WHEN SkillCount >= 5 THEN 3 WHEN SkillCount >= 3 THEN 2 ELSE 1 END)
     ) DESC,
-    -- Final: Tenure and BaseSalary
+    -- Final: Tenure and e.BaseSalary
     YearsOfService DESC,
-    BaseSalary DESC;
+    e.BaseSalary DESC;
 ```
 
 ### Dynamic Sorting with Parameters
 ```sql
 -- Parameterized sorting for flexible reporting
-DECLARE @SortColumn NVARCHAR(50) = 'BaseSalary';
+DECLARE @SortColumn NVARCHAR(50) = 'e.BaseSalary';
 DECLARE @SortDirection NVARCHAR(4) = 'DESC';
 
 SELECT 
-    FirstName,
-    LastName,
+    e.FirstName,
+    e.LastName,
     Title,
-    BaseSalary,
-    HireDate,
+    e.BaseSalary,
+    e.HireDate,
     d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 ORDER BY 
     CASE 
         WHEN @SortColumn = 'Name' AND @SortDirection = 'ASC' 
-             THEN LastName
+             THEN e.LastName
         WHEN @SortColumn = 'Name' AND @SortDirection = 'DESC' 
-             THEN LastName
+             THEN e.LastName
     END ASC,
     CASE 
         WHEN @SortColumn = 'Name' AND @SortDirection = 'DESC' 
-             THEN LastName
+             THEN e.LastName
     END DESC,
     CASE 
-        WHEN @SortColumn = 'BaseSalary' AND @SortDirection = 'ASC' 
-             THEN BaseSalary
+        WHEN @SortColumn = 'e.BaseSalary' AND @SortDirection = 'ASC' 
+             THEN e.BaseSalary
     END ASC,
     CASE 
-        WHEN @SortColumn = 'BaseSalary' AND @SortDirection = 'DESC' 
-             THEN BaseSalary
+        WHEN @SortColumn = 'e.BaseSalary' AND @SortDirection = 'DESC' 
+             THEN e.BaseSalary
     END DESC,
     CASE 
-        WHEN @SortColumn = 'HireDate' AND @SortDirection = 'ASC' 
-             THEN HireDate
+        WHEN @SortColumn = 'e.HireDate' AND @SortDirection = 'ASC' 
+             THEN e.HireDate
     END ASC,
     CASE 
-        WHEN @SortColumn = 'HireDate' AND @SortDirection = 'DESC' 
-             THEN HireDate
+        WHEN @SortColumn = 'e.HireDate' AND @SortDirection = 'DESC' 
+             THEN e.HireDate
     END DESC;
 ```
 
@@ -309,16 +309,16 @@ ORDER BY
 ```sql
 -- Sort using ranking and analytical functions
 SELECT 
-    FirstName,
-    LastName,
+    e.FirstName,
+    e.LastName,
     DepartmentName,
-    BaseSalary,
+    e.BaseSalary,
     -- Ranking within d.DepartmentName
-    RANK() OVER (PARTITION BY DepartmentIDName ORDER BY BaseSalary DESC) AS DeptSalaryRank,
+    RANK() OVER (PARTITION BY DepartmentIDName ORDER BY e.BaseSalary DESC) AS DeptSalaryRank,
     -- Overall ranking
-    DENSE_RANK() OVER (ORDER BY BaseSalary DESC) AS OverallSalaryRank,
+    DENSE_RANK() OVER (ORDER BY e.BaseSalary DESC) AS OverallSalaryRank,
     -- Percentile ranking
-    PERCENT_RANK() OVER (ORDER BY BaseSalary) AS SalaryPercentile
+    PERCENT_RANK() OVER (ORDER BY e.BaseSalary) AS SalaryPercentile
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
@@ -387,24 +387,24 @@ ORDER BY
 ```sql
 -- Create indexes to support common sorting patterns
 CREATE INDEX IX_Employees_LastName_FirstName 
-ON Employees (LastName, FirstName);
+ON Employees (e.LastName, e.FirstName);
 
 CREATE INDEX IX_Employees_Salary_DESC 
-ON Employees (BaseSalary DESC);
+ON Employees (e.BaseSalary DESC);
 
 CREATE INDEX IX_Employees_Dept_Salary 
-ON Employees (DepartmentID, BaseSalary DESC);
+ON Employees (DepartmentID, e.BaseSalary DESC);
 
 -- This query will use the index efficiently
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
-ORDER BY LastName, FirstName;  -- Uses IX_Employees_LastName_FirstName
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+ORDER BY e.LastName, e.FirstName;  -- Uses IX_Employees_LastName_FirstName
 
 -- This query will also be efficient
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
 WHERE DepartmentID = 1
-ORDER BY BaseSalary DESC;  -- Uses IX_Employees_Dept_Salary
+ORDER BY e.BaseSalary DESC;  -- Uses IX_Employees_Dept_Salary
 ```
 
 ## NULL Handling in Sorting
@@ -413,29 +413,29 @@ ORDER BY BaseSalary DESC;  -- Uses IX_Employees_Dept_Salary
 ```sql
 -- Understanding NULL sorting behavior
 SELECT 
-    FirstName,
+    e.FirstName,
     MiddleName,  -- Some may be NULL
-    LastName,
-    BaseSalary
-FROM Employees
+    e.LastName,
+    e.BaseSalary
+FROM Employees e
 ORDER BY MiddleName;  -- NULLs appear first in ascending order
 
 -- Explicit NULL handling
 SELECT 
-    FirstName,
+    e.FirstName,
     ISNULL(MiddleName, 'ZZZ_NO_MIDDLE') AS MiddleName,  -- Force NULLs to end
-    LastName,
-    BaseSalary
-FROM Employees
+    e.LastName,
+    e.BaseSalary
+FROM Employees e
 ORDER BY ISNULL(MiddleName, 'ZZZ_NO_MIDDLE');
 
 -- NULL handling with CASE
 SELECT 
-    FirstName,
+    e.FirstName,
     MiddleName,
-    LastName,
-    BaseSalary
-FROM Employees
+    e.LastName,
+    e.BaseSalary
+FROM Employees e
 ORDER BY 
     CASE WHEN MiddleName IS NULL THEN 1 ELSE 0 END,  -- NULLs last
     MiddleName;
@@ -498,52 +498,52 @@ ORDER BY
 -- Alphabetical with special handling
 SELECT 
     CASE 
-        WHEN LEFT(LastName, 2) IN ('Mc', 'Mac') 
-        THEN 'Mac' + SUBSTRING(LastName, 3, LEN(LastName))
-        WHEN LEFT(LastName, 2) = 'O''' 
-        THEN 'O' + SUBSTRING(LastName, 3, LEN(LastName))
-        ELSE LastName
+        WHEN LEFT(e.LastName, 2) IN ('Mc', 'Mac') 
+        THEN 'Mac' + SUBSTRING(e.LastName, 3, LEN(e.LastName))
+        WHEN LEFT(e.LastName, 2) = 'O''' 
+        THEN 'O' + SUBSTRING(e.LastName, 3, LEN(e.LastName))
+        ELSE e.LastName
     END AS SortableName,
-    FirstName,
-    LastName,
+    e.FirstName,
+    e.LastName,
     WorkEmail
-FROM Employees
-ORDER BY SortableName, FirstName;
+FROM Employees e
+ORDER BY SortableName, e.FirstName;
 ```
 
 ### Date and Time Sorting
 ```sql
 -- Complex date sorting
 SELECT 
-    FirstName,
-    LastName,
-    HireDate,
-    DATENAME(MONTH, HireDate) AS HireMonth,
-    YEAR(HireDate) AS HireYear
-FROM Employees
+    e.FirstName,
+    e.LastName,
+    e.HireDate,
+    DATENAME(MONTH, e.HireDate) AS HireMonth,
+    YEAR(e.HireDate) AS HireYear
+FROM Employees e
 ORDER BY 
-    YEAR(HireDate) DESC,           -- Recent years first
-    MONTH(HireDate),               -- Then by month order
-    DAY(HireDate),                 -- Then by day
-    LastName;                      -- Finally by name
+    YEAR(e.HireDate) DESC,           -- Recent years first
+    MONTH(e.HireDate),               -- Then by month order
+    DAY(e.HireDate),                 -- Then by day
+    e.LastName;                      -- Finally by name
 
 -- Business calendar sorting
 SELECT 
-    FirstName,
-    LastName,
-    HireDate,
-    CASE DATEPART(QUARTER, HireDate)
+    e.FirstName,
+    e.LastName,
+    e.HireDate,
+    CASE DATEPART(QUARTER, e.HireDate)
         WHEN 1 THEN 'Q1'
         WHEN 2 THEN 'Q2' 
         WHEN 3 THEN 'Q3'
         WHEN 4 THEN 'Q4'
     END AS HireQuarter
-FROM Employees
+FROM Employees e
 ORDER BY 
-    YEAR(HireDate) DESC,
-    DATEPART(QUARTER, HireDate),
-    MONTH(HireDate),
-    LastName;
+    YEAR(e.HireDate) DESC,
+    DATEPART(QUARTER, e.HireDate),
+    MONTH(e.HireDate),
+    e.LastName;
 ```
 
 ## Best Practices for Sorting
@@ -551,45 +551,45 @@ ORDER BY
 ### Performance Best Practices
 ```sql
 -- Good: Use indexed columns for sorting
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
-ORDER BY LastName, FirstName;  -- If index exists on (LastName, FirstName)
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+ORDER BY e.LastName, e.FirstName;  -- If index exists on (e.LastName, e.FirstName)
 
 -- Good: Limit result set before sorting
-SELECT TOP 100 FirstName, LastName, BaseSalary
-FROM Employees
+SELECT TOP 100 e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
 WHERE DepartmentID = 1
-ORDER BY BaseSalary DESC;
+ORDER BY e.BaseSalary DESC;
 
 -- Avoid: Sorting by functions without corresponding index
--- SELECT FirstName, LastName, BaseSalary
+-- SELECT e.FirstName, e.LastName, e.BaseSalary
 -- FROM Employees e  
--- ORDER BY UPPER(LastName);  -- Forces table scan + sort
+-- ORDER BY UPPER(e.LastName);  -- Forces table scan + sort
 
 -- Better: Use computed column with index or handle in application
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
-ORDER BY LastName COLLATE SQL_Latin1_General_CP1_CI_AS;
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+ORDER BY e.LastName COLLATE SQL_Latin1_General_CP1_CI_AS;
 ```
 
 ### Maintainability Best Practices
 ```sql
 -- Good: Use meaningful column aliases
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary * 12 AS AnnualSalary,
-    DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsOfService
-FROM Employees
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary * 12 AS AnnualSalary,
+    DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService
+FROM Employees e
 ORDER BY AnnualSalary DESC, YearsOfService DESC;
 
 -- Good: Comment complex sorting logic
 SELECT 
-    FirstName,
-    LastName,
+    e.FirstName,
+    e.LastName,
     Title,
-    BaseSalary
-FROM Employees
+    e.BaseSalary
+FROM Employees e
 ORDER BY 
     -- Executive hierarchy first
     CASE 
@@ -599,9 +599,9 @@ ORDER BY
         ELSE 4
     END,
     -- Within same level, by tenure
-    HireDate,
+    e.HireDate,
     -- Finally by compensation
-    BaseSalary DESC;
+    e.BaseSalary DESC;
 ```
 
 ## Common Mistakes and Solutions
@@ -609,48 +609,48 @@ ORDER BY
 ### Mistake 1: Sorting Without WHERE
 ```sql
 -- Problem: Sorting entire table unnecessarily
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
-ORDER BY BaseSalary DESC;  -- Sorts all employees
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+ORDER BY e.BaseSalary DESC;  -- Sorts all employees
 
 -- Solution: Filter first, then sort
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
 WHERE IsActive = 1 AND DepartmentID IN (1, 2, 3)
-ORDER BY BaseSalary DESC;  -- Sorts smaller result set
+ORDER BY e.BaseSalary DESC;  -- Sorts smaller result set
 ```
 
 ### Mistake 2: Over-Sorting
 ```sql
 -- Problem: Unnecessary complex sorting
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
 ORDER BY 
-    FirstName,
-    LastName,
+    e.FirstName,
+    e.LastName,
     MiddleName,
-    BaseSalary,
-    HireDate,
-    EmployeeID;  -- Too many sort criteria
+    e.BaseSalary,
+    e.HireDate,
+    e.EmployeeID;  -- Too many sort criteria
 
 -- Solution: Sort by business-relevant criteria only
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
-ORDER BY LastName, FirstName;  -- Sufficient for most cases
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+ORDER BY e.LastName, e.FirstName;  -- Sufficient for most cases
 ```
 
 ### Mistake 3: Inconsistent Sorting
 ```sql
 -- Problem: Mixing data types in sort expressions
-SELECT FirstName, LastName, 
-       CAST(EmployeeID AS VARCHAR) AS EmpID
-FROM Employees
+SELECT e.FirstName, e.LastName, 
+       CAST(e.EmployeeID AS VARCHAR) AS EmpID
+FROM Employees e
 ORDER BY EmpID;  -- String sort: '10' comes before '2'
 
 -- Solution: Use appropriate data types
-SELECT FirstName, LastName, EmployeeID
-FROM Employees
-ORDER BY EmployeeID;  -- Numeric sort: 2 comes before 10
+SELECT e.FirstName, e.LastName, e.EmployeeID
+FROM Employees e
+ORDER BY e.EmployeeID;  -- Numeric sort: 2 comes before 10
 ```
 
 ## Summary

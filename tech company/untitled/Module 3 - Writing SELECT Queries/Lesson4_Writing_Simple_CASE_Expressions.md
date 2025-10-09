@@ -35,8 +35,8 @@ END
 ```sql
 -- Simple CASE based on d.DepartmentName ID
 SELECT 
-    FirstName,
-    LastName,
+    e.FirstName,
+    e.LastName,
     DepartmentID,
     CASE DepartmentID
         WHEN 1 THEN 'Information Technology'
@@ -46,47 +46,49 @@ SELECT
         WHEN 5 THEN 'Operations'
         ELSE 'Unknown Department'
     END AS d.DepartmentName
-FROM Employees e;
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
 -- Simple CASE for status indicators
 SELECT 
-    FirstName,
-    LastName,
+    e.FirstName,
+    e.LastName,
     IsActive,
     CASE IsActive
         WHEN 1 THEN 'Active'
         WHEN 0 THEN 'Inactive'
         ELSE 'Unknown'
     END AS EmployeeIsActive
-FROM Employees e;
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 ```
 
 ### 2. Basic Searched CASE
 ```sql
--- Searched CASE for BaseSalary categorization
+-- Searched CASE for e.BaseSalary categorization
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
     CASE 
-        WHEN BaseSalary < 40000 THEN 'Entry Level'
-        WHEN BaseSalary BETWEEN 40000 AND 70000 THEN 'Mid Level'
-        WHEN BaseSalary BETWEEN 70001 AND 100000 THEN 'Senior Level'
-        WHEN BaseSalary > 100000 THEN 'Executive Level'
+        WHEN e.BaseSalary < 40000 THEN 'Entry Level'
+        WHEN e.BaseSalary BETWEEN 40000 AND 70000 THEN 'Mid Level'
+        WHEN e.BaseSalary BETWEEN 70001 AND 100000 THEN 'Senior Level'
+        WHEN e.BaseSalary > 100000 THEN 'Executive Level'
         ELSE 'Unclassified'
     END AS SalaryCategory
 FROM Employees e;
 
 -- CASE for tenure analysis
 SELECT 
-    FirstName,
-    LastName,
-    HireDate,
+    e.FirstName,
+    e.LastName,
+    e.HireDate,
     CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 1 THEN 'New Hire'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) BETWEEN 1 AND 3 THEN 'Junior'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) BETWEEN 4 AND 7 THEN 'Experienced'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) > 7 THEN 'Veteran'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 1 THEN 'New Hire'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) BETWEEN 1 AND 3 THEN 'Junior'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) BETWEEN 4 AND 7 THEN 'Experienced'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) > 7 THEN 'Veteran'
         ELSE 'Unknown'
     END AS ExperienceLevel
 FROM Employees e;
@@ -96,13 +98,13 @@ FROM Employees e;
 ```sql
 -- CASE for bonus calculations
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
     CASE 
-        WHEN BaseSalary >= 90000 THEN BaseSalary * 0.15
-        WHEN BaseSalary >= 70000 THEN BaseSalary * 0.10
-        WHEN BaseSalary >= 50000 THEN BaseSalary * 0.05
+        WHEN e.BaseSalary >= 90000 THEN e.BaseSalary * 0.15
+        WHEN e.BaseSalary >= 70000 THEN e.BaseSalary * 0.10
+        WHEN e.BaseSalary >= 50000 THEN e.BaseSalary * 0.05
         ELSE 1000
     END AS BonusAmount,
     CASE 
@@ -119,8 +121,8 @@ FROM Employees e;
 ```sql
 -- Complex string formatting with CASE
 SELECT 
-    FirstName,
-    LastName,
+    e.FirstName,
+    e.LastName,
     WorkEmail,
     CASE 
         WHEN WorkEmail LIKE '%@company.com' THEN 'Internal Employee'
@@ -129,14 +131,14 @@ SELECT
         ELSE 'External WorkEmail'
     END AS EmailType,
     CASE 
-        WHEN LEN(FirstName) + LEN(LastName) > 20 THEN 
-            LEFT(FirstName, 1) + '. ' + LastName
-        ELSE FirstName + ' ' + LastName
+        WHEN LEN(e.FirstName) + LEN(e.LastName) > 20 THEN 
+            LEFT(e.FirstName, 1) + '. ' + e.LastName
+        ELSE e.FirstName + ' ' + e.LastName
     END AS DisplayName,
     CASE 
         WHEN MiddleName IS NOT NULL THEN 
-            FirstName + ' ' + LEFT(MiddleName, 1) + '. ' + LastName
-        ELSE FirstName + ' ' + LastName
+            e.FirstName + ' ' + LEFT(MiddleName, 1) + '. ' + e.LastName
+        ELSE e.FirstName + ' ' + e.LastName
     END AS FormalName
 FROM Employees e;
 ```
@@ -145,22 +147,22 @@ FROM Employees e;
 ```sql
 -- Date-based business logic
 SELECT 
-    FirstName,
-    LastName,
-    HireDate,
+    e.FirstName,
+    e.LastName,
+    e.HireDate,
     CASE 
-        WHEN MONTH(HireDate) IN (12, 1, 2) THEN 'Winter Hire'
-        WHEN MONTH(HireDate) IN (3, 4, 5) THEN 'Spring Hire'
-        WHEN MONTH(HireDate) IN (6, 7, 8) THEN 'Summer Hire'
+        WHEN MONTH(e.HireDate) IN (12, 1, 2) THEN 'Winter Hire'
+        WHEN MONTH(e.HireDate) IN (3, 4, 5) THEN 'Spring Hire'
+        WHEN MONTH(e.HireDate) IN (6, 7, 8) THEN 'Summer Hire'
         ELSE 'Fall Hire'
     END AS HireSeason,
     CASE 
-        WHEN DATEDIFF(DAY, HireDate, GETDATE()) < 90 THEN 'Probationary Period'
-        WHEN DATEDIFF(MONTH, HireDate, GETDATE()) < 12 THEN 'First Year'
+        WHEN DATEDIFF(DAY, e.HireDate, GETDATE()) < 90 THEN 'Probationary Period'
+        WHEN DATEDIFF(MONTH, e.HireDate, GETDATE()) < 12 THEN 'First Year'
         ELSE 'Established Employee'
     END AS EmploymentPhase,
     CASE 
-        WHEN DATEPART(WEEKDAY, HireDate) IN (2, 3, 4, 5, 6) THEN 'Weekday Start'
+        WHEN DATEPART(WEEKDAY, e.HireDate) IN (2, 3, 4, 5, 6) THEN 'Weekday Start'
         ELSE 'Weekend Start'
     END AS StartDayType
 FROM Employees e;
@@ -170,29 +172,29 @@ FROM Employees e;
 ```sql
 -- Using CASE in WHERE clause for conditional filtering
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
     DepartmentID,
     Title
-FROM Employees
+FROM Employees e
 WHERE 
     CASE 
-        WHEN DepartmentID = 1 THEN BaseSalary >= 70000  -- IT requires higher BaseSalary
-        WHEN DepartmentID = 2 THEN BaseSalary >= 50000  -- HR standard BaseSalary
-        WHEN DepartmentID = 3 THEN BaseSalary >= 60000  -- Finance requires higher BaseSalary
-        ELSE BaseSalary >= 45000                        -- Other departments
+        WHEN DepartmentID = 1 THEN e.BaseSalary >= 70000  -- IT requires higher e.BaseSalary
+        WHEN DepartmentID = 2 THEN e.BaseSalary >= 50000  -- HR standard e.BaseSalary
+        WHEN DepartmentID = 3 THEN e.BaseSalary >= 60000  -- Finance requires higher e.BaseSalary
+        ELSE e.BaseSalary >= 45000                        -- Other departments
     END = 1;
 
 -- Complex conditional WHERE logic
 SELECT *
-FROM Employees
+FROM Employees e
 WHERE 
     CASE 
-        WHEN Title LIKE '%Manager%' THEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 3
-        WHEN Title LIKE '%Director%' THEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 5
-        WHEN Title LIKE '%Senior%' THEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 2
-        ELSE DATEDIFF(YEAR, HireDate, GETDATE()) >= 0
+        WHEN Title LIKE '%Manager%' THEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 3
+        WHEN Title LIKE '%Director%' THEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 5
+        WHEN Title LIKE '%Senior%' THEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 2
+        ELSE DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 0
     END = 1;
 ```
 
@@ -202,18 +204,18 @@ WHERE
 SELECT 
     DepartmentID,
     COUNT(*) AS TotalEmployees,
-    COUNT(CASE WHEN BaseSalary >= 70000 THEN 1 END) AS HighSalaryEmployees,
-    COUNT(CASE WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 5 THEN 1 END) AS VeteranEmployees,
+    COUNT(CASE WHEN e.BaseSalary >= 70000 THEN 1 END) AS HighSalaryEmployees,
+    COUNT(CASE WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 5 THEN 1 END) AS VeteranEmployees,
     SUM(CASE 
-        WHEN DepartmentID = 1 THEN BaseSalary * 1.1  -- IT gets 10% bonus
-        WHEN DepartmentID = 4 THEN BaseSalary * 1.05 -- Marketing gets 5% bonus
-        ELSE BaseSalary
+        WHEN DepartmentID = 1 THEN e.BaseSalary * 1.1  -- IT gets 10% bonus
+        WHEN DepartmentID = 4 THEN e.BaseSalary * 1.05 -- Marketing gets 5% bonus
+        ELSE e.BaseSalary
     END) AS AdjustedSalaryTotal,
     AVG(CASE 
-        WHEN IsActive = 1 THEN BaseSalary 
+        WHEN IsActive = 1 THEN e.BaseSalary 
         ELSE NULL 
     END) AS ActiveEmployeeAvgSalary
-FROM Employees
+FROM Employees e
 GROUP BY DepartmentIDID;
 ```
 
@@ -223,48 +225,49 @@ GROUP BY DepartmentIDID;
 ```sql
 -- Complex nested CASE logic
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
     DepartmentID,
-    HireDate,
+    e.HireDate,
     CASE 
         WHEN DepartmentID = 1 THEN  -- IT d.DepartmentName
             CASE 
-                WHEN BaseSalary >= 90000 THEN 'IT Senior Architect'
-                WHEN BaseSalary >= 70000 THEN 'IT Senior Developer'
-                WHEN BaseSalary >= 50000 THEN 'IT Developer'
+                WHEN e.BaseSalary >= 90000 THEN 'IT Senior Architect'
+                WHEN e.BaseSalary >= 70000 THEN 'IT Senior Developer'
+                WHEN e.BaseSalary >= 50000 THEN 'IT Developer'
                 ELSE 'IT Junior'
             END
         WHEN DepartmentID = 2 THEN  -- HR d.DepartmentName
             CASE 
-                WHEN BaseSalary >= 80000 THEN 'HR Director'
-                WHEN BaseSalary >= 60000 THEN 'HR Manager'
+                WHEN e.BaseSalary >= 80000 THEN 'HR Director'
+                WHEN e.BaseSalary >= 60000 THEN 'HR Manager'
                 ELSE 'HR Specialist'
             END
         WHEN DepartmentID = 3 THEN  -- Finance d.DepartmentName
             CASE 
-                WHEN BaseSalary >= 85000 THEN 'Finance Director'
-                WHEN BaseSalary >= 65000 THEN 'Senior Analyst'
+                WHEN e.BaseSalary >= 85000 THEN 'Finance Director'
+                WHEN e.BaseSalary >= 65000 THEN 'Senior Analyst'
                 ELSE 'Financial Analyst'
             END
         ELSE 'Other d.DepartmentName Role'
     END AS DetailedRole,
     CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 10 THEN
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 10 THEN
             CASE 
-                WHEN BaseSalary >= 100000 THEN 'Senior Executive Track'
-                WHEN BaseSalary >= 80000 THEN 'Senior Management Track'
+                WHEN e.BaseSalary >= 100000 THEN 'Senior Executive Track'
+                WHEN e.BaseSalary >= 80000 THEN 'Senior Management Track'
                 ELSE 'Senior Individual Contributor'
             END
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 5 THEN
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 5 THEN
             CASE 
-                WHEN BaseSalary >= 80000 THEN 'Management Track'
+                WHEN e.BaseSalary >= 80000 THEN 'Management Track'
                 ELSE 'Senior Contributor'
             END
         ELSE 'Developing Professional'
     END AS CareerTrack
-FROM Employees e;
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 ```
 
 ### 2. CASE with Complex Business Rules
@@ -281,12 +284,12 @@ SELECT
     CASE 
         WHEN e.IsActive = 0 THEN 'Not Eligible - Inactive'
         WHEN DATEDIFF(MONTH, e.HireDate, GETDATE()) < 6 THEN 'Not Eligible - Tenure'
-        WHEN e.DepartmentID = 1 AND e.BaseSalary < 60000 THEN 'Not Eligible - IT BaseSalary Threshold'
+        WHEN e.DepartmentID = 1 AND e.BaseSalary < 60000 THEN 'Not Eligible - IT e.BaseSalary Threshold'
         WHEN e.DepartmentID = 3 AND e.JobTitle NOT LIKE '%Analyst%' AND e.JobTitle NOT LIKE '%Manager%' 
              THEN 'Not Eligible - Finance Role Requirement'
         WHEN EXISTS (
             SELECT 1 FROM EmployeeProjects ep 
-            WHERE ep.EmployeeID = e.EmployeeID 
+            WHERE ep.e.EmployeeID = e.EmployeeID 
             AND ep.HoursWorked < ep.HoursAllocated * 0.8
         ) THEN 'Not Eligible - Performance Issue'
         ELSE 'Eligible for Promotion Review'
@@ -298,7 +301,7 @@ SELECT
                 WHEN EXISTS (
                     SELECT 1 FROM EmployeeProjects ep 
                     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-                    WHERE ep.EmployeeID = e.EmployeeID 
+                    WHERE ep.e.EmployeeID = e.EmployeeID 
                     AND p.IsActive = 'Completed'
                     AND ep.HoursWorked <= ep.HoursAllocated
                 ) THEN e.BaseSalary * 0.15  -- Project completion bonus
@@ -320,31 +323,32 @@ FROM Employees e
 ```sql
 -- CASE expressions with analytical functions
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
     DepartmentID,
     CASE 
-        WHEN RANK() OVER (PARTITION BY DepartmentIDID ORDER BY BaseSalary DESC) = 1 
+        WHEN RANK() OVER (PARTITION BY DepartmentIDID ORDER BY e.BaseSalary DESC) = 1 
              THEN 'Department Top Earner'
-        WHEN RANK() OVER (PARTITION BY DepartmentIDID ORDER BY BaseSalary DESC) <= 3 
+        WHEN RANK() OVER (PARTITION BY DepartmentIDID ORDER BY e.BaseSalary DESC) <= 3 
              THEN 'Department Top 3'
-        WHEN PERCENT_RANK() OVER (PARTITION BY DepartmentIDID ORDER BY BaseSalary) >= 0.75 
+        WHEN PERCENT_RANK() OVER (PARTITION BY DepartmentIDID ORDER BY e.BaseSalary) >= 0.75 
              THEN 'Department Top Quartile'
-        WHEN PERCENT_RANK() OVER (PARTITION BY DepartmentIDID ORDER BY BaseSalary) >= 0.5 
+        WHEN PERCENT_RANK() OVER (PARTITION BY DepartmentIDID ORDER BY e.BaseSalary) >= 0.5 
              THEN 'Department Above Median'
         ELSE 'Department Below Median'
     END AS SalaryPosition,
     CASE 
-        WHEN BaseSalary > AVG(e.BaseSalary) OVER (PARTITION BY DepartmentIDID) * 1.2 
+        WHEN e.BaseSalary > AVG(e.BaseSalary) OVER (PARTITION BY DepartmentIDID) * 1.2 
              THEN 'Significantly Above Dept Average'
-        WHEN BaseSalary > AVG(e.BaseSalary) OVER (PARTITION BY DepartmentIDID) 
+        WHEN e.BaseSalary > AVG(e.BaseSalary) OVER (PARTITION BY DepartmentIDID) 
              THEN 'Above d.DepartmentName Average'
-        WHEN BaseSalary < AVG(e.BaseSalary) OVER (PARTITION BY DepartmentIDID) * 0.8 
+        WHEN e.BaseSalary < AVG(e.BaseSalary) OVER (PARTITION BY DepartmentIDID) * 0.8 
              THEN 'Significantly Below Dept Average'
         ELSE 'Near d.DepartmentName Average'
     END AS SalaryComparison
-FROM Employees e;
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 ```
 
 ### 4. CASE in Complex Joins
@@ -355,7 +359,7 @@ SELECT
     d.DepartmentName,
     p.ProjectName,
     CASE 
-        WHEN ep.EmployeeID IS NULL THEN 'No Project Assignment'
+        WHEN ep.e.EmployeeID IS NULL THEN 'No Project Assignment'
         WHEN p.IsActive = 'Completed' THEN 'Completed Project'
         WHEN p.IsActive = 'In Progress' AND ep.HoursWorked > ep.HoursAllocated 
              THEN 'Over-allocated on Active Project'
@@ -365,7 +369,7 @@ SELECT
         ELSE 'Unknown Project IsActive'
     END AS ProjectIsActive,
     CASE 
-        WHEN ep.EmployeeID IS NOT NULL AND p.ProjectID IS NOT NULL THEN
+        WHEN ep.e.EmployeeID IS NOT NULL AND p.ProjectID IS NOT NULL THEN
             CASE 
                 WHEN ep.HoursWorked = 0 THEN 'Project Not Started'
                 WHEN ep.HoursWorked >= ep.HoursAllocated THEN 'Project Complete'
@@ -378,7 +382,7 @@ SELECT
     END AS CompletionIsActive
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE e.IsActive = 1;
 ```
@@ -389,15 +393,16 @@ WHERE e.IsActive = 1;
 ```sql
 -- Good: Always include ELSE for completeness
 SELECT 
-    FirstName,
-    LastName,
+    e.FirstName,
+    e.LastName,
     CASE DepartmentID
         WHEN 1 THEN 'IT'
         WHEN 2 THEN 'HR'
         WHEN 3 THEN 'Finance'
         ELSE 'Other'  -- Always include ELSE
     END AS d.DepartmentName
-FROM Employees e;
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
 -- Risky: Missing ELSE can result in NULL values
 -- CASE DepartmentID
@@ -410,22 +415,22 @@ FROM Employees e;
 ```sql
 -- Good: Order from most specific to least specific
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
     CASE 
-        WHEN BaseSalary > 100000 THEN 'Executive'      -- Most specific first
-        WHEN BaseSalary > 80000 THEN 'Senior'
-        WHEN BaseSalary > 60000 THEN 'Mid-Level'
-        WHEN BaseSalary > 40000 THEN 'Entry-Level'
+        WHEN e.BaseSalary > 100000 THEN 'Executive'      -- Most specific first
+        WHEN e.BaseSalary > 80000 THEN 'Senior'
+        WHEN e.BaseSalary > 60000 THEN 'Mid-Level'
+        WHEN e.BaseSalary > 40000 THEN 'Entry-Level'
         ELSE 'Intern'                              -- Catch-all last
     END AS Level
 FROM Employees e;
 
 -- Problematic: Wrong order can cause incorrect results
 -- CASE 
---     WHEN BaseSalary > 40000 THEN 'Entry-Level'  -- This catches everyone > 40k!
---     WHEN BaseSalary > 80000 THEN 'Senior'       -- This will never execute
+--     WHEN e.BaseSalary > 40000 THEN 'Entry-Level'  -- This catches everyone > 40k!
+--     WHEN e.BaseSalary > 80000 THEN 'Senior'       -- This will never execute
 --     ELSE 'Intern'
 -- END
 ```
@@ -434,19 +439,19 @@ FROM Employees e;
 ```sql
 -- Good: Consistent return types
 SELECT 
-    FirstName,
-    LastName,
+    e.FirstName,
+    e.LastName,
     CASE 
-        WHEN BaseSalary > 80000 THEN 'High'
-        WHEN BaseSalary > 50000 THEN 'Medium'
+        WHEN e.BaseSalary > 80000 THEN 'High'
+        WHEN e.BaseSalary > 50000 THEN 'Medium'
         ELSE 'Low'
     END AS SalaryLevel
 FROM Employees e;
 
 -- Problematic: Mixed data types
 -- CASE 
---     WHEN BaseSalary > 80000 THEN 'High'    -- String
---     WHEN BaseSalary > 50000 THEN 1         -- Integer
+--     WHEN e.BaseSalary > 80000 THEN 'High'    -- String
+--     WHEN e.BaseSalary > 50000 THEN 1         -- Integer
 --     ELSE NULL                          -- NULL
 -- END
 ```
@@ -458,11 +463,11 @@ FROM Employees e;
 
 -- Instead of repeating this complex CASE in multiple queries:
 CASE 
-    WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 10 AND BaseSalary >= 100000 
+    WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 10 AND e.BaseSalary >= 100000 
          AND DepartmentID IN (1, 3, 4) 
          AND Title LIKE '%Senior%' OR Title LIKE '%Manager%' 
          THEN 'Executive Track'
-    WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 5 AND BaseSalary >= 70000 
+    WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 5 AND e.BaseSalary >= 70000 
          THEN 'Management Track'
     ELSE 'Individual Contributor'
 END
@@ -476,43 +481,45 @@ END
 ```sql
 -- Problem: Unexpected NULLs
 SELECT 
-    FirstName,
+    e.FirstName,
     CASE DepartmentID
         WHEN 1 THEN 'IT'
         WHEN 2 THEN 'HR'
         -- Missing ELSE - what about DepartmentID 3, 4, 5?
     END AS d.DepartmentName
-FROM Employees e;
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
 -- Solution: Always include ELSE
 SELECT 
-    FirstName,
+    e.FirstName,
     CASE DepartmentID
         WHEN 1 THEN 'IT'
         WHEN 2 THEN 'HR'
         ELSE 'Other Department'
     END AS d.DepartmentName
-FROM Employees e;
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 ```
 
 ### 2. Incorrect Condition Order
 ```sql
 -- Problem: Overlapping conditions
 SELECT 
-    BaseSalary,
+    e.BaseSalary,
     CASE 
-        WHEN BaseSalary > 50000 THEN 'Above 50k'    -- This catches 80k salaries
-        WHEN BaseSalary > 80000 THEN 'Above 80k'    -- This never executes!
+        WHEN e.BaseSalary > 50000 THEN 'Above 50k'    -- This catches 80k salaries
+        WHEN e.BaseSalary > 80000 THEN 'Above 80k'    -- This never executes!
         ELSE 'Below 50k'
     END AS Range
 FROM Employees e;
 
 -- Solution: Order from highest to lowest
 SELECT 
-    BaseSalary,
+    e.BaseSalary,
     CASE 
-        WHEN BaseSalary > 80000 THEN 'Above 80k'
-        WHEN BaseSalary > 50000 THEN 'Above 50k'
+        WHEN e.BaseSalary > 80000 THEN 'Above 80k'
+        WHEN e.BaseSalary > 50000 THEN 'Above 50k'
         ELSE 'Below 50k'
     END AS Range
 FROM Employees e;
@@ -523,8 +530,8 @@ FROM Employees e;
 -- Problem: Mixed return types cause conversion issues
 SELECT 
     CASE 
-        WHEN BaseSalary > 80000 THEN BaseSalary      -- Returns number
-        WHEN BaseSalary > 50000 THEN 'Medium'    -- Returns string
+        WHEN e.BaseSalary > 80000 THEN e.BaseSalary      -- Returns number
+        WHEN e.BaseSalary > 50000 THEN 'Medium'    -- Returns string
         ELSE NULL                            -- Returns NULL
     END AS Result
 FROM Employees e;
@@ -532,9 +539,9 @@ FROM Employees e;
 -- Solution: Consistent return types
 SELECT 
     CASE 
-        WHEN BaseSalary > 80000 THEN CAST(BaseSalary AS VARCHAR)
-        WHEN BaseSalary > 50000 THEN 'Medium BaseSalary'
-        ELSE 'Low BaseSalary'
+        WHEN e.BaseSalary > 80000 THEN CAST(e.BaseSalary AS VARCHAR)
+        WHEN e.BaseSalary > 50000 THEN 'Medium e.BaseSalary'
+        ELSE 'Low e.BaseSalary'
     END AS Result
 FROM Employees e;
 ```
@@ -546,16 +553,16 @@ FROM Employees e;
 -- Single query with CASE (generally more efficient)
 SELECT 
     DepartmentID,
-    COUNT(CASE WHEN BaseSalary > 70000 THEN 1 END) AS HighSalary,
-    COUNT(CASE WHEN BaseSalary BETWEEN 40000 AND 70000 THEN 1 END) AS MidSalary,
-    COUNT(CASE WHEN BaseSalary < 40000 THEN 1 END) AS LowSalary
-FROM Employees
+    COUNT(CASE WHEN e.BaseSalary > 70000 THEN 1 END) AS HighSalary,
+    COUNT(CASE WHEN e.BaseSalary BETWEEN 40000 AND 70000 THEN 1 END) AS MidSalary,
+    COUNT(CASE WHEN e.BaseSalary < 40000 THEN 1 END) AS LowSalary
+FROM Employees e
 GROUP BY DepartmentIDID;
 
 -- vs. Multiple separate queries (less efficient)
--- SELECT DepartmentID, COUNT(*) FROM Employees WHERE BaseSalary > 70000 GROUP BY DepartmentIDID;
--- SELECT DepartmentID, COUNT(*) FROM Employees WHERE BaseSalary BETWEEN 40000 AND 70000 GROUP BY DepartmentIDID;
--- SELECT DepartmentID, COUNT(*) FROM Employees WHERE BaseSalary < 40000 GROUP BY DepartmentIDID;
+-- SELECT DepartmentID, COUNT(*) FROM Employees e WHERE e.BaseSalary > 70000 GROUP BY DepartmentIDID;
+-- SELECT DepartmentID, COUNT(*) FROM Employees e WHERE e.BaseSalary BETWEEN 40000 AND 70000 GROUP BY DepartmentIDID;
+-- SELECT DepartmentID, COUNT(*) FROM Employees e WHERE e.BaseSalary < 40000 GROUP BY DepartmentIDID;
 ```
 
 ### 2. Simple vs. Searched CASE Performance

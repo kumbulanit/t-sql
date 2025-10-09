@@ -19,12 +19,12 @@ The UNION operator is a powerful set operator that combines result sets from two
 **Core Tables for UNION Examples:**
 
 ```sql
-Employees: EmployeeID (3001+), FirstName, LastName, BaseSalary, DepartmentID, ManagerID, HireDate, IsActive
+Employees: e.EmployeeID (3001+), e.FirstName, e.LastName, e.BaseSalary, DepartmentID, ManagerID, e.HireDate, IsActive
 Departments: DepartmentID (2001+), DepartmentName, Budget, Location, IsActive
 Projects: ProjectID (4001+), ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
-Orders: OrderID (5001+), CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
+Orders: OrderID (5001+), CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
 Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, IsActive
-EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
+EmployeeProjects: e.EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
 ```
 
 ---
@@ -64,12 +64,12 @@ The UNION operator combines results from multiple queries while removing duplica
 -- Create a unified employee contact list
 SELECT 
     'ACTIVE' AS EmployeeStatus,
-    EmployeeID,
-    FirstName + ' ' + LastName AS FullName,
-    JobTitle,
+    e.EmployeeID,
+    e.FirstName + ' ' + e.LastName AS FullName,
+    e.JobTitle,
     WorkEmail,
     d.DepartmentName,
-    HireDate AS RelevantDate
+    e.HireDate AS RelevantDate
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
@@ -78,9 +78,9 @@ UNION
 
 SELECT 
     'RECENT_DEPARTURE' AS EmployeeStatus,
-    EmployeeID,
-    FirstName + ' ' + LastName AS FullName,
-    JobTitle,
+    e.EmployeeID,
+    e.FirstName + ' ' + e.LastName AS FullName,
+    e.JobTitle,
     WorkEmail,
     d.DepartmentName,
     TerminationDate AS RelevantDate
@@ -127,7 +127,7 @@ SELECT
     NULL AS RelatedAmount
 FROM EmployeeProjects ep
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-INNER JOIN Employees e ON ep.EmployeeID = e.EmployeeID
+INNER JOIN Employees e ON ep.e.EmployeeID = e.EmployeeID
 WHERE ep.IsActive = 1
 AND ep.StartDate IS NOT NULL
 
@@ -165,7 +165,7 @@ SELECT
     d.DepartmentName AS Category,
     SUM(e.BaseSalary) AS Amount,
     COUNT(e.EmployeeID) AS TransactionCount,
-    'Monthly BaseSalary expenses' AS Description
+    'Monthly e.BaseSalary expenses' AS Description
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
@@ -218,7 +218,7 @@ WITH HighPerformers AS (
         COUNT(DISTINCT ep.ProjectID) AS ProjectCount,
         SUM(ep.HoursWorked) AS TotalHours
     FROM Employees e
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
     WHERE e.IsActive = 1
     AND ep.IsActive = 1
     AND ep.StartDate >= DATEADD(YEAR, -1, GETDATE())
@@ -226,7 +226,7 @@ WITH HighPerformers AS (
     HAVING COUNT(DISTINCT ep.ProjectID) >= 2
 ),
 SalaryBenchmarks AS (
-    -- Calculate BaseSalary benchmarks by d.DepartmentName
+    -- Calculate e.BaseSalary benchmarks by d.DepartmentName
     SELECT 
         d.DepartmentID,
         d.DepartmentName,
@@ -239,20 +239,20 @@ SalaryBenchmarks AS (
     GROUP BY d.DepartmentID, d.DepartmentName
 )
 
--- Combine performance data with BaseSalary analysis
+-- Combine performance data with e.BaseSalary analysis
 SELECT 
     'HIGH_PERFORMER' AS AnalysisType,
     hp.EmployeeName,
-    hp.BaseSalary,
+    hp.e.BaseSalary,
     hp.ProjectCount AS MetricValue,
     'Projects completed in last year' AS MetricDescription,
     CASE 
-        WHEN hp.BaseSalary >= sb.AvgSalary * 1.2 THEN 'Above Average Compensation'
-        WHEN hp.BaseSalary >= sb.AvgSalary THEN 'Average Compensation'
+        WHEN hp.e.BaseSalary >= sb.AvgSalary * 1.2 THEN 'Above Average Compensation'
+        WHEN hp.e.BaseSalary >= sb.AvgSalary THEN 'Average Compensation'
         ELSE 'Below Average Compensation'
     END AS CompensationStatus
 FROM HighPerformers hp
-INNER JOIN Employees e ON hp.EmployeeID = e.EmployeeID
+INNER JOIN Employees e ON hp.e.EmployeeID = e.EmployeeID
 INNER JOIN SalaryBenchmarks sb ON e.DepartmentID = sb.DepartmentID
 
 UNION ALL
@@ -260,17 +260,17 @@ UNION ALL
 SELECT 
     'DEPARTMENT_BENCHMARK' AS AnalysisType,
     sb.DepartmentName AS EmployeeName,
-    sb.AvgSalary AS BaseSalary,
+    sb.AvgSalary AS e.BaseSalary,
     (sb.MaxSalary - sb.MinSalary) AS MetricValue,
-    'BaseSalary range within department' AS MetricDescription,
+    'e.BaseSalary range within department' AS MetricDescription,
     CASE 
-        WHEN (sb.MaxSalary - sb.MinSalary) > 50000 THEN 'High BaseSalary Variance'
-        WHEN (sb.MaxSalary - sb.MinSalary) > 25000 THEN 'Moderate BaseSalary Variance'
-        ELSE 'Low BaseSalary Variance'
+        WHEN (sb.MaxSalary - sb.MinSalary) > 50000 THEN 'High e.BaseSalary Variance'
+        WHEN (sb.MaxSalary - sb.MinSalary) > 25000 THEN 'Moderate e.BaseSalary Variance'
+        ELSE 'Low e.BaseSalary Variance'
     END AS CompensationStatus
 FROM SalaryBenchmarks sb
 
-ORDER BY AnalysisType, BaseSalary DESC;
+ORDER BY AnalysisType, e.BaseSalary DESC;
 ```
 
 ---
@@ -291,19 +291,19 @@ SELECT
     NULL AS PreviousValue,
     NULL AS PercentChange,
     'Active employees across all departments' AS Description
-FROM Employees 
+FROM Employees e 
 WHERE IsActive = 1
 
 UNION ALL
 
 SELECT 
     'HUMAN_RESOURCES' AS BusinessArea,
-    'Average BaseSalary' AS MetricName,
+    'Average e.BaseSalary' AS MetricName,
     CAST(AVG(e.BaseSalary) AS INT) AS CurrentValue,
     NULL AS PreviousValue,
     NULL AS PercentChange,
-    'Average BaseSalary across all active employees' AS Description
-FROM Employees 
+    'Average e.BaseSalary across all active employees' AS Description
+FROM Employees e 
 WHERE IsActive = 1
 
 UNION ALL
@@ -315,7 +315,7 @@ SELECT
     NULL AS PreviousValue,
     NULL AS PercentChange,
     'Currently active projects' AS Description
-FROM Projects 
+FROM Projects p 
 WHERE IsActive = 1
 
 UNION ALL
@@ -327,7 +327,7 @@ SELECT
     NULL AS PreviousValue,
     NULL AS PercentChange,
     'Combined budget of all active projects' AS Description
-FROM Projects 
+FROM Projects p 
 WHERE IsActive = 1
 
 UNION ALL
@@ -388,7 +388,7 @@ ORDER BY BusinessArea, MetricName;
 
 -- Step 1: Create indexes for better performance (run separately)
 /*
-CREATE INDEX IX_Employees_Active_Department ON Employees (IsActive, DepartmentID) INCLUDE (FirstName, LastName, WorkEmail);
+CREATE INDEX IX_Employees_Active_Department ON Employees (IsActive, DepartmentID) INCLUDE (e.FirstName, e.LastName, WorkEmail);
 CREATE INDEX IX_Customers_Active_Country ON Customers (IsActive, Country) INCLUDE (CompanyName, ContactName, WorkEmail);
 */
 
@@ -396,8 +396,8 @@ CREATE INDEX IX_Customers_Active_Country ON Customers (IsActive, Country) INCLUD
 WITH EmployeeContacts AS (
     SELECT 
         'EMPLOYEE' AS ContactType,
-        CAST(EmployeeID AS NVARCHAR(20)) AS ContactID,
-        FirstName + ' ' + LastName AS ContactName,
+        CAST(e.EmployeeID AS NVARCHAR(20)) AS ContactID,
+        e.FirstName + ' ' + e.LastName AS ContactName,
         WorkEmail,
         d.DepartmentName AS Organization,
         d.Location AS ContactLocation,
@@ -529,10 +529,10 @@ BEGIN
         'TOTAL_EMPLOYEES' AS Category,
         COUNT(*) AS RecordCount,
         0 AS AverageValue,
-        MIN(HireDate) AS EarliestDate,
-        MAX(HireDate) AS LatestDate,
+        MIN(e.HireDate) AS EarliestDate,
+        MAX(e.HireDate) AS LatestDate,
         'Total active employees' AS Description
-    FROM Employees 
+    FROM Employees e 
     WHERE IsActive = 1
 
     UNION ALL
@@ -545,7 +545,7 @@ BEGIN
         MIN(StartDate) AS EarliestDate,
         MAX(ISNULL(EndDate, GETDATE())) AS LatestDate,
         'Total active projects' AS Description
-    FROM Projects 
+    FROM Projects p 
     WHERE IsActive = 1
 
     ORDER BY Category;

@@ -21,11 +21,11 @@ GO
 SELECT 
     'Companies' as TableName, COUNT(*) as RecordCount FROM Companies
 UNION ALL
-SELECT 'Departments', COUNT(*) FROM Departments  
+SELECT 'Departments', COUNT(*) FROM Departments d  
 UNION ALL
-SELECT 'Employees', COUNT(*) FROM Employees
+SELECT 'Employees', COUNT(*) FROM Employees e
 UNION ALL
-SELECT 'Projects', COUNT(*) FROM Projects;
+SELECT 'Projects', COUNT(*) FROM Projects p;
 ```
 
 ### Module 3 Schema Extensions
@@ -203,11 +203,11 @@ Write queries to:
 
 1. **All Employee Information**: Select all columns from the Employees table.
 
-2. **Specific Columns**: Select only FirstName, LastName, Title, and BaseSalary from Employees.
+2. **Specific Columns**: Select only FirstName, LastName, Title, and BaseSalary FROM Employees e.
 
-3. **Department Information**: Select DepartmentName, Budget, and Location from Departments.
+3. **Department Information**: Select DepartmentName, Budget, and Location FROM Departments d.
 
-4. **Project Overview**: Select ProjectName, IsActive, Budget, and ClientName from Projects.
+4. **Project Overview**: Select ProjectName, IsActive, Budget, and ClientName FROM Projects p.
 
 #### Exercise 1.2: Calculated Columns
 Write queries to:

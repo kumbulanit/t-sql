@@ -86,9 +86,9 @@ ORDER BY
         WHEN 'Analyst' THEN 6
         ELSE 7
     END,
-    -- Tertiary: BaseSalary (highest first within same job level)
+    -- Tertiary: e.BaseSalary (highest first within same job level)
     e.BaseSalary DESC,
-    -- Quaternary: Hire date (seniority within same BaseSalary)
+    -- Quaternary: Hire date (seniority within same e.BaseSalary)
     e.HireDate ASC,
     -- Final: Last name for consistent ordering
     e.LastName;
@@ -127,17 +127,17 @@ ORDER BY
 ```sql
 -- Explicit NULL handling
 SELECT 
-    EmployeeID,
-    FirstName,
-    LastName,
+    e.EmployeeID,
+    e.FirstName,
+    e.LastName,
     MiddleName,
-    BaseSalary
-FROM Employees
+    e.BaseSalary
+FROM Employees e
 ORDER BY 
     -- NULLs last for ascending, first for descending
     CASE WHEN MiddleName IS NULL THEN 1 ELSE 0 END,
     MiddleName,
-    LastName;
+    e.LastName;
 
 -- Using ISNULL for custom NULL ordering
 SELECT 
@@ -229,7 +229,7 @@ SELECT
     ProductName,
     CategoryName,
     SupplierName,
-    BaseSalary
+    e.BaseSalary
 FROM Products p
 JOIN Categories c ON p.CategoryID = c.CategoryID
 JOIN Suppliers s ON p.SupplierID = s.SupplierID
@@ -257,28 +257,28 @@ WHERE Country IN (
 ```sql
 -- Advanced LIKE patterns
 SELECT 
-    EmployeeID,
-    FirstName,
-    LastName,
-    JobTitle,
+    e.EmployeeID,
+    e.FirstName,
+    e.LastName,
+    e.JobTitle,
     WorkEmail
-FROM Employees
+FROM Employees e
 WHERE 
     -- Starts with pattern
-    LastName LIKE 'Sm%'
+    e.LastName LIKE 'Sm%'
     OR
     -- Contains pattern
-    JobTitle LIKE '%Manager%'
+    e.JobTitle LIKE '%Manager%'
     OR
     -- Single character wildcard
-    FirstName LIKE 'J_n'  -- Jon, Jan, Jin, etc.
+    e.FirstName LIKE 'J_n'  -- Jon, Jan, Jin, etc.
     OR
     -- Character range
-    LastName LIKE '[A-F]%'  -- Starts with A through F
+    e.LastName LIKE '[A-F]%'  -- Starts with A through F
     OR
     -- Character exclusion
     WorkEmail LIKE '%[^0-9]@company.com'  -- No digits before @
-ORDER BY LastName, FirstName;
+ORDER BY e.LastName, e.FirstName;
 ```
 
 #### **NULL Handling in WHERE Clauses**
@@ -315,10 +315,10 @@ WHERE
 SELECT TOP 10
     ProductID,
     ProductName,
-    BaseSalary,
+    e.BaseSalary,
     UnitsInStock
 FROM Products
-ORDER BY BaseSalary DESC;
+ORDER BY e.BaseSalary DESC;
 
 -- Percentage of rows
 SELECT TOP 25 PERCENT
@@ -341,15 +341,15 @@ ORDER BY TotalOrders DESC;
 ```sql
 -- Include tied values
 SELECT TOP 5 WITH TIES
-    EmployeeID,
-    FirstName,
-    LastName,
-    BaseSalary
-FROM Employees
-ORDER BY BaseSalary DESC;
+    e.EmployeeID,
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary
+FROM Employees e
+ORDER BY e.BaseSalary DESC;
 
 -- This might return more than 5 rows if multiple employees
--- have the same BaseSalary as the 5th highest BaseSalary
+-- have the same e.BaseSalary as the 5th highest e.BaseSalary
 ```
 
 ### OFFSET-FETCH: Modern Paging Solution
@@ -394,7 +394,7 @@ SELECT
     ProductID,
     ProductName,
     CategoryName,
-    BaseSalary,
+    e.BaseSalary,
     UnitsInStock
 FROM Products p
 JOIN Categories c ON p.CategoryID = c.CategoryID
@@ -418,7 +418,7 @@ WHERE Discontinued = 0;
 -- Create covering index for paging queries
 CREATE NONCLUSTERED INDEX IX_Products_Paging
 ON Products (Discontinued, ProductName)
-INCLUDE (ProductID, CategoryID, BaseSalary, UnitsInStock);
+INCLUDE (ProductID, CategoryID, e.BaseSalary, UnitsInStock);
 
 -- This index supports:
 -- 1. WHERE clause filtering on Discontinued
@@ -435,7 +435,7 @@ SELECT TOP 20
     ProductID,
     ProductName,
     CategoryName,
-    BaseSalary
+    e.BaseSalary
 FROM Products p
 JOIN Categories c ON p.CategoryID = c.CategoryID
 WHERE 
@@ -501,14 +501,14 @@ ORDER BY CompanyName;
 ```sql
 -- Case-insensitive search regardless of column collation
 SELECT 
-    EmployeeID,
-    FirstName,
-    LastName,
-    JobTitle
-FROM Employees
+    e.EmployeeID,
+    e.FirstName,
+    e.LastName,
+    e.JobTitle
+FROM Employees e
 WHERE 
-    FirstName COLLATE SQL_Latin1_General_CP1_CI_AS = 'john'
-    OR LastName COLLATE SQL_Latin1_General_CP1_CI_AS LIKE 'SMITH%';
+    e.FirstName COLLATE SQL_Latin1_General_CP1_CI_AS = 'john'
+    OR e.LastName COLLATE SQL_Latin1_General_CP1_CI_AS LIKE 'SMITH%';
 
 -- Accent-insensitive search
 SELECT 
@@ -576,8 +576,8 @@ ORDER BY e.LastName, e.FirstName;
 
 -- Supporting index
 CREATE INDEX IX_Employees_Search 
-ON Employees (Department, HireDate, LastName, FirstName)
-INCLUDE (EmployeeID, JobTitle);
+ON Employees (Department, e.HireDate, e.LastName, e.FirstName)
+INCLUDE (e.EmployeeID, e.JobTitle);
 ```
 
 ---
@@ -623,7 +623,7 @@ CREATE INDEX IX_Products_CategoryDiscontinued_Name
 ON Products (CategoryID, Discontinued, ProductName);
 
 -- This index efficiently supports:
-SELECT ProductID, ProductName, BaseSalary
+SELECT ProductID, ProductName, e.BaseSalary
 FROM Products 
 WHERE CategoryID = 1 AND Discontinued = 0
 ORDER BY ProductName;
@@ -687,28 +687,28 @@ ORDER BY total_worker_time DESC;
 #### **SARGable Predicates (Search ARGument able)**
 ```sql
 -- SARGable (Good - can use indexes efficiently)
-WHERE LastName LIKE 'Smith%'        -- Index seek possible
+WHERE e.LastName LIKE 'Smith%'        -- Index seek possible
 WHERE OrderDate >= '2023-01-01'     -- Index seek possible
 WHERE CategoryID = 1                 -- Index seek possible
 WHERE Price BETWEEN 10 AND 50       -- Index seek possible
 
 -- Non-SARGable (Bad - forces index scan or table scan)
-WHERE UPPER(LastName) = 'SMITH'      -- Function on column
+WHERE UPPER(e.LastName) = 'SMITH'      -- Function on column
 WHERE OrderDate + 30 > GETDATE()    -- Arithmetic on column
-WHERE LastName LIKE '%Smith%'       -- Leading wildcard
+WHERE e.LastName LIKE '%Smith%'       -- Leading wildcard
 WHERE ISNULL(Price, 0) > 10         -- Function on column
 ```
 
 #### **Avoiding Common Performance Killers**
 ```sql
 -- BAD: OR conditions with different columns (forces index scan)
-SELECT * FROM Employees 
-WHERE FirstName = 'John' OR LastName = 'Smith';
+SELECT * FROM Employees e 
+WHERE e.FirstName = 'John' OR e.LastName = 'Smith';
 
 -- BETTER: Use UNION for OR conditions on different columns
-SELECT * FROM Employees WHERE FirstName = 'John'
+SELECT * FROM Employees e WHERE e.FirstName = 'John'
 UNION
-SELECT * FROM Employees WHERE LastName = 'Smith';
+SELECT * FROM Employees e WHERE e.LastName = 'Smith';
 
 -- BAD: Functions in WHERE clause
 SELECT * FROM Orders 

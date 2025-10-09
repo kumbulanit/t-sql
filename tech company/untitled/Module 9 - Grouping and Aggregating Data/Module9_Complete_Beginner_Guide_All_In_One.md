@@ -61,7 +61,7 @@ FROM Employees e;
 ```sql
 -- Count all projects
 SELECT COUNT(*) AS TotalProjects
-FROM Projects;
+FROM Projects p;
 ```
 
 **Your Turn**: Try counting clients too!
@@ -110,7 +110,7 @@ FROM Employees e;
 ```sql
 -- Add up all project budgets
 SELECT SUM(Budget) AS TotalProjectBudgets
-FROM Projects;
+FROM Projects p;
 ```
 
 **Real-World Use**: This tells management how much money is committed to projects.
@@ -125,12 +125,12 @@ FROM Clients;
 
 ## Section 3: Finding Averages (AVG) 📊
 
-### Exercise 3.1: Average BaseSalary (🟢 SUPER BASIC)
+### Exercise 3.1: Average e.BaseSalary (🟢 SUPER BASIC)
 
-**Question**: "What's the average BaseSalary at TechCorp?"
+**Question**: "What's the average e.BaseSalary at TechCorp?"
 
 ```sql
--- Calculate average BaseSalary
+-- Calculate average e.BaseSalary
 SELECT AVG(e.BaseSalary) AS AverageBaseSalary
 FROM Employees e;
 ```
@@ -156,7 +156,7 @@ FROM Employees e;
 **Question**: "What are the highest and lowest salaries?"
 
 ```sql
--- Find BaseSalary range  
+-- Find e.BaseSalary range  
 SELECT 
     MIN(e.BaseSalary) AS LowestBaseSalary,
     MAX(e.BaseSalary) AS HighestBaseSalary
@@ -170,7 +170,7 @@ FROM Employees e;
 SELECT 
     MIN(StartDate) AS EarliestProject,
     MAX(EndDate) AS LatestProject  
-FROM Projects;
+FROM Projects p;
 ```
 
 ## Section 5: Combining Multiple Functions (🟢 BASIC)
@@ -178,7 +178,7 @@ FROM Projects;
 ### Exercise 5.1: Complete Employee Summary (🟢 BASIC)
 
 ```sql
--- Get complete BaseSalary statistics
+-- Get complete e.BaseSalary statistics
 SELECT 
     COUNT(*) AS TotalEmployees,
     FORMAT(MIN(e.BaseSalary), 'C0') AS LowestBaseSalary,
@@ -390,7 +390,7 @@ ORDER BY SUM(p.Budget) DESC;
 
 ### Exercise 4.1: Multiple Conditions with HAVING (🟢 INTERMEDIATE)
 
-**Question**: "Which departments have more than 2 employees AND total BaseSalary cost over $150,000?"
+**Question**: "Which departments have more than 2 employees AND total e.BaseSalary cost over $150,000?"
 
 ```sql
 -- Multiple HAVING conditions
@@ -417,8 +417,8 @@ SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount
 FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE BaseSalary > 50000                    -- Filter: only high earners
-  AND HireDate >= '2020-01-01'         -- Filter: recent hires only
+WHERE e.BaseSalary > 50000                    -- Filter: only high earners
+  AND e.HireDate >= '2020-01-01'         -- Filter: recent hires only
 GROUP BY d.DepartmentName
 HAVING COUNT(*) >= 2                    -- Filter: departments with multiple high earners
 ORDER BY AVG(e.BaseSalary) DESC;              -- Sort: highest paying departments first
@@ -429,14 +429,14 @@ ORDER BY AVG(e.BaseSalary) DESC;              -- Sort: highest paying department
 **Date Functions + Math Functions + Grouping**: Advanced business analysis
 
 ```sql
--- Employee tenure and BaseSalary analysis
+-- Employee tenure and e.BaseSalary analysis
 SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount
 FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE HireDate IS NOT NULL
+WHERE e.HireDate IS NOT NULL
 GROUP BY d.DepartmentName
-ORDER BY AVG(DATEDIFF(YEAR, HireDate, GETDATE())) DESC;
+ORDER BY AVG(DATEDIFF(YEAR, e.HireDate, GETDATE())) DESC;
 ```
 
 ### Exercise E5: Complete Business Intelligence Report
@@ -455,7 +455,7 @@ SELECT
     
     -- Project metrics  
     COUNT(DISTINCT p.ProjectID) AS TotalProjects,
-    COUNT(DISTINCT CASE WHEN p.Status = 'Completed' THEN p.ProjectID END) AS CompletedProjects,
+    COUNT(DISTINCT CASE WHEN p.IsActive = 'Completed' THEN p.ProjectID END) AS CompletedProjects,
     FORMAT(SUM(p.Budget), 'C0') AS TotalProjectBudget,
     
     -- Client metrics
@@ -536,7 +536,7 @@ ORDER BY column(s);
 ```sql
 -- WRONG:
 SELECT d.DepartmentName, COUNT(*)
-FROM Employees
+FROM Employees e
 HAVING COUNT(*) > 2
 GROUP BY d.DepartmentName;
 
@@ -567,7 +567,7 @@ GROUP BY d.DepartmentName;
 ```sql
 -- WRONG:
 SELECT d.DepartmentName, COUNT(*)
-FROM Employees
+FROM Employees e
 WHERE COUNT(*) > 2
 GROUP BY d.DepartmentName;
 
@@ -594,7 +594,8 @@ WITH DepartmentStats AS (
     COUNT(*) as EmpCount,
         AVG(e.BaseSalary) as AvgSal,
         SUM(e.BaseSalary) as TotalSal
-    FROM Employees 
+    FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
     GROUP BY d.DepartmentName
 ),
 ProjectStats AS (
@@ -602,7 +603,7 @@ ProjectStats AS (
         Status,
         COUNT(*) as ProjCount,
         SUM(Budget) as TotalBudget
-    FROM Projects 
+    FROM Projects p 
     GROUP BY Status
 )
 SELECT 
@@ -639,11 +640,11 @@ FROM (
         SUM(CASE WHEN data_type = 'project' THEN 1 ELSE 0 END) as projects_started,
         SUM(CASE WHEN data_type = 'project' THEN budget_amount ELSE 0 END) as total_project_budget
     FROM (
-        SELECT HireDate as hire_proj_date, 'hire' as data_type, 0 as budget_amount
-        FROM Employees
+        SELECT e.HireDate as hire_proj_date, 'hire' as data_type, 0 as budget_amount
+        FROM Employees e
         UNION ALL
         SELECT StartDate, 'project' as data_type, Budget
-        FROM Projects
+        FROM Projects p
     ) combined_data
     WHERE hire_proj_date IS NOT NULL
     GROUP BY YEAR(hire_proj_date)

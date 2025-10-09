@@ -30,11 +30,11 @@ ORDER BY CompanyName ASC;
 SELECT 
     ProductID,
     ProductName,
-    BaseSalary,
+    e.BaseSalary,
     UnitsInStock,
     CategoryID
 FROM Products
-ORDER BY BaseSalary DESC;
+ORDER BY e.BaseSalary DESC;
 ```
 
 #### Question 3: Sort employees by hire date, newest first
@@ -43,13 +43,13 @@ ORDER BY BaseSalary DESC;
 ```sql
 -- Answer 3: Sort employees by hire date, newest first
 SELECT 
-    EmployeeID,
-    FirstName,
-    LastName,
+    e.EmployeeID,
+    e.FirstName,
+    e.LastName,
     Title,
-    HireDate
-FROM Employees
-ORDER BY HireDate DESC;
+    e.HireDate
+FROM Employees e
+ORDER BY e.HireDate DESC;
 ```
 
 ### Task 1.2: Multi-Level Sorting - Answers
@@ -77,11 +77,11 @@ ORDER BY Country ASC, City ASC;
 SELECT 
     p.ProductName,
     c.CategoryName,
-    p.BaseSalary,
+    p.e.BaseSalary,
     p.UnitsInStock
 FROM Products p
 INNER JOIN Categories c ON p.CategoryID = c.CategoryID
-ORDER BY c.CategoryName ASC, p.BaseSalary DESC;
+ORDER BY c.CategoryName ASC, p.e.BaseSalary DESC;
 ```
 
 #### Question 3: Sort orders by customer, then by order date
@@ -103,15 +103,15 @@ ORDER BY c.CompanyName ASC, o.OrderDate DESC;
 ### Task 1.3: Advanced Sorting - Answers
 
 #### Question 1: Sort products by total inventory value
-**Task:** Sort products by total inventory value (BaseSalary * UnitsInStock) descending.
+**Task:** Sort products by total inventory value (e.BaseSalary * UnitsInStock) descending.
 
 ```sql
 -- Answer 1: Sort products by total inventory value
 SELECT 
     ProductName,
-    BaseSalary,
+    e.BaseSalary,
     UnitsInStock,
-    COALESCE(BaseSalary * UnitsInStock, 0) AS InventoryValue
+    COALESCE(e.BaseSalary * UnitsInStock, 0) AS InventoryValue
 FROM Products
 ORDER BY InventoryValue DESC;
 ```
@@ -136,12 +136,12 @@ ORDER BY LEN(CompanyName) ASC, CompanyName ASC;
 ```sql
 -- Answer 3: Sort employees by age, oldest first
 SELECT 
-    EmployeeID,
-    FirstName,
-    LastName,
+    e.EmployeeID,
+    e.FirstName,
+    e.LastName,
     BirthDate,
     DATEDIFF(YEAR, BirthDate, GETDATE()) AS Age
-FROM Employees
+FROM Employees e
 WHERE BirthDate IS NOT NULL
 ORDER BY Age DESC;
 ```

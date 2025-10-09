@@ -171,7 +171,7 @@ JOIN table2 ON table1.column = table2.column;
 │                                                                             │
 │  • Table joined with itself using aliases                                  │
 │  • Common for hierarchical data (employee-manager relationships)           │
-│  • Requires table aliases: FROM Employees e1 JOIN Employees e2             │
+│  • Requires table aliases: FROM Employees e e1 JOIN Employees e2             │
 │  • Use for comparing rows within the same table                           │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -230,16 +230,16 @@ JOIN table2 ON table1.column = table2.column;
 ```sql
 -- Employees table
 CREATE TABLE Employees (
-    EmployeeID INT PRIMARY KEY,
-    FirstName NVARCHAR(50),
-    LastName NVARCHAR(50),
-    DepartmentID INT,
+    e.EmployeeID INT PRIMARY KEY,
+    e.FirstName NVARCHAR(50),
+    e.LastName NVARCHAR(50),
+    d.DepartmentID INT,
     ManagerID INT
 );
 
 -- Departments table
 CREATE TABLE Departments (
-    DepartmentID INT PRIMARY KEY,
+    d.DepartmentID INT PRIMARY KEY,
     d.DepartmentName NVARCHAR(50),
     Location NVARCHAR(50)
 );
@@ -266,7 +266,7 @@ SELECT
     d.DepartmentName,
     d.Location
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID;
 
 -- Result: John, Jane, Bob (Alice excluded - no department)
 ```
@@ -280,7 +280,7 @@ SELECT
     d.DepartmentName,
     d.Location
 FROM Employees e
-LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID;
+LEFT JOIN Departments d ON e.d.DepartmentID = d.DepartmentID;
 
 -- Result: John, Jane, Bob, Alice (Alice shows NULL for d.DepartmentName info)
 ```
@@ -297,8 +297,8 @@ SELECT
     ep.Role,
     ep.HoursAllocated
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE p.IsActive = 'Active'
 ORDER BY d.DepartmentName, e.LastName;
@@ -312,7 +312,7 @@ SELECT d.DepartmentName,
     COUNT(e.EmployeeID) AS EmployeeCount,
     AVG(e.BaseSalary) AS AverageBaseSalary
 FROM Departments d
-LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID
+LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
 GROUP BY d.DepartmentID, d.DepartmentName, d.Location
 ORDER BY EmployeeCount DESC;
 ```
@@ -348,18 +348,18 @@ WITH EmployeeSummary AS (
         e.HireDate,
         d.DepartmentName,
         d.Location,
-        mgr.FirstName + ' ' + mgr.LastName AS ManagerName,
+        mgr.e.FirstName + ' ' + mgr.e.LastName AS ManagerName,
         COUNT(ep.ProjectID) AS ActiveProjects,
         SUM(ep.HoursAllocated) AS TotalHoursAllocated,
         AVG(ep.HourlyRate) AS AverageHourlyRate
     FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
-    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+    LEFT JOIN Employees mgr ON e.ManagerID = mgr.e.EmployeeID
+    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
     LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'Active'
     WHERE e.IsActive = 1
     GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.BaseSalary, 
-             e.HireDate, d.DepartmentName, d.Location, mgr.FirstName, mgr.LastName
+             e.HireDate, d.DepartmentName, d.Location, mgr.e.FirstName, mgr.e.LastName
 )
 SELECT 
     EmployeeName,
@@ -367,8 +367,8 @@ SELECT
     DepartmentName,
     Location,
     ManagerName,
-    FORMAT(BaseSalary, 'C') AS FormattedSalary,
-    DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsOfService,
+    FORMAT(e.BaseSalary, 'C') AS FormattedSalary,
+    DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
     ActiveProjects,
     TotalHoursAllocated,
     CASE 
@@ -383,8 +383,8 @@ SELECT
         WHEN AverageHourlyRate >= 75 THEN 'Standard Rate'
         ELSE 'Junior Rate'
     END AS RateCategory
-FROM Employees eummary
-ORDER BY DepartmentIDName, BaseSalary DESC;
+FROM Employees e eummary
+ORDER BY DepartmentIDName, e.BaseSalary DESC;
 ```
 
 ### Advanced Join Patterns
@@ -392,14 +392,14 @@ ORDER BY DepartmentIDName, BaseSalary DESC;
 -- Find employees who work on the same projects as their managers
 SELECT DISTINCT
     emp.FirstName + ' ' + emp.LastName AS EmployeeName,
-    mgr.FirstName + ' ' + mgr.LastName AS ManagerName,
+    mgr.e.FirstName + ' ' + mgr.e.LastName AS ManagerName,
     p.ProjectName,
     d.DepartmentName
-FROM Employees emp
-INNER JOIN Employees mgr ON emp.ManagerID = mgr.EmployeeID
+FROM Employees e emp
+INNER JOIN Employees mgr ON emp.ManagerID = mgr.e.EmployeeID
 INNER JOIN Departments d ON emp.DepartmentID = d.DepartmentID
-INNER JOIN EmployeeProjects ep1 ON emp.EmployeeID = ep1.EmployeeID
-INNER JOIN EmployeeProjects ep2 ON mgr.EmployeeID = ep2.EmployeeID
+INNER JOIN EmployeeProjects ep1 ON emp.EmployeeID = ep1.e.EmployeeID
+INNER JOIN EmployeeProjects ep2 ON mgr.e.EmployeeID = ep2.e.EmployeeID
 INNER JOIN Projects p ON ep1.ProjectID = p.ProjectID AND ep2.ProjectID = p.ProjectID
 WHERE p.IsActive = 'Active'
 ORDER BY d.DepartmentName, p.ProjectName;
@@ -411,7 +411,7 @@ ORDER BY d.DepartmentName, p.ProjectName;
 ```sql
 -- Ensure proper indexes on join columns
 CREATE INDEX IX_Employees_DepartmentID ON Employees(DepartmentID);
-CREATE INDEX IX_EmployeeProjects_EmployeeID ON EmployeeProjects(EmployeeID);
+CREATE INDEX IX_EmployeeProjects_EmployeeID ON EmployeeProjects(e.EmployeeID);
 CREATE INDEX IX_EmployeeProjects_ProjectID ON EmployeeProjects(ProjectID);
 
 -- This join will be more efficient with proper indexes
@@ -429,7 +429,7 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 SELECT e.FirstName, e.LastName, p.ProjectName
 FROM Projects p  -- If Projects has fewer rows
 INNER JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
-INNER JOIN Employees e ON ep.EmployeeID = e.EmployeeID
+INNER JOIN Employees e ON ep.e.EmployeeID = e.EmployeeID
 WHERE p.IsActive = 'Active';  -- Filter early
 ```
 
@@ -459,10 +459,10 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
 -- Avoid: Ambiguous and verbose
 SELECT 
-    Employees.FirstName,
-    Employees.LastName,
+    Employees.e.FirstName,
+    Employees.e.LastName,
     Departments.d.DepartmentName
-FROM Employees
+FROM Employees e
 INNER JOIN Departments d ON Employees.DepartmentID = Departments.DepartmentID;
 ```
 
@@ -539,13 +539,13 @@ GROUP BY c.CustomerID, c.CompanyName;
 -- Self-join for hierarchical data
 SELECT 
     emp.FirstName + ' ' + emp.LastName AS Employee,
-    mgr.FirstName + ' ' + mgr.LastName AS Manager,
+    mgr.e.FirstName + ' ' + mgr.e.LastName AS Manager,
     CASE 
         WHEN emp.ManagerID IS NULL THEN 'Top Level'
-        ELSE 'Reports To: ' + mgr.FirstName + ' ' + mgr.LastName
+        ELSE 'Reports To: ' + mgr.e.FirstName + ' ' + mgr.e.LastName
     END AS ReportingStructure
-FROM Employees emp
-LEFT JOIN Employees mgr ON emp.ManagerID = mgr.EmployeeID;
+FROM Employees e emp
+LEFT JOIN Employees mgr ON emp.ManagerID = mgr.e.EmployeeID;
 ```
 
 ### 4. Many-to-Many Pattern
@@ -591,10 +591,10 @@ LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 ### 3. Ambiguous Column References
 ```sql
 -- WRONG: Ambiguous column name
-SELECT EmployeeID, d.DepartmentName
+SELECT e.EmployeeID, d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
--- Error if both tables have EmployeeID column
+-- Error if both tables have e.EmployeeID column
 
 -- CORRECT: Always qualify column names
 SELECT e.EmployeeID, d.DepartmentName
@@ -608,7 +608,7 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 ```sql
 -- Check for duplicate join keys
 SELECT DepartmentID, COUNT(*) 
-FROM Employees 
+FROM Employees e 
 GROUP BY DepartmentIDID 
 HAVING COUNT(*) > 1;
 
@@ -622,7 +622,7 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 ```sql
 -- Check for NULL values in join columns
 SELECT COUNT(*) AS EmployeesWithoutDepartment
-FROM Employees 
+FROM Employees e 
 WHERE DepartmentID IS NULL;
 
 -- Check for orphaned records

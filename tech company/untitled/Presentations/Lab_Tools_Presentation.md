@@ -215,7 +215,7 @@ WHERE TABLE_TYPE = 'BASE TABLE';
 
 **TechCorp Sample Data**:
 ```sql
--- d.d.DepartmentName data
+-- d.DepartmentName data
 INSERT INTO Departments (DepartmentName, Location) VALUES
 ('Information Technology', 'New York'),
 ('Human Resources', 'Chicago'),

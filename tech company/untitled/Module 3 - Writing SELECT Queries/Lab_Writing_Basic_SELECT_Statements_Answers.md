@@ -14,18 +14,18 @@ SELECT * FROM Employees e;
 
 **Beginner Explanation:**
 - `SELECT *` means "select ALL columns" (the asterisk * is a wildcard)
-- `FROM Employees` specifies which table to get data from
+- `FROM Employees e` specifies which table to get data from
 - This returns every row and every column in the Employees table
 - **Tip:** Use SELECT * carefully - it can return a lot of data!
 
 **Expected Result:** All employee records with columns like EmployeeID, FirstName, LastName, JobTitle, BaseSalary, HireDate, etc.
 
 #### Question 2: Select Specific Columns
-**Task:** Select only FirstName, LastName, and BaseSalary from Employees.
+**Task:** Select only FirstName, LastName, and BaseSalary FROM Employees e.
 
 ```sql
 -- Answer 2: Select Specific Columns
-SELECT FirstName, LastName, BaseSalary
+SELECT e.FirstName, e.LastName, e.BaseSalary
 FROM Employees e;
 ```
 
@@ -43,12 +43,12 @@ FROM Employees e;
 ```sql
 -- Answer 3: Select with Calculated Columns
 SELECT 
-    FirstName,
-    LastName,
-    FirstName + ' ' + LastName AS FullName,
-    BaseSalary,
-    BaseSalary * 0.10 AS AnnualBonus,
-    BaseSalary + (BaseSalary * 0.10) AS TotalCompensation
+    e.FirstName,
+    e.LastName,
+    e.FirstName + ' ' + e.LastName AS FullName,
+    e.BaseSalary,
+    e.BaseSalary * 0.10 AS AnnualBonus,
+    e.BaseSalary + (e.BaseSalary * 0.10) AS TotalCompensation
 FROM Employees e;
 ```
 
@@ -77,13 +77,13 @@ FROM Employees e;
 ```sql
 -- Answer 1: String Manipulations
 SELECT 
-    FirstName,
-    LastName,
-    UPPER(FirstName) AS FirstNameUpper,
-    LOWER(LastName) AS LastNameLower,
-    LEN(FirstName + LastName) AS NameLength,
-    LEFT(FirstName, 3) AS FirstThreeChars,
-    RIGHT(LastName, 3) AS LastThreeChars,
+    e.FirstName,
+    e.LastName,
+    UPPER(e.FirstName) AS FirstNameUpper,
+    LOWER(e.LastName) AS LastNameLower,
+    LEN(e.FirstName + e.LastName) AS NameLength,
+    LEFT(e.FirstName, 3) AS FirstThreeChars,
+    RIGHT(e.LastName, 3) AS LastThreeChars,
     SUBSTRING(WorkEmail, 1, CHARINDEX('@', WorkEmail) - 1) AS EmailUsername
 FROM Employees e;
 ```
@@ -94,15 +94,15 @@ FROM Employees e;
 ```sql
 -- Answer 2: Date Operations
 SELECT 
-    FirstName + ' ' + LastName AS EmployeeName,
-    HireDate,
+    e.FirstName + ' ' + e.LastName AS EmployeeName,
+    e.HireDate,
     GETDATE() AS CurrentDate,
-    DATEDIFF(DAY, HireDate, GETDATE()) AS DaysEmployed,
-    DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsEmployed,
-    DATEADD(YEAR, 1, HireDate) AS FirstAnniversary,
-    YEAR(HireDate) AS HireYear,
-    MONTH(HireDate) AS HireMonth,
-    FORMAT(HireDate, 'MMMM dd, yyyy') AS FormattedHireDate
+    DATEDIFF(DAY, e.HireDate, GETDATE()) AS DaysEmployed,
+    DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsEmployed,
+    DATEADD(YEAR, 1, e.HireDate) AS FirstAnniversary,
+    YEAR(e.HireDate) AS HireYear,
+    MONTH(e.HireDate) AS HireMonth,
+    FORMAT(e.HireDate, 'MMMM dd, yyyy') AS FormattedHireDate
 FROM Employees e;
 ```
 
@@ -112,14 +112,14 @@ FROM Employees e;
 ```sql
 -- Answer 3: Numeric Operations
 SELECT 
-    FirstName + ' ' + LastName AS EmployeeName,
-    BaseSalary,
-    BaseSalary / 12 AS MonthlySalary,
-    BaseSalary / 52 AS WeeklySalary,
-    BaseSalary / 2080 AS HourlySalary,
-    ROUND(BaseSalary / 12, 2) AS MonthlySalaryRounded,
-    CEILING(BaseSalary / 1000) AS SalaryInThousandsCeiling,
-    FLOOR(BaseSalary / 1000) AS SalaryInThousandsFloor
+    e.FirstName + ' ' + e.LastName AS EmployeeName,
+    e.BaseSalary,
+    e.BaseSalary / 12 AS MonthlySalary,
+    e.BaseSalary / 52 AS WeeklySalary,
+    e.BaseSalary / 2080 AS HourlySalary,
+    ROUND(e.BaseSalary / 12, 2) AS MonthlySalaryRounded,
+    CEILING(e.BaseSalary / 1000) AS SalaryInThousandsCeiling,
+    FLOOR(e.BaseSalary / 1000) AS SalaryInThousandsFloor
 FROM Employees e;
 ```
 
@@ -132,8 +132,8 @@ FROM Employees e;
 
 ```sql
 -- Answer 1: Distinct Departments
-SELECT DISTINCT DepartmentID
-FROM Employees
+SELECT DISTINCT d.DepartmentID
+FROM Employees e
 ORDER BY DepartmentIDID;
 ```
 
@@ -143,7 +143,7 @@ ORDER BY DepartmentIDID;
 ```sql
 -- Answer 2: Distinct Cities
 SELECT DISTINCT City
-FROM Employees
+FROM Employees e
 WHERE City IS NOT NULL
 ORDER BY City;
 ```
@@ -154,7 +154,7 @@ ORDER BY City;
 ```sql
 -- Answer 3: Distinct Job Titles
 SELECT DISTINCT Title
-FROM Employees
+FROM Employees e
 ORDER BY Title;
 ```
 
@@ -166,7 +166,7 @@ ORDER BY Title;
 ```sql
 -- Answer 1: Distinct City-State Combinations
 SELECT DISTINCT City, State
-FROM Employees
+FROM Employees e
 WHERE City IS NOT NULL AND State IS NOT NULL
 ORDER BY State, City;
 ```
@@ -180,7 +180,7 @@ SELECT DISTINCT
     d.DepartmentName,
     e.JobTitle
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 ORDER BY d.DepartmentName, e.JobTitle;
 ```
 
@@ -194,15 +194,17 @@ ORDER BY d.DepartmentName, e.JobTitle;
 
 -- Using GROUP BY (preferred for aggregations)
 SELECT 
-    DepartmentID,
+    d.DepartmentID,
     COUNT(*) AS EmployeeCount
-FROM Employees
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 GROUP BY DepartmentIDID
 ORDER BY DepartmentIDID;
 
 -- Using DISTINCT (just for unique values)
-SELECT DISTINCT DepartmentID
-FROM Employees
+SELECT DISTINCT d.DepartmentID
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 ORDER BY DepartmentIDID;
 ```
 
@@ -216,14 +218,14 @@ ORDER BY DepartmentIDID;
 ```sql
 -- Answer 1: Meaningful Column Names
 SELECT 
-    FirstName AS [First Name],
-    LastName AS [Last Name],
-    FirstName + ' ' + LastName AS [Full Name],
-    BaseSalary AS [Annual BaseSalary],
-    BaseSalary / 12 AS [Monthly BaseSalary],
-    BaseSalary / 52 AS [Weekly BaseSalary],
-    DATEDIFF(YEAR, HireDate, GETDATE()) AS [Years of Service],
-    HireDate AS [Date Hired]
+    e.FirstName AS [First Name],
+    e.LastName AS [Last Name],
+    e.FirstName + ' ' + e.LastName AS [Full Name],
+    e.BaseSalary AS [Annual e.BaseSalary],
+    e.BaseSalary / 12 AS [Monthly e.BaseSalary],
+    e.BaseSalary / 52 AS [Weekly e.BaseSalary],
+    DATEDIFF(YEAR, e.HireDate, GETDATE()) AS [Years of Service],
+    e.HireDate AS [Date Hired]
 FROM Employees e;
 ```
 
@@ -233,15 +235,15 @@ FROM Employees e;
 ```sql
 -- Answer 2: Aliases with Special Characters
 SELECT 
-    FirstName + ' ' + LastName AS "Employee Name",
-    BaseSalary AS "Annual BaseSalary ($)",
-    CAST(BaseSalary / 12 AS DECIMAL(10,2)) AS "Monthly BaseSalary ($)",
+    e.FirstName + ' ' + e.LastName AS "Employee Name",
+    e.BaseSalary AS "Annual e.BaseSalary ($)",
+    CAST(e.BaseSalary / 12 AS DECIMAL(10,2)) AS "Monthly e.BaseSalary ($)",
     Title AS "Job Position",
     CASE 
-        WHEN BaseSalary > 80000 THEN 'High'
-        WHEN BaseSalary > 60000 THEN 'Medium'
+        WHEN e.BaseSalary > 80000 THEN 'High'
+        WHEN e.BaseSalary > 60000 THEN 'Medium'
         ELSE 'Low'
-    END AS "BaseSalary Category"
+    END AS "e.BaseSalary Category"
 FROM Employees e;
 ```
 
@@ -259,7 +261,7 @@ SELECT
     d.DepartmentName,
     d.Budget
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID;
 ```
 
 #### Question 2: Multiple Table Aliases
@@ -275,8 +277,8 @@ SELECT
     ep.HoursAllocated,
     ep.HoursWorked
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 ORDER BY e.LastName, e.FirstName, p.ProjectName;
 ```
@@ -291,11 +293,11 @@ ORDER BY e.LastName, e.FirstName, p.ProjectName;
 SELECT 
     emp.FirstName + ' ' + emp.LastName AS EmployeeName,
     emp.Title AS EmployeeTitle,
-    mgr.FirstName + ' ' + mgr.LastName AS ManagerName,
+    mgr.e.FirstName + ' ' + mgr.e.LastName AS ManagerName,
     mgr.Title AS ManagerTitle
-FROM Employees emp
-LEFT JOIN Employees mgr ON emp.ManagerID = mgr.EmployeeID
-ORDER BY mgr.LastName, emp.LastName;
+FROM Employees e emp
+LEFT JOIN Employees mgr ON emp.ManagerID = mgr.e.EmployeeID
+ORDER BY mgr.e.LastName, emp.LastName;
 ```
 
 ## Exercise 4: CASE Expressions - Answers
@@ -306,18 +308,18 @@ ORDER BY mgr.LastName, emp.LastName;
 **Task:** Categorize employees based on BaseSalary ranges.
 
 ```sql
--- Answer 1: BaseSalary Categories
+-- Answer 1: e.BaseSalary Categories
 SELECT 
-    FirstName + ' ' + LastName AS EmployeeName,
-    BaseSalary,
+    e.FirstName + ' ' + e.LastName AS EmployeeName,
+    e.BaseSalary,
     CASE 
-        WHEN BaseSalary >= 90000 THEN 'Executive'
-        WHEN BaseSalary >= 70000 THEN 'Senior'
-        WHEN BaseSalary >= 50000 THEN 'Mid-Level'
+        WHEN e.BaseSalary >= 90000 THEN 'Executive'
+        WHEN e.BaseSalary >= 70000 THEN 'Senior'
+        WHEN e.BaseSalary >= 50000 THEN 'Mid-Level'
         ELSE 'Entry-Level'
     END AS SalaryCategory
-FROM Employees
-ORDER BY BaseSalary DESC;
+FROM Employees e
+ORDER BY e.BaseSalary DESC;
 ```
 
 #### Question 2: Employment IsActive
@@ -326,8 +328,8 @@ ORDER BY BaseSalary DESC;
 ```sql
 -- Answer 2: Employment IsActive
 SELECT 
-    FirstName + ' ' + LastName AS EmployeeName,
-    HireDate,
+    e.FirstName + ' ' + e.LastName AS EmployeeName,
+    e.HireDate,
     TerminationDate,
     IsActive,
     CASE 
@@ -336,8 +338,8 @@ SELECT
         WHEN IsActive = 0 AND TerminationDate IS NULL THEN 'Inactive'
         ELSE 'IsActive Unknown'
     END AS EmploymentIsActive
-FROM Employees
-ORDER BY EmploymentIsActive, LastName;
+FROM Employees e
+ORDER BY EmploymentIsActive, e.LastName;
 ```
 
 ### Task 4.2: CASE with Aggregations - Answers
@@ -346,7 +348,7 @@ ORDER BY EmploymentIsActive, LastName;
 **Task:** Analyze BaseSalary distribution by d.DepartmentName using CASE.
 
 ```sql
--- Answer 1: d.DepartmentName BaseSalary Analysis
+-- Answer 1: d.DepartmentName e.BaseSalary Analysis
 SELECT d.DepartmentName,
     COUNT(*) AS TotalEmployees,
     SUM(CASE WHEN e.BaseSalary >= 80000 THEN 1 ELSE 0 END) AS HighSalaryCount,
@@ -356,7 +358,7 @@ SELECT d.DepartmentName,
     SUM(CASE WHEN e.BaseSalary >= 80000 THEN e.BaseSalary ELSE 0 END) AS HighSalaryTotal,
     SUM(CASE WHEN e.BaseSalary < 50000 THEN e.BaseSalary ELSE 0 END) AS LowSalaryTotal
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 GROUP BY d.DepartmentID, d.DepartmentName
 ORDER BY AverageSalary DESC;
@@ -369,13 +371,13 @@ ORDER BY AverageSalary DESC;
 -- Answer 2: Project Status Summary
 SELECT 
     COUNT(*) AS TotalProjects,
-    SUM(CASE WHEN Status = 'Completed' THEN 1 ELSE 0 END) AS CompletedProjects,
-    SUM(CASE WHEN Status = 'In Progress' THEN 1 ELSE 0 END) AS InProgressProjects,
-    SUM(CASE WHEN Status = 'On Hold' THEN 1 ELSE 0 END) AS OnHoldProjects,
-    SUM(CASE WHEN Status = 'Cancelled' THEN 1 ELSE 0 END) AS CancelledProjects,
-    AVG(CASE WHEN Status = 'Completed' THEN Budget ELSE NULL END) AS AvgCompletedBudget,
-    AVG(CASE WHEN Status = 'In Progress' THEN Budget ELSE NULL END) AS AvgInProgressBudget
-FROM Projects;
+    SUM(CASE WHEN IsActive = 'Completed' THEN 1 ELSE 0 END) AS CompletedProjects,
+    SUM(CASE WHEN IsActive = 'In Progress' THEN 1 ELSE 0 END) AS InProgressProjects,
+    SUM(CASE WHEN IsActive = 'On Hold' THEN 1 ELSE 0 END) AS OnHoldProjects,
+    SUM(CASE WHEN IsActive = 'Cancelled' THEN 1 ELSE 0 END) AS CancelledProjects,
+    AVG(CASE WHEN IsActive = 'Completed' THEN d.Budget ELSE NULL END) AS AvgCompletedBudget,
+    AVG(CASE WHEN IsActive = 'In Progress' THEN d.Budget ELSE NULL END) AS AvgInProgressBudget
+FROM Projects p;
 ```
 
 ### Task 4.3: Nested CASE Expressions - Answers
@@ -386,33 +388,33 @@ FROM Projects;
 ```sql
 -- Answer 1: Complex Employee Classification
 SELECT 
-    FirstName + ' ' + LastName AS EmployeeName,
+    e.FirstName + ' ' + e.LastName AS EmployeeName,
     Title,
-    BaseSalary,
-    DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsOfService,
+    e.BaseSalary,
+    DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
     CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 10 THEN
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 10 THEN
             CASE 
-                WHEN BaseSalary >= 90000 THEN 'Senior Executive'
-                WHEN BaseSalary >= 70000 THEN 'Senior Professional'
+                WHEN e.BaseSalary >= 90000 THEN 'Senior Executive'
+                WHEN e.BaseSalary >= 70000 THEN 'Senior Professional'
                 ELSE 'Senior Staff'
             END
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 5 THEN
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 5 THEN
             CASE 
-                WHEN BaseSalary >= 80000 THEN 'Mid-Level Executive'
-                WHEN BaseSalary >= 60000 THEN 'Mid-Level Professional'
+                WHEN e.BaseSalary >= 80000 THEN 'Mid-Level Executive'
+                WHEN e.BaseSalary >= 60000 THEN 'Mid-Level Professional'
                 ELSE 'Mid-Level Staff'
             END
         ELSE
             CASE 
-                WHEN BaseSalary >= 70000 THEN 'Junior Executive'
-                WHEN BaseSalary >= 50000 THEN 'Junior Professional'
+                WHEN e.BaseSalary >= 70000 THEN 'Junior Executive'
+                WHEN e.BaseSalary >= 50000 THEN 'Junior Professional'
                 ELSE 'Junior Staff'
             END
     END AS EmployeeClassification
-FROM Employees
+FROM Employees e
 WHERE IsActive = 1
-ORDER BY YearsOfService DESC, BaseSalary DESC;
+ORDER BY YearsOfService DESC, e.BaseSalary DESC;
 ```
 
 #### Question 2: Performance Rating
@@ -440,12 +442,12 @@ SELECT
 FROM Employees e
 LEFT JOIN (
     SELECT 
-        EmployeeID,
+        e.EmployeeID,
         COUNT(*) AS ProjectCount,
         AVG(HoursWorked) AS AvgHoursWorked
     FROM EmployeeProjects
-    GROUP BY EmployeeID
-) ep ON e.EmployeeID = ep.EmployeeID
+    GROUP BY e.EmployeeID
+) ep ON e.EmployeeID = ep.e.EmployeeID
 WHERE e.IsActive = 1
 ORDER BY PerformanceRating, e.LastName;
 ```
@@ -472,7 +474,7 @@ SELECT
             '(' + LEFT(e.Phone, 3) + ') ' + SUBSTRING(e.Phone, 4, 3) + '-' + RIGHT(e.Phone, 4)
         ELSE 'No Phone Listed'
     END AS FormattedPhone,
-    d.DepartmentName + ' (' + d.DepartmentCode + ')' AS DepartmentName,
+    d.DepartmentName + ' (' + d.DepartmentCode + ')' AS d.DepartmentName,
     e.JobTitle,
     FORMAT(e.BaseSalary, 'C', 'en-US') AS FormattedSalary,
     FORMAT(e.HireDate, 'MMMM dd, yyyy') AS FormattedHireDate,
@@ -487,7 +489,7 @@ SELECT
         ELSE 'No Emergency Contact'
     END AS EmergencyContact
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 ORDER BY d.DepartmentName, e.LastName, e.FirstName;
 ```
@@ -505,7 +507,7 @@ SELECT
     COUNT(*) AS CompleteCount,
     0 AS IncompleteCount,
     100.0 AS CompletenessPercentage
-FROM Employees
+FROM Employees e
 WHERE IsActive = 1
 
 UNION ALL
@@ -516,7 +518,7 @@ SELECT
     SUM(CASE WHEN MiddleName IS NOT NULL AND MiddleName != '' THEN 1 ELSE 0 END),
     SUM(CASE WHEN MiddleName IS NULL OR MiddleName = '' THEN 1 ELSE 0 END),
     (SUM(CASE WHEN MiddleName IS NOT NULL AND MiddleName != '' THEN 1 ELSE 0 END) * 100.0) / COUNT(*)
-FROM Employees
+FROM Employees e
 WHERE IsActive = 1
 
 UNION ALL
@@ -527,7 +529,7 @@ SELECT
     SUM(CASE WHEN Phone IS NOT NULL AND Phone != '' THEN 1 ELSE 0 END),
     SUM(CASE WHEN Phone IS NULL OR Phone = '' THEN 1 ELSE 0 END),
     (SUM(CASE WHEN Phone IS NOT NULL AND Phone != '' THEN 1 ELSE 0 END) * 100.0) / COUNT(*)
-FROM Employees
+FROM Employees e
 WHERE IsActive = 1
 
 UNION ALL
@@ -538,7 +540,7 @@ SELECT
     SUM(CASE WHEN City IS NOT NULL AND City != '' THEN 1 ELSE 0 END),
     SUM(CASE WHEN City IS NULL OR City = '' THEN 1 ELSE 0 END),
     (SUM(CASE WHEN City IS NOT NULL AND City != '' THEN 1 ELSE 0 END) * 100.0) / COUNT(*)
-FROM Employees
+FROM Employees e
 WHERE IsActive = 1
 
 UNION ALL
@@ -549,7 +551,7 @@ SELECT
     SUM(CASE WHEN EmergencyContact IS NOT NULL AND EmergencyContact != '' THEN 1 ELSE 0 END),
     SUM(CASE WHEN EmergencyContact IS NULL OR EmergencyContact = '' THEN 1 ELSE 0 END),
     (SUM(CASE WHEN EmergencyContact IS NOT NULL AND EmergencyContact != '' THEN 1 ELSE 0 END) * 100.0) / COUNT(*)
-FROM Employees
+FROM Employees e
 WHERE IsActive = 1
 
 ORDER BY CompletenessPercentage DESC;
@@ -562,20 +564,20 @@ ORDER BY CompletenessPercentage DESC;
 
 ```sql
 -- Answer 1: d.DepartmentName Summary Dashboard
-SELECT d.DepartmentName AS DepartmentName,
+SELECT d.DepartmentName AS d.DepartmentName,
     d.DepartmentCode AS [Dept Code],
     COUNT(e.EmployeeID) AS [Active Employees],
     FORMAT(AVG(e.BaseSalary), 'C0', 'en-US') AS [Avg BaseSalary],
     FORMAT(SUM(e.BaseSalary), 'C0', 'en-US') AS [Total Payroll],
-    FORMAT(d.Budget, 'C0', 'en-US') AS [Dept Budget],
-    FORMAT(d.Budget - SUM(e.BaseSalary), 'C0', 'en-US') AS [Budget Remaining],
-    CAST(((d.Budget - SUM(e.BaseSalary)) * 100.0 / d.Budget) AS DECIMAL(5,1)) AS [Budget % Remaining],
+    FORMAT(d.Budget, 'C0', 'en-US') AS [Dept d.Budget],
+    FORMAT(d.Budget - SUM(e.BaseSalary), 'C0', 'en-US') AS [d.Budget Remaining],
+    CAST(((d.Budget - SUM(e.BaseSalary)) * 100.0 / d.Budget) AS DECIMAL(5,1)) AS [d.Budget % Remaining],
     CASE 
         WHEN SUM(e.BaseSalary) > d.Budget THEN 'OVER BUDGET'
         WHEN SUM(e.BaseSalary) > d.Budget * 0.95 THEN 'CRITICAL'
         WHEN SUM(e.BaseSalary) > d.Budget * 0.85 THEN 'WARNING'
         ELSE 'GOOD'
-    END AS [Budget IsActive],
+    END AS [d.Budget IsActive],
     COALESCE(mgr.FirstName + ' ' + mgr.LastName, 'No Manager') AS [Department Manager],
     d.Location AS [Office Location],
     CASE 
@@ -584,7 +586,7 @@ SELECT d.DepartmentName AS DepartmentName,
         ELSE 'Small'
     END AS [Department Size]
 FROM Departments d
-LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID AND e.IsActive = 1
+LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
 LEFT JOIN Employees mgr ON d.ManagerID = mgr.EmployeeID
 GROUP BY 
     d.DepartmentID, d.DepartmentName, d.DepartmentCode, d.Budget, 

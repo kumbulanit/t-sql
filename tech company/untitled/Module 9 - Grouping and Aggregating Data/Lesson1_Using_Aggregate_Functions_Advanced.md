@@ -64,9 +64,9 @@ SELECT
     FORMAT(GETDATE(), 'MMMM dd, yyyy') AS ReportDate,
     
     -- REVENUE METRICS using SUM
-    FORMAT(SUM(p.Budget), 'C0') AS TotalContractValue,
-    FORMAT(SUM(CASE WHEN p.IsActive = 'Completed' THEN p.Budget ELSE 0 END), 'C0') AS CompletedRevenue,
-    FORMAT(SUM(CASE WHEN p.IsActive = 'Active' THEN p.Budget ELSE 0 END), 'C0') AS ActivePipelineValue,
+    FORMAT(SUM(p.d.Budget), 'C0') AS TotalContractValue,
+    FORMAT(SUM(CASE WHEN p.IsActive = 'Completed' THEN p.d.Budget ELSE 0 END), 'C0') AS CompletedRevenue,
+    FORMAT(SUM(CASE WHEN p.IsActive = 'Active' THEN p.d.Budget ELSE 0 END), 'C0') AS ActivePipelineValue,
     
     -- PROJECT VOLUME using COUNT
     COUNT(p.ProjectID) AS TotalProjects,
@@ -75,12 +75,12 @@ SELECT
     COUNT(CASE WHEN p.IsActive = 'Planning' THEN 1 END) AS ProjectsInPlanning,
     
     -- AVERAGE METRICS for business intelligence
-    FORMAT(AVG(p.Budget), 'C0') AS AverageProjectValue,
-    FORMAT(AVG(CASE WHEN p.IsActive = 'Completed' THEN p.Budget END), 'C0') AS AvgCompletedProjectValue,
+    FORMAT(AVG(p.d.Budget), 'C0') AS AverageProjectValue,
+    FORMAT(AVG(CASE WHEN p.IsActive = 'Completed' THEN p.d.Budget END), 'C0') AS AvgCompletedProjectValue,
     
     -- STATISTICAL ANALYSIS using MIN/MAX
-    FORMAT(MIN(p.Budget), 'C0') AS SmallestProject,
-    FORMAT(MAX(p.Budget), 'C0') AS LargestProject,
+    FORMAT(MIN(p.d.Budget), 'C0') AS SmallestProject,
+    FORMAT(MAX(p.d.Budget), 'C0') AS LargestProject,
     
     -- COST ANALYSIS
     FORMAT(SUM(ISNULL(p.ActualCost, 0)), 'C0') AS TotalProjectCosts,
@@ -88,15 +88,15 @@ SELECT
     
     -- PROFITABILITY METRICS
     FORMAT(
-        SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)), 
+        SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)), 
         'C0'
     ) AS TotalProfit,
     
     -- PROFIT MARGIN calculation
     FORMAT(
         CASE 
-            WHEN SUM(p.Budget) > 0 
-            THEN ((SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / SUM(p.Budget)
+            WHEN SUM(p.d.Budget) > 0 
+            THEN ((SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / SUM(p.d.Budget)
             ELSE 0 
         END, 
         'N1'
@@ -111,7 +111,7 @@ SELECT
     
     -- BUDGET PERFORMANCE
     FORMAT(
-        COUNT(CASE WHEN ISNULL(p.ActualCost, 0) <= ISNULL(p.Budget, 0) THEN 1 END) * 100.0 / COUNT(p.ProjectID),
+        COUNT(CASE WHEN ISNULL(p.ActualCost, 0) <= ISNULL(p.d.Budget, 0) THEN 1 END) * 100.0 / COUNT(p.ProjectID),
         'N1'
     ) + '%' AS ProjectsWithinBudget
 
@@ -141,8 +141,8 @@ SELECT d.DepartmentName,
     
     -- PROJECT ENGAGEMENT
     COUNT(DISTINCT p.ProjectID) AS ProjectsManaged,
-    FORMAT(SUM(p.Budget), 'C0') AS TotalProjectValue,
-    FORMAT(AVG(p.Budget), 'C0') AS AvgProjectValue,
+    FORMAT(SUM(p.d.Budget), 'C0') AS TotalProjectValue,
+    FORMAT(AVG(p.d.Budget), 'C0') AS AvgProjectValue,
     
     -- PERFORMANCE INDICATORS
     COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) AS OnTimeProjects,
@@ -157,31 +157,31 @@ SELECT d.DepartmentName,
     
     -- REVENUE PER EMPLOYEE
     FORMAT(
-        SUM(p.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0), 
+        SUM(p.d.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0), 
         'C0'
     ) AS RevenuePerEmployee,
     
     -- PROFIT ANALYSIS
     FORMAT(
-        SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)), 
+        SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)), 
         'C0'
     ) AS DepartmentProfit,
     
     FORMAT(
         CASE 
-            WHEN SUM(p.Budget) > 0 
-            THEN ((SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / SUM(p.Budget)
+            WHEN SUM(p.d.Budget) > 0 
+            THEN ((SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / SUM(p.d.Budget)
             ELSE 0 
         END, 
         'N1'
     ) + '%' AS DepartmentProfitMargin
 
 FROM Departments d
-    LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID
+    LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
     LEFT JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
 WHERE d.IsActive = 1
 GROUP BY d.DepartmentID, d.DepartmentName
-ORDER BY SUM(p.Budget) DESC;
+ORDER BY SUM(p.d.Budget) DESC;
 ```
 
 ### Exercise 1.2: Advanced Statistical Analysis (🔴 EXPERT LEVEL)
@@ -240,22 +240,22 @@ SELECT
     
     -- PERCENTILE ANALYSIS using window functions with aggregates
     FORMAT(
-        (SELECT PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY Budget) FROM ProjectStatistics), 
+        (SELECT PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY Budget) FROM Projects ptatistics), 
         'C0'
     ) AS Revenue25thPercentile,
     
     FORMAT(
-        (SELECT PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY Budget) FROM ProjectStatistics), 
+        (SELECT PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY Budget) FROM Projects ptatistics), 
         'C0'
     ) AS RevenueMedian,
     
     FORMAT(
-        (SELECT PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY Budget) FROM ProjectStatistics), 
+        (SELECT PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY Budget) FROM Projects ptatistics), 
         'C0'
     ) AS Revenue75thPercentile,
     
     FORMAT(
-        (SELECT PERCENTILE_CONT(0.90) WITHIN GROUP (ORDER BY Budget) FROM ProjectStatistics), 
+        (SELECT PERCENTILE_CONT(0.90) WITHIN GROUP (ORDER BY Budget) FROM Projects ptatistics), 
         'C0'
     ) AS Revenue90thPercentile,
     
@@ -292,7 +292,7 @@ SELECT
         'N1'
     ) + '%' AS ProjectsOver110PercentBudget
 
-FROM ProjectStatistics;
+FROM Projects ptatistics;
 
 -- Lab 9.1.4: Client Analysis and Segmentation
 -- Business scenario: Client portfolio analysis for account management strategy

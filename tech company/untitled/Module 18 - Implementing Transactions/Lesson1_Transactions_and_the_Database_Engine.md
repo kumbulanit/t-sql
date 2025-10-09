@@ -19,12 +19,12 @@ Database transactions are fundamental units of work that ensure data integrity a
 **Core Tables for Transaction Examples:**
 
 ```sql
-Employees: EmployeeID (3001+), FirstName, LastName, BaseSalary, DepartmentID, ManagerID, HireDate, IsActive
-Departments: DepartmentID (2001+), DepartmentName, Budget, Location, IsActive
-Projects: ProjectID (4001+), ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
-Orders: OrderID (5001+), CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
+Employees: e.EmployeeID (3001+), e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID, ManagerID, e.HireDate, IsActive
+Departments: d.DepartmentID (2001+), d.DepartmentName, d.Budget, Location, IsActive
+Projects: ProjectID (4001+), ProjectName, d.Budget, ProjectManagerID, StartDate, EndDate, IsActive
+Orders: OrderID (5001+), CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
 Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, IsActive
-EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
+EmployeeProjects: e.EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
 ```
 
 ---
@@ -56,62 +56,63 @@ A transaction is a logical unit of work that consists of one or more database op
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### TechCorp Example: Employee BaseSalary Update Transaction
+### TechCorp Example: Employee e.BaseSalary Update Transaction
 
 ```sql
--- Example: Updating employee BaseSalary with d.DepartmentName budget adjustment
+-- Example: Updating employee e.BaseSalary with d.DepartmentName budget adjustment
 -- This demonstrates a complete transaction that maintains data consistency
 
 BEGIN TRANSACTION EmpSalaryUpdate;
 
-DECLARE @EmployeeID INT = 3001;
+DECLARE @e.EmployeeID INT = 3001;
 DECLARE @OldSalary DECIMAL(10,2);
 DECLARE @NewSalary DECIMAL(10,2) = 75000.00;
 DECLARE @SalaryDifference DECIMAL(10,2);
-DECLARE @DepartmentID INT;
+DECLARE @d.DepartmentID INT;
 DECLARE @CurrentBudget DECIMAL(15,2);
 
 -- Get current employee details
 SELECT 
-    @OldSalary = BaseSalary,
-    @DepartmentID = DepartmentID
-FROM Employees 
-WHERE EmployeeID = @EmployeeID;
+    @OldSalary = e.BaseSalary,
+    @d.DepartmentID = d.DepartmentID
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE e.EmployeeID = @e.EmployeeID;
 
 -- Calculate budget impact
 SET @SalaryDifference = @NewSalary - @OldSalary;
 
 -- Get current d.DepartmentName budget
-SELECT @CurrentBudget = Budget 
-FROM Departments 
-WHERE DepartmentID = @DepartmentID;
+SELECT @CurrentBudget = d.Budget 
+FROM Departments d 
+WHERE d.DepartmentID = @d.DepartmentID;
 
 -- Check if d.DepartmentName has sufficient budget
 IF @CurrentBudget >= @SalaryDifference
 BEGIN
-    -- Update employee BaseSalary
+    -- Update employee e.BaseSalary
     UPDATE Employees 
-    SET BaseSalary = @NewSalary,
+    SET e.BaseSalary = @NewSalary,
         ModifiedDate = GETDATE()
-    WHERE EmployeeID = @EmployeeID;
+    WHERE e.EmployeeID = @e.EmployeeID;
     
     -- Adjust d.DepartmentName budget
     UPDATE Departments 
-    SET Budget = Budget - @SalaryDifference,
+    SET d.Budget = d.Budget - @SalaryDifference,
         ModifiedDate = GETDATE()
-    WHERE DepartmentID = @DepartmentID;
+    WHERE d.DepartmentID = @d.DepartmentID;
     
     -- Log the transaction
-    INSERT INTO TransactionLog (TransactionType, EmployeeID, OldValue, NewValue, Timestamp)
-    VALUES ('SALARY_UPDATE', @EmployeeID, @OldSalary, @NewSalary, GETDATE());
+    INSERT INTO TransactionLog (TransactionType, e.EmployeeID, OldValue, NewValue, Timestamp)
+    VALUES ('SALARY_UPDATE', @e.EmployeeID, @OldSalary, @NewSalary, GETDATE());
     
     COMMIT TRANSACTION EmpSalaryUpdate;
-    PRINT 'BaseSalary update completed successfully';
+    PRINT 'e.BaseSalary update completed successfully';
 END
 ELSE
 BEGIN
     ROLLBACK TRANSACTION EmpSalaryUpdate;
-    PRINT 'Insufficient d.DepartmentName budget for BaseSalary increase';
+    PRINT 'Insufficient d.DepartmentName budget for e.BaseSalary increase';
 END;
 ```
 
@@ -131,15 +132,15 @@ The ACID properties ensure transaction reliability and data integrity in databas
 
 BEGIN TRANSACTION ProjectAssignment;
 
-DECLARE @EmployeeID INT = 3002;
+DECLARE @e.EmployeeID INT = 3002;
 DECLARE @ProjectID INT = 4001;
 DECLARE @Role VARCHAR(50) = 'Senior Developer';
 DECLARE @HourlyRate DECIMAL(8,2) = 85.00;
 
 BEGIN TRY
     -- Step 1: Assign employee to project
-    INSERT INTO EmployeeProjects (EmployeeID, ProjectID, Role, StartDate, HourlyRate, IsActive)
-    VALUES (@EmployeeID, @ProjectID, @Role, GETDATE(), @HourlyRate, 1);
+    INSERT INTO EmployeeProjects (e.EmployeeID, ProjectID, Role, StartDate, HourlyRate, IsActive)
+    VALUES (@e.EmployeeID, @ProjectID, @Role, GETDATE(), @HourlyRate, 1);
     
     -- Step 2: Update project team count
     UPDATE Projects 
@@ -151,7 +152,7 @@ BEGIN TRY
     UPDATE Employees 
     SET CurrentProjectCount = CurrentProjectCount + 1,
         ModifiedDate = GETDATE()
-    WHERE EmployeeID = @EmployeeID;
+    WHERE e.EmployeeID = @e.EmployeeID;
     
     -- All operations succeeded - commit
     COMMIT TRANSACTION ProjectAssignment;
@@ -175,7 +176,7 @@ END CATCH;
 
 CREATE OR ALTER PROCEDURE sp_ProcessCustomerOrder
     @CustomerID INT,
-    @EmployeeID INT,
+    @e.EmployeeID INT,
     @OrderItems OrderItemTableType READONLY  -- User-defined table type
 AS
 BEGIN
@@ -192,14 +193,14 @@ BEGIN
         END;
         
         -- Validate employee exists and can process orders
-        IF NOT EXISTS (SELECT 1 FROM Employees WHERE EmployeeID = @EmployeeID AND IsActive = 1)
+        IF NOT EXISTS (SELECT 1 FROM Employees e WHERE e.EmployeeID = @e.EmployeeID AND IsActive = 1)
         BEGIN
             RAISERROR('Invalid or inactive employee', 16, 1);
         END;
         
         -- Create order header
-        INSERT INTO Orders (CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive)
-        VALUES (@CustomerID, @EmployeeID, GETDATE(), 0, 1);
+        INSERT INTO Orders (CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive)
+        VALUES (@CustomerID, @e.EmployeeID, GETDATE(), 0, 1);
         
         SET @OrderID = SCOPE_IDENTITY();
         
@@ -239,44 +240,44 @@ END;
 **Definition**: Concurrent transactions should not interfere with each other's operations.
 
 ```sql
--- TechCorp Example: Concurrent BaseSalary Processing
+-- TechCorp Example: Concurrent e.BaseSalary Processing
 -- Demonstrates isolation levels to prevent conflicts
 
--- Session 1: Processing BaseSalary increases
+-- Session 1: Processing e.BaseSalary increases
 SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
 
 BEGIN TRANSACTION SalaryIncrease;
 
--- Read current BaseSalary (with shared lock)
+-- Read current e.BaseSalary (with shared lock)
 DECLARE @CurrentSalary DECIMAL(10,2);
-SELECT @CurrentSalary = BaseSalary 
-FROM Employees 
-WHERE EmployeeID = 3001;
+SELECT @CurrentSalary = e.BaseSalary 
+FROM Employees e 
+WHERE e.EmployeeID = 3001;
 
 -- Simulate processing time
 WAITFOR DELAY '00:00:05';
 
--- Update BaseSalary (with exclusive lock)
+-- Update e.BaseSalary (with exclusive lock)
 UPDATE Employees 
-SET BaseSalary = @CurrentSalary * 1.10,  -- 10% increase
+SET e.BaseSalary = @CurrentSalary * 1.10,  -- 10% increase
     ModifiedDate = GETDATE()
-WHERE EmployeeID = 3001;
+WHERE e.EmployeeID = 3001;
 
 COMMIT TRANSACTION SalaryIncrease;
 ```
 
 ```sql
--- Session 2: Reading BaseSalary information (concurrent operation)
+-- Session 2: Reading e.BaseSalary information (concurrent operation)
 SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
 
 -- This will wait for Session 1 to complete due to isolation
 SELECT 
-    EmployeeID,
-    FirstName + ' ' + LastName AS EmployeeName,
-    BaseSalary,
+    e.EmployeeID,
+    e.FirstName + ' ' + e.LastName AS EmployeeName,
+    e.BaseSalary,
     ModifiedDate
-FROM Employees 
-WHERE EmployeeID = 3001;
+FROM Employees e 
+WHERE e.EmployeeID = 3001;
 ```
 
 ### Durability
@@ -407,7 +408,7 @@ SQL Server uses locks to ensure transaction isolation and prevent data corruptio
 
 ```sql
 -- TechCorp Example: Lock Monitoring During Busy Operations
--- Monitor locks during employee BaseSalary processing
+-- Monitor locks during employee e.BaseSalary processing
 
 -- Query to view current locks
 SELECT 
@@ -527,7 +528,7 @@ EXEC sp_AnalyzeTransactionPerformance @TimeWindowMinutes = 30;
 ```sql
 -- Best Practice Example: Well-designed transaction with proper error handling
 CREATE OR ALTER PROCEDURE sp_TechCorp_OptimalTransaction
-    @EmployeeID INT,
+    @e.EmployeeID INT,
     @ProjectID INT,
     @NewRole VARCHAR(50),
     @EffectiveDate DATE = NULL
@@ -540,7 +541,7 @@ BEGIN
     SET @EffectiveDate = ISNULL(@EffectiveDate, GETDATE());
     
     -- Variables for transaction control
-    DECLARE @TransactionName VARCHAR(50) = 'EmployeeRoleUpdate_' + CAST(@EmployeeID AS VARCHAR(10));
+    DECLARE @TransactionName VARCHAR(50) = 'EmployeeRoleUpdate_' + CAST(@e.EmployeeID AS VARCHAR(10));
     DECLARE @SavePoint VARCHAR(50) = 'BeforeRoleUpdate';
     
     BEGIN TRANSACTION @TransactionName;
@@ -550,12 +551,12 @@ BEGIN
         SAVE TRANSACTION @SavePoint;
         
         -- Step 1: Validate prerequisites (fast operations first)
-        IF NOT EXISTS (SELECT 1 FROM Employees WHERE EmployeeID = @EmployeeID AND IsActive = 1)
+        IF NOT EXISTS (SELECT 1 FROM Employees e WHERE e.EmployeeID = @e.EmployeeID AND IsActive = 1)
         BEGIN
             RAISERROR('Employee not found or inactive', 16, 1);
         END;
         
-        IF NOT EXISTS (SELECT 1 FROM Projects WHERE ProjectID = @ProjectID AND IsActive = 1)
+        IF NOT EXISTS (SELECT 1 FROM Projects p WHERE ProjectID = @ProjectID AND IsActive = 1)
         BEGIN
             RAISERROR('Project not found or inactive', 16, 1);
         END;
@@ -565,20 +566,20 @@ BEGIN
         SET EndDate = @EffectiveDate,
             IsActive = 0,
             ModifiedDate = GETDATE()
-        WHERE EmployeeID = @EmployeeID 
+        WHERE e.EmployeeID = @e.EmployeeID 
         AND ProjectID = @ProjectID 
         AND IsActive = 1;
         
         -- Step 3: Create new role assignment
         INSERT INTO EmployeeProjects 
-        (EmployeeID, ProjectID, Role, StartDate, IsActive, CreatedDate)
+        (e.EmployeeID, ProjectID, Role, StartDate, IsActive, CreatedDate)
         VALUES 
-        (@EmployeeID, @ProjectID, @NewRole, @EffectiveDate, 1, GETDATE());
+        (@e.EmployeeID, @ProjectID, @NewRole, @EffectiveDate, 1, GETDATE());
         
         -- Step 4: Update employee record
         UPDATE Employees 
         SET ModifiedDate = GETDATE()
-        WHERE EmployeeID = @EmployeeID;
+        WHERE e.EmployeeID = @e.EmployeeID;
         
         -- Step 5: Update project record
         UPDATE Projects 
@@ -590,7 +591,7 @@ BEGIN
         
         -- Return success status
         SELECT 
-            @EmployeeID AS EmployeeID,
+            @e.EmployeeID AS e.EmployeeID,
             @ProjectID AS ProjectID,
             @NewRole AS NewRole,
             @EffectiveDate AS EffectiveDate,
@@ -611,7 +612,7 @@ BEGIN
         
         -- Return error status
         SELECT 
-            @EmployeeID AS EmployeeID,
+            @e.EmployeeID AS e.EmployeeID,
             @ProjectID AS ProjectID,
             @NewRole AS NewRole,
             ERROR_NUMBER() AS ErrorNumber,

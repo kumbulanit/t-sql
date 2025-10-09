@@ -68,7 +68,7 @@ The UPDATE and DELETE statements are essential for maintaining data accuracy and
 -- First, let's ensure we have sufficient test data
 
 -- Add more employees for UPDATE examples
-INSERT INTO Employees (FirstName, LastName, WorkEmail, BaseSalary, DepartmentID, ManagerID)
+INSERT INTO Employees (e.FirstName, e.LastName, WorkEmail, e.BaseSalary, d.DepartmentID, ManagerID)
 VALUES 
     ('Robert', 'Johnson', 'robert.johnson@company.com', 72000.00, 1, NULL),
     ('Maria', 'Garcia', 'maria.garcia@company.com', 68000.00, 2, NULL),
@@ -80,41 +80,41 @@ VALUES
 -- Add employee status tracking table
 CREATE TABLE EmployeeIsActiveHistory (
     IsActiveID INT IDENTITY(1,1) PRIMARY KEY,
-    EmployeeID INT NOT NULL,
+    e.EmployeeID INT NOT NULL,
     PreviousIsActive NVARCHAR(20),
     NewIsActive NVARCHAR(20),
     IsActiveChangeDate DATETIME2 DEFAULT SYSDATETIME(),
     ChangedBy NVARCHAR(100) DEFAULT SYSTEM_USER,
     Reason NVARCHAR(255),
-    FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID)
+    FOREIGN KEY (e.EmployeeID) REFERENCES Employees(e.EmployeeID)
 );
 
--- Add BaseSalary history table
+-- Add e.BaseSalary history table
 CREATE TABLE SalaryHistory (
     SalaryHistoryID INT IDENTITY(1,1) PRIMARY KEY,
-    EmployeeID INT NOT NULL,
+    e.EmployeeID INT NOT NULL,
     PreviousSalary DECIMAL(10,2),
     NewSalary DECIMAL(10,2),
     EffectiveDate DATE,
     ChangeReason NVARCHAR(100),
     ApprovedBy INT,
     CreatedDate DATETIME2 DEFAULT SYSDATETIME(),
-    FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID),
-    FOREIGN KEY (ApprovedBy) REFERENCES Employees(EmployeeID)
+    FOREIGN KEY (e.EmployeeID) REFERENCES Employees(e.EmployeeID),
+    FOREIGN KEY (ApprovedBy) REFERENCES Employees(e.EmployeeID)
 );
 
 -- View current employee data
 SELECT 
-    EmployeeID,
-    FirstName + ' ' + LastName AS FullName,
+    e.EmployeeID,
+    e.FirstName + ' ' + e.LastName AS FullName,
     WorkEmail,
-    FORMAT(BaseSalary, 'C') AS FormattedSalary,
-    DepartmentID,
+    FORMAT(e.BaseSalary, 'C') AS FormattedSalary,
+    d.DepartmentID,
     ManagerID,
-    HireDate,
+    e.HireDate,
     IsActive
-FROM Employees
-ORDER BY EmployeeID;
+FROM Employees e
+ORDER BY e.EmployeeID;
 ```
 
 ## Basic UPDATE Operations
@@ -124,58 +124,58 @@ ORDER BY EmployeeID;
 -- Basic single column update
 UPDATE Employees 
 SET ModifiedDate = SYSDATETIME()
-WHERE EmployeeID = 1;
+WHERE e.EmployeeID = 1;
 
 -- Multiple column update
 UPDATE Employees 
 SET 
-    BaseSalary = 78000.00,
+    e.BaseSalary = 78000.00,
     ModifiedDate = SYSDATETIME()
-WHERE EmployeeID = 1;
+WHERE e.EmployeeID = 1;
 
 -- Update with calculations
 UPDATE Employees 
 SET 
-    BaseSalary = BaseSalary * 1.05,  -- 5% raise
+    e.BaseSalary = e.BaseSalary * 1.05,  -- 5% raise
     ModifiedDate = SYSDATETIME()
-WHERE DepartmentID = 1 AND IsActive = 1;
+WHERE d.DepartmentID = 1 AND IsActive = 1;
 
 -- Update with string functions
 UPDATE Employees 
 SET 
-    WorkEmail = LOWER(REPLACE(FirstName + '.' + LastName + '@company.com', ' ', '')),
+    WorkEmail = LOWER(REPLACE(e.FirstName + '.' + e.LastName + '@company.com', ' ', '')),
     ModifiedDate = SYSDATETIME()
 WHERE WorkEmail IS NULL OR WorkEmail = '';
 
 -- Update with conditional logic
 UPDATE Employees 
 SET 
-    BaseSalary = CASE 
-        WHEN BaseSalary < 70000 THEN BaseSalary * 1.08  -- 8% raise for lower salaries
-        WHEN BaseSalary < 80000 THEN BaseSalary * 1.05  -- 5% raise for mid salaries
-        ELSE BaseSalary * 1.03                      -- 3% raise for higher salaries
+    e.BaseSalary = CASE 
+        WHEN e.BaseSalary < 70000 THEN e.BaseSalary * 1.08  -- 8% raise for lower salaries
+        WHEN e.BaseSalary < 80000 THEN e.BaseSalary * 1.05  -- 5% raise for mid salaries
+        ELSE e.BaseSalary * 1.03                      -- 3% raise for higher salaries
     END,
     ModifiedDate = SYSDATETIME()
 WHERE IsActive = 1;
 
 -- Verify the updates
 SELECT 
-    EmployeeID,
-    FirstName + ' ' + LastName AS FullName,
-    FORMAT(BaseSalary, 'C') AS FormattedSalary,
+    e.EmployeeID,
+    e.FirstName + ' ' + e.LastName AS FullName,
+    FORMAT(e.BaseSalary, 'C') AS FormattedSalary,
     WorkEmail,
     ModifiedDate
-FROM Employees
+FROM Employees e
 WHERE IsActive = 1
-ORDER BY BaseSalary DESC;
+ORDER BY e.BaseSalary DESC;
 ```
 
 ### UPDATE with WHERE Clause Variations
 ```sql
 -- Update based on date ranges
 UPDATE Employees 
-SET BaseSalary = BaseSalary * 1.02  -- 2% cost of living adjustment
-WHERE HireDate <= DATEADD(YEAR, -1, GETDATE())  -- Employees hired more than 1 year ago
+SET e.BaseSalary = e.BaseSalary * 1.02  -- 2% cost of living adjustment
+WHERE e.HireDate <= DATEADD(YEAR, -1, GETDATE())  -- Employees hired more than 1 year ago
   AND IsActive = 1;
 
 -- Update based on NULL values
@@ -184,22 +184,22 @@ SET
     ManagerID = 1,  -- Assign to default manager
     ModifiedDate = SYSDATETIME()
 WHERE ManagerID IS NULL 
-  AND DepartmentID = 1 
+  AND d.DepartmentID = 1 
   AND IsActive = 1;
 
 -- Update with subquery conditions
 UPDATE Employees 
 SET 
-    BaseSalary = BaseSalary * 1.10,  -- 10% raise for high performers
+    e.BaseSalary = e.BaseSalary * 1.10,  -- 10% raise for high performers
     ModifiedDate = SYSDATETIME()
-WHERE EmployeeID IN (
-    SELECT EmployeeID 
+WHERE e.EmployeeID IN (
+    SELECT e.EmployeeID 
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
     WHERE e.BaseSalary > (
         SELECT AVG(e.BaseSalary) 
-        FROM Employees 
-        WHERE DepartmentID = e.DepartmentID AND IsActive = 1
+        FROM Employees e 
+        WHERE d.DepartmentID = e.d.DepartmentID AND IsActive = 1
     )
     AND e.IsActive = 1
 );
@@ -212,7 +212,7 @@ SET
 WHERE NOT EXISTS (
     SELECT 1 
     FROM EmployeeIsActiveHistory esh
-    WHERE esh.EmployeeID = Employees.EmployeeID
+    WHERE esh.e.EmployeeID = Employees.e.EmployeeID
       AND esh.IsActiveChangeDate >= DATEADD(MONTH, -6, GETDATE())
 );
 ```
@@ -224,17 +224,17 @@ WHERE NOT EXISTS (
 -- Update employee salaries based on d.DepartmentName budget
 UPDATE e
 SET 
-    BaseSalary = CASE 
+    e.BaseSalary = CASE 
         WHEN d.Budget > 400000 THEN e.BaseSalary * 1.06  -- High budget dept: 6% raise
         WHEN d.Budget > 200000 THEN e.BaseSalary * 1.04  -- Medium budget: 4% raise
         ELSE e.BaseSalary * 1.02                         -- Low budget: 2% raise
     END,
     ModifiedDate = SYSDATETIME()
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1;
 
--- Update d.DepartmentName manager based on highest BaseSalary in d.DepartmentName
+-- Update d.DepartmentName manager based on highest e.BaseSalary in d.DepartmentName
 UPDATE d
 SET 
     ManagerID = emp.EmployeeID,
@@ -242,12 +242,12 @@ SET
 FROM Departments d
 INNER JOIN (
     SELECT 
-        DepartmentID,
-        EmployeeID,
-        ROW_NUMBER() OVER (PARTITION BY DepartmentIDID ORDER BY BaseSalary DESC) as rn
-    FROM Employees
+        d.DepartmentID,
+        e.EmployeeID,
+        ROW_NUMBER() OVER (PARTITION BY DepartmentIDID ORDER BY e.BaseSalary DESC) as rn
+    FROM Employees e
     WHERE IsActive = 1
-) emp ON d.DepartmentID = emp.DepartmentID AND emp.rn = 1;
+) emp ON d.DepartmentID = emp.d.DepartmentID AND emp.rn = 1;
 
 -- Verify the d.DepartmentName manager updates
 SELECT d.DepartmentName,
@@ -262,32 +262,32 @@ LEFT JOIN Employees e ON d.ManagerID = e.EmployeeID;
 -- Complex update involving multiple tables
 UPDATE e
 SET 
-    BaseSalary = CASE 
-        WHEN mgr.BaseSalary IS NOT NULL AND e.BaseSalary > mgr.BaseSalary * 0.9 
-            THEN mgr.BaseSalary * 0.85  -- Cap at 85% of manager BaseSalary
+    e.BaseSalary = CASE 
+        WHEN mgr.e.BaseSalary IS NOT NULL AND e.BaseSalary > mgr.e.BaseSalary * 0.9 
+            THEN mgr.e.BaseSalary * 0.85  -- Cap at 85% of manager e.BaseSalary
         ELSE e.BaseSalary
     END,
     ModifiedDate = SYSDATETIME()
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+LEFT JOIN Employees mgr ON e.ManagerID = mgr.e.EmployeeID
 WHERE e.IsActive = 1 
   AND mgr.IsActive = 1;
 
 -- Update project budgets based on assigned employee costs
 CREATE TABLE EmployeeProjects (
     AssignmentID INT IDENTITY(1,1) PRIMARY KEY,
-    EmployeeID INT NOT NULL,
+    e.EmployeeID INT NOT NULL,
     ProjectID INT NOT NULL,
     AllocationPercentage DECIMAL(5,2),
     StartDate DATE,
     EndDate DATE,
-    FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID),
+    FOREIGN KEY (e.EmployeeID) REFERENCES Employees(e.EmployeeID),
     FOREIGN KEY (ProjectID) REFERENCES Projects(ProjectID)
 );
 
 -- Add some project assignments
-INSERT INTO EmployeeProjects (EmployeeID, ProjectID, AllocationPercentage, StartDate)
+INSERT INTO EmployeeProjects (e.EmployeeID, ProjectID, AllocationPercentage, StartDate)
 VALUES 
     (1, 1, 75.00, '2024-01-01'),
     (2, 1, 50.00, '2024-01-01'),
@@ -298,7 +298,7 @@ VALUES
 -- Update project budgets based on employee allocations
 UPDATE p
 SET 
-    Budget = calculated_costs.TotalEmployeeCost * 1.3,  -- Add 30% overhead
+    d.Budget = calculated_costs.TotalEmployeeCost * 1.3,  -- Add 30% overhead
     ModifiedDate = SYSDATETIME()
 FROM Projects p
 INNER JOIN (
@@ -308,7 +308,7 @@ INNER JOIN (
             DATEDIFF(MONTH, ep.StartDate, ISNULL(ep.EndDate, DATEADD(MONTH, 6, ep.StartDate))) / 12.0
         ) AS TotalEmployeeCost
     FROM EmployeeProjects ep
-    INNER JOIN Employees e ON ep.EmployeeID = e.EmployeeID
+    INNER JOIN Employees e ON ep.e.EmployeeID = e.EmployeeID
     WHERE e.IsActive = 1
     GROUP BY ep.ProjectID
 ) calculated_costs ON p.ProjectID = calculated_costs.ProjectID;
@@ -316,10 +316,10 @@ INNER JOIN (
 -- View updated project budgets
 SELECT 
     ProjectName,
-    FORMAT(Budget, 'C') AS UpdatedBudget,
+    FORMAT(d.Budget, 'C') AS UpdatedBudget,
     IsActive
-FROM Projects
-ORDER BY Budget DESC;
+FROM Projects p
+ORDER BY d.Budget DESC;
 ```
 
 ## UPDATE with OUTPUT Clause
@@ -329,7 +329,7 @@ ORDER BY Budget DESC;
 -- Create audit table for tracking changes
 CREATE TABLE EmployeeAudit (
     AuditID INT IDENTITY(1,1) PRIMARY KEY,
-    EmployeeID INT,
+    e.EmployeeID INT,
     ChangeType NVARCHAR(20),
     OldValue NVARCHAR(MAX),
     NewValue NVARCHAR(MAX),
@@ -340,7 +340,7 @@ CREATE TABLE EmployeeAudit (
 
 -- UPDATE with OUTPUT to capture changes
 DECLARE @SalaryChanges TABLE (
-    EmployeeID INT,
+    e.EmployeeID INT,
     EmployeeName NVARCHAR(101),
     OldSalary DECIMAL(10,2),
     NewSalary DECIMAL(10,2),
@@ -350,21 +350,21 @@ DECLARE @SalaryChanges TABLE (
 -- Update salaries and capture the changes
 UPDATE Employees
 SET 
-    BaseSalary = BaseSalary * 1.07,  -- 7% across-the-board raise
+    e.BaseSalary = e.BaseSalary * 1.07,  -- 7% across-the-board raise
     ModifiedDate = SYSDATETIME()
 OUTPUT 
-    inserted.EmployeeID,
-    inserted.FirstName + ' ' + inserted.LastName,
-    deleted.BaseSalary,
-    inserted.BaseSalary,
-    CAST(((inserted.BaseSalary - deleted.BaseSalary) / deleted.BaseSalary) * 100 AS DECIMAL(5,2))
+    inserted.e.EmployeeID,
+    inserted.e.FirstName + ' ' + inserted.e.LastName,
+    deleted.e.BaseSalary,
+    inserted.e.BaseSalary,
+    CAST(((inserted.e.BaseSalary - deleted.e.BaseSalary) / deleted.e.BaseSalary) * 100 AS DECIMAL(5,2))
 INTO @SalaryChanges
-WHERE IsActive = 1 AND BaseSalary IS NOT NULL;
+WHERE IsActive = 1 AND e.BaseSalary IS NOT NULL;
 
 -- Process the captured changes
-INSERT INTO SalaryHistory (EmployeeID, PreviousSalary, NewSalary, EffectiveDate, ChangeReason)
+INSERT INTO SalaryHistory (e.EmployeeID, PreviousSalary, NewSalary, EffectiveDate, ChangeReason)
 SELECT 
-    EmployeeID,
+    e.EmployeeID,
     OldSalary,
     NewSalary,
     GETDATE(),
@@ -385,7 +385,7 @@ ORDER BY PercentageIncrease DESC;
 ```sql
 -- UPDATE with OUTPUT to multiple destinations
 DECLARE @IsActiveChanges TABLE (
-    EmployeeID INT,
+    e.EmployeeID INT,
     EmployeeName NVARCHAR(101),
     OldIsActive BIT,
     NewIsActive BIT,
@@ -396,30 +396,30 @@ DECLARE @IsActiveChanges TABLE (
 UPDATE Employees
 SET 
     IsActive = CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 30 THEN 0  -- Retirement eligibility
-        WHEN BaseSalary IS NULL THEN 0  -- Invalid employee data
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 30 THEN 0  -- Retirement eligibility
+        WHEN e.BaseSalary IS NULL THEN 0  -- Invalid employee data
         ELSE IsActive
     END,
     ModifiedDate = SYSDATETIME()
 OUTPUT 
-    inserted.EmployeeID,
-    inserted.FirstName + ' ' + inserted.LastName,
+    inserted.e.EmployeeID,
+    inserted.e.FirstName + ' ' + inserted.e.LastName,
     deleted.IsActive,
     inserted.IsActive,
     CASE 
-        WHEN deleted.IsActive = 1 AND inserted.IsActive = 0 AND DATEDIFF(YEAR, inserted.HireDate, GETDATE()) >= 30 
+        WHEN deleted.IsActive = 1 AND inserted.IsActive = 0 AND DATEDIFF(YEAR, inserted.e.HireDate, GETDATE()) >= 30 
             THEN 'Retirement Eligibility'
-        WHEN deleted.IsActive = 1 AND inserted.IsActive = 0 AND inserted.BaseSalary IS NULL 
-            THEN 'Invalid BaseSalary Data'
+        WHEN deleted.IsActive = 1 AND inserted.IsActive = 0 AND inserted.e.BaseSalary IS NULL 
+            THEN 'Invalid e.BaseSalary Data'
         ELSE 'No Change'
     END
 INTO @IsActiveChanges
 WHERE IsActive = 1;
 
 -- Log status changes
-INSERT INTO EmployeeIsActiveHistory (EmployeeID, PreviousIsActive, NewIsActive, Reason)
+INSERT INTO EmployeeIsActiveHistory (e.EmployeeID, PreviousIsActive, NewIsActive, Reason)
 SELECT 
-    EmployeeID,
+    e.EmployeeID,
     CASE OldIsActive WHEN 1 THEN 'Active' ELSE 'Inactive' END,
     CASE NewIsActive WHEN 1 THEN 'Active' ELSE 'Inactive' END,
     ChangeReason
@@ -494,7 +494,7 @@ CREATE TABLE EmployeeTemp AS
 SELECT * FROM Employees e;
 
 -- Add test data that's safe to delete
-INSERT INTO EmployeeTemp (FirstName, LastName, WorkEmail, BaseSalary, DepartmentID, IsActive)
+INSERT INTO EmployeeTemp (e.FirstName, e.LastName, WorkEmail, e.BaseSalary, d.DepartmentID, IsActive)
 VALUES 
     ('Test', 'User1', 'test.user1@company.com', 50000.00, 1, 0),
     ('Test', 'User2', 'test.user2@company.com', 50000.00, 1, 0),
@@ -503,19 +503,19 @@ VALUES
 
 -- STEP 1: Always test your WHERE clause with SELECT first
 SELECT 
-    EmployeeID,
-    FirstName + ' ' + LastName AS FullName,
+    e.EmployeeID,
+    e.FirstName + ' ' + e.LastName AS FullName,
     WorkEmail,
     IsActive
 FROM EmployeeTemp
-WHERE FirstName IN ('Test', 'Temporary') AND IsActive = 0;
+WHERE e.FirstName IN ('Test', 'Temporary') AND IsActive = 0;
 
 -- STEP 2: Use transaction for safety
 BEGIN TRANSACTION;
 
 -- STEP 3: DELETE with OUTPUT to capture what's being deleted
 DECLARE @DeletedEmployees TABLE (
-    EmployeeID INT,
+    e.EmployeeID INT,
     EmployeeName NVARCHAR(101),
     WorkEmail NVARCHAR(100),
     DeletionDate DATETIME2
@@ -523,12 +523,12 @@ DECLARE @DeletedEmployees TABLE (
 
 DELETE FROM EmployeeTemp
 OUTPUT 
-    deleted.EmployeeID,
-    deleted.FirstName + ' ' + deleted.LastName,
+    deleted.e.EmployeeID,
+    deleted.e.FirstName + ' ' + deleted.e.LastName,
     deleted.WorkEmail,
     SYSDATETIME()
 INTO @DeletedEmployees
-WHERE FirstName IN ('Test', 'Temporary') AND IsActive = 0;
+WHERE e.FirstName IN ('Test', 'Temporary') AND IsActive = 0;
 
 -- STEP 4: Verify the deletion results
 SELECT 
@@ -557,16 +557,16 @@ WHERE IsActive = 0 AND WorkEmail LIKE '%test%';
 
 -- Delete employees with NULL salaries (data quality cleanup)
 DELETE FROM EmployeeTemp 
-WHERE BaseSalary IS NULL;
+WHERE e.BaseSalary IS NULL;
 
 -- Delete old temporary records
 DELETE FROM EmployeeTemp 
 WHERE CreatedDate < DATEADD(DAY, -30, GETDATE()) 
-  AND FirstName LIKE 'Temp%';
+  AND e.FirstName LIKE 'Temp%';
 
--- Delete based on BaseSalary range
+-- Delete based on e.BaseSalary range
 DELETE FROM EmployeeTemp 
-WHERE BaseSalary < 30000 AND IsActive = 0;
+WHERE e.BaseSalary < 30000 AND IsActive = 0;
 
 -- Verify remaining records
 SELECT 
@@ -580,30 +580,30 @@ FROM EmployeeTemp;
 ```sql
 -- Delete employees who are not assigned to any projects
 DELETE FROM EmployeeTemp 
-WHERE EmployeeID NOT IN (
-    SELECT DISTINCT EmployeeID 
+WHERE e.EmployeeID NOT IN (
+    SELECT DISTINCT e.EmployeeID 
     FROM EmployeeProjects 
-    WHERE EmployeeID IS NOT NULL
+    WHERE e.EmployeeID IS NOT NULL
 )
 AND IsActive = 0;
 
 -- Delete employees in departments with low budgets
 DELETE FROM EmployeeTemp 
-WHERE DepartmentID IN (
-    SELECT DepartmentID 
-    FROM Departments 
-    WHERE Budget < 200000
+WHERE d.DepartmentID IN (
+    SELECT d.DepartmentID 
+    FROM Departments d 
+    WHERE d.Budget < 200000
 )
 AND IsActive = 0;
 
--- Delete duplicate employees (keep the one with lowest EmployeeID)
+-- Delete duplicate employees (keep the one with lowest e.EmployeeID)
 DELETE e1
 FROM EmployeeTemp e1
 WHERE EXISTS (
     SELECT 1 
     FROM EmployeeTemp e2 
     WHERE e2.WorkEmail = e1.WorkEmail 
-      AND e2.EmployeeID < e1.EmployeeID
+      AND e2.e.EmployeeID < e1.e.EmployeeID
 );
 
 -- Verify no duplicates remain
@@ -621,14 +621,14 @@ HAVING COUNT(*) > 1;
 ```sql
 -- Create sample data for JOIN DELETE examples
 CREATE TABLE InactiveEmployeeCleanup (
-    EmployeeID INT,
+    e.EmployeeID INT,
     LastActivityDate DATE,
     CleanupReason NVARCHAR(255)
 );
 
 INSERT INTO InactiveEmployeeCleanup 
 SELECT 
-    EmployeeID,
+    e.EmployeeID,
     DATEADD(DAY, -RAND() * 365, GETDATE()),
     'No recent activity'
 FROM EmployeeTemp 
@@ -637,21 +637,21 @@ WHERE IsActive = 0;
 -- DELETE with INNER JOIN
 DELETE e
 FROM EmployeeTemp e
-INNER JOIN InactiveEmployeeCleanup ic ON e.EmployeeID = ic.EmployeeID
+INNER JOIN InactiveEmployeeCleanup ic ON e.EmployeeID = ic.e.EmployeeID
 WHERE ic.LastActivityDate < DATEADD(MONTH, -6, GETDATE());
 
 -- DELETE employees from specific departments with low performance
 CREATE TABLE PerformanceReviews (
     ReviewID INT IDENTITY(1,1) PRIMARY KEY,
-    EmployeeID INT,
+    e.EmployeeID INT,
     ReviewScore DECIMAL(3,1),
     ReviewDate DATE,
     Reviewer INT
 );
 
-INSERT INTO PerformanceReviews (EmployeeID, ReviewScore, ReviewDate, Reviewer)
+INSERT INTO PerformanceReviews (e.EmployeeID, ReviewScore, ReviewDate, Reviewer)
 SELECT 
-    EmployeeID,
+    e.EmployeeID,
     CAST(RAND() * 5 + 1 AS DECIMAL(3,1)),  -- Random score 1-5
     DATEADD(DAY, -30, GETDATE()),
     1
@@ -661,8 +661,8 @@ WHERE IsActive = 0;
 -- Delete low-performing inactive employees
 DELETE e
 FROM EmployeeTemp e
-INNER JOIN PerformanceReviews pr ON e.EmployeeID = pr.EmployeeID
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN PerformanceReviews pr ON e.EmployeeID = pr.e.EmployeeID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE pr.ReviewScore < 2.0 
   AND e.IsActive = 0
   AND d.DepartmentName != 'Human Resources';  -- Don't auto-delete HR employees
@@ -673,12 +673,12 @@ WHERE pr.ReviewScore < 2.0
 -- Complex deletion scenario: Remove employees who meet multiple criteria
 DELETE e
 FROM EmployeeTemp e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-LEFT JOIN PerformanceReviews pr ON e.EmployeeID = pr.EmployeeID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+LEFT JOIN PerformanceReviews pr ON e.EmployeeID = pr.e.EmployeeID
 WHERE e.IsActive = 0  -- Must be inactive
   AND d.Budget < 100000  -- From low-budget departments
-  AND ep.EmployeeID IS NULL  -- Not assigned to any projects
+  AND ep.e.EmployeeID IS NULL  -- Not assigned to any projects
   AND (pr.ReviewScore < 2.5 OR pr.ReviewScore IS NULL)  -- Poor or no performance review
   AND DATEDIFF(MONTH, e.HireDate, GETDATE()) < 6;  -- Recent hires (probationary)
 
@@ -707,7 +707,7 @@ CREATE TABLE DeletionAudit (
 
 -- DELETE with comprehensive OUTPUT
 DECLARE @DeletedData TABLE (
-    EmployeeID INT,
+    e.EmployeeID INT,
     EmployeeData NVARCHAR(MAX),
     DeletionReason NVARCHAR(255)
 );
@@ -715,27 +715,27 @@ DECLARE @DeletedData TABLE (
 -- Delete and capture all deleted employee data
 DELETE FROM EmployeeTemp
 OUTPUT 
-    deleted.EmployeeID,
-    'ID:' + CAST(deleted.EmployeeID AS VARCHAR(10)) + 
-    ',Name:' + deleted.FirstName + ' ' + deleted.LastName +
+    deleted.e.EmployeeID,
+    'ID:' + CAST(deleted.e.EmployeeID AS VARCHAR(10)) + 
+    ',Name:' + deleted.e.FirstName + ' ' + deleted.e.LastName +
     ',WorkEmail:' + ISNULL(deleted.WorkEmail, 'NULL') +
-    ',BaseSalary:' + ISNULL(CAST(deleted.BaseSalary AS VARCHAR(20)), 'NULL') +
+    ',e.BaseSalary:' + ISNULL(CAST(deleted.e.BaseSalary AS VARCHAR(20)), 'NULL') +
     ',Dept:' + CAST(deleted.DepartmentID AS VARCHAR(10)) +
     ',Active:' + CAST(deleted.IsActive AS VARCHAR(1)),
     CASE 
         WHEN deleted.IsActive = 0 THEN 'Inactive employee cleanup'
-        WHEN deleted.BaseSalary IS NULL THEN 'Data quality - NULL BaseSalary'
+        WHEN deleted.e.BaseSalary IS NULL THEN 'Data quality - NULL e.BaseSalary'
         WHEN deleted.WorkEmail IS NULL OR deleted.WorkEmail = '' THEN 'Data quality - missing email'
         ELSE 'General cleanup'
     END
 INTO @DeletedData
-WHERE IsActive = 0 OR BaseSalary IS NULL OR WorkEmail IS NULL OR WorkEmail = '';
+WHERE IsActive = 0 OR e.BaseSalary IS NULL OR WorkEmail IS NULL OR WorkEmail = '';
 
 -- Log all deletions to audit table
 INSERT INTO DeletionAudit (TableName, DeletedRecordID, DeletedData, DeletionReason)
 SELECT 
     'EmployeeTemp',
-    EmployeeID,
+    e.EmployeeID,
     EmployeeData,
     DeletionReason
 FROM @DeletedData;
@@ -772,7 +772,7 @@ ADD IsDeleted BIT DEFAULT 0,
 
 -- Create soft delete procedure
 CREATE PROCEDURE SoftDeleteEmployee
-    @EmployeeID INT,
+    @e.EmployeeID INT,
     @DeletionReason NVARCHAR(255) = 'Not specified'
 AS
 BEGIN
@@ -781,16 +781,16 @@ BEGIN
     DECLARE @EmployeeName NVARCHAR(101);
     
     -- Check if employee exists and is not already deleted
-    IF NOT EXISTS (SELECT 1 FROM Employees WHERE EmployeeID = @EmployeeID AND IsDeleted = 0)
+    IF NOT EXISTS (SELECT 1 FROM Employees e WHERE e.EmployeeID = @e.EmployeeID AND IsDeleted = 0)
     BEGIN
         PRINT 'Employee not found or already deleted';
         RETURN;
     END
     
     -- Get employee name for logging
-    SELECT @EmployeeName = FirstName + ' ' + LastName 
-    FROM Employees 
-    WHERE EmployeeID = @EmployeeID;
+    SELECT @EmployeeName = e.FirstName + ' ' + e.LastName 
+    FROM Employees e 
+    WHERE e.EmployeeID = @e.EmployeeID;
     
     BEGIN TRANSACTION;
     BEGIN TRY
@@ -802,15 +802,15 @@ BEGIN
             DeletedBy = SYSTEM_USER,
             IsActive = 0,
             ModifiedDate = SYSDATETIME()
-        WHERE EmployeeID = @EmployeeID;
+        WHERE e.EmployeeID = @e.EmployeeID;
         
         -- Log the soft deletion
-        INSERT INTO EmployeeIsActiveHistory (EmployeeID, PreviousIsActive, NewIsActive, Reason)
-        VALUES (@EmployeeID, 'Active', 'Soft Deleted', @DeletionReason);
+        INSERT INTO EmployeeIsActiveHistory (e.EmployeeID, PreviousIsActive, NewIsActive, Reason)
+        VALUES (@e.EmployeeID, 'Active', 'Soft Deleted', @DeletionReason);
         
         -- Log to deletion audit
         INSERT INTO DeletionAudit (TableName, DeletedRecordID, DeletedData, DeletionReason)
-        VALUES ('Employees', @EmployeeID, @EmployeeName, 'Soft Delete: ' + @DeletionReason);
+        VALUES ('Employees', @e.EmployeeID, @EmployeeName, 'Soft Delete: ' + @DeletionReason);
         
         COMMIT TRANSACTION;
         PRINT 'Employee ' + @EmployeeName + ' soft deleted successfully';
@@ -824,37 +824,37 @@ BEGIN
 END;
 
 -- Test soft delete
-EXEC SoftDeleteEmployee @EmployeeID = 1, @DeletionReason = 'Employee resignation';
+EXEC SoftDeleteEmployee @e.EmployeeID = 1, @DeletionReason = 'Employee resignation';
 
 -- Create view to exclude soft-deleted records
 CREATE VIEW ActiveEmployees AS
 SELECT 
-    EmployeeID,
-    FirstName,
-    LastName,
+    e.EmployeeID,
+    e.FirstName,
+    e.LastName,
     WorkEmail,
-    BaseSalary,
-    DepartmentID,
+    e.BaseSalary,
+    d.DepartmentID,
     ManagerID,
-    HireDate,
+    e.HireDate,
     IsActive,
     CreatedDate,
     ModifiedDate
-FROM Employees
+FROM Employees e
 WHERE IsDeleted = 0;
 
 -- Test the view
-SELECT * FROM ActiveEmployees ORDER BY EmployeeID;
+SELECT * FROM ActiveEmployees ORDER BY e.EmployeeID;
 
 -- Create procedure to restore soft-deleted employees
 CREATE PROCEDURE RestoreSoftDeletedEmployee
-    @EmployeeID INT,
+    @e.EmployeeID INT,
     @RestoreReason NVARCHAR(255) = 'Administrative restore'
 AS
 BEGIN
     SET NOCOUNT ON;
     
-    IF NOT EXISTS (SELECT 1 FROM Employees WHERE EmployeeID = @EmployeeID AND IsDeleted = 1)
+    IF NOT EXISTS (SELECT 1 FROM Employees e WHERE e.EmployeeID = @e.EmployeeID AND IsDeleted = 1)
     BEGIN
         PRINT 'Employee not found or not soft deleted';
         RETURN;
@@ -867,11 +867,11 @@ BEGIN
         DeletedBy = NULL,
         IsActive = 1,
         ModifiedDate = SYSDATETIME()
-    WHERE EmployeeID = @EmployeeID;
+    WHERE e.EmployeeID = @e.EmployeeID;
     
     -- Log the restoration
-    INSERT INTO EmployeeIsActiveHistory (EmployeeID, PreviousIsActive, NewIsActive, Reason)
-    VALUES (@EmployeeID, 'Soft Deleted', 'Active', @RestoreReason);
+    INSERT INTO EmployeeIsActiveHistory (e.EmployeeID, PreviousIsActive, NewIsActive, Reason)
+    VALUES (@e.EmployeeID, 'Soft Deleted', 'Active', @RestoreReason);
     
     PRINT 'Employee restored successfully';
 END;
@@ -937,7 +937,7 @@ DECLARE @StartTime DATETIME2 = SYSDATETIME();
 DECLARE @RowsAffected INT;
 
 DELETE FROM EmployeeTemp 
-WHERE IsActive = 0 AND DepartmentID = 999;  -- Non-existent d.DepartmentName
+WHERE IsActive = 0 AND d.DepartmentID = 999;  -- Non-existent d.DepartmentName
 
 SET @RowsAffected = @@ROWCOUNT;
 
@@ -982,13 +982,13 @@ ON Employees (CreatedDate, IsActive);
 
 -- Index for department-based operations
 CREATE INDEX IX_Employees_DepartmentID_IsActive 
-ON Employees (DepartmentID, IsActive) 
-INCLUDE (EmployeeID, FirstName, LastName);
+ON Employees (d.DepartmentID, IsActive) 
+INCLUDE (e.EmployeeID, e.FirstName, e.LastName);
 
--- Index for BaseSalary-based updates
+-- Index for e.BaseSalary-based updates
 CREATE INDEX IX_Employees_Salary_IsActive 
-ON Employees (BaseSalary, IsActive) 
-WHERE BaseSalary IS NOT NULL;
+ON Employees (e.BaseSalary, IsActive) 
+WHERE e.BaseSalary IS NOT NULL;
 
 -- Demonstrate index usage impact
 SET STATISTICS IO ON;
@@ -1008,7 +1008,7 @@ SET STATISTICS IO OFF;
 ```sql
 -- Comprehensive UPDATE/DELETE error handling procedure
 CREATE PROCEDURE SafeBulkEmployeeUpdate
-    @DepartmentID INT,
+    @d.DepartmentID INT,
     @SalaryIncreasePercent DECIMAL(5,2),
     @UpdateReason NVARCHAR(255)
 AS
@@ -1023,11 +1023,11 @@ BEGIN
     -- Validation
     IF @SalaryIncreasePercent <= 0 OR @SalaryIncreasePercent > 50
     BEGIN
-        PRINT 'Error: BaseSalary increase must be between 0 and 50 percent';
+        PRINT 'Error: e.BaseSalary increase must be between 0 and 50 percent';
         RETURN;
     END
     
-    IF NOT EXISTS (SELECT 1 FROM Departments WHERE DepartmentID = @DepartmentID)
+    IF NOT EXISTS (SELECT 1 FROM Departments d WHERE d.DepartmentID = @d.DepartmentID)
     BEGIN
         PRINT 'Error: Invalid d.DepartmentName ID';
         RETURN;
@@ -1038,38 +1038,38 @@ BEGIN
     BEGIN TRY
         -- Capture before state
         DECLARE @EmployeesBeforeUpdate TABLE (
-            EmployeeID INT,
+            e.EmployeeID INT,
             OldSalary DECIMAL(10,2),
             NewSalary DECIMAL(10,2)
         );
         
-        INSERT INTO @EmployeesBeforeUpdate (EmployeeID, OldSalary, NewSalary)
+        INSERT INTO @EmployeesBeforeUpdate (e.EmployeeID, OldSalary, NewSalary)
         SELECT 
-            EmployeeID,
-            BaseSalary,
-            BaseSalary * (1 + @SalaryIncreasePercent / 100.0)
-        FROM Employees
-        WHERE DepartmentID = @DepartmentID 
+            e.EmployeeID,
+            e.BaseSalary,
+            e.BaseSalary * (1 + @SalaryIncreasePercent / 100.0)
+        FROM Employees e
+        WHERE d.DepartmentID = @d.DepartmentID 
           AND IsActive = 1 
-          AND BaseSalary IS NOT NULL;
+          AND e.BaseSalary IS NOT NULL;
         
         -- Perform the update
         UPDATE e
         SET 
-            BaseSalary = BaseSalary * (1 + @SalaryIncreasePercent / 100.0),
+            e.BaseSalary = e.BaseSalary * (1 + @SalaryIncreasePercent / 100.0),
             ModifiedDate = SYSDATETIME()
         FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-        WHERE e.DepartmentID = @DepartmentID 
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+        WHERE e.d.DepartmentID = @d.DepartmentID 
           AND e.IsActive = 1 
           AND e.BaseSalary IS NOT NULL;
         
         SET @UpdatedCount = @@ROWCOUNT;
         
-        -- Log BaseSalary changes
-        INSERT INTO SalaryHistory (EmployeeID, PreviousSalary, NewSalary, EffectiveDate, ChangeReason)
+        -- Log e.BaseSalary changes
+        INSERT INTO SalaryHistory (e.EmployeeID, PreviousSalary, NewSalary, EffectiveDate, ChangeReason)
         SELECT 
-            EmployeeID,
+            e.EmployeeID,
             OldSalary,
             NewSalary,
             GETDATE(),
@@ -1087,8 +1087,8 @@ BEGIN
             FORMAT(AVG(bu.NewSalary), 'C') AS AverageNewSalary,
             CAST(@SalaryIncreasePercent AS VARCHAR(10)) + '%' AS IncreasePercent
         FROM @EmployeesBeforeUpdate bu
-        INNER JOIN Employees e ON bu.EmployeeID = e.EmployeeID
-        INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+        INNER JOIN Employees e ON bu.e.EmployeeID = e.EmployeeID
+        INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
         GROUP BY d.DepartmentName;
         
     END TRY
@@ -1101,7 +1101,7 @@ BEGIN
         
         -- Log the error
         INSERT INTO DeletionAudit (TableName, DeletedRecordID, DeletedData, DeletionReason)
-        VALUES ('Employees', @DepartmentID, 'Bulk Update Failed', @ErrorMessage);
+        VALUES ('Employees', @d.DepartmentID, 'Bulk Update Failed', @ErrorMessage);
         
         THROW;
     END CATCH
@@ -1109,7 +1109,7 @@ END;
 
 -- Test the error handling procedure
 EXEC SafeBulkEmployeeUpdate 
-    @DepartmentID = 1, 
+    @d.DepartmentID = 1, 
     @SalaryIncreasePercent = 5.0, 
     @UpdateReason = 'Q1 Performance Review';
 ```
@@ -1123,12 +1123,12 @@ EXEC SafeBulkEmployeeUpdate
 -- ✓ 1. ALWAYS test with SELECT first
 -- GOOD: Test the WHERE clause
 SELECT COUNT(*) AS RecordsToUpdate
-FROM Employees 
+FROM Employees e 
 WHERE DepartmentID = 1 AND IsActive = 1;
 
 -- Then perform the UPDATE
 UPDATE Employees 
-SET BaseSalary = BaseSalary * 1.03
+SET e.BaseSalary = e.BaseSalary * 1.03
 WHERE DepartmentID = 1 AND IsActive = 1;
 
 -- ✓ 2. Use transactions for important operations
@@ -1141,16 +1141,16 @@ COMMIT TRANSACTION;
 UPDATE Employees 
 SET IsActive = 0
 OUTPUT 
-    deleted.EmployeeID,
-    deleted.FirstName + ' ' + deleted.LastName AS EmployeeName,
+    deleted.e.EmployeeID,
+    deleted.e.FirstName + ' ' + deleted.e.LastName AS EmployeeName,
     'Deactivated on ' + CAST(SYSDATETIME() AS VARCHAR(30)) AS AuditInfo
-WHERE EmployeeID = 999;
+WHERE e.EmployeeID = 999;
 
 -- ✓ 4. Consider soft deletes for important data
--- Instead of: DELETE FROM Employees WHERE EmployeeID = 1;
+-- Instead of: DELETE FROM Employees e WHERE e.EmployeeID = 1;
 UPDATE Employees 
 SET IsDeleted = 1, DeletedDate = SYSDATETIME()
-WHERE EmployeeID = 1;
+WHERE e.EmployeeID = 1;
 
 -- ✓ 5. Use appropriate batch sizes for large operations
 DECLARE @BatchSize INT = 1000;
@@ -1178,7 +1178,7 @@ WHERE tp.name = 'Employees';
 -- ✓ 7. Use proper error handling
 BEGIN TRY
     -- DML operations
-    UPDATE Employees SET BaseSalary = BaseSalary * 1.05 WHERE DepartmentID = 1;
+    UPDATE Employees SET e.BaseSalary = e.BaseSalary * 1.05 WHERE DepartmentID = 1;
 END TRY
 BEGIN CATCH
     PRINT 'Error: ' + ERROR_MESSAGE();

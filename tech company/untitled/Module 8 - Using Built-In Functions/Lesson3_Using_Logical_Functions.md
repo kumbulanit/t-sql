@@ -59,7 +59,7 @@ SELECT
     d.DepartmentName,
     jl.LevelName,
     
-    -- Simple CASE for BaseSalary bands
+    -- Simple CASE for e.BaseSalary bands
     CASE 
         WHEN e.BaseSalary >= 150000 THEN 'Executive Level'
         WHEN e.BaseSalary >= 100000 THEN 'Senior Professional'
@@ -248,9 +248,9 @@ WITH SalesMetrics AS (
     GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.BaseSalary, e.Commission, d.DepartmentName
 )
 SELECT 
-    EmployeeID,
+    e.EmployeeID,
     SalesRep,
-    BaseSalary,
+    e.BaseSalary,
     Commission AS BaseCommissionPercent,
     FORMAT(TotalSalesValue, 'C') AS TotalSalesValue,
     ProjectCount,
@@ -407,7 +407,7 @@ SELECT
     -- Simple active/inactive status
     IIF(e.IsActive = 1, 'Active Employee', 'Former Employee') AS EmploymentIsActive,
     
-    -- BaseSalary level indicator
+    -- e.BaseSalary level indicator
     IIF(e.BaseSalary >= 100000, 'Senior Level', 'Junior-Mid Level') AS SalaryLevel,
     
     -- Years of service category
@@ -417,7 +417,7 @@ SELECT
     IIF(e.BaseSalary >= 75000 AND DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 1, 
         'Bonus Eligible', 'Not Eligible') AS BonusIsActive,
     
-    -- Overtime eligibility (typically non-exempt employees under certain BaseSalary threshold)
+    -- Overtime eligibility (typically non-exempt employees under certain e.BaseSalary threshold)
     IIF(e.BaseSalary < 50000, 'Overtime Eligible', 'Exempt from Overtime') AS OvertimeIsActive,
     
     -- Performance review frequency
@@ -433,7 +433,7 @@ SELECT
     ) AS ParkingAssignment,
     
     -- Manager flag based on job level
-    IIF(EXISTS(SELECT 1 FROM Employees e2 WHERE e2.DirectManagerID = e.EmployeeID AND e2.IsActive = 1),
+    IIF(EXISTS(SELECT 1 FROM Employees e e2 WHERE e2.DirectManagerID = e.EmployeeID AND e2.IsActive = 1),
         'Manager', 'Individual Contributor') AS ManagementRole,
     
     -- Calculate working years (handling current employees vs. terminated)
@@ -451,7 +451,7 @@ ORDER BY e.BaseSalary DESC;
 SELECT d.DepartmentName,
     COUNT(*) AS TotalEmployees,
     
-    -- Count employees by BaseSalary level using IIF
+    -- Count employees by e.BaseSalary level using IIF
     COUNT(IIF(e.BaseSalary >= 100000, 1, NULL)) AS HighSalaryCount,
     COUNT(IIF(e.BaseSalary < 100000, 1, NULL)) AS StandardSalaryCount,
     
@@ -461,7 +461,7 @@ SELECT d.DepartmentName,
         'N1'
     ) + '%' AS HighSalaryPercentage,
     
-    -- BaseSalary statistics with conditional logic
+    -- e.BaseSalary statistics with conditional logic
     AVG(IIF(e.BaseSalary >= 100000, e.BaseSalary, NULL)) AS AvgHighSalary,
     AVG(IIF(e.BaseSalary < 100000, e.BaseSalary, NULL)) AS AvgStandardSalary,
     
@@ -475,8 +475,8 @@ SELECT d.DepartmentName,
     COUNT(IIF(e.Gender IS NULL OR e.Gender = 'O', 1, NULL)) AS OtherUnknownGender,
     
     -- Manager vs Individual Contributor count
-    COUNT(IIF(EXISTS(SELECT 1 FROM Employees e2 WHERE e2.DirectManagerID = e.EmployeeID), 1, NULL)) AS ManagerCount,
-    COUNT(IIF(NOT EXISTS(SELECT 1 FROM Employees e2 WHERE e2.DirectManagerID = e.EmployeeID), 1, NULL)) AS ICCount,
+    COUNT(IIF(EXISTS(SELECT 1 FROM Employees e e2 WHERE e2.DirectManagerID = e.EmployeeID), 1, NULL)) AS ManagerCount,
+    COUNT(IIF(NOT EXISTS(SELECT 1 FROM Employees e e2 WHERE e2.DirectManagerID = e.EmployeeID), 1, NULL)) AS ICCount,
     
     -- Performance indicators
     FORMAT(AVG(e.BaseSalary), 'C') AS AvgDepartmentSalary,
@@ -666,11 +666,11 @@ SELECT
             WHEN e.BaseSalary >= 50000 THEN 4
             ELSE 5
         END,
-        'Executive Tier - Up to 50% of BaseSalary',
-        'Senior Tier - Up to 25% of BaseSalary',
-        'Professional Tier - Up to 15% of BaseSalary',
-        'Standard Tier - Up to 10% of BaseSalary',
-        'Entry Tier - Up to 5% of BaseSalary'
+        'Executive Tier - Up to 50% of e.BaseSalary',
+        'Senior Tier - Up to 25% of e.BaseSalary',
+        'Professional Tier - Up to 15% of e.BaseSalary',
+        'Standard Tier - Up to 10% of e.BaseSalary',
+        'Entry Tier - Up to 5% of e.BaseSalary'
     ) AS BonusTier
     
 FROM Employees e

@@ -38,10 +38,10 @@ SELECT
     REPLACE(REPLACE(REPLACE(PhoneNumber, '(', ''), ')', ''), '-', '') AS CleanPhone,
     
     -- Format names properly
-    UPPER(LEFT(FirstName, 1)) + LOWER(SUBSTRING(FirstName, 2, LEN(FirstName))) AS ProperFirst,
+    UPPER(LEFT(e.FirstName, 1)) + LOWER(SUBSTRING(e.FirstName, 2, LEN(e.FirstName))) AS ProperFirst,
     
     -- Extract initials
-    LEFT(FirstName, 1) + LEFT(LastName, 1) AS Initials,
+    LEFT(e.FirstName, 1) + LEFT(e.LastName, 1) AS Initials,
     
     -- Mask sensitive data
     LEFT(SSN, 3) + '-XX-' + RIGHT(SSN, 4) AS MaskedSSN
@@ -56,16 +56,16 @@ FROM Employees e;
 ```sql
 -- PATINDEX for pattern matching
 SELECT 
-    FirstName,
-    PATINDEX('%[0-9]%', FirstName) AS FirstDigitPosition,
-    PATINDEX('%[^A-Za-z]%', FirstName) AS FirstNonLetterPosition
+    e.FirstName,
+    PATINDEX('%[0-9]%', e.FirstName) AS FirstDigitPosition,
+    PATINDEX('%[^A-Za-z]%', e.FirstName) AS FirstNonLetterPosition
 FROM Employees e;
 
 -- STRING_SPLIT (SQL Server 2016+)
 SELECT 
-    EmployeeID,
+    e.EmployeeID,
     value AS Skill
-FROM Employees
+FROM Employees e
 CROSS APPLY STRING_SPLIT(SkillsList, ',')
 WHERE TRIM(value) <> '';
 
@@ -83,26 +83,26 @@ WHERE ProductName LIKE '%50\% Off%' ESCAPE '\';
 -- STRING_AGG (SQL Server 2017+)
 SELECT 
     DepartmentID,
-    STRING_AGG(FirstName + ' ' + LastName, '; ') WITHIN GROUP (ORDER BY LastName) AS EmployeeList
-FROM Employees
+    STRING_AGG(e.FirstName + ' ' + e.LastName, '; ') WITHIN GROUP (ORDER BY e.LastName) AS EmployeeList
+FROM Employees e
 WHERE IsActive = 1
 GROUP BY DepartmentIDID;
 
 -- JSON functions (SQL Server 2016+)
 SELECT 
-    EmployeeID,
+    e.EmployeeID,
     JSON_VALUE(ContactInfo, '$.email') AS WorkEmail,
     JSON_VALUE(ContactInfo, '$.phone') AS Phone,
     JSON_QUERY(ContactInfo, '$.address') AS Address
-FROM Employees
+FROM Employees e
 WHERE ISJSON(ContactInfo) = 1;
 
 -- Format as JSON
 SELECT 
-    EmployeeID,
-    FirstName,
-    LastName
-FROM Employees
+    e.EmployeeID,
+    e.FirstName,
+    e.LastName
+FROM Employees e
 FOR JSON PATH;
 ```
 
@@ -189,15 +189,15 @@ SELECT
 ```sql
 -- Advanced mathematical operations
 SELECT 
-    EmployeeID,
-    BaseSalary,
+    e.EmployeeID,
+    e.BaseSalary,
     
     -- Compound interest calculation
-    BaseSalary * POWER(1.03, 5) AS FiveYearProjection,
+    e.BaseSalary * POWER(1.03, 5) AS FiveYearProjection,
     
     -- Logarithmic calculations
-    LOG(BaseSalary / 30000) AS SalaryLogRatio,
-    LOG10(BaseSalary) AS SalaryLog10,
+    LOG(e.BaseSalary / 30000) AS SalaryLogRatio,
+    LOG10(e.BaseSalary) AS SalaryLog10,
     
     -- Random values for sampling
     RAND(CHECKSUM(NEWID())) AS RandomValue,
@@ -206,8 +206,8 @@ SELECT
     SIN(PI() / 6) AS SineExample,
     
     -- Statistical functions
-    SIGN(BaseSalary - 50000) AS SalaryComparison,
-    ABS(BaseSalary - 65000) AS SalaryDeviation
+    SIGN(e.BaseSalary - 50000) AS SalaryComparison,
+    ABS(e.BaseSalary - 65000) AS SalaryDeviation
 FROM Employees e;
 ```
 
@@ -219,7 +219,7 @@ FROM Employees e;
 ```sql
 -- Safe conversion with error handling
 SELECT 
-    EmployeeID,
+    e.EmployeeID,
     
     -- Safe conversions return NULL on failure
     TRY_CAST(BadData AS INT) AS SafeInteger,
@@ -248,13 +248,13 @@ FROM EmployeeImport;
 ```sql
 -- IIF function (SQL Server 2012+)
 SELECT 
-    EmployeeID,
-    FirstName,
-    LastName,
-    IIF(BaseSalary > 75000, 'High Earner', 'Standard Earner') AS EarningCategory,
+    e.EmployeeID,
+    e.FirstName,
+    e.LastName,
+    IIF(e.BaseSalary > 75000, 'High Earner', 'Standard Earner') AS EarningCategory,
     
     -- CHOOSE function
-    CHOOSE(MONTH(HireDate), 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    CHOOSE(MONTH(e.HireDate), 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec') AS HireMonth,
     
     -- COALESCE for NULL handling
@@ -293,7 +293,7 @@ SELECT
     OBJECT_ID('Employees') AS TableObjectID,
     OBJECT_NAME(OBJECT_ID('Employees')) AS TableName,
     SCHEMA_NAME(SCHEMA_ID('dbo')) AS SchemaName,
-    COL_LENGTH('Employees', 'FirstName') AS ColumnMaxLength;
+    COL_LENGTH('Employees', 'e.FirstName') AS ColumnMaxLength;
 ```
 
 ---
@@ -304,24 +304,24 @@ SELECT
 ```sql
 -- Window functions with built-in functions
 SELECT 
-    EmployeeID,
-    FirstName,
-    LastName,
-    BaseSalary,
+    e.EmployeeID,
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
     DepartmentID,
     
     -- Ranking functions
-    ROW_NUMBER() OVER (PARTITION BY DepartmentIDID ORDER BY BaseSalary DESC) AS SalaryRank,
-    RANK() OVER (ORDER BY BaseSalary DESC) AS OverallRank,
-    DENSE_RANK() OVER (ORDER BY YEAR(HireDate)) AS HireYearRank,
+    ROW_NUMBER() OVER (PARTITION BY DepartmentIDID ORDER BY e.BaseSalary DESC) AS SalaryRank,
+    RANK() OVER (ORDER BY e.BaseSalary DESC) AS OverallRank,
+    DENSE_RANK() OVER (ORDER BY YEAR(e.HireDate)) AS HireYearRank,
     
     -- Aggregate window functions
     AVG(e.BaseSalary) OVER (PARTITION BY DepartmentIDID) AS DeptAvgSalary,
-    SUM(e.BaseSalary) OVER (ORDER BY EmployeeID ROWS UNBOUNDED PRECEDING) AS RunningTotal,
+    SUM(e.BaseSalary) OVER (ORDER BY e.EmployeeID ROWS UNBOUNDED PRECEDING) AS RunningTotal,
     
     -- Lead/Lag functions
-    LAG(BaseSalary, 1, 0) OVER (ORDER BY HireDate) AS PreviousEmployeeSalary,
-    LEAD(HireDate, 1) OVER (ORDER BY HireDate) AS NextEmployeeHireDate
+    LAG(e.BaseSalary, 1, 0) OVER (ORDER BY e.HireDate) AS PreviousEmployeeSalary,
+    LEAD(e.HireDate, 1) OVER (ORDER BY e.HireDate) AS NextEmployeeHireDate
 FROM Employees e;
 ```
 
@@ -348,7 +348,7 @@ END CATCH
 
 -- Validation functions
 SELECT 
-    EmployeeID,
+    e.EmployeeID,
     WorkEmail,
     CASE 
         WHEN WorkEmail LIKE '%@%.%' AND CHARINDEX(' ', WorkEmail) = 0 
@@ -372,18 +372,18 @@ FROM Employees e;
 ```sql
 -- SARGable vs Non-SARGable predicates
 -- BAD: Function on indexed column
-WHERE YEAR(HireDate) = 2023                    -- Non-SARGable
-WHERE UPPER(LastName) = 'SMITH'                -- Non-SARGable
-WHERE DATEDIFF(DAY, HireDate, GETDATE()) > 365 -- Non-SARGable
+WHERE YEAR(e.HireDate) = 2023                    -- Non-SARGable
+WHERE UPPER(e.LastName) = 'SMITH'                -- Non-SARGable
+WHERE DATEDIFF(DAY, e.HireDate, GETDATE()) > 365 -- Non-SARGable
 
 -- GOOD: SARGable alternatives
-WHERE HireDate >= '2023-01-01' AND HireDate < '2024-01-01'
-WHERE LastName = 'Smith'  -- Case-insensitive collation
-WHERE HireDate < DATEADD(DAY, -365, GETDATE())
+WHERE e.HireDate >= '2023-01-01' AND e.HireDate < '2024-01-01'
+WHERE e.LastName = 'Smith'  -- Case-insensitive collation
+WHERE e.HireDate < DATEADD(DAY, -365, GETDATE())
 
 -- Computed columns for complex functions
 ALTER TABLE Employees 
-ADD HireYear AS YEAR(HireDate) PERSISTED;
+ADD HireYear AS YEAR(e.HireDate) PERSISTED;
 
 CREATE INDEX IX_Employees_HireYear ON Employees(HireYear);
 ```
@@ -396,28 +396,28 @@ CREATE INDEX IX_Employees_HireYear ON Employees(HireYear);
 ```sql
 -- Complex nested functions
 SELECT 
-    EmployeeID,
-    FirstName,
-    LastName,
+    e.EmployeeID,
+    e.FirstName,
+    e.LastName,
     
     -- Nested string functions
     UPPER(
         LEFT(
-            LTRIM(RTRIM(FirstName)), 1
+            LTRIM(RTRIM(e.FirstName)), 1
         )
     ) + 
     LOWER(
         SUBSTRING(
-            LTRIM(RTRIM(FirstName)), 
+            LTRIM(RTRIM(e.FirstName)), 
             2, 
-            LEN(LTRIM(RTRIM(FirstName))) - 1
+            LEN(LTRIM(RTRIM(e.FirstName))) - 1
         )
     ) AS ProperFirstName,
     
     -- Complex date calculations
     CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 5 
-             AND MONTH(DATEADD(YEAR, 5, HireDate)) = MONTH(GETDATE())
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 5 
+             AND MONTH(DATEADD(YEAR, 5, e.HireDate)) = MONTH(GETDATE())
         THEN 'Eligible for 5-year bonus'
         ELSE 'Not eligible'
     END AS BonusEligibility
@@ -446,8 +446,8 @@ RETURNS TABLE
 AS
 RETURN
 (
-    SELECT EmployeeID, FirstName, LastName, BaseSalary
-    FROM Employees
+    SELECT e.EmployeeID, e.FirstName, e.LastName, e.BaseSalary
+    FROM Employees e
     WHERE DepartmentID = @DepartmentID AND IsActive = 1
 );
 
@@ -475,10 +475,10 @@ SELECT * FROM dbo.GetEmployeesInDepartment(1);
 ```sql
 -- Performance comparison
 -- Slow: Scalar UDF in SELECT
-SELECT EmployeeID, dbo.ComplexCalculation(BaseSalary) FROM Employees e;
+SELECT e.EmployeeID, dbo.ComplexCalculation(e.BaseSalary) FROM Employees e;
 
 -- Fast: Inline calculation or computed column
-SELECT EmployeeID, BaseSalary * 1.05 * POWER(1.03, 5) FROM Employees e;
+SELECT e.EmployeeID, e.BaseSalary * 1.05 * POWER(1.03, 5) FROM Employees e;
 ```
 
 ---
@@ -499,12 +499,12 @@ AS
 RETURN
 (
     SELECT 
-        EmployeeID, 
-        FirstName, 
-        LastName,
+        e.EmployeeID, 
+        e.FirstName, 
+        e.LastName,
         CASE WHEN IS_MEMBER('SalaryViewers') = 1 
-             THEN BaseSalary 
-             ELSE NULL END AS BaseSalary
+             THEN e.BaseSalary 
+             ELSE NULL END AS e.BaseSalary
     FROM dbo.Employees
     WHERE IsActive = 1
 );
@@ -549,7 +549,7 @@ SELECT dbo.CalculateAge(NULL) AS NullCase;
 SET STATISTICS TIME ON;
 SET STATISTICS IO ON;
 
-SELECT COUNT(*) FROM Employees WHERE dbo.ComplexFunction(BaseSalary) > 1000000;
+SELECT COUNT(*) FROM Employees e WHERE dbo.ComplexFunction(e.BaseSalary) > 1000000;
 
 SET STATISTICS TIME OFF;
 SET STATISTICS IO OFF;
@@ -575,16 +575,16 @@ SELECT
     DepartmentID,
     COUNT(*) AS EmployeeCount,
     AVG(e.BaseSalary) AS AvgSalary,
-    STDEV(BaseSalary) AS SalaryStdDev,
-    VAR(BaseSalary) AS SalaryVariance,
+    STDEV(e.BaseSalary) AS SalaryStdDev,
+    VAR(e.BaseSalary) AS SalaryVariance,
     
     -- Percentile functions
-    PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY BaseSalary) AS MedianSalary,
-    PERCENTILE_DISC(0.75) WITHIN GROUP (ORDER BY BaseSalary) AS Q3Salary,
+    PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY e.BaseSalary) AS MedianSalary,
+    PERCENTILE_DISC(0.75) WITHIN GROUP (ORDER BY e.BaseSalary) AS Q3Salary,
     
     -- String aggregation
-    STRING_AGG(FirstName + ' ' + LastName, ', ') AS EmployeeList
-FROM Employees
+    STRING_AGG(e.FirstName + ' ' + e.LastName, ', ') AS EmployeeList
+FROM Employees e
 WHERE IsActive = 1
 GROUP BY DepartmentIDID;
 ```

@@ -30,19 +30,20 @@
 SELECT 
     -- 5. SELECT: Project aggregated results
     d.DepartmentName,
-    JobTitle,
+    e.JobTitle,
     COUNT(*) AS EmployeeCount,
     AVG(e.BaseSalary) AS AverageBaseSalary,
     SUM(e.BaseSalary) AS TotalSalary,
-    MIN(HireDate) AS EarliestHire,
-    MAX(HireDate) AS LatestHire
+    MIN(e.HireDate) AS EarliestHire,
+    MAX(e.HireDate) AS LatestHire
 -- 1. FROM: Start with source table
 FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 -- 2. WHERE: Filter individual rows (before grouping)
 WHERE IsActive = 1 
-    AND HireDate >= '2020-01-01'
+    AND e.HireDate >= '2020-01-01'
 -- 3. GROUP BY: Group rows by specified columns
-GROUP BY DepartmentID, JobTitle
+GROUP BY DepartmentID, e.JobTitle
 -- 4. HAVING: Filter groups (after grouping)
 HAVING COUNT(*) >= 3 
     AND AVG(e.BaseSalary) > 50000
@@ -60,7 +61,7 @@ CREATE TABLE SalesData (
     ProductID INT,
     SaleDate DATE,
     Quantity INT,
-    BaseSalary DECIMAL(10,2),
+    e.BaseSalary DECIMAL(10,2),
     Commission DECIMAL(5,4)
 );
 
@@ -86,7 +87,7 @@ SELECT
         WHEN MONTH(SaleDate) BETWEEN 7 AND 9 THEN 'Q3'
         ELSE 'Q4'
     END AS Quarter,
-    SUM(Quantity * BaseSalary) AS QuarterlyRevenue
+    SUM(Quantity * e.BaseSalary) AS QuarterlyRevenue
 FROM SalesData
 GROUP BY SalesPersonID, 
          CASE 
@@ -140,7 +141,7 @@ SELECT
     -- Statistical functions
     STDEVP(Price) AS PriceStandardDeviationPopulation,
     VARP(Price) AS PriceVariancePopulation
-FROM Orders o INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
+FROM Orders o INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
 GROUP BY Category
 ORDER BY TotalRevenue DESC;
 ```
@@ -154,7 +155,7 @@ SELECT
     STRING_AGG(Product, ', ') AS ProductList,
     STRING_AGG(Product, ', ') WITHIN GROUP (ORDER BY Price DESC) AS ProductsByPrice,
     STRING_AGG(CONCAT(Product, ' ($', CAST(Price AS VARCHAR(10)), ')'), '; ') AS ProductsWithPrices
-FROM Orders o INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
+FROM Orders o INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
 GROUP BY Category
 ORDER BY Category;
 
@@ -163,12 +164,12 @@ SELECT
     Category,
     STUFF((
         SELECT ', ' + Product
-        FROM Orders o INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID ps2
+        FROM Orders o INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID ps2
         WHERE ps2.Category = ps1.Category
         ORDER BY Product
         FOR XML PATH(''), TYPE
     ).value('.', 'NVARCHAR(MAX)'), 1, 2, '') AS ProductList
-FROM Orders o INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID ps1
+FROM Orders o INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID ps1
 GROUP BY Category;
 ```
 
@@ -275,24 +276,25 @@ ORDER BY GROUPING_ID(Region, Category, Product), Region, Category, Product;
 ```sql
 -- Complex HAVING clause scenarios
 SELECT d.DepartmentName,
-    JobTitle,
+    e.JobTitle,
     COUNT(*) AS EmployeeCount,
     AVG(e.BaseSalary) AS AverageBaseSalary,
     MIN(e.BaseSalary) AS MinSalary,
     MAX(e.BaseSalary) AS MaxSalary,
     MAX(e.BaseSalary) - MIN(e.BaseSalary) AS SalaryRange,
-    STDEV(BaseSalary) AS SalaryStandardDeviation
-FROM Employees
+    STDEV(e.BaseSalary) AS SalaryStandardDeviation
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE IsActive = 1
-GROUP BY DepartmentID, JobTitle
+GROUP BY DepartmentID, e.JobTitle
 HAVING 
     -- Multiple aggregate conditions
     COUNT(*) >= 5                               -- At least 5 employees
-    AND AVG(e.BaseSalary) BETWEEN 50000 AND 150000    -- Average BaseSalary in range
-    AND MAX(e.BaseSalary) - MIN(e.BaseSalary) > 20000       -- Significant BaseSalary variation
-    AND STDEV(BaseSalary) < 15000                   -- Not too much variation
+    AND AVG(e.BaseSalary) BETWEEN 50000 AND 150000    -- Average e.BaseSalary in range
+    AND MAX(e.BaseSalary) - MIN(e.BaseSalary) > 20000       -- Significant e.BaseSalary variation
+    AND STDEV(e.BaseSalary) < 15000                   -- Not too much variation
     -- Percentage-based conditions
-    AND MIN(e.BaseSalary) > 0.7 * AVG(e.BaseSalary)        -- Min BaseSalary at least 70% of average
+    AND MIN(e.BaseSalary) > 0.7 * AVG(e.BaseSalary)        -- Min e.BaseSalary at least 70% of average
 ORDER BY DepartmentID, AverageSalary DESC;
 ```
 
@@ -334,39 +336,40 @@ ORDER BY TotalRevenue DESC;
 -- Comprehensive ranking function examples
 WITH EmployeeRankings AS (
     SELECT 
-        EmployeeID,
-        FirstName + ' ' + LastName AS EmployeeName,
+        e.EmployeeID,
+        e.FirstName + ' ' + e.LastName AS EmployeeName,
         d.DepartmentName,
-        JobTitle,
-        BaseSalary,
-        HireDate,
+        e.JobTitle,
+        e.BaseSalary,
+        e.HireDate,
         
         -- Ranking functions
-        ROW_NUMBER() OVER (ORDER BY BaseSalary DESC) AS SalaryRowNumber,
-        RANK() OVER (ORDER BY BaseSalary DESC) AS SalaryRank,
-        DENSE_RANK() OVER (ORDER BY BaseSalary DESC) AS SalaryDenseRank,
-        NTILE(4) OVER (ORDER BY BaseSalary DESC) AS SalaryQuartile,
+        ROW_NUMBER() OVER (ORDER BY e.BaseSalary DESC) AS SalaryRowNumber,
+        RANK() OVER (ORDER BY e.BaseSalary DESC) AS SalaryRank,
+        DENSE_RANK() OVER (ORDER BY e.BaseSalary DESC) AS SalaryDenseRank,
+        NTILE(4) OVER (ORDER BY e.BaseSalary DESC) AS SalaryQuartile,
         
         -- Department-specific rankings
-        ROW_NUMBER() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) AS DeptSalaryRank,
-        RANK() OVER (PARTITION BY DepartmentID ORDER BY HireDate) AS DeptSeniorityRank,
+        ROW_NUMBER() OVER (PARTITION BY DepartmentID ORDER BY e.BaseSalary DESC) AS DeptSalaryRank,
+        RANK() OVER (PARTITION BY DepartmentID ORDER BY e.HireDate) AS DeptSeniorityRank,
         
         -- Percentage ranking
-        PERCENT_RANK() OVER (ORDER BY BaseSalary) AS SalaryPercentRank,
-        CUME_DIST() OVER (ORDER BY BaseSalary) AS SalaryCumulativeDistribution,
+        PERCENT_RANK() OVER (ORDER BY e.BaseSalary) AS SalaryPercentRank,
+        CUME_DIST() OVER (ORDER BY e.BaseSalary) AS SalaryCumulativeDistribution,
         
         -- Window frame calculations
         AVG(e.BaseSalary) OVER (PARTITION BY DepartmentID) AS DeptAverageSalary,
         SUM(e.BaseSalary) OVER (PARTITION BY DepartmentID) AS DeptTotalSalary,
         COUNT(*) OVER (PARTITION BY DepartmentID) AS DeptEmployeeCount
         
-    FROM Employees
+    FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE IsActive = 1
 )
 SELECT 
     *,
     -- Calculated fields using window functions
-    BaseSalary - DeptAverageSalary AS SalaryDifferenceFromDeptAvg,
+    e.BaseSalary - DeptAverageSalary AS SalaryDifferenceFromDeptAvg,
     CASE 
         WHEN SalaryPercentRank >= 0.9 THEN 'Top 10%'
         WHEN SalaryPercentRank >= 0.75 THEN 'Top 25%'

@@ -45,7 +45,7 @@ FROM Employees e;
 
 -- Exercise 1.1b: How many projects does TechCorp have?
 SELECT COUNT(*) AS TotalProjects
-FROM Projects;
+FROM Projects p;
 
 -- Exercise 1.1c: How many clients does TechCorp serve?
 SELECT COUNT(*) AS TotalClients
@@ -71,7 +71,7 @@ FROM Employees e;
 -- Challenge 1.2b: Count projects that have started (StartDate is not null)  
 -- Hint: Use WHERE StartDate IS NOT NULL
 SELECT COUNT(*) AS ProjectsStarted
-FROM Projects
+FROM Projects p
 WHERE StartDate IS NOT NULL;
 ```
 
@@ -82,21 +82,21 @@ WHERE StartDate IS NOT NULL;
 **Goal**: Practice adding up salaries and budgets.
 
 ```sql
--- Exercise 2.1a: What's the total BaseSalary expense for all employees?
+-- Exercise 2.1a: What's the total e.BaseSalary expense for all employees?
 SELECT SUM(e.BaseSalary) AS TotalPayroll
 FROM Employees e;
 
 -- Exercise 2.1b: What's the total value of all projects?  
 SELECT SUM(Budget) AS TotalProjectValue
-FROM Projects;
+FROM Projects p;
 
--- Exercise 2.1c: What's the average employee BaseSalary?
+-- Exercise 2.1c: What's the average employee e.BaseSalary?
 SELECT AVG(e.BaseSalary) AS AverageBaseSalary
 FROM Employees e;
 
 -- Exercise 2.1d: What's the average project size?
 SELECT AVG(Budget) AS AverageProjectSize  
-FROM Projects;
+FROM Projects p;
 ```
 
 ### Exercise 2.2: Find the Extremes (🟢 EASY)
@@ -104,7 +104,7 @@ FROM Projects;
 **Goal**: Find the highest and lowest values.
 
 ```sql
--- Exercise 2.2a: What's the highest and lowest BaseSalary?
+-- Exercise 2.2a: What's the highest and lowest e.BaseSalary?
 SELECT 
     MAX(e.BaseSalary) AS HighestBaseSalary,
     MIN(e.BaseSalary) AS LowestBaseSalary
@@ -114,7 +114,7 @@ FROM Employees e;
 SELECT 
     MAX(Budget) AS LargestProject,
     MIN(Budget) AS SmallestProject  
-FROM Projects;
+FROM Projects p;
 ```
 
 ### Exercise 2.3: Complete Summary Reports (🟢 EASY)
@@ -138,7 +138,7 @@ SELECT
     AVG(Budget) AS AverageBudget, 
     MIN(Budget) AS SmallestBudget,
     MAX(Budget) AS LargestBudget
-FROM Projects;
+FROM Projects p;
 ```
 
 ## Section 3: Basic Grouping Practice 📊
@@ -163,7 +163,7 @@ SELECT
     Status,
     COUNT(*) AS ProjectCount,
     AVG(Budget) AS AverageProjectSize
-FROM Projects  
+FROM Projects p  
 GROUP BY Status
 ORDER BY AverageProjectSize DESC;
 ```
@@ -191,7 +191,7 @@ SELECT
     Status,
     COUNT(*) AS ProjectCount,
     AVG(Budget) AS AverageProjectSize
-FROM Projects
+FROM Projects p
 GROUP BY Status
 HAVING AVG(Budget) > 25000  
 ORDER BY AverageProjectSize DESC;
@@ -219,7 +219,7 @@ SELECT
     Status,
     COUNT(*) AS ProjectCount,
     AVG(Budget) AS AverageProjectSize
-FROM Projects
+FROM Projects p
 WHERE StartDate IS NOT NULL
 GROUP BY YEAR(StartDate), Status
 ORDER BY ProjectYear, Status;
@@ -242,9 +242,9 @@ UNION ALL
 SELECT 
     'TechCorp Business Overview' AS ReportSection,
     'Project Statistics' AS Category, 
-    (SELECT COUNT(*) FROM Projects) AS TotalProjects,
-    (SELECT FORMAT(AVG(Budget), 'C0') FROM Projects) AS AvgProjectSize,
-    (SELECT FORMAT(SUM(Budget), 'C0') FROM Projects) AS TotalProjectValue
+    (SELECT COUNT(*) FROM Projects p) AS TotalProjects,
+    (SELECT FORMAT(AVG(Budget), 'C0') FROM Projects p) AS AvgProjectSize,
+    (SELECT FORMAT(SUM(Budget), 'C0') FROM Projects p) AS TotalProjectValue
     
 UNION ALL
 

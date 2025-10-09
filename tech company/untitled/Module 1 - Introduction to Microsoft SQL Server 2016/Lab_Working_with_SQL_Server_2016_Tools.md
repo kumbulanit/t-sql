@@ -1136,7 +1136,7 @@ LOG ON
     FILEGROWTH = 10MB
 );
 
-USE MaintenanceDB;
+USE TechCorpDB;
 GO
 
 -- Create monitoring tables

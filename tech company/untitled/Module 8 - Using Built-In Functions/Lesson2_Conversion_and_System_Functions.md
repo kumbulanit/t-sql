@@ -136,7 +136,7 @@ SELECT
     e.HireDate,
     d.DepartmentName,
     
-    -- BaseSalary formatting for different audiences
+    -- e.BaseSalary formatting for different audiences
     FORMAT(e.BaseSalary, 'C', 'en-US') AS Salary_USD_Currency,
     FORMAT(e.BaseSalary, 'N0') AS Salary_Thousands_Separator,
     FORMAT(e.BaseSalary, '#,##0') AS Salary_Custom_Format,
@@ -158,7 +158,7 @@ SELECT
         FORMAT(e.EmployeeID, '00000'), 
         ' hired on ', 
         FORMAT(e.HireDate, 'MMMM dd, yyyy'),
-        ' with BaseSalary ', 
+        ' with e.BaseSalary ', 
         FORMAT(e.BaseSalary, 'C')
     ) AS EmployeeSummary,
     
@@ -510,13 +510,13 @@ WITH DataQualityMetrics AS (
     SELECT 
         'Employees',
         COUNT(*),
-        COUNT(CASE WHEN FirstName IS NULL OR FirstName = '' OR LastName IS NULL OR LastName = '' THEN 1 END),
+        COUNT(CASE WHEN e.FirstName IS NULL OR e.FirstName = '' OR e.LastName IS NULL OR e.LastName = '' THEN 1 END),
         COUNT(CASE WHEN WorkEmail IS NULL OR WorkEmail = '' THEN 1 END),
-        COUNT(CASE WHEN BaseSalary IS NULL THEN 1 END),
-        AVG(CAST(LEN(FirstName + ' ' + LastName) AS FLOAT)),
+        COUNT(CASE WHEN e.BaseSalary IS NULL THEN 1 END),
+        AVG(CAST(LEN(e.FirstName + ' ' + e.LastName) AS FLOAT)),
         MIN(CreatedDate),
         MAX(CreatedDate)
-    FROM Employees
+    FROM Employees e
     
     UNION ALL
     
@@ -529,7 +529,7 @@ WITH DataQualityMetrics AS (
         AVG(CAST(LEN(ProjectName) AS FLOAT)),
         MIN(CreatedDate),
         MAX(CreatedDate)
-    FROM Projects
+    FROM Projects p
 )
 SELECT 
     TableName,

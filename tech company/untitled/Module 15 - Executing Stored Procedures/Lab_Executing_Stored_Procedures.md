@@ -15,23 +15,23 @@ You are part of TechCorp's database development team tasked with implementing a 
 **Available Tables for Lab Exercises:**
 
 ```sql
--- Employees table (Sample data: EmployeeID starts from 3001)
-Employees: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, ManagerID, JobTitle, HireDate, WorkEmail, IsActive
+-- Employees table (Sample data: e.EmployeeID starts from 3001)
+Employees: e.EmployeeID, e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID, ManagerID, e.JobTitle, e.HireDate, WorkEmail, IsActive
 
--- Departments table (Sample data: DepartmentID starts from 2001)
-Departments: DepartmentID, DepartmentName, Budget, Location, IsActive
+-- Departments table (Sample data: d.DepartmentID starts from 2001)
+Departments: d.DepartmentID, d.DepartmentName, d.Budget, Location, IsActive
 
 -- Projects table (Sample data: ProjectID starts from 4001)
-Projects: ProjectID, ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
+Projects: ProjectID, ProjectName, d.Budget, ProjectManagerID, StartDate, EndDate, IsActive
 
 -- Orders table (Sample data: OrderID starts from 5001)
-Orders: OrderID, CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
+Orders: OrderID, CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
 
 -- Customers table (Sample data: CustomerID starts from 6001)
 Customers: CustomerID, CompanyName, ContactName, City, Country, WorkEmail, IsActive
 
 -- EmployeeProjects junction table
-EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
+EmployeeProjects: e.EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
 ```
 
 ## Lab Setup and Prerequisites
@@ -43,11 +43,11 @@ EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, 
 -- Execute these queries to confirm your environment is ready
 
 -- Check table existence and sample data
-SELECT 'Employees' AS TableName, COUNT(*) AS RecordCount FROM Employees
+SELECT 'Employees' AS TableName, COUNT(*) AS RecordCount FROM Employees e
 UNION ALL
-SELECT 'Departments', COUNT(*) FROM Departments
+SELECT 'Departments', COUNT(*) FROM Departments d
 UNION ALL
-SELECT 'Projects', COUNT(*) FROM Projects
+SELECT 'Projects', COUNT(*) FROM Projects p
 UNION ALL
 SELECT 'Orders', COUNT(*) FROM Orders
 UNION ALL
@@ -57,9 +57,9 @@ SELECT 'EmployeeProjects', COUNT(*) FROM EmployeeProjects;
 
 -- Verify sample data ranges
 SELECT 
-    MIN(EmployeeID) AS MinEmployeeID,
-    MAX(EmployeeID) AS MaxEmployeeID,
-    COUNT(DISTINCT DepartmentID) AS DepartmentCount,
+    MIN(e.EmployeeID) AS MinEmployeeID,
+    MAX(e.EmployeeID) AS MaxEmployeeID,
+    COUNT(DISTINCT d.DepartmentID) AS DepartmentCount,
     COUNT(CASE WHEN IsActive = 1 THEN 1 END) AS ActiveEmployees
 FROM Employees e;
 
@@ -87,7 +87,7 @@ Master the fundamentals of executing stored procedures with various parameter co
 ```sql
 -- Step 1: Create a simple employee lookup procedure
 CREATE PROCEDURE sp_Lab_GetEmployeeInfo
-    @EmployeeID INT,
+    @e.EmployeeID INT,
     @IncludeManager BIT = 1,
     @RecordCount INT OUTPUT
 AS
@@ -98,16 +98,16 @@ BEGIN
     SET @RecordCount = 0;
     
     -- Validate input
-    IF @EmployeeID IS NULL OR @EmployeeID <= 0
+    IF @e.EmployeeID IS NULL OR @e.EmployeeID <= 0
     BEGIN
         RAISERROR('Employee ID must be a positive integer.', 16, 1);
         RETURN -1;
     END
     
     -- Check if employee exists
-    IF NOT EXISTS (SELECT 1 FROM Employees WHERE EmployeeID = @EmployeeID AND IsActive = 1)
+    IF NOT EXISTS (SELECT 1 FROM Employees e WHERE e.EmployeeID = @e.EmployeeID AND IsActive = 1)
     BEGIN
-        RAISERROR('Employee ID %d not found or inactive.', 16, 1, @EmployeeID);
+        RAISERROR('Employee ID %d not found or inactive.', 16, 1, @e.EmployeeID);
         RETURN -2;
     END
     
@@ -117,7 +117,7 @@ BEGIN
         e.FirstName,
         e.LastName,
         e.JobTitle,
-        FORMAT(e.BaseSalary, 'C') AS BaseSalary,
+        FORMAT(e.BaseSalary, 'C') AS e.BaseSalary,
         d.DepartmentName,
         d.Location,
         e.HireDate,
@@ -126,15 +126,15 @@ BEGIN
         -- Manager information (conditional)
         CASE 
             WHEN @IncludeManager = 1 AND e.ManagerID IS NOT NULL
-            THEN mgr.FirstName + ' ' + mgr.LastName
+            THEN mgr.e.FirstName + ' ' + mgr.e.LastName
             WHEN @IncludeManager = 1 
             THEN 'No Manager Assigned'
             ELSE 'Manager Info Not Requested'
         END AS ManagerName
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID AND @IncludeManager = 1
-    WHERE e.EmployeeID = @EmployeeID;
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    LEFT JOIN Employees mgr ON e.ManagerID = mgr.e.EmployeeID AND @IncludeManager = 1
+    WHERE e.EmployeeID = @e.EmployeeID;
     
     -- Set output parameter
     SET @RecordCount = 1;
@@ -146,20 +146,20 @@ END;
 -- Test 1: Basic execution with valid employee ID
 DECLARE @ReturnValue INT, @Count INT;
 EXEC @ReturnValue = sp_Lab_GetEmployeeInfo 
-    @EmployeeID = 3001, 
+    @e.EmployeeID = 3001, 
     @RecordCount = @Count OUTPUT;
 
 SELECT @ReturnValue AS ReturnCode, @Count AS RecordsReturned;
 
 -- Test 2: Execute without manager information
 EXEC sp_Lab_GetEmployeeInfo 
-    @EmployeeID = 3002, 
+    @e.EmployeeID = 3002, 
     @IncludeManager = 0,
     @RecordCount = @Count OUTPUT;
 
 -- Test 3: Test error handling with invalid employee ID
 EXEC @ReturnValue = sp_Lab_GetEmployeeInfo 
-    @EmployeeID = 99999, 
+    @e.EmployeeID = 99999, 
     @RecordCount = @Count OUTPUT;
 
 SELECT @ReturnValue AS ErrorReturnCode;
@@ -172,7 +172,7 @@ SELECT @ReturnValue AS ErrorReturnCode;
 ```sql
 -- Step 1: Create d.DepartmentName summary procedure
 CREATE PROCEDURE sp_Lab_GetDepartmentSummary
-    @DepartmentID INT = NULL,
+    @d.DepartmentID INT = NULL,
     @IncludeInactiveEmployees BIT = 0,
     @SalaryThreshold DECIMAL(10,2) = 0,
     @EmployeeCount INT OUTPUT,
@@ -188,11 +188,11 @@ BEGIN
     SET @AverageSalary = 0;
     
     -- Validate d.DepartmentName if specified
-    IF @DepartmentID IS NOT NULL AND NOT EXISTS (
-        SELECT 1 FROM Departments WHERE DepartmentID = @DepartmentID AND IsActive = 1
+    IF @d.DepartmentID IS NOT NULL AND NOT EXISTS (
+        SELECT 1 FROM Departments d WHERE d.DepartmentID = @d.DepartmentID AND IsActive = 1
     )
     BEGIN
-        RAISERROR('Department ID %d not found or inactive.', 16, 1, @DepartmentID);
+        RAISERROR('Department ID %d not found or inactive.', 16, 1, @d.DepartmentID);
         RETURN -1;
     END
     
@@ -214,8 +214,8 @@ BEGIN
                          (e.IsActive = 1 OR @IncludeInactiveEmployees = 1)
                    THEN 1 END) AS EmployeesAboveThreshold
     FROM Departments d
-    LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID
-    WHERE (@DepartmentID IS NULL OR d.DepartmentID = @DepartmentID)
+    LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+    WHERE (@d.DepartmentID IS NULL OR d.DepartmentID = @d.DepartmentID)
       AND d.IsActive = 1
       AND (e.EmployeeID IS NULL OR e.IsActive = 1 OR @IncludeInactiveEmployees = 1)
     GROUP BY d.DepartmentID, d.DepartmentName, d.Location, d.Budget
@@ -230,8 +230,8 @@ BEGIN
                                       AND e.BaseSalary >= @SalaryThreshold
                                   THEN e.BaseSalary ELSE NULL END)
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    WHERE (@DepartmentID IS NULL OR e.DepartmentID = @DepartmentID)
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    WHERE (@d.DepartmentID IS NULL OR e.d.DepartmentID = @d.DepartmentID)
       AND d.IsActive = 1
       AND (e.IsActive = 1 OR @IncludeInactiveEmployees = 1);
     
@@ -249,9 +249,9 @@ EXEC sp_Lab_GetDepartmentSummary
 
 SELECT @EmpCount AS TotalEmployees, @Payroll AS TotalPayroll, @AvgSalary AS AverageBaseSalary;
 
--- Test 2: Specific d.DepartmentName with BaseSalary threshold
+-- Test 2: Specific d.DepartmentName with e.BaseSalary threshold
 EXEC sp_Lab_GetDepartmentSummary 
-    @DepartmentID = 2001,
+    @d.DepartmentID = 2001,
     @SalaryThreshold = 60000,
     @EmployeeCount = @EmpCount OUTPUT,
     @TotalPayroll = @Payroll OUTPUT,
@@ -261,7 +261,7 @@ SELECT 'Department 2001 Analysis' AS Analysis, @EmpCount AS Count, @AvgSalary AS
 
 -- Test 3: Include inactive employees
 EXEC sp_Lab_GetDepartmentSummary 
-    @DepartmentID = 2002,
+    @d.DepartmentID = 2002,
     @IncludeInactiveEmployees = 1,
     @EmployeeCount = @EmpCount OUTPUT,
     @TotalPayroll = @Payroll OUTPUT,
@@ -281,14 +281,14 @@ Develop skills in creating robust stored procedures with comprehensive error han
 ```sql
 -- Step 1: Create employee addition procedure
 CREATE PROCEDURE sp_Lab_AddEmployee
-    @FirstName VARCHAR(50),
-    @LastName VARCHAR(50),
-    @JobTitle VARCHAR(100),
-    @BaseSalary DECIMAL(10,2),
-    @DepartmentID INT,
+    @e.FirstName VARCHAR(50),
+    @e.LastName VARCHAR(50),
+    @e.JobTitle VARCHAR(100),
+    @e.BaseSalary DECIMAL(10,2),
+    @d.DepartmentID INT,
     @ManagerID INT = NULL,
     @WorkEmail VARCHAR(100),
-    @HireDate DATE = NULL,
+    @e.HireDate DATE = NULL,
     @NewEmployeeID INT OUTPUT,
     @ValidationMessage VARCHAR(500) OUTPUT
 AS
@@ -302,49 +302,49 @@ BEGIN
     
     -- Comprehensive input validation
     -- Name validation
-    IF LTRIM(RTRIM(@FirstName)) = '' OR @FirstName IS NULL
+    IF LTRIM(RTRIM(@e.FirstName)) = '' OR @e.FirstName IS NULL
     BEGIN
         SET @ValidationMessage = 'First name is required.';
         RETURN -1;
     END
     
-    IF LTRIM(RTRIM(@LastName)) = '' OR @LastName IS NULL
+    IF LTRIM(RTRIM(@e.LastName)) = '' OR @e.LastName IS NULL
     BEGIN
         SET @ValidationMessage = 'Last name is required.';
         RETURN -2;
     END
     
     -- Job title validation
-    IF LTRIM(RTRIM(@JobTitle)) = '' OR @JobTitle IS NULL
+    IF LTRIM(RTRIM(@e.JobTitle)) = '' OR @e.JobTitle IS NULL
     BEGIN
         SET @ValidationMessage = 'Job title is required.';
         RETURN -3;
     END
     
-    -- BaseSalary validation
-    IF @BaseSalary IS NULL OR @BaseSalary <= 0
+    -- e.BaseSalary validation
+    IF @e.BaseSalary IS NULL OR @e.BaseSalary <= 0
     BEGIN
-        SET @ValidationMessage = 'Base BaseSalary must be a positive amount.';
+        SET @ValidationMessage = 'Base e.BaseSalary must be a positive amount.';
         RETURN -4;
     END
     
-    IF @BaseSalary > 500000 -- Business rule
+    IF @e.BaseSalary > 500000 -- Business rule
     BEGIN
-        SET @ValidationMessage = 'Base BaseSalary cannot exceed $500,000 per company policy.';
+        SET @ValidationMessage = 'Base e.BaseSalary cannot exceed $500,000 per company policy.';
         RETURN -5;
     END
     
     -- d.DepartmentName validation
-    IF NOT EXISTS (SELECT 1 FROM Departments WHERE DepartmentID = @DepartmentID AND IsActive = 1)
+    IF NOT EXISTS (SELECT 1 FROM Departments d WHERE d.DepartmentID = @d.DepartmentID AND IsActive = 1)
     BEGIN
-        SET @ValidationMessage = 'Invalid or inactive d.DepartmentName ID: ' + CAST(@DepartmentID AS VARCHAR);
+        SET @ValidationMessage = 'Invalid or inactive d.DepartmentName ID: ' + CAST(@d.DepartmentID AS VARCHAR);
         RETURN -6;
     END
     
     -- Manager validation
     IF @ManagerID IS NOT NULL
     BEGIN
-        IF NOT EXISTS (SELECT 1 FROM Employees WHERE EmployeeID = @ManagerID AND IsActive = 1)
+        IF NOT EXISTS (SELECT 1 FROM Employees e WHERE e.EmployeeID = @ManagerID AND IsActive = 1)
         BEGIN
             SET @ValidationMessage = 'Invalid or inactive manager ID: ' + CAST(@ManagerID AS VARCHAR);
             RETURN -7;
@@ -353,9 +353,9 @@ BEGIN
         -- Business rule: Manager should be in same d.DepartmentName or senior level
         IF NOT EXISTS (
             SELECT 1 FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
             WHERE e.EmployeeID = @ManagerID 
-              AND (e.DepartmentID = @DepartmentID OR e.BaseSalary >= 80000)
+              AND (e.d.DepartmentID = @d.DepartmentID OR e.BaseSalary >= 80000)
         )
         BEGIN
             SET @ValidationMessage = 'Manager must be in same d.DepartmentName or be a senior manager.';
@@ -370,29 +370,29 @@ BEGIN
         RETURN -9;
     END
     
-    IF EXISTS (SELECT 1 FROM Employees WHERE WorkEmail = @WorkEmail AND IsActive = 1)
+    IF EXISTS (SELECT 1 FROM Employees e WHERE WorkEmail = @WorkEmail AND IsActive = 1)
     BEGIN
         SET @ValidationMessage = 'Email address already exists: ' + @WorkEmail;
         RETURN -10;
     END
     
     -- Date validation
-    SET @HireDate = ISNULL(@HireDate, GETDATE());
-    IF @HireDate > GETDATE()
+    SET @e.HireDate = ISNULL(@e.HireDate, GETDATE());
+    IF @e.HireDate > GETDATE()
     BEGIN
         SET @ValidationMessage = 'Hire date cannot be in the future.';
         RETURN -11;
     END
     
-    -- Business validation: BaseSalary should be appropriate for d.DepartmentName
+    -- Business validation: e.BaseSalary should be appropriate for d.DepartmentName
     DECLARE @DeptAvgSalary DECIMAL(10,2);
     SELECT @DeptAvgSalary = AVG(e.BaseSalary)
-    FROM Employees 
-    WHERE DepartmentID = @DepartmentID AND IsActive = 1;
+    FROM Employees e 
+    WHERE d.DepartmentID = @d.DepartmentID AND IsActive = 1;
     
-    IF @DeptAvgSalary IS NOT NULL AND @BaseSalary > (@DeptAvgSalary * 2)
+    IF @DeptAvgSalary IS NOT NULL AND @e.BaseSalary > (@DeptAvgSalary * 2)
     BEGIN
-        SET @ValidationMessage = 'Proposed BaseSalary is significantly higher than d.DepartmentName average. Please review.';
+        SET @ValidationMessage = 'Proposed e.BaseSalary is significantly higher than d.DepartmentName average. Please review.';
         -- This is a warning, not an error - continue with insertion
     END
     
@@ -401,13 +401,13 @@ BEGIN
     
     BEGIN TRY
         INSERT INTO Employees (
-            FirstName, LastName, JobTitle, BaseSalary, DepartmentID, 
-            ManagerID, WorkEmail, HireDate, IsActive
+            e.FirstName, e.LastName, e.JobTitle, e.BaseSalary, d.DepartmentID, 
+            ManagerID, WorkEmail, e.HireDate, IsActive
         )
         VALUES (
-            LTRIM(RTRIM(@FirstName)), LTRIM(RTRIM(@LastName)), LTRIM(RTRIM(@JobTitle)),
-            @BaseSalary, @DepartmentID, @ManagerID, LOWER(LTRIM(RTRIM(@WorkEmail))), 
-            @HireDate, 1
+            LTRIM(RTRIM(@e.FirstName)), LTRIM(RTRIM(@e.LastName)), LTRIM(RTRIM(@e.JobTitle)),
+            @e.BaseSalary, @d.DepartmentID, @ManagerID, LOWER(LTRIM(RTRIM(@WorkEmail))), 
+            @e.HireDate, 1
         );
         
         SET @NewEmployeeID = SCOPE_IDENTITY();
@@ -439,11 +439,11 @@ DECLARE @NewID INT, @Message VARCHAR(500), @Result INT;
 
 -- Test 1: Valid employee addition
 EXEC @Result = sp_Lab_AddEmployee
-    @FirstName = 'Sarah',
-    @LastName = 'Johnson',
-    @JobTitle = 'Software Engineer',
-    @BaseSalary = 75000,
-    @DepartmentID = 2001,
+    @e.FirstName = 'Sarah',
+    @e.LastName = 'Johnson',
+    @e.JobTitle = 'Software Engineer',
+    @e.BaseSalary = 75000,
+    @d.DepartmentID = 2001,
     @ManagerID = 3001,
     @WorkEmail = 'sarah.johnson@techcorp.com',
     @NewEmployeeID = @NewID OUTPUT,
@@ -453,11 +453,11 @@ SELECT @Result AS ReturnCode, @NewID AS NewEmployeeID, @Message AS Message;
 
 -- Test 2: Test validation errors
 EXEC @Result = sp_Lab_AddEmployee
-    @FirstName = '',  -- Invalid: empty name
-    @LastName = 'Test',
-    @JobTitle = 'Tester',
-    @BaseSalary = 50000,
-    @DepartmentID = 2001,
+    @e.FirstName = '',  -- Invalid: empty name
+    @e.LastName = 'Test',
+    @e.JobTitle = 'Tester',
+    @e.BaseSalary = 50000,
+    @d.DepartmentID = 2001,
     @WorkEmail = 'test@techcorp.com',
     @NewEmployeeID = @NewID OUTPUT,
     @ValidationMessage = @Message OUTPUT;
@@ -466,11 +466,11 @@ SELECT @Result AS ErrorReturnCode, @Message AS ErrorMessage;
 
 -- Test 3: Duplicate email test
 EXEC @Result = sp_Lab_AddEmployee
-    @FirstName = 'John',
-    @LastName = 'Duplicate',
-    @JobTitle = 'Developer',
-    @BaseSalary = 70000,
-    @DepartmentID = 2001,
+    @e.FirstName = 'John',
+    @e.LastName = 'Duplicate',
+    @e.JobTitle = 'Developer',
+    @e.BaseSalary = 70000,
+    @d.DepartmentID = 2001,
     @WorkEmail = 'sarah.johnson@techcorp.com',  -- Duplicate from Test 1
     @NewEmployeeID = @NewID OUTPUT,
     @ValidationMessage = @Message OUTPUT;
@@ -485,7 +485,7 @@ SELECT @Result AS DuplicateTestResult, @Message AS DuplicateMessage;
 ```sql
 -- Step 1: Create employee performance evaluation procedure
 CREATE PROCEDURE sp_Lab_EvaluateEmployeePerformance
-    @EmployeeID INT,
+    @e.EmployeeID INT,
     @EvaluationPeriodMonths INT = 12,
     @PerformanceScore DECIMAL(5,2) OUTPUT,
     @PerformanceGrade VARCHAR(20) OUTPUT,
@@ -502,24 +502,24 @@ BEGIN
     SET @SalaryAdjustmentPercent = 0;
     
     -- Validate employee
-    IF NOT EXISTS (SELECT 1 FROM Employees WHERE EmployeeID = @EmployeeID AND IsActive = 1)
+    IF NOT EXISTS (SELECT 1 FROM Employees e WHERE e.EmployeeID = @e.EmployeeID AND IsActive = 1)
     BEGIN
-        RAISERROR('Employee ID %d not found or inactive.', 16, 1, @EmployeeID);
+        RAISERROR('Employee ID %d not found or inactive.', 16, 1, @e.EmployeeID);
         RETURN -1;
     END
     
     -- Get employee information
-    DECLARE @CurrentSalary DECIMAL(10,2), @HireDate DATE, @DepartmentID INT;
-    DECLARE @YearsOfService INT, @JobTitle VARCHAR(100);
+    DECLARE @CurrentSalary DECIMAL(10,2), @e.HireDate DATE, @d.DepartmentID INT;
+    DECLARE @YearsOfService INT, @e.JobTitle VARCHAR(100);
     
     SELECT 
-        @CurrentSalary = BaseSalary,
-        @HireDate = HireDate,
-        @DepartmentID = DepartmentID,
-        @JobTitle = JobTitle,
-        @YearsOfService = DATEDIFF(YEAR, HireDate, GETDATE())
-    FROM Employees
-    WHERE EmployeeID = @EmployeeID;
+        @CurrentSalary = e.BaseSalary,
+        @e.HireDate = e.HireDate,
+        @d.DepartmentID = d.DepartmentID,
+        @e.JobTitle = e.JobTitle,
+        @YearsOfService = DATEDIFF(YEAR, e.HireDate, GETDATE())
+    FROM Employees e
+    WHERE e.EmployeeID = @e.EmployeeID;
     
     -- Calculate performance components
     DECLARE @ProjectScore DECIMAL(5,2) = 0;
@@ -547,7 +547,7 @@ BEGIN
             COUNT(DISTINCT ep.ProjectID) AS ProjectCount,
             SUM(ep.HoursWorked) AS TotalHours
         FROM EmployeeProjects ep
-        WHERE ep.EmployeeID = @EmployeeID
+        WHERE ep.e.EmployeeID = @e.EmployeeID
           AND ep.IsActive = 1
           AND ep.StartDate >= DATEADD(MONTH, -@EvaluationPeriodMonths, GETDATE())
     ) project_stats;
@@ -566,7 +566,7 @@ BEGIN
             ELSE 0.0
         END
     FROM Orders o
-    WHERE o.EmployeeID = @EmployeeID
+    WHERE o.e.EmployeeID = @e.EmployeeID
       AND o.IsActive = 1
       AND o.OrderDate >= DATEADD(MONTH, -@EvaluationPeriodMonths, GETDATE());
     
@@ -576,12 +576,12 @@ BEGIN
     DECLARE @DirectReports INT, @ManagedProjects INT;
     
     SELECT @DirectReports = COUNT(*)
-    FROM Employees 
-    WHERE ManagerID = @EmployeeID AND IsActive = 1;
+    FROM Employees e 
+    WHERE ManagerID = @e.EmployeeID AND IsActive = 1;
     
     SELECT @ManagedProjects = COUNT(*)
-    FROM Projects 
-    WHERE ProjectManagerID = @EmployeeID AND IsActive = 1;
+    FROM Projects p 
+    WHERE ProjectManagerID = @e.EmployeeID AND IsActive = 1;
     
     SET @LeadershipScore = 
         CASE 
@@ -650,9 +650,9 @@ BEGIN
     
     -- Return detailed evaluation results
     SELECT 
-        @EmployeeID AS EmployeeID,
-        (SELECT FirstName + ' ' + LastName FROM Employees WHERE EmployeeID = @EmployeeID) AS EmployeeName,
-        @JobTitle AS JobTitle,
+        @e.EmployeeID AS e.EmployeeID,
+        (SELECT e.FirstName + ' ' + e.LastName FROM Employees e WHERE e.EmployeeID = @e.EmployeeID) AS EmployeeName,
+        @e.JobTitle AS e.JobTitle,
         @YearsOfService AS YearsOfService,
         FORMAT(@CurrentSalary, 'C') AS CurrentSalary,
         @EvaluationPeriodMonths AS EvaluationPeriodMonths,
@@ -680,7 +680,7 @@ DECLARE @Result INT;
 
 -- Test with different employees
 EXEC @Result = sp_Lab_EvaluateEmployeePerformance
-    @EmployeeID = 3001,
+    @e.EmployeeID = 3001,
     @EvaluationPeriodMonths = 12,
     @PerformanceScore = @Score OUTPUT,
     @PerformanceGrade = @Grade OUTPUT,
@@ -696,7 +696,7 @@ SELECT
 
 -- Test with 6-month evaluation period
 EXEC sp_Lab_EvaluateEmployeePerformance
-    @EmployeeID = 3002,
+    @e.EmployeeID = 3002,
     @EvaluationPeriodMonths = 6,
     @PerformanceScore = @Score OUTPUT,
     @PerformanceGrade = @Grade OUTPUT,
@@ -811,8 +811,8 @@ BEGIN
         
         SET @FromClause = '
         FROM Employees e
-        INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-        LEFT JOIN Orders o ON e.EmployeeID = o.EmployeeID 
+        INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+        LEFT JOIN Orders o ON e.EmployeeID = o.e.EmployeeID 
                               AND o.OrderDate >= @DateFromParam 
                               AND o.OrderDate <= @DateToParam
                               AND o.IsActive = 1';
@@ -822,14 +822,14 @@ BEGIN
             SET @FromClause = @FromClause + '
             LEFT JOIN (
                 SELECT 
-                    ep.EmployeeID,
+                    ep.e.EmployeeID,
                     COUNT(DISTINCT ep.ProjectID) AS ProjectCount,
                     SUM(ep.HoursWorked) AS TotalHours
                 FROM EmployeeProjects ep
                 WHERE ep.IsActive = 1
                   AND ep.StartDate >= @DateFromParam
-                GROUP BY ep.EmployeeID
-            ) proj_stats ON e.EmployeeID = proj_stats.EmployeeID';
+                GROUP BY ep.e.EmployeeID
+            ) proj_stats ON e.EmployeeID = proj_stats.e.EmployeeID';
         END
         
         SET @GroupByClause = ' GROUP BY e.EmployeeID, e.FirstName, e.LastName, d.DepartmentName';
@@ -860,16 +860,16 @@ BEGIN
             COUNT(DISTINCT p.ProjectID) AS ActiveProjects,
             FORMAT(d.Budget, ''C'') AS DepartmentBudget,
             CASE 
-                WHEN SUM(o.TotalAmount) > d.Budget THEN ''Exceeds Budget''
-                WHEN SUM(o.TotalAmount) > d.Budget * 0.8 THEN ''Near Budget''
-                ELSE ''Under Budget''
+                WHEN SUM(o.TotalAmount) > d.Budget THEN ''Exceeds d.Budget''
+                WHEN SUM(o.TotalAmount) > d.Budget * 0.8 THEN ''Near d.Budget''
+                ELSE ''Under d.Budget''
             END AS BudgetStatus';
         END
         
         SET @FromClause = '
         FROM Departments d
-        LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID AND e.IsActive = 1
-        LEFT JOIN Orders o ON e.EmployeeID = o.EmployeeID 
+        LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
+        LEFT JOIN Orders o ON e.EmployeeID = o.e.EmployeeID 
                               AND o.OrderDate >= @DateFromParam 
                               AND o.OrderDate <= @DateToParam
                               AND o.IsActive = 1';
@@ -907,7 +907,7 @@ BEGIN
         IF @OutputFormat = 'Detailed'
         BEGIN
             SET @SelectClause = @SelectClause + ',
-            COUNT(DISTINCT o.EmployeeID) AS DifferentReps,
+            COUNT(DISTINCT o.e.EmployeeID) AS DifferentReps,
             CASE 
                 WHEN MAX(o.OrderDate) >= DATEADD(MONTH, -3, GETDATE()) THEN ''Active''
                 WHEN MAX(o.OrderDate) >= DATEADD(MONTH, -6, GETDATE()) THEN ''Recent''
@@ -1040,7 +1040,7 @@ Implement comprehensive error handling, transaction management, and audit trail 
 -- Step 1: Create transaction-safe order processing procedure
 CREATE PROCEDURE sp_Lab_ProcessOrderWithValidation
     @CustomerID INT,
-    @EmployeeID INT,
+    @e.EmployeeID INT,
     @OrderAmount DECIMAL(10,2),
     @OrderDate DATE = NULL,
     @ValidateCustomerCredit BIT = 1,
@@ -1063,7 +1063,7 @@ BEGIN
         RETURN -1;
     END
     
-    IF @EmployeeID IS NULL OR @EmployeeID <= 0
+    IF @e.EmployeeID IS NULL OR @e.EmployeeID <= 0
     BEGIN
         SET @ProcessingMessage = 'Invalid employee ID provided.';
         RETURN -2;
@@ -1112,12 +1112,12 @@ BEGIN
         SELECT 
             @EmployeeExists = 1,
             @EmployeeDepartment = DepartmentID
-        FROM Employees 
-        WHERE EmployeeID = @EmployeeID AND IsActive = 1;
+        FROM Employees e 
+        WHERE e.EmployeeID = @e.EmployeeID AND IsActive = 1;
         
         IF @EmployeeExists = 0
         BEGIN
-            SET @ProcessingMessage = 'Employee ID ' + CAST(@EmployeeID AS VARCHAR) + ' not found or inactive.';
+            SET @ProcessingMessage = 'Employee ID ' + CAST(@e.EmployeeID AS VARCHAR) + ' not found or inactive.';
             ROLLBACK TRANSACTION ProcessOrder;
             RETURN -6;
         END
@@ -1143,8 +1143,8 @@ BEGIN
         END
         
         -- Insert the order
-        INSERT INTO Orders (CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive)
-        VALUES (@CustomerID, @EmployeeID, @OrderDate, @OrderAmount, 1);
+        INSERT INTO Orders (CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive)
+        VALUES (@CustomerID, @e.EmployeeID, @OrderDate, @OrderAmount, 1);
         
         SET @NewOrderID = SCOPE_IDENTITY();
         
@@ -1156,7 +1156,7 @@ BEGIN
             DECLARE @AuditMessage VARCHAR(500);
             SET @AuditMessage = 'Order ' + CAST(@NewOrderID AS VARCHAR) + 
                                ' created for Customer ' + CAST(@CustomerID AS VARCHAR) + 
-                               ' by Employee ' + CAST(@EmployeeID AS VARCHAR) + 
+                               ' by Employee ' + CAST(@e.EmployeeID AS VARCHAR) + 
                                ' for amount ' + FORMAT(@OrderAmount, 'C') + 
                                ' on ' + FORMAT(@OrderDate, 'yyyy-MM-dd');
             
@@ -1207,7 +1207,7 @@ DECLARE @OrderID INT, @Message VARCHAR(1000), @Result INT;
 -- Test 1: Successful order processing
 EXEC @Result = sp_Lab_ProcessOrderWithValidation
     @CustomerID = 6001,
-    @EmployeeID = 3001,
+    @e.EmployeeID = 3001,
     @OrderAmount = 5000.00,
     @ValidateCustomerCredit = 1,
     @CreateAuditLog = 1,
@@ -1219,7 +1219,7 @@ SELECT @Result AS ReturnCode, @OrderID AS NewOrderID, @Message AS ProcessingMess
 -- Test 2: Test credit limit validation
 EXEC @Result = sp_Lab_ProcessOrderWithValidation
     @CustomerID = 6001,
-    @EmployeeID = 3001,
+    @e.EmployeeID = 3001,
     @OrderAmount = 75000.00,  -- Exceeds credit limit
     @ValidateCustomerCredit = 1,
     @NewOrderID = @OrderID OUTPUT,
@@ -1230,7 +1230,7 @@ SELECT @Result AS CreditTestResult, @Message AS CreditTestMessage;
 -- Test 3: Test with invalid customer
 EXEC @Result = sp_Lab_ProcessOrderWithValidation
     @CustomerID = 99999,  -- Invalid customer
-    @EmployeeID = 3001,
+    @e.EmployeeID = 3001,
     @OrderAmount = 1000.00,
     @NewOrderID = @OrderID OUTPUT,
     @ProcessingMessage = @Message OUTPUT;
@@ -1240,7 +1240,7 @@ SELECT @Result AS InvalidCustomerResult, @Message AS InvalidCustomerMessage;
 -- Test 4: Bypass credit validation
 EXEC @Result = sp_Lab_ProcessOrderWithValidation
     @CustomerID = 6002,
-    @EmployeeID = 3002,
+    @e.EmployeeID = 3002,
     @OrderAmount = 15000.00,
     @ValidateCustomerCredit = 0,  -- Skip credit check
     @CreateAuditLog = 1,

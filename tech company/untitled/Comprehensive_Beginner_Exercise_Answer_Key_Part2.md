@@ -275,125 +275,125 @@ WITH SalaryAnalytics AS (
         e.BaseSalary,
         e.HireDate,
         
-        -- Get BaseSalary history for calculations (simulated with random increases)
+        -- Get e.BaseSalary history for calculations (simulated with random increases)
         e.BaseSalary * 0.95 as EstimatedStartingSalary,  -- Assume 5% growth
         
         -- Performance metrics
         (SELECT AVG(pm.Achievement) 
          FROM PerformanceMetrics pm 
-         WHERE pm.EmployeeID = e.EmployeeID) as AvgPerformanceRating,
+         WHERE pm.e.EmployeeID = e.EmployeeID) as AvgPerformanceRating,
         
         -- Project budget data
-        (SELECT SUM(p.Budget) 
+        (SELECT SUM(p.d.Budget) 
          FROM Projects p 
          INNER JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
-         WHERE ep.EmployeeID = e.EmployeeID) as TotalProjectBudgetManaged
+         WHERE ep.e.EmployeeID = e.EmployeeID) as TotalProjectBudgetManaged
          
     FROM Employees e
-        INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+        INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
     WHERE e.IsActive = 1
 )
 
 SELECT 
-    EmployeeID,
+    e.EmployeeID,
     EmployeeName,
-    DepartmentName,
-    JobTitle,
+    d.DepartmentName,
+    e.JobTitle,
     
-    -- BaseSalary calculations with mathematical functions
-    FORMAT(BaseSalary, 'C') as CurrentSalary,
+    -- e.BaseSalary calculations with mathematical functions
+    FORMAT(e.BaseSalary, 'C') as CurrentSalary,
     FORMAT(EstimatedStartingSalary, 'C') as EstimatedStartingSalary,
     
     -- Percentage calculations
     CAST(
-        ((BaseSalary - EstimatedStartingSalary) / EstimatedStartingSalary) * 100 
+        ((e.BaseSalary - EstimatedStartingSalary) / EstimatedStartingSalary) * 100 
         AS DECIMAL(5,2)
     ) as SalaryGrowthPercentage,
     
     -- Annual calculations
-    CAST(BaseSalary / 12 AS DECIMAL(10,2)) as MonthlySalary,
-    CAST(BaseSalary / 52 AS DECIMAL(10,2)) as WeeklySalary,
-    CAST(BaseSalary / 260 AS DECIMAL(10,2)) as DailySalary,  -- 260 work days per year
-    CAST(BaseSalary / 2080 AS DECIMAL(10,2)) as HourlySalary,  -- 2080 work hours per year
+    CAST(e.BaseSalary / 12 AS DECIMAL(10,2)) as MonthlySalary,
+    CAST(e.BaseSalary / 52 AS DECIMAL(10,2)) as WeeklySalary,
+    CAST(e.BaseSalary / 260 AS DECIMAL(10,2)) as DailySalary,  -- 260 work days per year
+    CAST(e.BaseSalary / 2080 AS DECIMAL(10,2)) as HourlySalary,  -- 2080 work hours per year
     
     -- Mathematical functions for analysis
-    ROUND(BaseSalary, -3) as SalaryRoundedToNearestThousand,
-    CEILING(BaseSalary / 1000) * 1000 as SalaryCeilingThousand,
-    FLOOR(BaseSalary / 1000) * 1000 as SalaryFloorThousand,
+    ROUND(e.BaseSalary, -3) as SalaryRoundedToNearestThousand,
+    CEILING(e.BaseSalary / 1000) * 1000 as SalaryCeilingThousand,
+    FLOOR(e.BaseSalary / 1000) * 1000 as SalaryFloorThousand,
     
     -- Statistical calculations
-    ABS(BaseSalary - 75000) as DeviationFromTarget75K,
+    ABS(e.BaseSalary - 75000) as DeviationFromTarget75K,
     
     -- Power and exponential calculations for projections
-    POWER((BaseSalary / EstimatedStartingSalary), 
-          1.0 / DATEDIFF(YEAR, HireDate, GETDATE())) as AnnualGrowthRate,
+    POWER((e.BaseSalary / EstimatedStartingSalary), 
+          1.0 / DATEDIFF(YEAR, e.HireDate, GETDATE())) as AnnualGrowthRate,
     
     -- Compound interest projection (3% annual increases)
     CAST(
-        BaseSalary * POWER(1.03, 5) AS DECIMAL(10,2)
+        e.BaseSalary * POWER(1.03, 5) AS DECIMAL(10,2)
     ) as ProjectedSalaryIn5Years,
     
     -- Logarithmic calculations for analysis
-    LOG(BaseSalary) as LogSalary,
-    LOG10(BaseSalary) as Log10Salary,
+    LOG(e.BaseSalary) as LogSalary,
+    LOG10(e.BaseSalary) as Log10Salary,
     
     -- Trigonometric functions for performance visualization (example)
     SIN(ISNULL(AvgPerformanceRating, 3) * PI() / 10) as PerformanceSineWave,
     
     -- Random functions for sampling (deterministic based on employee ID)
-    (EmployeeID % 100) / 100.0 as PseudoRandomSample,
+    (e.EmployeeID % 100) / 100.0 as PseudoRandomSample,
     
     -- Financial calculations
     CASE 
         WHEN TotalProjectBudgetManaged IS NOT NULL AND TotalProjectBudgetManaged > 0
-        THEN CAST(TotalProjectBudgetManaged / BaseSalary AS DECIMAL(10,2))
+        THEN CAST(TotalProjectBudgetManaged / e.BaseSalary AS DECIMAL(10,2))
         ELSE 0
     END as BudgetToSalaryRatio,
     
     -- ROI calculations (simplified)
     CASE 
         WHEN AvgPerformanceRating IS NOT NULL AND AvgPerformanceRating > 0
-        THEN CAST((AvgPerformanceRating * BaseSalary) / BaseSalary AS DECIMAL(5,2))
+        THEN CAST((AvgPerformanceRating * e.BaseSalary) / e.BaseSalary AS DECIMAL(5,2))
         ELSE 0
     END as PerformanceROI,
     
     -- Quartile assignments using mathematical division
     CASE 
-        WHEN BaseSalary <= (SELECT PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY BaseSalary) FROM SalaryAnalytics) THEN 1
-        WHEN BaseSalary <= (SELECT PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY BaseSalary) FROM SalaryAnalytics) THEN 2
-        WHEN BaseSalary <= (SELECT PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY BaseSalary) FROM SalaryAnalytics) THEN 3
+        WHEN e.BaseSalary <= (SELECT PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY e.BaseSalary) FROM SalaryAnalytics) THEN 1
+        WHEN e.BaseSalary <= (SELECT PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY e.BaseSalary) FROM SalaryAnalytics) THEN 2
+        WHEN e.BaseSalary <= (SELECT PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY e.BaseSalary) FROM SalaryAnalytics) THEN 3
         ELSE 4
     END as SalaryQuartile,
     
     -- Square root for standard deviation-like calculations
-    SQRT(ABS(BaseSalary - (SELECT AVG(e.BaseSalary) FROM SalaryAnalytics WHERE d.d.DepartmentName = sa.d.DepartmentName))) as SalaryDeviationSqrt,
+    SQRT(ABS(e.BaseSalary - (SELECT AVG(e.BaseSalary) FROM SalaryAnalytics WHERE d.DepartmentName = sa.d.DepartmentName))) as SalaryDeviationSqrt,
     
     -- Modulo operations for grouping
-    EmployeeID % 10 as EmployeeGroupMod10,
+    e.EmployeeID % 10 as EmployeeGroupMod10,
     
     -- Tax bracket simulation (simplified US federal rates)
     CASE 
-        WHEN BaseSalary <= 10275 THEN BaseSalary * 0.10
-        WHEN BaseSalary <= 41775 THEN 1027.50 + (BaseSalary - 10275) * 0.12
-        WHEN BaseSalary <= 89450 THEN 4807.50 + (BaseSalary - 41775) * 0.22
-        WHEN BaseSalary <= 190750 THEN 15213.50 + (BaseSalary - 89450) * 0.24
-        ELSE 39895.50 + (BaseSalary - 190750) * 0.32
+        WHEN e.BaseSalary <= 10275 THEN e.BaseSalary * 0.10
+        WHEN e.BaseSalary <= 41775 THEN 1027.50 + (e.BaseSalary - 10275) * 0.12
+        WHEN e.BaseSalary <= 89450 THEN 4807.50 + (e.BaseSalary - 41775) * 0.22
+        WHEN e.BaseSalary <= 190750 THEN 15213.50 + (e.BaseSalary - 89450) * 0.24
+        ELSE 39895.50 + (e.BaseSalary - 190750) * 0.32
     END as EstimatedFederalTax,
     
-    -- Net BaseSalary calculation
-    BaseSalary - (
+    -- Net e.BaseSalary calculation
+    e.BaseSalary - (
         CASE 
-            WHEN BaseSalary <= 10275 THEN BaseSalary * 0.10
-            WHEN BaseSalary <= 41775 THEN 1027.50 + (BaseSalary - 10275) * 0.12
-            WHEN BaseSalary <= 89450 THEN 4807.50 + (BaseSalary - 41775) * 0.22
-            WHEN BaseSalary <= 190750 THEN 15213.50 + (BaseSalary - 89450) * 0.24
-            ELSE 39895.50 + (BaseSalary - 190750) * 0.32
+            WHEN e.BaseSalary <= 10275 THEN e.BaseSalary * 0.10
+            WHEN e.BaseSalary <= 41775 THEN 1027.50 + (e.BaseSalary - 10275) * 0.12
+            WHEN e.BaseSalary <= 89450 THEN 4807.50 + (e.BaseSalary - 41775) * 0.22
+            WHEN e.BaseSalary <= 190750 THEN 15213.50 + (e.BaseSalary - 89450) * 0.24
+            ELSE 39895.50 + (e.BaseSalary - 190750) * 0.32
         END
-    ) - (BaseSalary * 0.0765) as EstimatedNetSalary  -- Subtract FICA taxes
+    ) - (e.BaseSalary * 0.0765) as EstimatedNetSalary  -- Subtract FICA taxes
 
 FROM SalaryAnalytics sa
 
-ORDER BY BaseSalary DESC;
+ORDER BY e.BaseSalary DESC;
 ```
 
 **🎯 Business Explanation**: Mathematical analysis of compensation data supports budgeting, tax planning, and performance evaluation. These calculations help HR understand the financial impact of BaseSalary decisions and project future compensation costs.
@@ -435,7 +435,7 @@ WITH DepartmentMetrics AS (
         COUNT(CASE WHEN DATEDIFF(YEAR, e.BirthDate, GETDATE()) >= 30 AND DATEDIFF(YEAR, e.BirthDate, GETDATE()) < 50 THEN 1 END) as Employees30to50,
         COUNT(CASE WHEN DATEDIFF(YEAR, e.BirthDate, GETDATE()) >= 50 THEN 1 END) as EmployeesOver50,
         
-        -- BaseSalary statistics
+        -- e.BaseSalary statistics
         AVG(e.BaseSalary) as AvgSalary,
         MIN(e.BaseSalary) as MinSalary,
         MAX(e.BaseSalary) as MaxSalary,
@@ -458,22 +458,22 @@ WITH DepartmentMetrics AS (
         
     FROM Departments d
         INNER JOIN Companies c ON d.CompanyID = c.CompanyID
-        LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID AND e.IsActive = 1
+        LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
         LEFT JOIN (
             -- Get latest performance rating for each employee
             SELECT DISTINCT
-                pm1.EmployeeID, 
+                pm1.e.EmployeeID, 
                 pm1.Achievement,
-                ROW_NUMBER() OVER (PARTITION BY pm1.EmployeeID ORDER BY pm1.ReviewDate DESC) as rn
+                ROW_NUMBER() OVER (PARTITION BY pm1.e.EmployeeID ORDER BY pm1.ReviewDate DESC) as rn
             FROM PerformanceMetrics pm1
-        ) pm ON e.EmployeeID = pm.EmployeeID AND pm.rn = 1
-        LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
+        ) pm ON e.EmployeeID = pm.e.EmployeeID AND pm.rn = 1
+        LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.e.EmployeeID
         LEFT JOIN (
             -- Count skills per employee
-            SELECT EmployeeID, COUNT(*) as SkillCount
-            FROM Employees ekills
-            GROUP BY EmployeeID
-        ) emp_skills ON e.EmployeeID = emp_skills.EmployeeID
+            SELECT e.EmployeeID, COUNT(*) as SkillCount
+            FROM Employees e ekills
+            GROUP BY e.EmployeeID
+        ) emp_skills ON e.EmployeeID = emp_skills.e.EmployeeID
         
     GROUP BY d.DepartmentID, d.DepartmentName, c.CompanyName
     HAVING COUNT(e.EmployeeID) > 0  -- Only departments with employees
@@ -483,14 +483,14 @@ ProjectMetrics AS (
     SELECT 
         d.DepartmentID,
         COUNT(DISTINCT p.ProjectID) as ActiveProjects,
-        SUM(p.Budget) as TotalProjectBudget,
-        AVG(p.Budget) as AvgProjectBudget,
-        COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) as CompletedProjects,
-        COUNT(CASE WHEN p.Status = 'Active' THEN 1 END) as CurrentActiveProjects,
-        COUNT(CASE WHEN p.Status = 'On Hold' THEN 1 END) as ProjectsOnHold
+        SUM(p.d.Budget) as TotalProjectBudget,
+        AVG(p.d.Budget) as AvgProjectBudget,
+        COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) as CompletedProjects,
+        COUNT(CASE WHEN p.IsActive = 'Active' THEN 1 END) as CurrentActiveProjects,
+        COUNT(CASE WHEN p.IsActive = 'On Hold' THEN 1 END) as ProjectsOnHold
     FROM Departments d
-        LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID
-        LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+        LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+        LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
         LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID
     GROUP BY d.DepartmentID
 )
@@ -546,7 +546,7 @@ SELECT dm.d.DepartmentName,
         ELSE 0
     END as ProjectsPerEmployee,
     
-    -- d.d.DepartmentName Health Score (composite metric)
+    -- d.DepartmentName Health Score (composite metric)
     (
         -- Performance component (40%)
         CASE 
@@ -591,7 +591,7 @@ SELECT dm.d.DepartmentName,
     END as PrimaryRecommendation
 
 FROM DepartmentMetrics dm
-    LEFT JOIN ProjectMetrics pm ON dm.DepartmentID = pm.DepartmentID
+    LEFT JOIN ProjectMetrics pm ON dm.d.DepartmentID = pm.d.DepartmentID
 
 ORDER BY 
     (
@@ -664,30 +664,30 @@ WITH ExecutiveSummary AS (
         -- Financial overview
         SUM(e.BaseSalary) as TotalAnnualPayroll,
         AVG(e.BaseSalary) as AvgEmployeeSalary,
-        SUM(p.Budget) as TotalProjectBudgets,
+        SUM(p.d.Budget) as TotalProjectBudgets,
         
         -- Performance overview
         AVG(pm.Achievement) as OverallPerformanceRating,
         COUNT(CASE WHEN pm.Achievement >= 4.0 THEN 1 END) * 100.0 / COUNT(pm.Achievement) as HighPerformerPercentage
         
     FROM Employees e
-        INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+        INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
         INNER JOIN Companies c ON d.CompanyID = c.CompanyID
-        LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+        LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
         LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID
         LEFT JOIN (
             SELECT DISTINCT
-                pm1.EmployeeID, 
+                pm1.e.EmployeeID, 
                 pm1.Achievement,
-                ROW_NUMBER() OVER (PARTITION BY pm1.EmployeeID ORDER BY pm1.ReviewDate DESC) as rn
+                ROW_NUMBER() OVER (PARTITION BY pm1.e.EmployeeID ORDER BY pm1.ReviewDate DESC) as rn
             FROM PerformanceMetrics pm1
-        ) pm ON e.EmployeeID = pm.EmployeeID AND pm.rn = 1
+        ) pm ON e.EmployeeID = pm.e.EmployeeID AND pm.rn = 1
     WHERE e.IsActive = 1
 ),
 
 -- Competitive positioning analysis
 CompetitiveAnalysis AS (
-    SELECT d.d.DepartmentName,
+    SELECT d.DepartmentName,
         
         -- Talent competitiveness
         AVG(e.BaseSalary) as AvgDeptSalary,
@@ -704,18 +704,18 @@ CompetitiveAnalysis AS (
         COUNT(DISTINCT es.SkillID) * 1.0 / COUNT(DISTINCT e.EmployeeID) as SkillDiversityIndex
         
     FROM Departments d
-        INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID AND e.IsActive = 1
-        LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
-        LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+        INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
+        LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.e.EmployeeID
+        LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
         LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID
         LEFT JOIN (
             SELECT DISTINCT
-                pm1.EmployeeID, 
+                pm1.e.EmployeeID, 
                 pm1.Achievement,
-                ROW_NUMBER() OVER (PARTITION BY pm1.EmployeeID ORDER BY pm1.ReviewDate DESC) as rn
+                ROW_NUMBER() OVER (PARTITION BY pm1.e.EmployeeID ORDER BY pm1.ReviewDate DESC) as rn
             FROM PerformanceMetrics pm1
-        ) pm ON e.EmployeeID = pm.EmployeeID AND pm.rn = 1
-    GROUP BY d.DepartmentID, d.d.DepartmentName
+        ) pm ON e.EmployeeID = pm.e.EmployeeID AND pm.rn = 1
+    GROUP BY d.DepartmentID, d.DepartmentName
 ),
 
 -- Risk and opportunity assessment
@@ -732,8 +732,8 @@ RiskOpportunityAnalysis AS (
                     AND NOT EXISTS (
                         SELECT 1 FROM EmployeeProjects ep2 
                         INNER JOIN Projects p2 ON ep2.ProjectID = p2.ProjectID
-                        WHERE ep2.EmployeeID = e.EmployeeID 
-                        AND p2.Status = 'Active'
+                        WHERE ep2.e.EmployeeID = e.EmployeeID 
+                        AND p2.IsActive = 'Active'
                     )
               THEN 1 END) as UnderutilizedTalent,
               
@@ -741,32 +741,32 @@ RiskOpportunityAnalysis AS (
         COUNT(CASE WHEN dept_skills.SkillCount < 5 THEN 1 END) as DepartmentsWithSkillGaps,
         
         -- Revenue growth potential (projects in pipeline)
-        SUM(CASE WHEN p.Status = 'Planning' THEN p.Budget ELSE 0 END) as PipelineValue
+        SUM(CASE WHEN p.IsActive = 'Planning' THEN p.d.Budget ELSE 0 END) as PipelineValue
         
     FROM Employees e
-        INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+        INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
         LEFT JOIN (
-            SELECT DepartmentID, AVG(e.BaseSalary) as AvgSalary
-            FROM Employees 
+            SELECT d.DepartmentID, AVG(e.BaseSalary) as AvgSalary
+            FROM Employees e 
             WHERE IsActive = 1
-            GROUP BY DepartmentID
-        ) dept_avg ON e.DepartmentID = dept_avg.DepartmentID
+            GROUP BY d.DepartmentID
+        ) dept_avg ON e.d.DepartmentID = dept_avg.d.DepartmentID
         LEFT JOIN (
-            SELECT d2.DepartmentID, COUNT(DISTINCT es2.SkillID) as SkillCount
-            FROM Departments d2
-            LEFT JOIN Employees e2 ON d2.DepartmentID = e2.DepartmentID
-            LEFT JOIN EmployeeSkills es2 ON e2.EmployeeID = es2.EmployeeID
-            GROUP BY d2.DepartmentID
-        ) dept_skills ON d.DepartmentID = dept_skills.DepartmentID
-        LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+            SELECT d2.d.DepartmentID, COUNT(DISTINCT es2.SkillID) as SkillCount
+            FROM Departments d d2
+            LEFT JOIN Employees e2 ON d2.d.DepartmentID = e2.d.DepartmentID
+            LEFT JOIN EmployeeSkills es2 ON e2.e.EmployeeID = es2.e.EmployeeID
+            GROUP BY d2.d.DepartmentID
+        ) dept_skills ON d.DepartmentID = dept_skills.d.DepartmentID
+        LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
         LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID
         LEFT JOIN (
             SELECT DISTINCT
-                pm1.EmployeeID, 
+                pm1.e.EmployeeID, 
                 pm1.Achievement,
-                ROW_NUMBER() OVER (PARTITION BY pm1.EmployeeID ORDER BY pm1.ReviewDate DESC) as rn
+                ROW_NUMBER() OVER (PARTITION BY pm1.e.EmployeeID ORDER BY pm1.ReviewDate DESC) as rn
             FROM PerformanceMetrics pm1
-        ) pm ON e.EmployeeID = pm.EmployeeID AND pm.rn = 1
+        ) pm ON e.EmployeeID = pm.e.EmployeeID AND pm.rn = 1
     WHERE e.IsActive = 1
 )
 
@@ -904,7 +904,7 @@ FROM ExecutiveSummary es
 -- Supporting departmental analysis for deep-dive discussions
 SELECT 
     '=== DEPARTMENTAL DEEP DIVE ANALYSIS ===' as DepartmentalAnalysis,
-    ca.DepartmentName,
+    ca.d.DepartmentName,
     FORMAT(ca.AvgDeptSalary, 'C') as AverageSalary,
     ca.UniqueSkillsInDept as SkillPortfolio,
     CAST(ca.AvgTenure AS DECIMAL(3,1)) as AverageTenure,
@@ -912,7 +912,7 @@ SELECT
     CAST(ca.ProjectsPerEmployee AS DECIMAL(3,1)) as ProjectsPerEmployee,
     CAST(ca.SkillDiversityIndex AS DECIMAL(3,1)) as SkillDiversityIndex,
     
-    -- d.d.DepartmentName health score
+    -- d.DepartmentName health score
     (
         CASE WHEN ca.DeptPerformanceRating >= 4.0 THEN 25 WHEN ca.DeptPerformanceRating >= 3.5 THEN 20 ELSE 15 END +
         CASE WHEN ca.AvgTenure >= 3 THEN 25 WHEN ca.AvgTenure >= 2 THEN 20 ELSE 15 END +
@@ -920,7 +920,7 @@ SELECT
         CASE WHEN ca.ProjectsPerEmployee >= 1 THEN 25 WHEN ca.ProjectsPerEmployee >= 0.5 THEN 20 ELSE 15 END
     ) as HealthScore,
     
-    -- Strategic recommendation per d.d.DepartmentName
+    -- Strategic recommendation per d.DepartmentName
     CASE 
         WHEN ca.DeptPerformanceRating < 3.5 THEN 'Performance Improvement Focus'
         WHEN ca.SkillDiversityIndex < 2 THEN 'Skills Development Investment'

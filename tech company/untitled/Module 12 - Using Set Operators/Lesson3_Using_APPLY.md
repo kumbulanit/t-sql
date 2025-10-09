@@ -19,12 +19,12 @@ The APPLY operator is a unique SQL Server feature that enables row-by-row operat
 **Core Tables for APPLY Examples:**
 
 ```sql
-Employees: EmployeeID (3001+), FirstName, LastName, BaseSalary, DepartmentID, ManagerID, HireDate, IsActive
-Departments: DepartmentID (2001+), DepartmentName, Budget, Location, IsActive
-Projects: ProjectID (4001+), ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
-Orders: OrderID (5001+), CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
+Employees: e.EmployeeID (3001+), e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID, ManagerID, e.HireDate, IsActive
+Departments: d.DepartmentID (2001+), d.DepartmentName, d.Budget, Location, IsActive
+Projects: ProjectID (4001+), ProjectName, d.Budget, ProjectManagerID, StartDate, EndDate, IsActive
+Orders: OrderID (5001+), CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
 Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, IsActive
-EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
+EmployeeProjects: e.EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
 ```
 
 ---
@@ -67,10 +67,10 @@ SELECT d.DepartmentName,
     d.Budget AS DepartmentBudget,
     top_performers.EmployeeRank,
     top_performers.EmployeeName,
-    top_performers.JobTitle,
-    top_performers.BaseSalary,
+    top_performers.e.JobTitle,
+    top_performers.e.BaseSalary,
     top_performers.SalaryPercentileInDept,
-    FORMAT(top_performers.BaseSalary / d.Budget * 100, 'N2') + '%' AS SalaryAsBudgetPercent
+    FORMAT(top_performers.e.BaseSalary / d.Budget * 100, 'N2') + '%' AS SalaryAsBudgetPercent
 FROM Departments d
 CROSS APPLY (
     SELECT TOP 3
@@ -82,8 +82,8 @@ CROSS APPLY (
         e.HireDate,
         NTILE(4) OVER (ORDER BY e.BaseSalary) AS SalaryPercentileInDept
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    WHERE e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    WHERE e.d.DepartmentID = d.DepartmentID
     AND e.IsActive = 1
     ORDER BY e.BaseSalary DESC
 ) AS top_performers
@@ -94,13 +94,13 @@ ORDER BY d.DepartmentName, top_performers.EmployeeRank;
 SELECT d.DepartmentName,
     top_performers.EmployeeRank,
     top_performers.EmployeeName,
-    top_performers.BaseSalary,
+    top_performers.e.BaseSalary,
     dept_stats.DepartmentAvgSalary,
     dept_stats.TotalEmployees,
-    FORMAT((top_performers.BaseSalary / dept_stats.DepartmentAvgSalary - 1) * 100, 'N1') + '%' AS AboveAvgPercent,
+    FORMAT((top_performers.e.BaseSalary / dept_stats.DepartmentAvgSalary - 1) * 100, 'N1') + '%' AS AboveAvgPercent,
     CASE 
         WHEN top_performers.EmployeeRank = 1 THEN 'Top Performer'
-        WHEN top_performers.BaseSalary > dept_stats.DepartmentAvgSalary * 1.2 THEN 'High Performer'
+        WHEN top_performers.e.BaseSalary > dept_stats.DepartmentAvgSalary * 1.2 THEN 'High Performer'
         ELSE 'Standard Performer'
     END AS PerformanceCategory
 FROM Departments d
@@ -110,8 +110,8 @@ CROSS APPLY (
         e.FirstName + ' ' + e.LastName AS EmployeeName,
         e.BaseSalary
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    WHERE e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    WHERE e.d.DepartmentID = d.DepartmentID
     AND e.IsActive = 1
     ORDER BY e.BaseSalary DESC
 ) AS top_performers
@@ -120,7 +120,7 @@ CROSS APPLY (
         AVG(e.BaseSalary) AS DepartmentAvgSalary,
         COUNT(*) AS TotalEmployees
     FROM Employees e
-    WHERE e.DepartmentID = d.DepartmentID
+    WHERE e.d.DepartmentID = d.DepartmentID
     AND e.IsActive = 1
 ) AS dept_stats
 WHERE d.IsActive = 1
@@ -151,10 +151,10 @@ SELECT
     ISNULL(emp_stats.MaxSalary, 0) AS MaxSalary,
     CASE 
         WHEN emp_stats.EmployeeCount IS NULL THEN 'No Employees'
-        WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.8 THEN 'High BaseSalary Utilization'
-        WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.6 THEN 'Moderate BaseSalary Utilization'
-        WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.4 THEN 'Low BaseSalary Utilization'
-        ELSE 'Very Low BaseSalary Utilization'
+        WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.8 THEN 'High e.BaseSalary Utilization'
+        WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.6 THEN 'Moderate e.BaseSalary Utilization'
+        WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.4 THEN 'Low e.BaseSalary Utilization'
+        ELSE 'Very Low e.BaseSalary Utilization'
     END AS BudgetUtilizationStatus,
     CASE 
         WHEN emp_stats.EmployeeCount IS NULL THEN NULL
@@ -170,8 +170,8 @@ OUTER APPLY (
         MAX(e.BaseSalary) AS MaxSalary,
         COUNT(CASE WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 5 THEN 1 END) AS LongTenureEmployees
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    WHERE e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    WHERE e.d.DepartmentID = d.DepartmentID
     AND e.IsActive = 1
 ) AS emp_stats
 WHERE d.IsActive = 1
@@ -190,10 +190,10 @@ FROM (
         ISNULL(emp_stats.EmployeeCount, 0) AS EmployeeCount,
         CASE 
             WHEN emp_stats.EmployeeCount IS NULL THEN 'No Employees'
-            WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.8 THEN 'High BaseSalary Utilization'
-            WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.6 THEN 'Moderate BaseSalary Utilization'
-            WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.4 THEN 'Low BaseSalary Utilization'
-            ELSE 'Very Low BaseSalary Utilization'
+            WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.8 THEN 'High e.BaseSalary Utilization'
+            WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.6 THEN 'Moderate e.BaseSalary Utilization'
+            WHEN emp_stats.TotalSalaryExpense > d.Budget * 0.4 THEN 'Low e.BaseSalary Utilization'
+            ELSE 'Very Low e.BaseSalary Utilization'
         END AS BudgetUtilizationStatus,
         CASE 
             WHEN emp_stats.EmployeeCount IS NULL THEN NULL
@@ -207,8 +207,8 @@ FROM (
             COUNT(*) AS EmployeeCount,
             SUM(e.BaseSalary) AS TotalSalaryExpense
         FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-        WHERE e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+        WHERE e.d.DepartmentID = d.DepartmentID
         AND e.IsActive = 1
     ) AS emp_stats
     WHERE d.IsActive = 1
@@ -217,14 +217,14 @@ CROSS APPLY (
     SELECT 
         CASE 
             WHEN main_analysis.EmployeeCount = 0 THEN 'HIRING'
-            WHEN main_analysis.BudgetUtilizationStatus = 'High BaseSalary Utilization' THEN 'BUDGET_REVIEW'
-            WHEN main_analysis.BudgetUtilizationStatus = 'Very Low BaseSalary Utilization' THEN 'EXPANSION'
+            WHEN main_analysis.BudgetUtilizationStatus = 'High e.BaseSalary Utilization' THEN 'BUDGET_REVIEW'
+            WHEN main_analysis.BudgetUtilizationStatus = 'Very Low e.BaseSalary Utilization' THEN 'EXPANSION'
             ELSE 'OPTIMIZATION'
         END AS RecommendationCategory,
         CASE 
             WHEN main_analysis.EmployeeCount = 0 THEN 'Consider hiring employees for this department'
-            WHEN main_analysis.BudgetUtilizationStatus = 'High BaseSalary Utilization' THEN 'Review budget allocation or BaseSalary structure'
-            WHEN main_analysis.BudgetUtilizationStatus = 'Very Low BaseSalary Utilization' THEN 'Opportunity for team expansion or BaseSalary increases'
+            WHEN main_analysis.BudgetUtilizationStatus = 'High e.BaseSalary Utilization' THEN 'Review budget allocation or e.BaseSalary structure'
+            WHEN main_analysis.BudgetUtilizationStatus = 'Very Low e.BaseSalary Utilization' THEN 'Opportunity for team expansion or e.BaseSalary increases'
             ELSE 'Continue monitoring and optimize as needed'
         END AS Recommendation
 ) AS recommendations
@@ -241,7 +241,7 @@ ORDER BY main_analysis.EmployeeCount DESC;
 -- First, create a table-valued function for employee project analysis
 -- (Run this separately as a DDL statement)
 /*
-CREATE FUNCTION dbo.fn_GetEmployeeProjectSummary(@EmployeeID INT, @LookbackMonths INT = 12)
+CREATE FUNCTION dbo.fn_GetEmployeeProjectSummary(@e.EmployeeID INT, @LookbackMonths INT = 12)
 RETURNS TABLE
 AS
 RETURN
@@ -250,13 +250,13 @@ RETURN
         COUNT(DISTINCT ep.ProjectID) AS ProjectCount,
         SUM(ISNULL(ep.HoursWorked, 0)) AS TotalHours,
         AVG(ISNULL(ep.HoursWorked, 0)) AS AverageHoursPerProject,
-        COUNT(DISTINCT CASE WHEN p.Budget > 100000 THEN ep.ProjectID END) AS HighValueProjectCount,
-        SUM(CASE WHEN p.Budget > 100000 THEN ISNULL(ep.HoursWorked, 0) ELSE 0 END) AS HighValueProjectHours,
+        COUNT(DISTINCT CASE WHEN p.d.Budget > 100000 THEN ep.ProjectID END) AS HighValueProjectCount,
+        SUM(CASE WHEN p.d.Budget > 100000 THEN ISNULL(ep.HoursWorked, 0) ELSE 0 END) AS HighValueProjectHours,
         MIN(ep.StartDate) AS FirstProjectStart,
         MAX(ISNULL(ep.EndDate, GETDATE())) AS LastProjectActivity
     FROM EmployeeProjects ep
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-    WHERE ep.EmployeeID = @EmployeeID
+    WHERE ep.e.EmployeeID = @e.EmployeeID
     AND ep.IsActive = 1
     AND p.IsActive = 1
     AND ep.StartDate >= DATEADD(MONTH, -@LookbackMonths, GETDATE())
@@ -290,20 +290,20 @@ SELECT
     END AS ContributionLevel,
     project_summary.TotalHours * (e.BaseSalary / 2080.0) AS EstimatedProjectCostContribution
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 CROSS APPLY (
     -- Inline table expression simulating the function
     SELECT 
         COUNT(DISTINCT ep.ProjectID) AS ProjectCount,
         SUM(ISNULL(ep.HoursWorked, 0)) AS TotalHours,
         AVG(ISNULL(ep.HoursWorked, 0)) AS AverageHoursPerProject,
-        COUNT(DISTINCT CASE WHEN p.Budget > 100000 THEN ep.ProjectID END) AS HighValueProjectCount,
-        SUM(CASE WHEN p.Budget > 100000 THEN ISNULL(ep.HoursWorked, 0) ELSE 0 END) AS HighValueProjectHours,
+        COUNT(DISTINCT CASE WHEN p.d.Budget > 100000 THEN ep.ProjectID END) AS HighValueProjectCount,
+        SUM(CASE WHEN p.d.Budget > 100000 THEN ISNULL(ep.HoursWorked, 0) ELSE 0 END) AS HighValueProjectHours,
         MIN(ep.StartDate) AS FirstProjectStart,
         MAX(ISNULL(ep.EndDate, GETDATE())) AS LastProjectActivity
     FROM EmployeeProjects ep
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-    WHERE ep.EmployeeID = e.EmployeeID
+    WHERE ep.e.EmployeeID = e.EmployeeID
     AND ep.IsActive = 1
     AND p.IsActive = 1
     AND ep.StartDate >= DATEADD(MONTH, -12, GETDATE())
@@ -455,16 +455,16 @@ ORDER BY CombinedRevenue DESC;
 -- Step 1: Create appropriate indexes (run separately)
 /*
 CREATE INDEX IX_EmployeeProjects_Employee_Active 
-ON EmployeeProjects (EmployeeID, IsActive) 
+ON EmployeeProjects (e.EmployeeID, IsActive) 
 INCLUDE (ProjectID, HoursWorked, StartDate, EndDate);
 
 CREATE INDEX IX_Projects_Active_Budget 
-ON Projects (IsActive, Budget) 
+ON Projects (IsActive, d.Budget) 
 INCLUDE (ProjectID, ProjectName, StartDate, EndDate);
 
 CREATE INDEX IX_Employees_Active_Department 
-ON Employees (IsActive, DepartmentID) 
-INCLUDE (EmployeeID, FirstName, LastName, BaseSalary, HireDate);
+ON Employees (IsActive, d.DepartmentID) 
+INCLUDE (e.EmployeeID, e.FirstName, e.LastName, e.BaseSalary, e.HireDate);
 */
 
 -- Step 2: Optimized query using proper filtering and indexing
@@ -476,7 +476,7 @@ WITH DepartmentPerformanceMetrics AS (
         COUNT(e.EmployeeID) AS TotalEmployees,
         AVG(e.BaseSalary) AS AvgSalary
     FROM Departments d
-    INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+    INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
     WHERE d.IsActive = 1 AND e.IsActive = 1
     GROUP BY d.DepartmentID, d.DepartmentName, d.Budget
 )
@@ -500,8 +500,8 @@ CROSS APPLY (
         COUNT(DISTINCT ep.ProjectID) AS ProjectCount,
         ROW_NUMBER() OVER (ORDER BY SUM(ISNULL(ep.HoursWorked, 0)) DESC) AS ContributionRank
     FROM Employees e
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-    WHERE e.DepartmentID = dpm.DepartmentID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    WHERE e.d.DepartmentID = dpm.d.DepartmentID
     AND e.IsActive = 1
     AND ep.IsActive = 1
     AND ep.StartDate >= DATEADD(YEAR, -1, GETDATE())  -- Filter for recent activity
@@ -515,19 +515,19 @@ CROSS APPLY (
     SELECT 
         SUM(ISNULL(ep.HoursWorked, 0)) AS DepartmentTotalHours
     FROM Employees e
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-    WHERE e.DepartmentID = dpm.DepartmentID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    WHERE e.d.DepartmentID = dpm.d.DepartmentID
     AND e.IsActive = 1
     AND ep.IsActive = 1
     AND ep.StartDate >= DATEADD(YEAR, -1, GETDATE())
 ) AS performance_metrics
 
-ORDER BY dpm.DepartmentName, top_contributors.ContributionRank;
+ORDER BY dpm.d.DepartmentName, top_contributors.ContributionRank;
 
 -- Performance monitoring query
 SELECT 
     'Query Performance Metrics' AS MetricType,
-    COUNT(DISTINCT dpm.DepartmentID) AS DepartmentsAnalyzed,
+    COUNT(DISTINCT dpm.d.DepartmentID) AS DepartmentsAnalyzed,
     COUNT(*) AS TopContributorsFound,
     AVG(top_contributors.TotalProjectHours) AS AvgContributionHours,
     MAX(top_contributors.TotalProjectHours) AS MaxContributionHours,
@@ -537,8 +537,8 @@ CROSS APPLY (
     SELECT TOP 5
         SUM(ISNULL(ep.HoursWorked, 0)) AS TotalProjectHours
     FROM Employees e
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-    WHERE e.DepartmentID = dpm.DepartmentID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    WHERE e.d.DepartmentID = dpm.d.DepartmentID
     AND e.IsActive = 1
     AND ep.IsActive = 1
     AND ep.StartDate >= DATEADD(YEAR, -1, GETDATE())
@@ -569,14 +569,14 @@ FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 LEFT JOIN (
     SELECT 
-        ep.EmployeeID,
+        ep.e.EmployeeID,
         COUNT(DISTINCT ep.ProjectID) AS ProjectCount,
         SUM(ep.HoursWorked) AS TotalHours
     FROM EmployeeProjects ep
     WHERE ep.IsActive = 1
     AND ep.StartDate >= DATEADD(MONTH, -6, GETDATE())
-    GROUP BY ep.EmployeeID
-) AS recent_projects ON e.EmployeeID = recent_projects.EmployeeID
+    GROUP BY ep.e.EmployeeID
+) AS recent_projects ON e.EmployeeID = recent_projects.e.EmployeeID
 WHERE e.IsActive = 1
 ORDER BY recent_projects.TotalHours DESC;
 
@@ -609,18 +609,18 @@ CROSS APPLY (
         END AS PerformanceCategory
     FROM EmployeeProjects ep
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-    WHERE ep.EmployeeID = e.EmployeeID
+    WHERE ep.e.EmployeeID = e.EmployeeID
     AND ep.IsActive = 1
     AND p.IsActive = 1
     AND ep.StartDate >= DATEADD(MONTH, -6, GETDATE())
 ) AS project_analysis
 
--- Dynamic BaseSalary comparison within d.DepartmentName
+-- Dynamic e.BaseSalary comparison within d.DepartmentName
 CROSS APPLY (
     SELECT 
         AVG(dept_emp.BaseSalary) AS DeptAvgSalary,
         RANK() OVER (ORDER BY dept_emp.BaseSalary DESC) AS SalaryRank
-    FROM Employees dept_emp
+    FROM Employees e dept_emp
     WHERE dept_emp.DepartmentID = e.DepartmentID
     AND dept_emp.IsActive = 1
     AND dept_emp.EmployeeID = e.EmployeeID  -- This ensures we get the rank for current employee
@@ -630,11 +630,11 @@ CROSS APPLY (
     SELECT 
         AVG(all_dept_emp.BaseSalary) AS DeptAvgSalary,
         (SELECT COUNT(*) + 1 
-         FROM Employees rank_emp 
+         FROM Employees e rank_emp 
          WHERE rank_emp.DepartmentID = e.DepartmentID 
          AND rank_emp.IsActive = 1 
          AND rank_emp.BaseSalary > e.BaseSalary) AS SalaryRank
-    FROM Employees all_dept_emp
+    FROM Employees e all_dept_emp
     WHERE all_dept_emp.DepartmentID = e.DepartmentID
     AND all_dept_emp.IsActive = 1
 ) AS salary_comparison

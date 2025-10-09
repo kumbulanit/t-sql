@@ -13,12 +13,12 @@ You are working as a Database Analyst at TechCorp, a technology consulting compa
 **Primary Tables:**
 
 ```sql
-Employees: EmployeeID (3001+), FirstName, LastName, BaseSalary, DepartmentID, ManagerID, HireDate, IsActive
+Employees: e.EmployeeID (3001+), e.FirstName, e.LastName, e.BaseSalary, DepartmentID, ManagerID, e.HireDate, IsActive
 Departments: DepartmentID (2001+), DepartmentName, Budget, Location, IsActive
 Projects: ProjectID (4001+), ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
-Orders: OrderID (5001+), CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
+Orders: OrderID (5001+), CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
 Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, IsActive
-EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
+EmployeeProjects: e.EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
 ```
 
 ---
@@ -38,8 +38,8 @@ EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, 
 - EmployeeName
 - DepartmentName
 - EmploymentStatus ('Current' or 'Former')
-- BaseSalary
-- LastWorkDate (HireDate for current, estimated end date for former)
+- e.BaseSalary
+- LastWorkDate (e.HireDate for current, estimated end date for former)
 
 **Your Solution**:
 
@@ -309,21 +309,21 @@ SELECT 'UNION ALL keeps duplicates' AS Concept, COUNT(*) AS ResultCount
 FROM (
     SELECT DepartmentID FROM Employees e WHERE e.IsActive = 1
     UNION ALL
-    SELECT DepartmentID FROM Employees WHERE IsActive = 1
+    SELECT DepartmentID FROM Employees e WHERE IsActive = 1
 ) AS union_all_result;
 
 -- Validation 2: EXCEPT operation verification
 SELECT 'Total Employees' AS Metric, COUNT(*) AS Count
-FROM Employees
+FROM Employees e
 WHERE IsActive = 1
 
 UNION ALL
 
 SELECT 'Employees Without Recent Projects' AS Metric, COUNT(*) AS Count
 FROM (
-    SELECT EmployeeID FROM Employees e WHERE e.IsActive = 1
+    SELECT e.EmployeeID FROM Employees e WHERE e.IsActive = 1
     EXCEPT
-    SELECT DISTINCT EmployeeID 
+    SELECT DISTINCT e.EmployeeID 
     FROM EmployeeProjects ep
     WHERE ep.IsActive = 1 
     AND ep.StartDate >= DATEADD(MONTH, -6, GETDATE())
@@ -332,9 +332,9 @@ FROM (
 -- Validation 3: INTERSECT operation verification
 SELECT 'Employees in Both Projects and Orders' AS Metric, COUNT(*) AS Count
 FROM (
-    SELECT DISTINCT EmployeeID FROM EmployeeProjects WHERE IsActive = 1
+    SELECT DISTINCT e.EmployeeID FROM EmployeeProjects WHERE IsActive = 1
     INTERSECT
-    SELECT DISTINCT EmployeeID FROM Orders WHERE IsActive = 1
+    SELECT DISTINCT e.EmployeeID FROM Orders WHERE IsActive = 1
 ) AS cross_functional;
 ```
 

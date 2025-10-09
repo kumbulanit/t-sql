@@ -40,38 +40,38 @@ USE TechCorpDB;
 -- Exercise 1.1a: Employee overview with aliases (Module 3 + 9)
 SELECT 
     COUNT(*) AS 'Total Employees',
-    AVG(e.BaseSalary) AS 'Average BaseSalary',
-    MIN(e.BaseSalary) AS 'Lowest BaseSalary',
-    MAX(e.BaseSalary) AS 'Highest BaseSalary'
+    AVG(e.BaseSalary) AS 'Average e.BaseSalary',
+    MIN(e.BaseSalary) AS 'Lowest e.BaseSalary',
+    MAX(e.BaseSalary) AS 'Highest e.BaseSalary'
 FROM Employees e;
 
 -- Exercise 1.1b: Project overview with formatted results (Module 3 + 9)
 SELECT 
     COUNT(*) AS 'Total Projects',
-    FORMAT(SUM(Budget), 'C0') AS 'Total Budget',
-    FORMAT(AVG(Budget), 'C0') AS 'Average Project Size'
-FROM Projects;
+    FORMAT(SUM(d.Budget), 'C0') AS 'Total d.Budget',
+    FORMAT(AVG(d.Budget), 'C0') AS 'Average Project Size'
+FROM Projects p;
 ```
 
 ### Exercise 1.2: Using CASE with Aggregates (🟢 BASIC)
 **Skills Combined: Module 3 (CASE expressions) + Module 9 (Aggregates)**
 
 ```sql
--- Exercise 1.2a: Categorize employees by BaseSalary level
+-- Exercise 1.2a: Categorize employees by e.BaseSalary level
 SELECT 
     COUNT(*) AS 'Total Employees',
-    COUNT(CASE WHEN BaseSalary < 40000 THEN 1 END) AS 'Entry Level',
-    COUNT(CASE WHEN BaseSalary BETWEEN 40000 AND 60000 THEN 1 END) AS 'Mid Level',
-    COUNT(CASE WHEN BaseSalary > 60000 THEN 1 END) AS 'Senior Level'
+    COUNT(CASE WHEN e.BaseSalary < 40000 THEN 1 END) AS 'Entry Level',
+    COUNT(CASE WHEN e.BaseSalary BETWEEN 40000 AND 60000 THEN 1 END) AS 'Mid Level',
+    COUNT(CASE WHEN e.BaseSalary > 60000 THEN 1 END) AS 'Senior Level'
 FROM Employees e;
 
 -- Exercise 1.2b: Categorize projects by budget size
 SELECT 
     COUNT(*) AS 'Total Projects',
-    COUNT(CASE WHEN Budget < 25000 THEN 1 END) AS 'Small Projects',
-    COUNT(CASE WHEN Budget BETWEEN 25000 AND 50000 THEN 1 END) AS 'Medium Projects', 
-    COUNT(CASE WHEN Budget > 50000 THEN 1 END) AS 'Large Projects'
-FROM Projects;
+    COUNT(CASE WHEN d.Budget < 25000 THEN 1 END) AS 'Small Projects',
+    COUNT(CASE WHEN d.Budget BETWEEN 25000 AND 50000 THEN 1 END) AS 'Medium Projects', 
+    COUNT(CASE WHEN d.Budget > 50000 THEN 1 END) AS 'Large Projects'
+FROM Projects p;
 ```
 
 ---
@@ -83,13 +83,13 @@ FROM Projects;
 **Skills Combined: Module 4 (INNER JOIN) + Module 9 (GROUP BY, aggregates)**
 
 ```sql
--- Exercise 2.1a: Employee count and BaseSalary by d.DepartmentName name
+-- Exercise 2.1a: Employee count and e.BaseSalary by d.DepartmentName name
 SELECT d.DepartmentName,
     COUNT(e.EmployeeID) AS 'Number of Employees',
     FORMAT(SUM(e.BaseSalary), 'C0') AS 'Total d.DepartmentName Cost',
-    FORMAT(AVG(e.BaseSalary), 'C0') AS 'Average BaseSalary'
+    FORMAT(AVG(e.BaseSalary), 'C0') AS 'Average e.BaseSalary'
 FROM Departments d
-INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
 GROUP BY d.DepartmentName
 ORDER BY COUNT(e.EmployeeID) DESC;
 
@@ -97,12 +97,12 @@ ORDER BY COUNT(e.EmployeeID) DESC;
 SELECT 
     c.ClientName,
     COUNT(p.ProjectID) AS 'Number of Projects',
-    FORMAT(SUM(p.Budget), 'C0') AS 'Total Project Value',
-    FORMAT(AVG(p.Budget), 'C0') AS 'Average Project Size'
+    FORMAT(SUM(p.d.Budget), 'C0') AS 'Total Project Value',
+    FORMAT(AVG(p.d.Budget), 'C0') AS 'Average Project Size'
 FROM Clients c
 INNER JOIN Projects p ON c.ClientID = p.ClientID
 GROUP BY c.ClientName
-ORDER BY SUM(p.Budget) DESC;
+ORDER BY SUM(p.d.Budget) DESC;
 ```
 
 ### Exercise 2.2: Multi-Table Analysis (🟢 INTERMEDIATE)
@@ -112,26 +112,26 @@ ORDER BY SUM(p.Budget) DESC;
 -- Exercise 2.2a: d.DepartmentName project management analysis
 SELECT d.DepartmentName,
     COUNT(p.ProjectID) AS 'Projects Managed',
-    FORMAT(SUM(p.Budget), 'C0') AS 'Total Budget Managed',
-    FORMAT(AVG(p.Budget), 'C0') AS 'Average Project Size'
+    FORMAT(SUM(p.d.Budget), 'C0') AS 'Total d.Budget Managed',
+    FORMAT(AVG(p.d.Budget), 'C0') AS 'Average Project Size'
 FROM Departments d
-INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
 INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
 GROUP BY d.DepartmentName
 HAVING COUNT(p.ProjectID) >= 2  -- Only departments managing multiple projects
-ORDER BY SUM(p.Budget) DESC;
+ORDER BY SUM(p.d.Budget) DESC;
 
 -- Exercise 2.2b: Client industry analysis
 SELECT 
     c.Industry,
     COUNT(DISTINCT c.ClientID) AS 'Number of Clients',
     COUNT(p.ProjectID) AS 'Total Projects', 
-    FORMAT(SUM(p.Budget), 'C0') AS 'Industry Revenue'
+    FORMAT(SUM(p.d.Budget), 'C0') AS 'Industry Revenue'
 FROM Clients c
 INNER JOIN Projects p ON c.ClientID = p.ClientID
 GROUP BY c.Industry
 HAVING COUNT(p.ProjectID) >= 3  -- Industries with significant business
-ORDER BY SUM(p.Budget) DESC;
+ORDER BY SUM(p.d.Budget) DESC;
 ```
 
 ---
@@ -147,8 +147,8 @@ ORDER BY SUM(p.Budget) DESC;
 SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount
 FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE BaseSalary > 45000  -- Filter for high earners first
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+WHERE e.BaseSalary > 45000  -- Filter for high earners first
 GROUP BY d.DepartmentName
 HAVING COUNT(*) >= 2  -- Only departments with multiple high earners
 ORDER BY AVG(e.BaseSalary) DESC;
@@ -157,12 +157,12 @@ ORDER BY AVG(e.BaseSalary) DESC;
 SELECT 
     Status,
     COUNT(*) AS 'Number of Large Recent Projects',
-    FORMAT(AVG(Budget), 'C0') AS 'Average Budget',
-    FORMAT(SUM(Budget), 'C0') AS 'Total Budget'
-FROM Projects
-WHERE Budget > 30000 AND StartDate >= '2023-01-01'  -- Large recent projects
+    FORMAT(AVG(d.Budget), 'C0') AS 'Average d.Budget',
+    FORMAT(SUM(d.Budget), 'C0') AS 'Total d.Budget'
+FROM Projects p
+WHERE d.Budget > 30000 AND StartDate >= '2023-01-01'  -- Large recent projects
 GROUP BY Status
-ORDER BY SUM(Budget) DESC;
+ORDER BY SUM(d.Budget) DESC;
 ```
 
 ### Exercise 3.2: Complex Filtering with Sorting (🟢 INTERMEDIATE)
@@ -173,11 +173,11 @@ ORDER BY SUM(Budget) DESC;
 SELECT TOP 3
     d.DepartmentName,
     COUNT(*) AS 'Recent Good Hires',
-    FORMAT(AVG(e.BaseSalary), 'C0') AS 'Average BaseSalary',
-    MIN(HireDate) AS 'First Recent Hire',
-    MAX(HireDate) AS 'Last Recent Hire'
-FROM Employees
-WHERE HireDate >= '2022-01-01' AND BaseSalary > 40000
+    FORMAT(AVG(e.BaseSalary), 'C0') AS 'Average e.BaseSalary',
+    MIN(e.HireDate) AS 'First Recent Hire',
+    MAX(e.HireDate) AS 'Last Recent Hire'
+FROM Employees e
+WHERE e.HireDate >= '2022-01-01' AND e.BaseSalary > 40000
 GROUP BY d.DepartmentName
 HAVING COUNT(*) >= 2
 ORDER BY AVG(e.BaseSalary) DESC;
@@ -187,14 +187,14 @@ SELECT
     c.ClientName,
     c.Industry,
     COUNT(p.ProjectID) AS 'Tech Projects',
-    FORMAT(AVG(p.Budget), 'C0') AS 'Average Project Value'
+    FORMAT(AVG(p.d.Budget), 'C0') AS 'Average Project Value'
 FROM Clients c
 INNER JOIN Projects p ON c.ClientID = p.ClientID
 WHERE c.Industry IN ('Technology', 'Software', 'IT Services')
-  AND p.Budget > 20000
+  AND p.d.Budget > 20000
 GROUP BY c.ClientName, c.Industry
 HAVING COUNT(p.ProjectID) >= 2
-ORDER BY COUNT(p.ProjectID) DESC, AVG(p.Budget) DESC;
+ORDER BY COUNT(p.ProjectID) DESC, AVG(p.d.Budget) DESC;
 ```
 
 ---
@@ -208,21 +208,21 @@ ORDER BY COUNT(p.ProjectID) DESC, AVG(p.Budget) DESC;
 ```sql
 -- Exercise 4.1a: Hiring trends by year
 SELECT 
-    YEAR(HireDate) AS 'Hire Year',
+    YEAR(e.HireDate) AS 'Hire Year',
     COUNT(*) AS 'Employees Hired',
-    FORMAT(AVG(e.BaseSalary), 'C0') AS 'Average Starting BaseSalary'
-FROM Employees
-WHERE HireDate IS NOT NULL
-GROUP BY YEAR(HireDate)
-ORDER BY YEAR(HireDate);
+    FORMAT(AVG(e.BaseSalary), 'C0') AS 'Average Starting e.BaseSalary'
+FROM Employees e
+WHERE e.HireDate IS NOT NULL
+GROUP BY YEAR(e.HireDate)
+ORDER BY YEAR(e.HireDate);
 
 -- Exercise 4.1b: Project activity by quarter
 SELECT 
     YEAR(StartDate) AS 'Project Year',
     DATEPART(QUARTER, StartDate) AS 'Quarter',
     COUNT(*) AS 'Projects Started',
-    FORMAT(SUM(Budget), 'C0') AS 'Total Quarterly Budget'
-FROM Projects
+    FORMAT(SUM(d.Budget), 'C0') AS 'Total Quarterly d.Budget'
+FROM Projects p
 WHERE StartDate IS NOT NULL
 GROUP BY YEAR(StartDate), DATEPART(QUARTER, StartDate)
 HAVING COUNT(*) >= 2  -- Quarters with significant activity
@@ -236,21 +236,21 @@ ORDER BY YEAR(StartDate), DATEPART(QUARTER, StartDate);
 -- Exercise 4.2a: Employee tenure analysis
 SELECT 
     CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 1 THEN 'New (< 1 year)'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 3 THEN 'Junior (1-2 years)'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 5 THEN 'Experienced (3-4 years)'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 1 THEN 'New (< 1 year)'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 3 THEN 'Junior (1-2 years)'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 5 THEN 'Experienced (3-4 years)'
         ELSE 'Veteran (5+ years)'
     END AS 'Tenure Group',
     COUNT(*) AS 'Number of Employees',
-    FORMAT(AVG(e.BaseSalary), 'C0') AS 'Average BaseSalary',
-    FORMAT(MAX(e.BaseSalary) - MIN(e.BaseSalary), 'C0') AS 'BaseSalary Range'
-FROM Employees
-WHERE HireDate IS NOT NULL
+    FORMAT(AVG(e.BaseSalary), 'C0') AS 'Average e.BaseSalary',
+    FORMAT(MAX(e.BaseSalary) - MIN(e.BaseSalary), 'C0') AS 'e.BaseSalary Range'
+FROM Employees e
+WHERE e.HireDate IS NOT NULL
 GROUP BY 
     CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 1 THEN 'New (< 1 year)'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 3 THEN 'Junior (1-2 years)'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 5 THEN 'Experienced (3-4 years)'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 1 THEN 'New (< 1 year)'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 3 THEN 'Junior (1-2 years)'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 5 THEN 'Experienced (3-4 years)'
         ELSE 'Veteran (5+ years)'
     END
 ORDER BY AVG(e.BaseSalary);
@@ -262,7 +262,7 @@ SELECT
     AVG(DATEDIFF(DAY, StartDate, ISNULL(EndDate, GETDATE()))) AS 'Average Duration (Days)',
     MIN(DATEDIFF(DAY, StartDate, ISNULL(EndDate, GETDATE()))) AS 'Shortest Project',
     MAX(DATEDIFF(DAY, StartDate, ISNULL(EndDate, GETDATE()))) AS 'Longest Project'
-FROM Projects
+FROM Projects p
 WHERE StartDate IS NOT NULL
 GROUP BY Status
 HAVING COUNT(*) >= 2
@@ -282,7 +282,7 @@ ORDER BY AVG(DATEDIFF(DAY, StartDate, ISNULL(EndDate, GETDATE())));
 SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount
 FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 GROUP BY d.DepartmentName
 HAVING COUNT(*) >= 3  -- Departments with enough employees for meaningful stats
 ORDER BY AVG(e.BaseSalary) DESC;
@@ -291,16 +291,16 @@ ORDER BY AVG(e.BaseSalary) DESC;
 SELECT 
     Status,
     COUNT(*) AS 'Number of Projects',
-    FORMAT(SUM(Budget), 'C0') AS 'Total Budget',
-    FORMAT(SUM(ISNULL(ActualCost, Budget * 0.8)), 'C0') AS 'Total Estimated Cost',
-    FORMAT(SUM(Budget) - SUM(ISNULL(ActualCost, Budget * 0.8)), 'C0') AS 'Estimated Profit',
+    FORMAT(SUM(d.Budget), 'C0') AS 'Total d.Budget',
+    FORMAT(SUM(ISNULL(ActualCost, d.Budget * 0.8)), 'C0') AS 'Total Estimated Cost',
+    FORMAT(SUM(d.Budget) - SUM(ISNULL(ActualCost, d.Budget * 0.8)), 'C0') AS 'Estimated Profit',
     ROUND(
-        (SUM(Budget) - SUM(ISNULL(ActualCost, Budget * 0.8))) / SUM(Budget) * 100, 1
+        (SUM(d.Budget) - SUM(ISNULL(ActualCost, d.Budget * 0.8))) / SUM(d.Budget) * 100, 1
     ) AS 'Profit Margin %'
-FROM Projects
+FROM Projects p
 GROUP BY Status
 HAVING COUNT(*) >= 2
-ORDER BY (SUM(Budget) - SUM(ISNULL(ActualCost, Budget * 0.8))) DESC;
+ORDER BY (SUM(d.Budget) - SUM(ISNULL(ActualCost, d.Budget * 0.8))) DESC;
 ```
 
 ---
@@ -316,8 +316,8 @@ ORDER BY (SUM(Budget) - SUM(ISNULL(ActualCost, Budget * 0.8))) DESC;
 SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount
 FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID e
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 GROUP BY d.DepartmentName
 ORDER BY COUNT(*) DESC;
 
@@ -329,7 +329,7 @@ SELECT
     COUNT(EndDate) AS 'Has End Date',
     COUNT(ActualCost) AS 'Has Actual Cost',
     ROUND(COUNT(EndDate) * 100.0 / COUNT(*), 1) AS 'Completion %'
-FROM Projects
+FROM Projects p
 GROUP BY Status
 ORDER BY ROUND(COUNT(EndDate) * 100.0 / COUNT(*), 1) DESC;
 ```
@@ -349,9 +349,9 @@ WITH DepartmentStats AS (
         COUNT(e.EmployeeID) AS EmployeeCount,
         AVG(e.BaseSalary) AS AvgSalary,
         COUNT(p.ProjectID) AS ProjectsManaged,
-        SUM(p.Budget) AS TotalBudgetManaged
+        SUM(p.d.Budget) AS TotalBudgetManaged
     FROM Departments d
-    LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID
+    LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
     LEFT JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
     GROUP BY d.DepartmentName
 ),
@@ -360,15 +360,15 @@ ClientStats AS (
         c.Industry,
         COUNT(DISTINCT c.ClientID) AS ClientCount,
         COUNT(p.ProjectID) AS ProjectCount,
-        AVG(p.Budget) AS AvgProjectSize,
-        SUM(p.Budget) AS TotalRevenue
+        AVG(p.d.Budget) AS AvgProjectSize,
+        SUM(p.d.Budget) AS TotalRevenue
     FROM Clients c
     LEFT JOIN Projects p ON c.ClientID = p.ClientID
     GROUP BY c.Industry
 )
 SELECT 
     'Department Performance' AS ReportSection,
-    ds.DepartmentName AS Category,
+    ds.d.DepartmentName AS Category,
     ds.EmployeeCount AS Count1,
     FORMAT(ds.AvgSalary, 'C0') AS Value1,
     ds.ProjectsManaged AS Count2,
@@ -399,7 +399,7 @@ ORDER BY ReportSection, Count1 DESC;
 SELECT 
     YEAR(e.HireDate) AS AnalysisYear,
     COUNT(*) AS 'Employees Hired',
-    FORMAT(AVG(e.BaseSalary), 'C0') AS 'Average Starting BaseSalary',
+    FORMAT(AVG(e.BaseSalary), 'C0') AS 'Average Starting e.BaseSalary',
     
     -- Project activity in the same year
     (SELECT COUNT(*) 
@@ -419,7 +419,7 @@ SELECT
     -- d.DepartmentName diversity
     COUNT(DISTINCT e.d.DepartmentName) AS 'Departments Involved',
     
-    -- BaseSalary progression
+    -- e.BaseSalary progression
     CASE 
         WHEN LAG(AVG(e.BaseSalary)) OVER (ORDER BY YEAR(e.HireDate)) IS NOT NULL THEN
             ROUND(
@@ -427,7 +427,7 @@ SELECT
                 LAG(AVG(e.BaseSalary)) OVER (ORDER BY YEAR(e.HireDate)), 1
             )
         ELSE NULL
-    END AS 'BaseSalary Growth %'
+    END AS 'e.BaseSalary Growth %'
 
 FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID

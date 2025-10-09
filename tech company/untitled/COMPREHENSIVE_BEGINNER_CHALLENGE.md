@@ -72,7 +72,7 @@ Your manager needs comprehensive reports for the upcoming quarterly business rev
 Create a query that displays:
 ```sql
 -- Employee full name (handle middle names gracefully)
--- Job title and d.d.DepartmentName
+-- Job title and d.DepartmentName
 -- Formatted BaseSalary with currency symbol
 -- Years of service (calculated from hire date)
 -- Age group classification
@@ -102,7 +102,7 @@ Create a query that displays:
 
 **Your Tasks**:
 ```sql
--- Show BaseSalary distribution by d.d.DepartmentName
+-- Show BaseSalary distribution by d.DepartmentName
 -- Calculate BaseSalary percentiles and ranges
 -- Identify potential pay equity issues
 -- Format all currency values consistently
@@ -123,11 +123,11 @@ Create a query that displays:
 **Your Tasks**:
 Create a comprehensive report showing:
 ```sql
--- d.d.DepartmentName name and head information
--- Total employees and average BaseSalary per d.d.DepartmentName
--- Active projects per d.d.DepartmentName
+-- d.DepartmentName name and head information
+-- Total employees and average BaseSalary per d.DepartmentName
+-- Active projects per d.DepartmentName
 -- Employee skill distribution
--- d.d.DepartmentName budget utilization
+-- d.DepartmentName budget utilization
 ```
 
 **Join Requirements**:
@@ -165,7 +165,7 @@ Create a comprehensive report showing:
 
 **Your Tasks**:
 ```sql
--- Find top 10 highest-paid employees by d.d.DepartmentName
+-- Find top 10 highest-paid employees by d.DepartmentName
 -- Identify employees eligible for promotion (based on tenure/performance)
 -- Show employees with rare or valuable skills
 -- Filter for specific criteria using complex WHERE conditions
@@ -277,7 +277,7 @@ Create comprehensive aggregate reports:
 
 **Revenue and Profitability**:
 ```sql
--- Revenue by d.d.DepartmentName and project type
+-- Revenue by d.DepartmentName and project type
 -- Profit margins and cost analysis
 -- Growth trends and forecasting data
 ```
@@ -298,7 +298,7 @@ Create comprehensive aggregate reports:
 
 **Your Tasks**:
 ```sql
--- d.d.DepartmentName efficiency ratios
+-- d.DepartmentName efficiency ratios
 -- Employee utilization rates
 -- Project success metrics
 -- Skill gap analysis

@@ -36,7 +36,7 @@
 ```sql
 -- BAD: Violates 1NF (repeating groups)
 CREATE TABLE EmployeesBAD (
-    EmployeeID int,
+    e.EmployeeID int,
     Name varchar(100),
     PhoneNumbers varchar(500), -- "123-456-7890, 987-654-3210, 555-123-4567"
     Skills varchar(1000)       -- "C#, SQL, JavaScript, Python"
@@ -47,25 +47,25 @@ CREATE TABLE EmployeesBAD (
 ```sql
 -- GOOD: Follows 1NF
 CREATE TABLE Employees (
-    EmployeeID int PRIMARY KEY,
-    FirstName varchar(50),
-    LastName varchar(50)
+    e.EmployeeID int PRIMARY KEY,
+    e.FirstName varchar(50),
+    e.LastName varchar(50)
 );
 
 CREATE TABLE EmployeePhones (
-    EmployeeID int,
+    e.EmployeeID int,
     PhoneType varchar(20),
     PhoneNumber varchar(15),
-    PRIMARY KEY (EmployeeID, PhoneType),
-    FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID)
+    PRIMARY KEY (e.EmployeeID, PhoneType),
+    FOREIGN KEY (e.EmployeeID) REFERENCES Employees(e.EmployeeID)
 );
 
 CREATE TABLE EmployeeSkills (
-    EmployeeID int,
+    e.EmployeeID int,
     SkillName varchar(50),
     ProficiencyLevel varchar(20),
-    PRIMARY KEY (EmployeeID, SkillName),
-    FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID)
+    PRIMARY KEY (e.EmployeeID, SkillName),
+    FOREIGN KEY (e.EmployeeID) REFERENCES Employees(e.EmployeeID)
 );
 ```
 
@@ -85,19 +85,19 @@ CREATE TABLE EmployeeSkills (
 ```sql
 -- One-to-One: Employee to Employee Security Clearance
 CREATE TABLE Employees (
-    EmployeeID int PRIMARY KEY,
-    FirstName varchar(50),
-    LastName varchar(50),
-    HireDate date
+    e.EmployeeID int PRIMARY KEY,
+    e.FirstName varchar(50),
+    e.LastName varchar(50),
+    e.HireDate date
 );
 
 CREATE TABLE EmployeeSecurityClearance (
-    EmployeeID int PRIMARY KEY,
+    e.EmployeeID int PRIMARY KEY,
     ClearanceLevel varchar(20),
     IssueDate date,
     ExpirationDate date,
     IssuingAuthority varchar(100),
-    FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID)
+    FOREIGN KEY (e.EmployeeID) REFERENCES Employees(e.EmployeeID)
 );
 ```
 
@@ -105,17 +105,17 @@ CREATE TABLE EmployeeSecurityClearance (
 ```sql
 -- One-to-Many: d.DepartmentName to Employees
 CREATE TABLE Departments (
-    DepartmentID int PRIMARY KEY,
+    d.DepartmentID int PRIMARY KEY,
     d.DepartmentName varchar(100),
     ManagerID int
 );
 
 CREATE TABLE Employees (
-    EmployeeID int PRIMARY KEY,
-    FirstName varchar(50),
-    LastName varchar(50),
-    DepartmentID int,
-    FOREIGN KEY (DepartmentID) REFERENCES Departments(DepartmentID)
+    e.EmployeeID int PRIMARY KEY,
+    e.FirstName varchar(50),
+    e.LastName varchar(50),
+    d.DepartmentID int,
+    FOREIGN KEY (d.DepartmentID) REFERENCES Departments(d.DepartmentID)
 );
 ```
 
@@ -124,8 +124,8 @@ CREATE TABLE Employees (
 -- Many-to-Many: Students to Courses (via Enrollments)
 CREATE TABLE Students (
     StudentID int PRIMARY KEY,
-    FirstName varchar(50),
-    LastName varchar(50)
+    e.FirstName varchar(50),
+    e.LastName varchar(50)
 );
 
 CREATE TABLE Courses (
@@ -207,7 +207,7 @@ SELECT
     e.LastName,
     d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID;
 ```
 
 #### **Legacy WHERE Clause JOIN (Deprecated)**
@@ -218,7 +218,7 @@ SELECT
     e.LastName,
     d.DepartmentName
 FROM Employees e, Departments d
-WHERE e.DepartmentID = d.DepartmentID;
+WHERE e.d.DepartmentID = d.DepartmentID;
 ```
 
 ---
@@ -244,7 +244,7 @@ SELECT
     d.DepartmentName,
     d.Location
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID;
 ```
 
 ##### **Multiple Column Join Conditions**
@@ -255,7 +255,7 @@ SELECT
     od.ProductID,
     p.ProductName,
     od.Quantity,
-    od.BaseSalary
+    od.e.BaseSalary
 FROM OrderDetails od
 INNER JOIN Products p ON od.ProductID = p.ProductID 
                       AND od.SupplierID = p.SupplierID;
@@ -272,7 +272,7 @@ SELECT
     o.OrderDate,
     p.ProductName,
     od.Quantity,
-    od.BaseSalary,
+    od.e.BaseSalary,
     cat.CategoryName,
     s.CompanyName AS SupplierName
 FROM Customers c
@@ -291,11 +291,11 @@ ORDER BY c.CompanyName, o.OrderDate;
 SELECT 
     emp.EmployeeID,
     emp.FirstName + ' ' + emp.LastName AS EmployeeName,
-    mgr.FirstName + ' ' + mgr.LastName AS ManagerName,
+    mgr.e.FirstName + ' ' + mgr.e.LastName AS ManagerName,
     emp.JobTitle,
-    mgr.JobTitle AS ManagerTitle
-FROM Employees emp
-INNER JOIN Employees mgr ON emp.ManagerID = mgr.EmployeeID;
+    mgr.e.JobTitle AS ManagerTitle
+FROM Employees e emp
+INNER JOIN Employees mgr ON emp.ManagerID = mgr.e.EmployeeID;
 ```
 
 #### **INNER JOIN Performance Optimization**
@@ -303,15 +303,15 @@ INNER JOIN Employees mgr ON emp.ManagerID = mgr.EmployeeID;
 ##### **Index Strategy for Optimal Performance**
 ```sql
 -- Optimal indexes for JOIN performance
-CREATE INDEX IX_Employees_DepartmentID ON Employees (DepartmentID);
+CREATE INDEX IX_Employees_DepartmentID ON Employees (d.DepartmentID);
 CREATE INDEX IX_Orders_CustomerID ON Orders (CustomerID);
 CREATE INDEX IX_OrderDetails_OrderID ON OrderDetails (OrderID);
 CREATE INDEX IX_OrderDetails_ProductID ON OrderDetails (ProductID);
 
 -- Covering index for frequent JOIN queries
 CREATE INDEX IX_Employees_Covering 
-ON Employees (DepartmentID) 
-INCLUDE (EmployeeID, FirstName, LastName, JobTitle);
+ON Employees (d.DepartmentID) 
+INCLUDE (e.EmployeeID, e.FirstName, e.LastName, e.JobTitle);
 ```
 
 ##### **JOIN Order Optimization**
@@ -452,12 +452,12 @@ SELECT
     e.LastName,
     d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID;
 
 -- Legacy syntax (avoid)
 SELECT e.FirstName, e.LastName, d.DepartmentName
 FROM Employees e, Departments d
-WHERE e.DepartmentID = d.DepartmentID;
+WHERE e.d.DepartmentID = d.DepartmentID;
 ```
 
 ---
@@ -472,7 +472,7 @@ SELECT
     d.DepartmentName,
     c.CompanyName
 FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
     INNER JOIN Companies c ON d.CompanyID = c.CompanyID
 WHERE e.IsActive = 1;
 ```
@@ -490,7 +490,7 @@ SELECT
     e.LastName,
     p.ProjectName
 FROM Employees e
-LEFT OUTER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+LEFT OUTER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 LEFT OUTER JOIN Projects p ON ep.ProjectID = p.ProjectID;
 ```
 
@@ -508,7 +508,7 @@ SELECT
     e.LastName,
     p.ProjectName
 FROM EmployeeProjects ep
-RIGHT OUTER JOIN Employees e ON ep.EmployeeID = e.EmployeeID
+RIGHT OUTER JOIN Employees e ON ep.e.EmployeeID = e.EmployeeID
 RIGHT OUTER JOIN Projects p ON ep.ProjectID = p.ProjectID;
 ```
 
@@ -526,7 +526,7 @@ SELECT
     e.LastName,
     p.ProjectName
 FROM Employees e
-FULL OUTER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+FULL OUTER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 FULL OUTER JOIN Projects p ON ep.ProjectID = p.ProjectID;
 ```
 
@@ -563,9 +563,9 @@ FROM Skills s, SkillLevels l;
 -- Finding employees and their managers
 SELECT 
     e.FirstName + ' ' + e.LastName AS Employee,
-    m.FirstName + ' ' + m.LastName AS Manager
+    m.e.FirstName + ' ' + m.e.LastName AS Manager
 FROM Employees e
-LEFT JOIN Employees m ON e.ManagerID = m.EmployeeID;
+LEFT JOIN Employees m ON e.ManagerID = m.e.EmployeeID;
 ```
 
 **Key Concept**: Use different aliases for same table
@@ -578,10 +578,10 @@ LEFT JOIN Employees m ON e.ManagerID = m.EmployeeID;
 
 ```sql
 -- Equality condition (most common)
-ON e.DepartmentID = d.DepartmentID
+ON e.d.DepartmentID = d.DepartmentID
 
 -- Multiple conditions
-ON e.DepartmentID = d.DepartmentID 
+ON e.d.DepartmentID = d.DepartmentID 
    AND e.IsActive = 1
 
 -- Range conditions
@@ -600,13 +600,13 @@ ON YEAR(e.HireDate) = YEAR(p.StartDate)
 -- JOIN condition: defines relationship
 SELECT e.FirstName, d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.BaseSalary > 50000;  -- Filter condition
 
 -- Incorrect: filtering in JOIN for INNER JOIN
 SELECT e.FirstName, d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID 
                         AND e.BaseSalary > 50000;
 ```
 
@@ -672,7 +672,7 @@ SELECT d.DepartmentName,
     AVG(e.BaseSalary) AS AverageBaseSalary,
     MAX(e.HireDate) AS MostRecentHire
 FROM Departments d
-LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID
+LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
                      AND e.IsActive = 1
 GROUP BY d.DepartmentID, d.DepartmentName
 ORDER BY EmployeeCount DESC;
@@ -697,13 +697,13 @@ ORDER BY EmployeeCount DESC;
 -- JOIN approach
 SELECT DISTINCT e.FirstName, e.LastName
 FROM Employees e
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID;
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID;
 
 -- Subquery approach
 SELECT e.FirstName, e.LastName
 FROM Employees e
 WHERE EXISTS (SELECT 1 FROM EmployeeProjects ep 
-              WHERE ep.EmployeeID = e.EmployeeID);
+              WHERE ep.e.EmployeeID = e.EmployeeID);
 ```
 
 ---
@@ -718,7 +718,7 @@ SELECT
     s.SkillName,
     es.ProficiencyLevel
 FROM Employees e
-    INNER JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
+    INNER JOIN EmployeeSkills es ON e.EmployeeID = es.e.EmployeeID
     INNER JOIN Skills s ON es.SkillID = s.SkillID
 WHERE es.ProficiencyLevel >= 3
 ORDER BY e.LastName, s.SkillName;
@@ -768,7 +768,7 @@ SELECT
     COALESCE(p.ProjectName, 'No Project') AS Project
 FROM Employees e
     LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
     LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID;
 ```
 

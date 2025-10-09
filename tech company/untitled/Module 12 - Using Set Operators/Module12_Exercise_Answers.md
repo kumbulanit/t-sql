@@ -27,7 +27,7 @@ SELECT
         ELSE DATEADD(DAY, RAND() * 180, DATEADD(MONTH, -6, GETDATE())) -- Estimated end date
     END AS LastWorkDate
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 
 UNION
@@ -39,14 +39,14 @@ SELECT
     e.BaseSalary,
     DATEADD(DAY, RAND() * 180, DATEADD(MONTH, -6, GETDATE())) AS LastWorkDate
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 0
 AND e.EmployeeID IN (
     -- Simulate former employees who left in last 6 months
-    SELECT TOP 10 EmployeeID 
-    FROM Employees 
+    SELECT TOP 10 e.EmployeeID 
+    FROM Employees e 
     WHERE IsActive = 0 
-    ORDER BY EmployeeID DESC
+    ORDER BY e.EmployeeID DESC
 )
 
 ORDER BY d.DepartmentName, EmployeeName;
@@ -57,17 +57,17 @@ ORDER BY d.DepartmentName, EmployeeName;
 #### Task 1.2 Solution: Project and Order Revenue Analysis
 
 ```sql
--- Combined revenue analysis from projects and orders
+-- Combined revenue analysis FROM Projects p and orders
 WITH ProjectRevenue AS (
     SELECT 
         'Project' AS RevenueSource,
         p.ProjectName AS SourceName,
-        p.Budget AS Amount,
+        p.d.Budget AS Amount,
         p.StartDate AS RevenueDate,
-        'Project Budget' AS RevenueType
+        'Project d.Budget' AS RevenueType
     FROM Projects p
     WHERE p.IsActive = 1
-    AND p.Budget > 0
+    AND p.d.Budget > 0
 ),
 OrderRevenue AS (
     SELECT 
@@ -120,11 +120,11 @@ SELECT
     activity_log.ActivityDate,
     activity_log.ActivityValue,
     activity_log.Description,
-    COUNT(*) OVER (PARTITION BY activity_log.EmployeeID) AS TotalActivities,
-    AVG(activity_log.ActivityValue) OVER (PARTITION BY activity_log.EmployeeID) AS AvgActivityValue,
+    COUNT(*) OVER (PARTITION BY activity_log.e.EmployeeID) AS TotalActivities,
+    AVG(activity_log.ActivityValue) OVER (PARTITION BY activity_log.e.EmployeeID) AS AvgActivityValue,
     CASE 
-        WHEN COUNT(*) OVER (PARTITION BY activity_log.EmployeeID) >= 10 THEN 'Highly Active'
-        WHEN COUNT(*) OVER (PARTITION BY activity_log.EmployeeID) >= 5 THEN 'Active'
+        WHEN COUNT(*) OVER (PARTITION BY activity_log.e.EmployeeID) >= 10 THEN 'Highly Active'
+        WHEN COUNT(*) OVER (PARTITION BY activity_log.e.EmployeeID) >= 5 THEN 'Active'
         ELSE 'Low Activity'
     END AS ActivityLevel
 FROM (
@@ -137,7 +137,7 @@ FROM (
         ep.HoursWorked AS ActivityValue,
         'Project: ' + p.ProjectName + ' (' + ep.Role + ')' AS Description
     FROM EmployeeProjects ep
-    INNER JOIN Employees e ON ep.EmployeeID = e.EmployeeID
+    INNER JOIN Employees e ON ep.e.EmployeeID = e.EmployeeID
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
     WHERE ep.IsActive = 1
     AND e.IsActive = 1
@@ -154,7 +154,7 @@ FROM (
         o.TotalAmount AS ActivityValue,
         'Order #' + CAST(o.OrderID AS VARCHAR(10)) + ' for ' + c.CompanyName AS Description
     FROM Orders o
-    INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
+    INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
     INNER JOIN Customers c ON o.CustomerID = c.CustomerID
     WHERE o.IsActive = 1
     AND e.IsActive = 1
@@ -179,21 +179,21 @@ ORDER BY activity_log.EmployeeName, activity_log.ActivityDate;
 
 **Business Logic**: This query creates a comprehensive activity log that captures all employee activities, preserving duplicates for accurate activity tracking and performance analysis.
 
-#### Task 2.2 Solution: d.DepartmentName Budget Allocation Analysis
+#### Task 2.2 Solution: d.DepartmentName d.Budget Allocation Analysis
 
 ```sql
 -- d.DepartmentName budget allocation analysis using UNION ALL
 WITH BudgetAllocations AS (
-    -- BaseSalary Allocations
+    -- e.BaseSalary Allocations
     SELECT 
         d.DepartmentID,
         d.DepartmentName,
-        'BaseSalary' AS AllocationType,
+        'e.BaseSalary' AS AllocationType,
         SUM(e.BaseSalary) AS Amount,
         'Q1 2024' AS Period,
         COUNT(e.EmployeeID) AS AllocationCount
     FROM Departments d
-    INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+    INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
     WHERE d.IsActive = 1 AND e.IsActive = 1
     GROUP BY d.DepartmentID, d.DepartmentName
 
@@ -204,11 +204,11 @@ WITH BudgetAllocations AS (
         d.DepartmentID,
         d.DepartmentName,
         'Project' AS AllocationType,
-        SUM(p.Budget) / 4 AS Amount, -- Quarterly allocation
+        SUM(p.d.Budget) / 4 AS Amount, -- Quarterly allocation
         'Q1 2024' AS Period,
         COUNT(p.ProjectID) AS AllocationCount
     FROM Departments d
-    INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+    INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
     INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
     WHERE d.IsActive = 1 AND e.IsActive = 1 AND p.IsActive = 1
     GROUP BY d.DepartmentID, d.DepartmentName
@@ -229,7 +229,7 @@ WITH BudgetAllocations AS (
 
     UNION ALL
 
-    -- Training Budget
+    -- Training d.Budget
     SELECT 
         d.DepartmentID,
         d.DepartmentName,
@@ -238,7 +238,7 @@ WITH BudgetAllocations AS (
         'Q1 2024' AS Period,
         COUNT(e.EmployeeID) AS AllocationCount
     FROM Departments d
-    INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+    INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
     WHERE d.IsActive = 1 AND e.IsActive = 1
     GROUP BY d.DepartmentID, d.DepartmentName
 )
@@ -248,17 +248,17 @@ SELECT ba.d.DepartmentName,
     ba.Amount,
     ba.Period,
     ba.AllocationCount,
-    SUM(ba.Amount) OVER (PARTITION BY ba.DepartmentID) AS TotalDepartmentAllocation,
-    FORMAT(ba.Amount / SUM(ba.Amount) OVER (PARTITION BY ba.DepartmentID) * 100, 'N1') + '%' AS AllocationPercentage,
+    SUM(ba.Amount) OVER (PARTITION BY ba.d.DepartmentID) AS TotalDepartmentAllocation,
+    FORMAT(ba.Amount / SUM(ba.Amount) OVER (PARTITION BY ba.d.DepartmentID) * 100, 'N1') + '%' AS AllocationPercentage,
     CASE 
-        WHEN ba.AllocationType = 'BaseSalary' AND ba.Amount / SUM(ba.Amount) OVER (PARTITION BY ba.DepartmentID) > 0.7 
-            THEN 'High BaseSalary Dependency'
-        WHEN ba.AllocationType = 'Project' AND ba.Amount / SUM(ba.Amount) OVER (PARTITION BY ba.DepartmentID) > 0.4 
+        WHEN ba.AllocationType = 'e.BaseSalary' AND ba.Amount / SUM(ba.Amount) OVER (PARTITION BY ba.d.DepartmentID) > 0.7 
+            THEN 'High e.BaseSalary Dependency'
+        WHEN ba.AllocationType = 'Project' AND ba.Amount / SUM(ba.Amount) OVER (PARTITION BY ba.d.DepartmentID) > 0.4 
             THEN 'Project Heavy'
         ELSE 'Balanced Allocation'
     END AS AllocationProfile
 FROM BudgetAllocations ba
-ORDER BY ba.DepartmentName, ba.Amount DESC;
+ORDER BY ba.d.DepartmentName, ba.Amount DESC;
 ```
 
 **Business Logic**: This analysis provides finance with detailed budget allocation patterns, including percentage distributions and allocation profiles for strategic planning.
@@ -284,7 +284,7 @@ WITH ActiveEmployees AS (
     WHERE e.IsActive = 1
 ),
 RecentProjectEmployees AS (
-    SELECT DISTINCT ep.EmployeeID
+    SELECT DISTINCT ep.e.EmployeeID
     FROM EmployeeProjects ep
     WHERE ep.IsActive = 1
     AND ep.StartDate >= DATEADD(MONTH, -6, GETDATE())
@@ -310,7 +310,7 @@ SELECT
         ELSE 'Provide additional training and skill development'
     END AS Recommendation
 FROM ActiveEmployees ae
-WHERE ae.EmployeeID NOT IN (SELECT EmployeeID FROM RecentProjectEmployees)
+WHERE ae.EmployeeID NOT IN (SELECT e.EmployeeID FROM RecentProjectEmployees)
 ORDER BY ae.BaseSalary DESC, ae.YearsOfService DESC;
 
 -- Alternative using EXCEPT operator
@@ -334,7 +334,7 @@ SELECT
     e.BaseSalary
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 WHERE e.IsActive = 1
 AND ep.IsActive = 1
 AND ep.StartDate >= DATEADD(MONTH, -6, GETDATE());
@@ -439,9 +439,9 @@ WITH EmployeeDepartmentProjects AS (
         ep.Role
     FROM Employees e
     INNER JOIN Departments d_home ON e.DepartmentID = d_home.DepartmentID
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-    INNER JOIN Employees pm ON p.ProjectManagerID = pm.EmployeeID
+    INNER JOIN Employees pm ON p.ProjectManagerID = pm.e.EmployeeID
     INNER JOIN Departments d_proj ON pm.DepartmentID = d_proj.DepartmentID
     WHERE e.IsActive = 1
     AND ep.IsActive = 1
@@ -450,7 +450,7 @@ WITH EmployeeDepartmentProjects AS (
 )
 
 SELECT 
-    collaboration_summary.EmployeeID,
+    collaboration_summary.e.EmployeeID,
     collaboration_summary.EmployeeName,
     collaboration_summary.HomeDepartment,
     collaboration_summary.CrossDeptProjectCount,
@@ -466,7 +466,7 @@ SELECT
     collaboration_summary.TotalCrossDeptHours * 50 AS EstimatedCollaborationValue -- $50/hour value
 FROM (
     SELECT 
-        edp.EmployeeID,
+        edp.e.EmployeeID,
         edp.EmployeeName,
         edp.HomeDepartment,
         COUNT(DISTINCT edp.ProjectID) AS CrossDeptProjectCount,
@@ -475,7 +475,7 @@ FROM (
         AVG(edp.HoursWorked) AS AverageHoursPerProject,
         STRING_AGG(DISTINCT edp.ProjectDepartment, ', ') AS CollaboratingDepartments
     FROM EmployeeDepartmentProjects edp
-    GROUP BY edp.EmployeeID, edp.EmployeeName, edp.HomeDepartment
+    GROUP BY edp.e.EmployeeID, edp.EmployeeName, edp.HomeDepartment
     HAVING COUNT(DISTINCT edp.ProjectDepartmentID) >= 2 -- Must work with at least 2 other departments
 ) AS collaboration_summary
 ORDER BY collaboration_summary.CrossDeptProjectCount DESC, collaboration_summary.TotalCrossDeptHours DESC;
@@ -484,14 +484,14 @@ ORDER BY collaboration_summary.CrossDeptProjectCount DESC, collaboration_summary
 SELECT 
     dept_pairs.Department1,
     dept_pairs.Department2,
-    COUNT(DISTINCT dept_pairs.EmployeeID) AS SharedEmployees,
+    COUNT(DISTINCT dept_pairs.e.EmployeeID) AS SharedEmployees,
     COUNT(DISTINCT dept_pairs.ProjectID) AS SharedProjects,
     SUM(dept_pairs.HoursWorked) AS TotalCollaborationHours
 FROM (
     SELECT DISTINCT
         d1.DepartmentName AS Department1,
         d2.DepartmentName AS Department2,
-        edp.EmployeeID,
+        edp.e.EmployeeID,
         edp.ProjectID,
         edp.HoursWorked
     FROM EmployeeDepartmentProjects edp
@@ -708,7 +708,7 @@ CROSS APPLY (
         
     FROM EmployeeProjects ep
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-    WHERE ep.EmployeeID = e.EmployeeID
+    WHERE ep.e.EmployeeID = e.EmployeeID
     AND ep.IsActive = 1
     AND p.IsActive = 1
     AND ep.StartDate >= DATEADD(YEAR, -1, GETDATE())

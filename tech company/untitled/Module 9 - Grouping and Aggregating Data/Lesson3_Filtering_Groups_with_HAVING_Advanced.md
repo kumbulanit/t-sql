@@ -69,19 +69,19 @@ SELECT d.DepartmentName,
     
     -- PROJECT PERFORMANCE
     COUNT(DISTINCT p.ProjectID) AS ProjectsManaged,
-    FORMAT(SUM(p.Budget), 'C0') AS TotalRevenue,
-    FORMAT(AVG(p.Budget), 'C0') AS AvgProjectValue,
+    FORMAT(SUM(p.d.Budget), 'C0') AS TotalRevenue,
+    FORMAT(AVG(p.d.Budget), 'C0') AS AvgProjectValue,
     
     -- PROFITABILITY METRICS
     FORMAT(
-        SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)), 
+        SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)), 
         'C0'
     ) AS DepartmentProfit,
     
     FORMAT(
         CASE 
-            WHEN SUM(p.Budget) > 0 
-            THEN ((SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / SUM(p.Budget)
+            WHEN SUM(p.d.Budget) > 0 
+            THEN ((SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / SUM(p.d.Budget)
             ELSE 0 
         END, 
         'N1'
@@ -89,12 +89,12 @@ SELECT d.DepartmentName,
     
     -- EFFICIENCY METRICS
     FORMAT(
-        SUM(p.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0), 
+        SUM(p.d.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0), 
         'C0'
     ) AS RevenuePerEmployee,
     
     FORMAT(
-        (SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0), 
+        (SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0), 
         'C0'
     ) AS ProfitPerEmployee,
     
@@ -110,22 +110,22 @@ SELECT d.DepartmentName,
     
     -- STRATEGIC CLASSIFICATION
     CASE 
-        WHEN SUM(p.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 2000000 
+        WHEN SUM(p.d.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 2000000 
              AND COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
                  NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 90
         THEN '🌟 ELITE PERFORMER - Revenue + Delivery Excellence'
-        WHEN (SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(p.Budget), 0) >= 30
+        WHEN (SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(p.d.Budget), 0) >= 30
         THEN '💎 PROFIT CHAMPION - Exceptional Margins'
-        WHEN SUM(p.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 1500000
+        WHEN SUM(p.d.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 1500000
         THEN '🚀 REVENUE LEADER - High Per-Employee Performance'
         ELSE '📈 SOLID PERFORMER - Meeting Standards'
     END AS PerformanceClassification,
     
     -- INVESTMENT RECOMMENDATIONS
     CASE 
-        WHEN SUM(p.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 2000000 
+        WHEN SUM(p.d.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 2000000 
         THEN 'EXPAND: Increase headcount and capacity immediately'
-        WHEN (SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(p.Budget), 0) >= 30
+        WHEN (SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(p.d.Budget), 0) >= 30
         THEN 'SCALE: Replicate successful model across organization'
         WHEN COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
              NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 85
@@ -134,7 +134,7 @@ SELECT d.DepartmentName,
     END AS InvestmentRecommendation
 
 FROM Departments d
-    INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+    INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
     INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
 WHERE d.IsActive = 1 
     AND p.IsActive = 1
@@ -150,20 +150,20 @@ HAVING
     -- Performance excellence thresholds (ANY of these conditions)
     AND (
         -- Revenue per employee exceeds $1.5M
-        SUM(p.Budget) / COUNT(DISTINCT e.EmployeeID) >= 1500000
+        SUM(p.d.Budget) / COUNT(DISTINCT e.EmployeeID) >= 1500000
         
         -- OR profit margin exceeds 25%
-        OR ((SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / NULLIF(SUM(p.Budget), 0) >= 25
+        OR ((SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / NULLIF(SUM(p.d.Budget), 0) >= 25
         
         -- OR on-time delivery rate exceeds 85%
         OR COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
            NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 85
         
         -- OR total revenue exceeds $10M
-        OR SUM(p.Budget) >= 10000000
+        OR SUM(p.d.Budget) >= 10000000
     )
 
-ORDER BY SUM(p.Budget) / COUNT(DISTINCT e.EmployeeID) DESC;
+ORDER BY SUM(p.d.Budget) / COUNT(DISTINCT e.EmployeeID) DESC;
 
 -- Lab 9.3.2: Premium Client Segment Analysis
 -- Business scenario: Identify high-value clients for executive account management
@@ -180,20 +180,20 @@ SELECT
     COUNT(CASE WHEN p.IsActive = 'Active' THEN 1 END) AS ActiveProjects,
     
     -- FINANCIAL VALUE
-    FORMAT(SUM(p.Budget), 'C0') AS TotalClientValue,
-    FORMAT(AVG(p.Budget), 'C0') AS AvgProjectValue,
-    FORMAT(MAX(p.Budget), 'C0') AS LargestProject,
+    FORMAT(SUM(p.d.Budget), 'C0') AS TotalClientValue,
+    FORMAT(AVG(p.d.Budget), 'C0') AS AvgProjectValue,
+    FORMAT(MAX(p.d.Budget), 'C0') AS LargestProject,
     
     -- PROFITABILITY
     FORMAT(
-        SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)), 
+        SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)), 
         'C0'
     ) AS ClientProfitability,
     
     FORMAT(
         CASE 
-            WHEN SUM(p.Budget) > 0 
-            THEN ((SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / SUM(p.Budget)
+            WHEN SUM(p.d.Budget) > 0 
+            THEN ((SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / SUM(p.d.Budget)
             ELSE 0 
         END, 
         'N1'
@@ -220,28 +220,28 @@ SELECT
     
     -- STRATEGIC CLIENT CLASSIFICATION
     CASE 
-        WHEN SUM(p.Budget) >= 10000000 
+        WHEN SUM(p.d.Budget) >= 10000000 
              AND COUNT(p.ProjectID) >= 15
              AND COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
                  NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 85
         THEN '👑 STRATEGIC ENTERPRISE CLIENT - Crown Jewel'
-        WHEN SUM(p.Budget) >= 5000000 
-             AND (SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(p.Budget), 0) >= 25
+        WHEN SUM(p.d.Budget) >= 5000000 
+             AND (SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(p.d.Budget), 0) >= 25
         THEN '💎 PREMIUM CLIENT - High Value & Profitable'
         WHEN COUNT(p.ProjectID) >= 10 
-             AND AVG(p.Budget) >= 400000
+             AND AVG(p.d.Budget) >= 400000
         THEN '🏆 MAJOR CLIENT - Consistent High-Value Work'
-        WHEN SUM(p.Budget) >= 2000000
+        WHEN SUM(p.d.Budget) >= 2000000
         THEN '🎯 KEY CLIENT - Significant Relationship'
         ELSE '📈 GROWTH CLIENT - Expanding Relationship'
     END AS ClientSegment,
     
     -- ACCOUNT MANAGEMENT STRATEGY
     CASE 
-        WHEN SUM(p.Budget) >= 10000000 THEN 'Dedicated C-Suite Relationship + Account Team'
-        WHEN SUM(p.Budget) >= 5000000 THEN 'Senior Partner + Dedicated Account Manager'
-        WHEN SUM(p.Budget) >= 2000000 THEN 'Partner-Level Account Management'
-        WHEN AVG(p.Budget) >= 500000 THEN 'Senior Account Manager'
+        WHEN SUM(p.d.Budget) >= 10000000 THEN 'Dedicated C-Suite Relationship + Account Team'
+        WHEN SUM(p.d.Budget) >= 5000000 THEN 'Senior Partner + Dedicated Account Manager'
+        WHEN SUM(p.d.Budget) >= 2000000 THEN 'Partner-Level Account Management'
+        WHEN AVG(p.d.Budget) >= 500000 THEN 'Senior Account Manager'
         ELSE 'Standard Account Management'
     END AS RecommendedAccountManagement,
     
@@ -251,7 +251,7 @@ SELECT
              NULLIF(DATEDIFF(MONTH, MIN(p.StartDate), MAX(ISNULL(p.ActualEndDate, GETDATE()))), 0) >= 6
              AND c.AnnualRevenue >= 100000000
         THEN 'HIGH POTENTIAL: Frequent projects + Large enterprise = Expansion opportunity'
-        WHEN (SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(p.Budget), 0) >= 30
+        WHEN (SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(p.d.Budget), 0) >= 30
              AND COUNT(p.ProjectID) < 5
         THEN 'UNTAPPED VALUE: High margins suggest pricing power for more services'
         WHEN COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
@@ -276,23 +276,23 @@ HAVING
     -- High-value criteria (MUST meet at least one)
     AND (
         -- Total client value exceeds $2M
-        SUM(p.Budget) >= 2000000
+        SUM(p.d.Budget) >= 2000000
         
         -- OR average project value exceeds $400K
-        OR AVG(p.Budget) >= 400000
+        OR AVG(p.d.Budget) >= 400000
         
         -- OR client has enterprise-level annual revenue
         OR c.AnnualRevenue >= 100000000
         
         -- OR exceptional profitability (30%+ margin)
-        OR ((SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / NULLIF(SUM(p.Budget), 0) >= 30
+        OR ((SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / NULLIF(SUM(p.d.Budget), 0) >= 30
     )
     
     -- Quality relationship requirement
     AND COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
         NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 70
 
-ORDER BY SUM(p.Budget) DESC, AVG(p.Budget) DESC;
+ORDER BY SUM(p.d.Budget) DESC, AVG(p.d.Budget) DESC;
 ```
 
 ### Exercise 1.2: Underperforming Segment Identification (🔴 ADVANCED)

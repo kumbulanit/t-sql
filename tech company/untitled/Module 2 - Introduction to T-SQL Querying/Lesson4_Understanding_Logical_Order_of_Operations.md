@@ -30,21 +30,24 @@ ORDER BY sort_columns;
 #### 1. Basic SELECT with WHERE
 ```sql
 -- Written order
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE d.DepartmentName = 'Engineering';
 
 -- Logical processing:
--- 1. FROM Employees e (get all rows from Employees table)
+-- 1. FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID (get all rows FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID table)
 -- 2. WHERE d.DepartmentName = 'Engineering' (filter rows)
--- 3. SELECT FirstName, LastName, BaseSalary (project columns)
+-- 3. SELECT e.FirstName, e.LastName, e.BaseSalary (project columns)
 ```
 
 #### 2. SELECT with GROUP BY
 ```sql
 -- Written order
 SELECT DepartmentID, COUNT(*) AS EmployeeCount
-FROM Employees
+FROM Employees e
 WHERE IsActive = 1
 GROUP BY DepartmentID;
 
@@ -59,7 +62,7 @@ GROUP BY DepartmentID;
 ```sql
 -- Written order
 SELECT DepartmentID, AVG(e.BaseSalary) AS AvgSalary
-FROM Employees
+FROM Employees e
 WHERE IsActive = 1
 GROUP BY DepartmentID
 HAVING COUNT(*) >= 5;
@@ -80,16 +83,18 @@ HAVING COUNT(*) >= 5;
 SELECT d.DepartmentName,
     AVG(e.BaseSalary) AS AvgSalary,
     COUNT(*) AS EmployeeCount
-FROM Employees
-WHERE HireDate >= '2020-01-01'
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+WHERE e.HireDate >= '2020-01-01'
   AND IsActive = 1
 GROUP BY DepartmentID
 HAVING COUNT(*) >= 3
 ORDER BY AVG(e.BaseSalary) DESC;
 
 -- Logical processing order:
--- 1. FROM Employees e (start with source table)
--- 2. WHERE HireDate >= '2020-01-01' AND IsActive = 1 (filter rows)
+-- 1. FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID (start with source table)
+-- 2. WHERE e.HireDate >= '2020-01-01' AND IsActive = 1 (filter rows)
 -- 3. GROUP BY DepartmentID (group remaining rows)
 -- 4. HAVING COUNT(*) >= 3 (filter groups with less than 3 employees)
 -- 5. SELECT DepartmentID, AVG(e.BaseSalary), COUNT(*) (calculate aggregates)
@@ -100,24 +105,24 @@ ORDER BY AVG(e.BaseSalary) DESC;
 ```sql
 -- This works - alias can be used in ORDER BY
 SELECT 
-    FirstName + ' ' + LastName AS FullName,
-    BaseSalary
-FROM Employees
+    e.FirstName + ' ' + e.LastName AS FullName,
+    e.BaseSalary
+FROM Employees e
 ORDER BY FullName;
 
 -- This doesn't work - alias not available in WHERE
 SELECT 
-    FirstName + ' ' + LastName AS FullName,
-    BaseSalary
-FROM Employees
+    e.FirstName + ' ' + e.LastName AS FullName,
+    e.BaseSalary
+FROM Employees e
 WHERE FullName LIKE 'John%';  -- ERROR: Invalid column name 'FullName'
 
 -- Correct approach
 SELECT 
-    FirstName + ' ' + LastName AS FullName,
-    BaseSalary
-FROM Employees
-WHERE FirstName + ' ' + LastName LIKE 'John%';
+    e.FirstName + ' ' + e.LastName AS FullName,
+    e.BaseSalary
+FROM Employees e
+WHERE e.FirstName + ' ' + e.LastName LIKE 'John%';
 ```
 
 #### 3. Subqueries and Logical Order
@@ -130,7 +135,7 @@ FROM (
     -- This subquery is processed completely first
     SELECT d.DepartmentName,
         AVG(e.BaseSalary) AS AvgSalary
-    FROM Employees
+    FROM Employees e
     WHERE IsActive = 1
     GROUP BY DepartmentID
     HAVING COUNT(*) >= 5
@@ -146,18 +151,20 @@ ORDER BY e.AvgSalary DESC;
 ```sql
 -- Window functions are processed during the SELECT phase
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
     d.DepartmentName,
     AVG(e.BaseSalary) OVER (PARTITION BY DepartmentID) AS DeptAvgSalary,
-    ROW_NUMBER() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) AS SalaryRank
-FROM Employees
+    ROW_NUMBER() OVER (PARTITION BY DepartmentID ORDER BY e.BaseSalary DESC) AS SalaryRank
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE IsActive = 1
 ORDER BY DepartmentID, SalaryRank;
 
 -- Logical processing:
 -- 1. FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 -- 2. WHERE IsActive = 1
 -- 3. SELECT (including window function calculations)
 -- 4. ORDER BY DepartmentID, SalaryRank
@@ -171,7 +178,7 @@ WITH DepartmentStats AS (
     SELECT d.DepartmentName,
         COUNT(*) AS EmployeeCount,
         AVG(e.BaseSalary) AS AvgSalary
-    FROM Employees
+    FROM Employees e
     WHERE IsActive = 1
     GROUP BY DepartmentID
 ),
@@ -207,7 +214,7 @@ SELECT
     ep.HoursWorked
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE e.IsActive = 1
   AND (ep.HoursWorked > 40 OR ep.HoursWorked IS NULL)
@@ -229,22 +236,22 @@ ORDER BY d.DepartmentName, e.LastName;
 ```sql
 -- WRONG: Trying to use alias in WHERE clause
 SELECT 
-    BaseSalary * 1.1 AS IncreasedSalary
-FROM Employees
+    e.BaseSalary * 1.1 AS IncreasedSalary
+FROM Employees e
 WHERE IncreasedSalary > 50000;  -- Error!
 
 -- CORRECT: Use the expression directly
 SELECT 
-    BaseSalary * 1.1 AS IncreasedSalary
-FROM Employees
-WHERE BaseSalary * 1.1 > 50000;
+    e.BaseSalary * 1.1 AS IncreasedSalary
+FROM Employees e
+WHERE e.BaseSalary * 1.1 > 50000;
 
 -- ALTERNATIVE: Use a subquery or CTE
 WITH EmployeeWithIncrease AS (
     SELECT 
-        FirstName,
-        LastName,
-        BaseSalary * 1.1 AS IncreasedSalary
+        e.FirstName,
+        e.LastName,
+        e.BaseSalary * 1.1 AS IncreasedSalary
     FROM Employees e
 )
 SELECT *
@@ -256,16 +263,18 @@ WHERE IncreasedSalary > 50000;
 ```sql
 -- WRONG: Selecting non-grouped columns
 SELECT d.DepartmentName,
-    FirstName,      -- Error: not in GROUP BY
+    e.FirstName,      -- Error: not in GROUP BY
     COUNT(*)
-FROM Employees
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 GROUP BY DepartmentID;
 
 -- CORRECT: Only grouped columns or aggregates
 SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount,
-    MAX(FirstName) AS SampleFirstName  -- Aggregate function
-FROM Employees
+    MAX(e.FirstName) AS SampleFirstName  -- Aggregate function
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 GROUP BY DepartmentID;
 ```
 
@@ -273,20 +282,20 @@ GROUP BY DepartmentID;
 ```sql
 -- Use WHERE for row-level filtering (before grouping)
 SELECT DepartmentID, COUNT(*) AS EmployeeCount
-FROM Employees
+FROM Employees e
 WHERE IsActive = 1  -- Filter rows before grouping
 GROUP BY DepartmentID;
 
 -- Use HAVING for group-level filtering (after grouping)
 SELECT DepartmentID, COUNT(*) AS EmployeeCount
-FROM Employees
+FROM Employees e
 WHERE IsActive = 1
 GROUP BY DepartmentID
 HAVING COUNT(*) > 5;  -- Filter groups after aggregation
 
 -- WRONG: Using aggregate in WHERE
 SELECT DepartmentID, COUNT(*) AS EmployeeCount
-FROM Employees
+FROM Employees e
 WHERE COUNT(*) > 5  -- Error: aggregates not allowed in WHERE
 GROUP BY DepartmentID;
 ```
@@ -298,38 +307,40 @@ GROUP BY DepartmentID;
 -- Good: Filter early in WHERE clause
 SELECT d.DepartmentName,
     AVG(e.BaseSalary) AS AvgSalary
-FROM Employees
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE IsActive = 1          -- Reduces rows before grouping
-  AND HireDate >= '2020-01-01'
+  AND e.HireDate >= '2020-01-01'
 GROUP BY DepartmentID;
 
 -- Less efficient: Late filtering in HAVING
 SELECT d.DepartmentName,
     AVG(e.BaseSalary) AS AvgSalary
-FROM Employees
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 GROUP BY DepartmentID
-HAVING AVG(CASE WHEN IsActive = 1 AND HireDate >= '2020-01-01' 
-               THEN BaseSalary END) IS NOT NULL;
+HAVING AVG(CASE WHEN IsActive = 1 AND e.HireDate >= '2020-01-01' 
+               THEN e.BaseSalary END) IS NOT NULL;
 ```
 
 ### 2. Index Usage
 ```sql
 -- Sargable predicates in WHERE can use indexes
 SELECT *
-FROM Employees
+FROM Employees e
 WHERE DepartmentID = 5      -- Can use index on DepartmentID
-  AND BaseSalary > 50000;       -- Can use index on BaseSalary
+  AND e.BaseSalary > 50000;       -- Can use index on e.BaseSalary
 
 -- Functions in WHERE prevent index usage
 SELECT *
-FROM Employees
-WHERE YEAR(HireDate) = 2023;  -- Cannot use index on HireDate efficiently
+FROM Employees e
+WHERE YEAR(e.HireDate) = 2023;  -- Cannot use index on e.HireDate efficiently
 
 -- Better approach
 SELECT *
-FROM Employees
-WHERE HireDate >= '2023-01-01' 
-  AND HireDate < '2024-01-01';  -- Can use index on HireDate
+FROM Employees e
+WHERE e.HireDate >= '2023-01-01' 
+  AND e.HireDate < '2024-01-01';  -- Can use index on e.HireDate
 ```
 
 ### 3. ORDER BY Optimization
@@ -337,13 +348,14 @@ WHERE HireDate >= '2023-01-01'
 -- ORDER BY is processed last, so it works on final result set
 -- Consider covering indexes for ORDER BY columns
 CREATE INDEX IX_Employees_Dept_Salary 
-ON Employees (Department, BaseSalary DESC);
+ON Employees (Department, e.BaseSalary DESC);
 
 -- This query can benefit from the above index
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE d.DepartmentName = 'Engineering'
-ORDER BY BaseSalary DESC;
+ORDER BY e.BaseSalary DESC;
 ```
 
 ## Practical Applications
@@ -353,18 +365,21 @@ ORDER BY BaseSalary DESC;
 -- Break down complex queries step by step
 -- Step 1: Start with FROM and WHERE
 SELECT *
-FROM Employees
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE IsActive = 1;
 
 -- Step 2: Add GROUP BY
 SELECT DepartmentID, COUNT(*) AS Cnt
-FROM Employees
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE IsActive = 1
 GROUP BY DepartmentID;
 
 -- Step 3: Add HAVING
 SELECT DepartmentID, COUNT(*) AS Cnt
-FROM Employees
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE IsActive = 1
 GROUP BY DepartmentID
 HAVING COUNT(*) >= 5;
@@ -373,7 +388,8 @@ HAVING COUNT(*) >= 5;
 SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount,
     AVG(e.BaseSalary) AS AvgSalary
-FROM Employees
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE IsActive = 1
 GROUP BY DepartmentID
 HAVING COUNT(*) >= 5

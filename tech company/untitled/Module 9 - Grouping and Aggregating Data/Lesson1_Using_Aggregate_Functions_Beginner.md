@@ -60,7 +60,7 @@ FROM Employees e;
 ```sql
 -- Count all projects
 SELECT COUNT(*) AS NumberOfProjects  
-FROM Projects;
+FROM Projects p;
 ```
 
 **Expected result**: A single number showing total projects.
@@ -69,11 +69,11 @@ FROM Projects;
 
 ### 🎓 Adding Up Money: The SUM Function
 
-If you have a pile of dollar bills and want to know the total value, you add them up. SQL can do the same with BaseSalary data!
+If you have a pile of dollar bills and want to know the total value, you add them up. SQL can do the same with e.BaseSalary data!
 
 **The SUM Function**: `SUM(column_name)` = "Add up all the numbers in this column"
 
-### Exercise 2.1: Total BaseSalary Cost (🟢 SUPER BASIC)
+### Exercise 2.1: Total e.BaseSalary Cost (🟢 SUPER BASIC)
 
 **Question**: "How much does TechCorp spend on all salaries combined?"
 
@@ -95,7 +95,7 @@ FROM Employees e;
 ```sql
 -- Add up all project budgets  
 SELECT SUM(Budget) AS TotalProjectBudgets
-FROM Projects;
+FROM Projects p;
 ```
 
 ## Part 3: Finding Averages 📊
@@ -106,12 +106,12 @@ An average tells you what's "normal" or "typical." Like the average height of st
 
 **The AVG Function**: `AVG(column_name)` = "What's the average of all these numbers?"
 
-### Exercise 3.1: Average BaseSalary (🟢 SUPER BASIC)
+### Exercise 3.1: Average e.BaseSalary (🟢 SUPER BASIC)
 
-**Question**: "What's the typical BaseSalary at TechCorp?"
+**Question**: "What's the typical e.BaseSalary at TechCorp?"
 
 ```sql
--- Calculate average BaseSalary
+-- Calculate average e.BaseSalary
 SELECT AVG(e.BaseSalary) AS AverageBaseSalary
 FROM Employees e;
 ```
@@ -126,29 +126,29 @@ FROM Employees e;
 ```sql
 -- Find average project budget
 SELECT AVG(Budget) AS AverageProjectBudget
-FROM Projects;
+FROM Projects p;
 ```
 
 ## Part 4: Finding Extremes (Biggest and Smallest) 📊
 
 ### 🎓 Who's the Highest and Lowest?
 
-Sometimes you want to know the extremes - the highest BaseSalary or smallest project budget.
+Sometimes you want to know the extremes - the highest e.BaseSalary or smallest project budget.
 
 **MIN and MAX Functions**: 
 - `MIN(column_name)` = "Find the smallest number"
 - `MAX(column_name)` = "Find the biggest number"
 
-### Exercise 4.1: BaseSalary Extremes (🟢 SUPER BASIC)
+### Exercise 4.1: e.BaseSalary Extremes (🟢 SUPER BASIC)
 
 **Questions**: "Who earns the most? Who earns the least?"
 
 ```sql
--- Find highest BaseSalary
+-- Find highest e.BaseSalary
 SELECT MAX(e.BaseSalary) AS HighestBaseSalary
 FROM Employees e;
 
--- Find lowest BaseSalary  
+-- Find lowest e.BaseSalary  
 SELECT MIN(e.BaseSalary) AS LowestBaseSalary
 FROM Employees e;
 ```
@@ -200,7 +200,7 @@ SELECT
     AVG(Budget) AS AverageProjectSize,
     MIN(Budget) AS SmallestProject,
     MAX(Budget) AS LargestProject
-FROM Projects;
+FROM Projects p;
 ```
 
 ## Part 6: Real Business Questions 📊
@@ -220,11 +220,11 @@ FROM Employees e;
 
 -- Question 3: What's a typical project worth?
 SELECT AVG(Budget) AS 'Typical Project Value'
-FROM Projects;
+FROM Projects p;
 
 -- Question 4: What's our biggest project?
 SELECT MAX(Budget) AS 'Largest Project Budget'
-FROM Projects;
+FROM Projects p;
 ```
 
 ### Exercise 6.2: Making Numbers Easier to Read (🟢 INTERMEDIATE)
@@ -234,7 +234,7 @@ FROM Projects;
 SELECT 
     COUNT(*) AS Employees,
     FORMAT(SUM(e.BaseSalary), 'C0') AS 'Total Payroll',
-    FORMAT(AVG(e.BaseSalary), 'C0') AS 'Average BaseSalary'
+    FORMAT(AVG(e.BaseSalary), 'C0') AS 'Average e.BaseSalary'
 FROM Employees e;
 ```
 
@@ -263,8 +263,8 @@ SELECT
     'TechCorp Business Overview' AS Report,
     (SELECT COUNT(*) FROM Employees e) AS Employees,
     (SELECT COUNT(*) FROM Clients) AS Clients,
-    (SELECT COUNT(*) FROM Projects) AS Projects,
-    (SELECT FORMAT(SUM(Budget), 'C0') FROM Projects) AS 'Total Project Value'
+    (SELECT COUNT(*) FROM Projects p) AS Projects,
+    (SELECT FORMAT(SUM(Budget), 'C0') FROM Projects p) AS 'Total Project Value'
 ```
 
 ## 📝 Summary - What You Learned

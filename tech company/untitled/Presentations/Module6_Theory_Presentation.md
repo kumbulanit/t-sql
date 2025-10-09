@@ -65,7 +65,7 @@ DECIMAL(precision, scale)
 NUMERIC(precision, scale)
 
 -- Examples
-BaseSalary DECIMAL(10,2)      -- Up to 99,999,999.99
+e.BaseSalary DECIMAL(10,2)      -- Up to 99,999,999.99
 Percentage DECIMAL(5,4)   -- Up to 9.9999
 Price DECIMAL(8,2)        -- Up to 999,999.99
 
@@ -109,7 +109,7 @@ VARCHAR(MAX) -- Up to 2GB storage
 
 -- Usage examples
 StateCode CHAR(2),           -- Always 2 characters
-LastName VARCHAR(50),        -- Variable up to 50
+e.LastName VARCHAR(50),        -- Variable up to 50
 Description VARCHAR(MAX)     -- Large text content
 ```
 
@@ -127,7 +127,7 @@ NVARCHAR(n)   -- Variable length Unicode
 NVARCHAR(MAX) -- Large Unicode text
 
 -- Usage examples
-FirstName NVARCHAR(50),      -- International names
+e.FirstName NVARCHAR(50),      -- International names
 Comments NVARCHAR(MAX),      -- Large multilingual text
 CountryCode NCHAR(3)         -- Fixed ISO codes
 ```
@@ -315,7 +315,7 @@ ConfigData XML(ConfigSchema)  -- With schema validation
 ```sql
 -- CAST (ANSI standard)
 SELECT 
-    CAST(BaseSalary AS VARCHAR(20)) AS SalaryText,
+    CAST(e.BaseSalary AS VARCHAR(20)) AS SalaryText,
     CAST('2023-01-01' AS DATE) AS ConvertedDate,
     CAST(3.14159 AS DECIMAL(10,2)) AS RoundedValue
 
@@ -355,7 +355,7 @@ FROM DataImport;
 
 ```sql
 -- Implicit conversion (automatic)
-SELECT EmployeeID + '1'  -- INT + VARCHAR → VARCHAR result
+SELECT e.EmployeeID + '1'  -- INT + VARCHAR → VARCHAR result
 
 -- Data type precedence (highest to lowest):
 -- user-defined data types, sql_variant, xml, datetimeoffset
@@ -366,7 +366,7 @@ SELECT EmployeeID + '1'  -- INT + VARCHAR → VARCHAR result
 -- varchar, char, varbinary, binary
 
 -- Explicit conversion (recommended)
-SELECT CAST(EmployeeID AS VARCHAR(10)) + '1' AS Result
+SELECT CAST(e.EmployeeID AS VARCHAR(10)) + '1' AS Result
 ```
 
 ---
@@ -377,12 +377,12 @@ SELECT CAST(EmployeeID AS VARCHAR(10)) + '1' AS Result
 ```sql
 -- String functions with different data types
 SELECT 
-    LEN(FirstName) AS NameLength,
-    UPPER(LastName) AS UpperName,
+    LEN(e.FirstName) AS NameLength,
+    UPPER(e.LastName) AS UpperName,
     SUBSTRING(WorkEmail, 1, CHARINDEX('@', WorkEmail) - 1) AS Username,
     REPLACE(PhoneNumber, '-', '') AS CleanPhone,
     STUFF(SSN, 4, 0, '-') AS FormattedSSN,
-    REVERSE(LastName) AS ReversedName,
+    REVERSE(e.LastName) AS ReversedName,
     REPLICATE('*', LEN(Password)) AS MaskedPassword
 FROM Employees e;
 ```
@@ -400,16 +400,16 @@ SELECT
     SYSDATETIME() AS HighPrecisionNow,
     
     -- Date parts
-    YEAR(HireDate) AS HireYear,
-    MONTH(HireDate) AS HireMonth,
-    DAY(HireDate) AS HireDay,
-    DATEPART(QUARTER, HireDate) AS HireQuarter,
-    DATEPART(WEEKDAY, HireDate) AS HireDayOfWeek,
+    YEAR(e.HireDate) AS HireYear,
+    MONTH(e.HireDate) AS HireMonth,
+    DAY(e.HireDate) AS HireDay,
+    DATEPART(QUARTER, e.HireDate) AS HireQuarter,
+    DATEPART(WEEKDAY, e.HireDate) AS HireDayOfWeek,
     
     -- Date calculations
-    DATEADD(YEAR, 1, HireDate) AS Anniversary,
-    DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsEmployed,
-    EOMONTH(HireDate) AS EndOfHireMonth
+    DATEADD(YEAR, 1, e.HireDate) AS Anniversary,
+    DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsEmployed,
+    EOMONTH(e.HireDate) AS EndOfHireMonth
 FROM Employees e;
 ```
 
@@ -429,8 +429,8 @@ SELECT
     SQRT(16) AS SquareRoot,          -- 4
     
     -- Precision considerations
-    BaseSalary * 1.05 AS RaisedSalary,
-    CAST(BaseSalary * 1.05 AS DECIMAL(10,2)) AS PreciseRaise
+    e.BaseSalary * 1.05 AS RaisedSalary,
+    CAST(e.BaseSalary * 1.05 AS DECIMAL(10,2)) AS PreciseRaise
 FROM Employees e;
 ```
 

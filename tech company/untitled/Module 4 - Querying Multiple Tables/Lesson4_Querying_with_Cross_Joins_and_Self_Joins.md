@@ -116,7 +116,7 @@ A self join is a join where a table is joined with itself. This is useful for co
 │                                                                             │
 │  Self Join Query:                                                          │
 │  SELECT emp.Name AS Employee, mgr.Name AS Manager                          │
-│  FROM Employees emp LEFT JOIN Employees mgr ON emp.ManagerID = mgr.EmpID   │
+│  FROM Employees e emp LEFT JOIN Employees mgr ON emp.ManagerID = mgr.EmpID   │
 │                      ▲                    ▲                                │
 │                  Alias 1              Alias 2                              │
 │                 (Employee)            (Manager)                            │
@@ -155,7 +155,7 @@ A self join is a join where a table is joined with itself. This is useful for co
 │                                                                             │
 │  Self Join Logic:                                                          │
 │  ┌─────────────────────────────────────────────────────────────────────────┤
-│  │ FROM Employees e1 JOIN Employees e2 ON e1.BaseSalary = e2.BaseSalary           │
+│  │ FROM Employees e e1 JOIN Employees e2 ON e1.BaseSalary = e2.BaseSalary           │
 │  │                                    AND e1.EmpID < e2.EmpID             │
 │  │                    ▲                        ▲                          │
 │  │               Join Condition        Avoid Duplicates                   │
@@ -199,7 +199,7 @@ A self join is a join where a table is joined with itself. This is useful for co
 │  │     mgr1.Name AS DirectManager,                                         │
 │  │     mgr2.Name AS SkipLevelManager,                                      │
 │  │     mgr3.Name AS ExecutiveManager                                       │
-│  │ FROM Employees emp                                                      │
+│  │ FROM Employees e emp                                                      │
 │  │     LEFT JOIN Employees mgr1 ON emp.ManagerID = mgr1.EmpID             │
 │  │     LEFT JOIN Employees mgr2 ON mgr1.ManagerID = mgr2.EmpID            │
 │  │     LEFT JOIN Employees mgr3 ON mgr2.ManagerID = mgr3.EmpID            │
@@ -292,16 +292,16 @@ WHERE p.IsActive = 1
 ```sql
 -- Index the join columns for better performance
 CREATE INDEX IX_Employees_ManagerID ON Employees(ManagerID);
-CREATE INDEX IX_Employees_DepartmentID_Salary ON Employees(DepartmentID, BaseSalary);
+CREATE INDEX IX_Employees_DepartmentID_Salary ON Employees(DepartmentID, e.BaseSalary);
 
 -- Use proper filtering to reduce comparison sets
-SELECT e1.FirstName, e2.FirstName
-FROM Employees e1
+SELECT e1.e.FirstName, e2.e.FirstName
+FROM Employees e e1
 INNER JOIN Employees e2 ON e1.DepartmentID = e2.DepartmentID
-    AND e1.EmployeeID < e2.EmployeeID
+    AND e1.e.EmployeeID < e2.e.EmployeeID
 WHERE e1.IsActive = 1 
   AND e2.IsActive = 1
-  AND e1.HireDate >= '2020-01-01';  -- Limit comparison scope
+  AND e1.e.HireDate >= '2020-01-01';  -- Limit comparison scope
 ```
 
 ## Best Practices
@@ -324,9 +324,9 @@ WHERE e1.IsActive = 1
 -- Good: Clear aliases and conditions
 SELECT 
     emp.FirstName AS EmployeeName,
-    mgr.FirstName AS ManagerName
-FROM Employees emp
-LEFT JOIN Employees mgr ON emp.ManagerID = mgr.EmployeeID
+    mgr.e.FirstName AS ManagerName
+FROM Employees e emp
+LEFT JOIN Employees mgr ON emp.ManagerID = mgr.e.EmployeeID
 WHERE emp.IsActive = 1;
 
 -- Good: Limited cross join with business purpose

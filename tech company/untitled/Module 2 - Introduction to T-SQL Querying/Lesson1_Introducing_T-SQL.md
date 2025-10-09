@@ -24,16 +24,16 @@ T-SQL stands for Transact-SQL and is Microsoft's proprietary extension of the SQ
 SELECT * FROM Employees e;
 
 -- Select specific columns
-SELECT FirstName, LastName, BaseSalary 
+SELECT e.FirstName, e.LastName, e.BaseSalary 
 FROM Employees e;
 ```
 
 #### 2. Using WHERE Clause
 ```sql
 -- Filter records with conditions
-SELECT FirstName, LastName 
-FROM Employees 
-WHERE BaseSalary > 50000;
+SELECT e.FirstName, e.LastName 
+FROM Employees e 
+WHERE e.BaseSalary > 50000;
 ```
 
 #### 3. Basic Data Types
@@ -41,8 +41,8 @@ WHERE BaseSalary > 50000;
 -- Common T-SQL data types
 DECLARE @Name NVARCHAR(50) = 'John Doe';
 DECLARE @Age INT = 30;
-DECLARE @BaseSalary DECIMAL(10,2) = 75000.00;
-DECLARE @HireDate DATE = '2020-01-15';
+DECLARE @e.BaseSalary DECIMAL(10,2) = 75000.00;
+DECLARE @e.HireDate DATE = '2020-01-15';
 ```
 
 ### Intermediate Examples
@@ -51,16 +51,16 @@ DECLARE @HireDate DATE = '2020-01-15';
 ```sql
 -- String functions
 SELECT 
-    UPPER(FirstName) AS UpperFirstName,
-    LEN(LastName) AS LastNameLength,
+    UPPER(e.FirstName) AS UpperFirstName,
+    LEN(e.LastName) AS LastNameLength,
     SUBSTRING(WorkEmail, 1, CHARINDEX('@', WorkEmail) - 1) AS Username
 FROM Employees e;
 
 -- Date functions
 SELECT 
     GETDATE() AS CurrentDateTime,
-    DATEADD(YEAR, 1, HireDate) AS OneYearLater,
-    DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsEmployed
+    DATEADD(YEAR, 1, e.HireDate) AS OneYearLater,
+    DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsEmployed
 FROM Employees e;
 ```
 
@@ -68,12 +68,12 @@ FROM Employees e;
 ```sql
 -- Using CASE statement
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
     CASE 
-        WHEN BaseSalary < 40000 THEN 'Entry Level'
-        WHEN BaseSalary BETWEEN 40000 AND 80000 THEN 'Mid Level'
+        WHEN e.BaseSalary < 40000 THEN 'Entry Level'
+        WHEN e.BaseSalary BETWEEN 40000 AND 80000 THEN 'Mid Level'
         ELSE 'Senior Level'
     END AS SalaryCategory
 FROM Employees e;
@@ -87,7 +87,8 @@ SELECT d.DepartmentName,
     AVG(e.BaseSalary) AS AverageBaseSalary,
     MAX(e.BaseSalary) AS MaxSalary,
     MIN(e.BaseSalary) AS MinSalary
-FROM Employees
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 GROUP BY DepartmentID
 HAVING COUNT(*) > 5;
 ```
@@ -99,15 +100,15 @@ HAVING COUNT(*) > 5;
 -- CTE for complex queries
 WITH EmployeeSalaryRanking AS (
     SELECT 
-        FirstName,
-        LastName,
-        BaseSalary,
-        RANK() OVER (ORDER BY BaseSalary DESC) AS SalaryRank,
-        DENSE_RANK() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) AS DeptSalaryRank
+        e.FirstName,
+        e.LastName,
+        e.BaseSalary,
+        RANK() OVER (ORDER BY e.BaseSalary DESC) AS SalaryRank,
+        DENSE_RANK() OVER (PARTITION BY DepartmentID ORDER BY e.BaseSalary DESC) AS DeptSalaryRank
     FROM Employees e
 )
 SELECT *
-FROM Employees ealaryRanking
+FROM Employees e ealaryRanking
 WHERE SalaryRank <= 10;
 ```
 
@@ -115,13 +116,13 @@ WHERE SalaryRank <= 10;
 ```sql
 -- Advanced window functions
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
-    LAG(BaseSalary) OVER (ORDER BY HireDate) AS PreviousEmployeeSalary,
-    LEAD(BaseSalary) OVER (ORDER BY HireDate) AS NextEmployeeSalary,
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
+    LAG(e.BaseSalary) OVER (ORDER BY e.HireDate) AS PreviousEmployeeSalary,
+    LEAD(e.BaseSalary) OVER (ORDER BY e.HireDate) AS NextEmployeeSalary,
     SUM(e.BaseSalary) OVER (PARTITION BY DepartmentID) AS DepartmentTotalSalary,
-    ROW_NUMBER() OVER (PARTITION BY DepartmentID ORDER BY BaseSalary DESC) AS RowNum
+    ROW_NUMBER() OVER (PARTITION BY DepartmentID ORDER BY e.BaseSalary DESC) AS RowNum
 FROM Employees e;
 ```
 
@@ -131,12 +132,12 @@ FROM Employees e;
 WITH EmployeeHierarchy AS (
     -- Anchor member (top-level managers)
     SELECT 
-        EmployeeID,
-        FirstName,
-        LastName,
+        e.EmployeeID,
+        e.FirstName,
+        e.LastName,
         ManagerID,
         0 AS Level
-    FROM Employees
+    FROM Employees e
     WHERE ManagerID IS NULL
     
     UNION ALL
@@ -149,13 +150,13 @@ WITH EmployeeHierarchy AS (
         e.ManagerID,
         eh.Level + 1
     FROM Employees e
-    INNER JOIN EmployeeHierarchy eh ON e.ManagerID = eh.EmployeeID
+    INNER JOIN EmployeeHierarchy eh ON e.ManagerID = eh.e.EmployeeID
 )
 SELECT 
-    REPLICATE('  ', Level) + FirstName + ' ' + LastName AS HierarchyDisplay,
+    REPLICATE('  ', Level) + e.FirstName + ' ' + e.LastName AS HierarchyDisplay,
     Level
 FROM EmployeeHierarchy
-ORDER BY Level, LastName;
+ORDER BY Level, e.LastName;
 ```
 
 ## T-SQL vs Standard SQL
@@ -199,7 +200,7 @@ ORDER BY Level, LastName;
    ```sql
    -- Good
    SELECT emp.FirstName, emp.LastName
-   FROM Employees emp;
+   FROM Employees e emp;
    
    -- Avoid
    SELECT e.fn, e.ln

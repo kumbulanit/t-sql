@@ -12,13 +12,13 @@ This comprehensive lab provides hands-on experience with all T-SQL set operators
 
 **Core Tables for Lab Exercises:**
 ```sql
-Employees: EmployeeID (3001+), FirstName, LastName, BaseSalary, DepartmentID, ManagerID, JobTitle, HireDate, WorkEmail, IsActive
-Departments: DepartmentID (2001+), DepartmentName, Budget, Location, IsActive
-Projects: ProjectID (4001+), ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
-Orders: OrderID (5001+), CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
-EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
+Employees: e.EmployeeID (3001+), e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID, ManagerID, e.JobTitle, e.HireDate, WorkEmail, IsActive
+Departments: d.DepartmentID (2001+), d.DepartmentName, d.Budget, Location, IsActive
+Projects: ProjectID (4001+), ProjectName, d.Budget, ProjectManagerID, StartDate, EndDate, IsActive
+Orders: OrderID (5001+), CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
+EmployeeProjects: e.EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
 Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, WorkEmail, IsActive
-EmployeeArchive: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, ArchiveDate, ReasonForLeaving
+EmployeeArchive: e.EmployeeID, e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID, ArchiveDate, ReasonForLeaving
 ```
 
 ## Exercise 1: UNION Operations - Strategic Contact Directory
@@ -55,7 +55,7 @@ SELECT
     -- Add your columns here
     ...
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 
 UNION
@@ -66,7 +66,7 @@ UNION
 
 -- Add customers section
 
-ORDER BY ContactType, LastName;
+ORDER BY ContactType, e.LastName;
 ```
 
 ### Task 1.2: Advanced Contact Analysis
@@ -107,7 +107,7 @@ SELECT
     d.DepartmentName,
     'Never Assigned Projects' AS ComplianceIssue
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 
 EXCEPT
@@ -160,7 +160,7 @@ SELECT
     d.DepartmentName,
     e.BaseSalary
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND e.EmployeeID IN (
       -- Define high performer criteria here
@@ -177,13 +177,13 @@ SELECT
     d.DepartmentName,
     e.BaseSalary
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND e.BaseSalary >= (
-      -- Calculate d.DepartmentName BaseSalary threshold (75th percentile)
+      -- Calculate d.DepartmentName e.BaseSalary threshold (75th percentile)
   )
 
-ORDER BY d.DepartmentName, BaseSalary DESC;
+ORDER BY d.DepartmentName, e.BaseSalary DESC;
 ```
 
 ### Task 3.2: Customer Segment Overlap Analysis
@@ -224,7 +224,7 @@ SELECT
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     e.JobTitle,
     d.DepartmentName,
-    FORMAT(e.BaseSalary, 'C') AS BaseSalary,
+    FORMAT(e.BaseSalary, 'C') AS e.BaseSalary,
     performance_metrics.ProjectScore,
     performance_metrics.CustomerScore,
     performance_metrics.TeamScore,
@@ -232,7 +232,7 @@ SELECT
     performance_metrics.CareerRecommendation,
     performance_metrics.DepartmentRank
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 CROSS APPLY (
     SELECT 
         -- Calculate project performance score (0-100)
@@ -256,7 +256,7 @@ CROSS APPLY (
         END AS CareerRecommendation,
         -- d.DepartmentName ranking
         ROW_NUMBER() OVER (
-            PARTITION BY e.DepartmentID 
+            PARTITION BY e.d.DepartmentID 
             ORDER BY (
                 (project_data.ProjectScore * 0.4) +
                 (customer_data.CustomerScore * 0.3) +
@@ -277,7 +277,7 @@ CROSS APPLY (
         FROM (
             SELECT COUNT(DISTINCT ep.ProjectID) AS project_count
             FROM EmployeeProjects ep
-            WHERE ep.EmployeeID = e.EmployeeID
+            WHERE ep.e.EmployeeID = e.EmployeeID
               AND ep.IsActive = 1
         ) project_summary
     ) project_data
@@ -364,7 +364,7 @@ ExcellenceAreas AS (
 -- Combine all metrics with UNION operations
 SELECT 
     'Department Performance' AS MetricCategory,
-    DepartmentName AS Entity,
+    d.DepartmentName AS Entity,
     -- Add metrics columns
 FROM DepartmentMetrics
 

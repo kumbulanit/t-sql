@@ -82,15 +82,15 @@ CREATE TABLE Departments (
 
 -- Employees table - TechCorp's workforce
 CREATE TABLE Employees (
-    EmployeeID INT PRIMARY KEY IDENTITY(2001,1),
-    FirstName NVARCHAR(50) NOT NULL,
-    LastName NVARCHAR(50) NOT NULL,
+    e.EmployeeID INT PRIMARY KEY IDENTITY(2001,1),
+    e.FirstName NVARCHAR(50) NOT NULL,
+    e.LastName NVARCHAR(50) NOT NULL,
     MiddleName NVARCHAR(50) NULL,
     WorkEmail NVARCHAR(100) NOT NULL,
     DepartmentID INT NOT NULL,
     ManagerID INT NULL,
-    BaseSalary DECIMAL(10,2) NOT NULL,
-    HireDate DATE NOT NULL,
+    e.BaseSalary DECIMAL(10,2) NOT NULL,
+    e.HireDate DATE NOT NULL,
     IsActive BIT NOT NULL DEFAULT 1,
     Title NVARCHAR(100) NOT NULL,
     EmployeeType NVARCHAR(20) NOT NULL DEFAULT 'Full-Time'
@@ -111,14 +111,14 @@ CREATE TABLE Projects (
 
 -- EmployeeProjects table (many-to-many relationship)
 CREATE TABLE EmployeeProjects (
-    EmployeeID INT NOT NULL,
+    e.EmployeeID INT NOT NULL,
     ProjectID INT NOT NULL,
     Role NVARCHAR(50) NOT NULL,
     HoursAllocated DECIMAL(5,2) NOT NULL,
     HoursWorked DECIMAL(5,2) NOT NULL DEFAULT 0,
     HourlyRate DECIMAL(8,2) NULL,
     StartDate DATE NOT NULL,
-    PRIMARY KEY (EmployeeID, ProjectID)
+    PRIMARY KEY (e.EmployeeID, ProjectID)
 );
 ```
 
@@ -145,7 +145,7 @@ INSERT INTO Departments (DepartmentName, DepartmentCode, Budget, Location) VALUE
 ('Sales & Marketing', 'SALES', 400000, 'Building B - Floor 4');
 
 -- Insert TechCorp employees (key team members for Module 2)
-INSERT INTO Employees (FirstName, LastName, MiddleName, WorkEmail, DepartmentID, ManagerID, BaseSalary, HireDate, Title, EmployeeType) VALUES
+INSERT INTO Employees (e.FirstName, e.LastName, MiddleName, WorkEmail, DepartmentID, ManagerID, e.BaseSalary, e.HireDate, Title, EmployeeType) VALUES
 ('Marcus', 'Johnson', 'Ray', 'marcus.johnson@techcorp.com', 1, NULL, 125000, '2019-01-15', 'Development Director', 'Full-Time'),
 ('Sarah', 'Chen', NULL, 'sarah.chen@techcorp.com', 1, 2001, 95000, '2020-03-10', 'Senior Developer', 'Full-Time'),
 ('David', 'Rodriguez', 'Luis', 'david.rodriguez@techcorp.com', 1, 2001, 88000, '2020-06-01', 'Backend Developer', 'Full-Time'),
@@ -166,7 +166,7 @@ INSERT INTO Projects (ProjectName, ProjectCode, CompanyID, StartDate, EndDate, B
 ('TechForward Cloud Migration', 'TF-CLOUD-2024', 1005, '2024-02-15', '2024-09-30', 650000, 'In Progress', 'High');
 
 -- Insert employee project assignments
-INSERT INTO EmployeeProjects (EmployeeID, ProjectID, Role, HoursAllocated, HoursWorked, HourlyRate, StartDate) VALUES
+INSERT INTO EmployeeProjects (e.EmployeeID, ProjectID, Role, HoursAllocated, HoursWorked, HourlyRate, StartDate) VALUES
 (2001, 3001, 'Project Lead', 300, 180, 125.00, '2024-01-15'),
 (2002, 3001, 'Senior Developer', 400, 245, 95.00, '2024-01-15'),
 (2003, 3001, 'Backend Developer', 450, 280, 88.00, '2024-01-15'),
@@ -208,17 +208,17 @@ SELECT * FROM Employees e;
 **💡 What This Means:**
 - `SELECT` = "Show me..."
 - `*` = "...everything..." (all columns)  
-- `FROM Employees` = "...from the Employees table"
+- `FROM Employees e` = "...from the Employees table"
 - `;` = End of command (like a period in a sentence)
 
 **Query #2: See Specific Information Only**
 ```sql
 -- Sometimes you don't need all information - just the basics
 SELECT 
-    FirstName,
-    LastName, 
-    JobTitle,
-    BaseSalary
+    e.FirstName,
+    e.LastName, 
+    e.JobTitle,
+    e.BaseSalary
 FROM Employees e;
 ```
 
@@ -231,10 +231,10 @@ FROM Employees e;
 ```sql
 -- Let's do some business math - calculate monthly salaries
 SELECT 
-    FirstName + ' ' + LastName AS FullName,    -- Combine first and last name
-    BaseSalary,                                -- Annual BaseSalary  
-    BaseSalary / 12 AS MonthlySalary,         -- Calculate monthly BaseSalary
-    JobTitle
+    e.FirstName + ' ' + e.LastName AS FullName,    -- Combine first and last name
+    e.BaseSalary,                                -- Annual e.BaseSalary  
+    e.BaseSalary / 12 AS MonthlySalary,         -- Calculate monthly e.BaseSalary
+    e.JobTitle
 FROM Employees e;
 ```
 
@@ -359,7 +359,7 @@ For each query, explain the logical processing order:
 
 1. ```sql
    SELECT DepartmentID, AVG(e.BaseSalary) as AvgSalary
-   FROM Employees
+   FROM Employees e
    WHERE IsActive = 1
    GROUP BY DepartmentIDID
    HAVING COUNT(*) > 2
@@ -379,13 +379,13 @@ Identify what's wrong with these queries and fix them:
 
 1. ```sql
    SELECT FirstName + ' ' + LastName AS FullName, BaseSalary
-   FROM Employees
+   FROM Employees e
    WHERE FullName LIKE 'John%';
    ```
 
 2. ```sql
    SELECT DepartmentID, COUNT(*) AS EmpCount
-   FROM Employees
+   FROM Employees e
    WHERE EmpCount > 2
    GROUP BY DepartmentIDID;
    ```

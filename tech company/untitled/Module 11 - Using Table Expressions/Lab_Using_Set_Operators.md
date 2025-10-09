@@ -20,13 +20,13 @@ By completing this lab, you will be able to:
 **Primary Tables Used in This Lab:**
 
 ```sql
-Employees: EmployeeID (3001+), FirstName, LastName, BaseSalary, DepartmentID, ManagerID, JobTitle, HireDate, WorkEmail, IsActive
-Departments: DepartmentID (2001+), DepartmentName, Budget, Location, IsActive
-Projects: ProjectID (4001+), ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
-Orders: OrderID (5001+), CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
-EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
+Employees: e.EmployeeID (3001+), e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID, ManagerID, e.JobTitle, e.HireDate, WorkEmail, IsActive
+Departments: d.DepartmentID (2001+), d.DepartmentName, d.Budget, Location, IsActive
+Projects: ProjectID (4001+), ProjectName, d.Budget, ProjectManagerID, StartDate, EndDate, IsActive
+Orders: OrderID (5001+), CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
+EmployeeProjects: e.EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
 Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, WorkEmail, IsActive
-EmployeeArchive: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, TerminationDate, Reason, IsActive
+EmployeeArchive: e.EmployeeID, e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID, TerminationDate, Reason, IsActive
 ```
 
 ---
@@ -63,14 +63,14 @@ EmployeeArchive: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, Term
 
 **Business Problem:** Management wants to analyze total compensation costs including both current employees and recently terminated employees for budget planning.
 
-**Your Task:** Create a comprehensive BaseSalary analysis that includes current employees and employees terminated within the last 12 months.
+**Your Task:** Create a comprehensive e.BaseSalary analysis that includes current employees and employees terminated within the last 12 months.
 
 **Expected Output Columns:**
 - Employee Status (Active/Terminated)
 - Full Name
 - d.DepartmentName Name
 - Job Title
-- Last Known BaseSalary
+- Last Known e.BaseSalary
 - Employment Duration (in years)
 - Status Date (Hire Date for active, Termination Date for terminated)
 
@@ -98,7 +98,7 @@ EmployeeArchive: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, Term
 - d.DepartmentName Name
 - Hire Date
 - Years with Company
-- Current BaseSalary
+- Current e.BaseSalary
 
 **Requirements:**
 - Include only active employees
@@ -116,11 +116,11 @@ EmployeeArchive: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, Term
 
 **Business Problem:** TechCorp has a policy that all employees earning over $75,000 should have management responsibilities (direct reports). Find employees who violate this policy.
 
-**Your Task:** Identify high-earning employees who should be managers based on BaseSalary but currently have no direct reports.
+**Your Task:** Identify high-earning employees who should be managers based on e.BaseSalary but currently have no direct reports.
 
 **Expected Output Columns:**
 - Employee Name
-- Current BaseSalary
+- Current e.BaseSalary
 - d.DepartmentName Name
 - Job Title
 - Years with Company
@@ -149,7 +149,7 @@ EmployeeArchive: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, Term
 - Job Title
 - Projects Managed
 - Orders Processed
-- Total Project Budget Managed
+- Total Project d.Budget Managed
 - Total Order Value Processed
 
 **Requirements:**
@@ -197,7 +197,7 @@ EmployeeArchive: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, Term
 **Your Task:** Create a performance dashboard that shows the top 3 performers in each d.DepartmentName using a weighted scoring system.
 
 **Performance Scoring Criteria:**
-- BaseSalary percentile within d.DepartmentName (30% weight)
+- e.BaseSalary percentile within d.DepartmentName (30% weight)
 - Number of projects managed (25% weight)
 - Total orders processed (25% weight)
 - Years of experience (20% weight)
@@ -208,7 +208,7 @@ EmployeeArchive: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, Term
 - Job Title
 - Performance Score
 - Performance Rank within d.DepartmentName
-- BaseSalary
+- e.BaseSalary
 - Projects Managed
 - Orders Processed
 
@@ -272,7 +272,7 @@ EmployeeArchive: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, Term
 **Your Task:** Build a unified business metrics report that combines data from multiple sources using various set operators.
 
 **Required Metrics Categories:**
-- Employee metrics (count, average BaseSalary, top performers)
+- Employee metrics (count, average e.BaseSalary, top performers)
 - Project metrics (active projects, budget utilization, completion rates)
 - Sales metrics (order volume, revenue trends, customer metrics)
 - d.DepartmentName metrics (performance comparisons, resource allocation)
@@ -345,7 +345,7 @@ SELECT
     d.Location AS Location,
     'Internal' AS ContactCategory
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND e.WorkEmail IS NOT NULL
   AND d.IsActive = 1
@@ -375,7 +375,7 @@ ORDER BY ContactType, FullName;
 ### Solution 1.2: Historical Data Integration Challenge
 
 ```sql
--- Management: Comprehensive BaseSalary Analysis
+-- Management: Comprehensive e.BaseSalary Analysis
 SELECT 
     'Active' AS EmployeeStatus,
     e.FirstName + ' ' + e.LastName AS FullName,
@@ -385,7 +385,7 @@ SELECT
     CAST(DATEDIFF(DAY, e.HireDate, GETDATE()) / 365.25 AS DECIMAL(4,1)) AS EmploymentDurationYears,
     e.HireDate AS StatusDate
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND d.IsActive = 1
 
@@ -393,18 +393,18 @@ UNION ALL
 
 SELECT 
     'Terminated' AS EmployeeStatus,
-    ea.FirstName + ' ' + ea.LastName AS FullName,
+    ea.e.FirstName + ' ' + ea.e.LastName AS FullName,
     d.DepartmentName,
-    ea.JobTitle,
-    FORMAT(ea.BaseSalary, 'C') AS LastKnownSalary,
-    CAST(DATEDIFF(DAY, ea.HireDate, ea.TerminationDate) / 365.25 AS DECIMAL(4,1)) AS EmploymentDurationYears,
+    ea.e.JobTitle,
+    FORMAT(ea.e.BaseSalary, 'C') AS LastKnownSalary,
+    CAST(DATEDIFF(DAY, ea.e.HireDate, ea.TerminationDate) / 365.25 AS DECIMAL(4,1)) AS EmploymentDurationYears,
     ea.TerminationDate AS StatusDate
 FROM EmployeeArchive ea
-INNER JOIN Departments d ON ea.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON ea.d.DepartmentID = d.DepartmentID
 WHERE ea.TerminationDate >= DATEADD(MONTH, -12, GETDATE())
   AND d.IsActive = 1
 
-ORDER BY EmployeeStatus, DepartmentName, FullName;
+ORDER BY EmployeeStatus, d.DepartmentName, FullName;
 ```
 
 **Key Learning Points:**
@@ -421,11 +421,11 @@ SELECT
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     e.JobTitle,
     d.DepartmentName,
-    FORMAT(e.HireDate, 'yyyy-MM-dd') AS HireDate,
+    FORMAT(e.HireDate, 'yyyy-MM-dd') AS e.HireDate,
     CAST(DATEDIFF(DAY, e.HireDate, GETDATE()) / 365.25 AS DECIMAL(4,1)) AS YearsWithCompany,
     FORMAT(e.BaseSalary, 'C') AS CurrentSalary
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND d.IsActive = 1
 
@@ -435,17 +435,17 @@ SELECT
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     e.JobTitle,
     d.DepartmentName,
-    FORMAT(e.HireDate, 'yyyy-MM-dd') AS HireDate,
+    FORMAT(e.HireDate, 'yyyy-MM-dd') AS e.HireDate,
     CAST(DATEDIFF(DAY, e.HireDate, GETDATE()) / 365.25 AS DECIMAL(4,1)) AS YearsWithCompany,
     FORMAT(e.BaseSalary, 'C') AS CurrentSalary
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 WHERE e.IsActive = 1
   AND d.IsActive = 1
   AND ep.IsActive = 1
 
-ORDER BY d.DepartmentName, HireDate;
+ORDER BY d.DepartmentName, e.HireDate;
 ```
 
 **Key Learning Points:**
@@ -465,7 +465,7 @@ SELECT
     e.JobTitle,
     CAST(DATEDIFF(DAY, e.HireDate, GETDATE()) / 365.25 AS DECIMAL(4,1)) AS YearsWithCompany
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.BaseSalary > 75000
   AND e.IsActive = 1
   AND d.IsActive = 1
@@ -473,22 +473,22 @@ WHERE e.BaseSalary > 75000
 EXCEPT
 
 SELECT 
-    mgr.FirstName + ' ' + mgr.LastName AS EmployeeName,
-    FORMAT(mgr.BaseSalary, 'C') AS CurrentSalary,
+    mgr.e.FirstName + ' ' + mgr.e.LastName AS EmployeeName,
+    FORMAT(mgr.e.BaseSalary, 'C') AS CurrentSalary,
     d.DepartmentName,
-    mgr.JobTitle,
-    CAST(DATEDIFF(DAY, mgr.HireDate, GETDATE()) / 365.25 AS DECIMAL(4,1)) AS YearsWithCompany
-FROM Employees mgr
-INNER JOIN Departments d ON mgr.DepartmentID = d.DepartmentID
+    mgr.e.JobTitle,
+    CAST(DATEDIFF(DAY, mgr.e.HireDate, GETDATE()) / 365.25 AS DECIMAL(4,1)) AS YearsWithCompany
+FROM Employees e mgr
+INNER JOIN Departments d ON mgr.d.DepartmentID = d.DepartmentID
 WHERE mgr.IsActive = 1
   AND d.IsActive = 1
   AND EXISTS (
       SELECT 1
-      FROM Employees subordinate
-      WHERE subordinate.ManagerID = mgr.EmployeeID
+      FROM Employees e subordinate
+      WHERE subordinate.ManagerID = mgr.e.EmployeeID
         AND subordinate.IsActive = 1
   )
-  AND mgr.BaseSalary > 75000
+  AND mgr.e.BaseSalary > 75000
 
 ORDER BY CurrentSalary DESC, YearsWithCompany DESC;
 ```
@@ -513,19 +513,19 @@ SELECT
        AND p.IsActive = 1) AS ProjectsManaged,
     (SELECT COUNT(o.OrderID)
      FROM Orders o
-     WHERE o.EmployeeID = e.EmployeeID
+     WHERE o.e.EmployeeID = e.EmployeeID
        AND o.IsActive = 1) AS OrdersProcessed,
-    FORMAT((SELECT ISNULL(SUM(p.Budget), 0)
+    FORMAT((SELECT ISNULL(SUM(p.d.Budget), 0)
             FROM Projects p
             WHERE p.ProjectManagerID = e.EmployeeID
               AND p.IsActive = 1), 'C') AS TotalProjectBudgetManaged,
     FORMAT((SELECT ISNULL(SUM(o.TotalAmount), 0)
             FROM Orders o
-            WHERE o.EmployeeID = e.EmployeeID
+            WHERE o.e.EmployeeID = e.EmployeeID
               AND o.IsActive = 1), 'C') AS TotalOrderValueProcessed
 FROM (
     -- Employees who manage projects
-    SELECT DISTINCT e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.DepartmentID
+    SELECT DISTINCT e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.d.DepartmentID
     FROM Employees e
     INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
     WHERE e.IsActive = 1
@@ -534,17 +534,17 @@ FROM (
     INTERSECT
 
     -- Employees who process orders
-    SELECT DISTINCT e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.DepartmentID
+    SELECT DISTINCT e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.d.DepartmentID
     FROM Employees e
-    INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
+    INNER JOIN Orders o ON e.EmployeeID = o.e.EmployeeID
     WHERE e.IsActive = 1
       AND o.IsActive = 1
 ) e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE d.IsActive = 1
 ORDER BY 
-    ((SELECT ISNULL(SUM(p.Budget), 0) FROM Projects p WHERE p.ProjectManagerID = e.EmployeeID AND p.IsActive = 1) +
-     (SELECT ISNULL(SUM(o.TotalAmount), 0) FROM Orders o WHERE o.EmployeeID = e.EmployeeID AND o.IsActive = 1)) DESC;
+    ((SELECT ISNULL(SUM(p.d.Budget), 0) FROM Projects p WHERE p.ProjectManagerID = e.EmployeeID AND p.IsActive = 1) +
+     (SELECT ISNULL(SUM(o.TotalAmount), 0) FROM Orders o WHERE o.e.EmployeeID = e.EmployeeID AND o.IsActive = 1)) DESC;
 ```
 
 **Key Learning Points:**
@@ -611,10 +611,10 @@ ORDER BY
 -- Senior Management: d.DepartmentName Performance Dashboard
 SELECT d.DepartmentName,
     top_performers.EmployeeName,
-    top_performers.JobTitle,
+    top_performers.e.JobTitle,
     CAST(top_performers.PerformanceScore AS DECIMAL(8,2)) AS PerformanceScore,
     top_performers.PerformanceRank,
-    FORMAT(top_performers.BaseSalary, 'C') AS BaseSalary,
+    FORMAT(top_performers.e.BaseSalary, 'C') AS e.BaseSalary,
     top_performers.ProjectsManaged,
     top_performers.OrdersProcessed
 FROM Departments d
@@ -625,13 +625,13 @@ CROSS APPLY (
         e.BaseSalary,
         -- Calculate comprehensive performance score
         (
-            -- BaseSalary percentile (30% weight)
-            (CAST((SELECT COUNT(*) FROM Employees e2 
-                   WHERE e2.DepartmentID = e.DepartmentID 
-                     AND e2.BaseSalary <= e.BaseSalary 
+            -- e.BaseSalary percentile (30% weight)
+            (CAST((SELECT COUNT(*) FROM Employees e e2 
+                   WHERE e2.d.DepartmentID = e.d.DepartmentID 
+                     AND e2.e.BaseSalary <= e.BaseSalary 
                      AND e2.IsActive = 1) AS FLOAT) * 100.0 / 
-             NULLIF((SELECT COUNT(*) FROM Employees e3 
-                     WHERE e3.DepartmentID = e.DepartmentID 
+             NULLIF((SELECT COUNT(*) FROM Employees e e3 
+                     WHERE e3.d.DepartmentID = e.d.DepartmentID 
                        AND e3.IsActive = 1), 0)) * 0.30 +
             
             -- Projects managed (25% weight)
@@ -643,7 +643,7 @@ CROSS APPLY (
             -- Orders processed (25% weight)
             (LEAST(ISNULL((SELECT COUNT(o.OrderID) 
                           FROM Orders o 
-                          WHERE o.EmployeeID = e.EmployeeID 
+                          WHERE o.e.EmployeeID = e.EmployeeID 
                             AND o.IsActive = 1), 0) * 2, 100)) * 0.25 +
             
             -- Years of experience (20% weight)
@@ -653,12 +653,12 @@ CROSS APPLY (
         ROW_NUMBER() OVER (ORDER BY 
             (
                 -- Same calculation for ordering
-                (CAST((SELECT COUNT(*) FROM Employees e2 
-                       WHERE e2.DepartmentID = e.DepartmentID 
-                         AND e2.BaseSalary <= e.BaseSalary 
+                (CAST((SELECT COUNT(*) FROM Employees e e2 
+                       WHERE e2.d.DepartmentID = e.d.DepartmentID 
+                         AND e2.e.BaseSalary <= e.BaseSalary 
                          AND e2.IsActive = 1) AS FLOAT) * 100.0 / 
-                 NULLIF((SELECT COUNT(*) FROM Employees e3 
-                         WHERE e3.DepartmentID = e.DepartmentID 
+                 NULLIF((SELECT COUNT(*) FROM Employees e e3 
+                         WHERE e3.d.DepartmentID = e.d.DepartmentID 
                            AND e3.IsActive = 1), 0)) * 0.30 +
                 (LEAST(ISNULL((SELECT COUNT(DISTINCT p.ProjectID) 
                               FROM Projects p 
@@ -666,7 +666,7 @@ CROSS APPLY (
                                 AND p.IsActive = 1), 0) * 20, 100)) * 0.25 +
                 (LEAST(ISNULL((SELECT COUNT(o.OrderID) 
                               FROM Orders o 
-                              WHERE o.EmployeeID = e.EmployeeID 
+                              WHERE o.e.EmployeeID = e.EmployeeID 
                                 AND o.IsActive = 1), 0) * 2, 100)) * 0.25 +
                 (LEAST(DATEDIFF(YEAR, e.HireDate, GETDATE()) * 5, 100)) * 0.20
             ) DESC
@@ -679,12 +679,12 @@ CROSS APPLY (
         
         ISNULL((SELECT COUNT(o.OrderID) 
                 FROM Orders o 
-                WHERE o.EmployeeID = e.EmployeeID 
+                WHERE o.e.EmployeeID = e.EmployeeID 
                   AND o.IsActive = 1), 0) AS OrdersProcessed
     
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    WHERE e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    WHERE e.d.DepartmentID = d.DepartmentID
       AND e.IsActive = 1
     ORDER BY PerformanceScore DESC
 ) top_performers

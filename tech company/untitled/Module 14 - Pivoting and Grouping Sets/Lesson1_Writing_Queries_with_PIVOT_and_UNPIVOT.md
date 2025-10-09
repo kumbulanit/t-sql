@@ -17,11 +17,11 @@ PIVOT and UNPIVOT are powerful T-SQL operators that enable data transformation b
 
 **Core Tables for PIVOT/UNPIVOT Operations:**
 ```sql
-Employees: EmployeeID (3001+), FirstName, LastName, BaseSalary, DepartmentID, ManagerID, JobTitle, HireDate, WorkEmail, IsActive
-Departments: DepartmentID (2001+), DepartmentName, Budget, Location, IsActive
-Projects: ProjectID (4001+), ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
-Orders: OrderID (5001+), CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
-EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
+Employees: e.EmployeeID (3001+), e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID, ManagerID, e.JobTitle, e.HireDate, WorkEmail, IsActive
+Departments: d.DepartmentID (2001+), d.DepartmentName, d.Budget, Location, IsActive
+Projects: ProjectID (4001+), ProjectName, d.Budget, ProjectManagerID, StartDate, EndDate, IsActive
+Orders: OrderID (5001+), CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
+EmployeeProjects: e.EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
 Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, WorkEmail, IsActive
 ```
 
@@ -70,9 +70,9 @@ PIVOT (
 
 ## Basic PIVOT Operations
 
-### 1. d.DepartmentName Budget Analysis
+### 1. d.DepartmentName d.Budget Analysis
 
-#### TechCorp Example: Quarterly Budget Performance
+#### TechCorp Example: Quarterly d.Budget Performance
 ```sql
 -- Transform quarterly budget data into cross-tabulated format for executive review
 WITH QuarterlyBudgetData AS (
@@ -83,9 +83,9 @@ WITH QuarterlyBudgetData AS (
             WHEN MONTH(p.StartDate) BETWEEN 7 AND 9 THEN 'Q3'
             ELSE 'Q4'
         END AS Quarter,
-        p.Budget AS ProjectBudget
+        p.d.Budget AS ProjectBudget
     FROM Departments d
-    INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+    INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
     INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
     WHERE d.IsActive = 1
       AND e.IsActive = 1 
@@ -115,9 +115,9 @@ ORDER BY Total_Annual_Budget DESC;
 
 ### 2. Employee Performance Matrix
 
-#### TechCorp Example: BaseSalary Distribution by d.DepartmentName and Experience Level
+#### TechCorp Example: e.BaseSalary Distribution by d.DepartmentName and Experience Level
 ```sql
--- Create BaseSalary distribution matrix for HR compensation analysis
+-- Create e.BaseSalary distribution matrix for HR compensation analysis
 WITH EmployeeExperienceData AS (
     SELECT d.DepartmentName,
         CASE 
@@ -128,7 +128,7 @@ WITH EmployeeExperienceData AS (
         END AS ExperienceLevel,
         e.BaseSalary
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
 )
@@ -137,7 +137,7 @@ SELECT d.DepartmentName,
     FORMAT(ISNULL([Mid Level], 0), 'C') AS Mid_Level_Avg,
     FORMAT(ISNULL([Senior Level], 0), 'C') AS Senior_Level_Avg,
     FORMAT(ISNULL([Executive Level], 0), 'C') AS Executive_Level_Avg,
-    -- Calculate d.DepartmentName BaseSalary range
+    -- Calculate d.DepartmentName e.BaseSalary range
     FORMAT(
         ISNULL([Executive Level], 0) - ISNULL([Entry Level], 0), 
         'C'
@@ -228,8 +228,8 @@ FROM (
     SELECT DISTINCT 
         FORMAT(o.OrderDate, 'yyyy-MM') + ' - ' + FORMAT(o.OrderDate, 'MMM') AS MonthName
     FROM Orders o
-    INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
     WHERE o.IsActive = 1
       AND e.IsActive = 1
       AND d.IsActive = 1
@@ -244,8 +244,8 @@ WITH MonthlySalesData AS (
         FORMAT(o.OrderDate, ''yyyy-MM'') + '' - '' + FORMAT(o.OrderDate, ''MMM'') AS MonthName,
         o.TotalAmount
     FROM Orders o
-    INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
     WHERE o.IsActive = 1
       AND e.IsActive = 1
       AND d.IsActive = 1
@@ -280,8 +280,8 @@ WITH ProjectAllocationData AS (
         -- Create project-role combination for pivot
         p.ProjectName + ' - ' + ep.Role AS ProjectRoleCombo
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
@@ -292,14 +292,14 @@ WITH ProjectAllocationData AS (
 ProjectRolePivot AS (
     SELECT 
         EmployeeName,
-        DepartmentName,
+        d.DepartmentName,
         -- Get top 6 project-role combinations for manageable matrix
         [ProjectRole1], [ProjectRole2], [ProjectRole3], 
         [ProjectRole4], [ProjectRole5], [ProjectRole6]
     FROM (
         SELECT 
             EmployeeName,
-            DepartmentName,
+            d.DepartmentName,
             ProjectRoleCombo,
             HoursWorked,
             ROW_NUMBER() OVER (ORDER BY ProjectRoleCombo) AS ProjectRoleRank
@@ -313,7 +313,7 @@ ProjectRolePivot AS (
 -- Final result with meaningful column names
 SELECT 
     EmployeeName,
-    DepartmentName,
+    d.DepartmentName,
     ISNULL([ProjectRole1], 0) AS Primary_Assignment_Hours,
     ISNULL([ProjectRole2], 0) AS Secondary_Assignment_Hours,
     ISNULL([ProjectRole3], 0) AS Additional_Assignment_1,
@@ -341,7 +341,7 @@ SELECT
         ELSE 'Available'
     END AS Utilization_Status
 FROM ProjectRolePivot
-ORDER BY Total_Project_Hours DESC, DepartmentName, EmployeeName;
+ORDER BY Total_Project_Hours DESC, d.DepartmentName, EmployeeName;
 ```
 
 ## Understanding UNPIVOT Operations
@@ -392,18 +392,18 @@ UNPIVOT (
 
 ### 1. Quarterly Report Normalization
 
-#### TechCorp Example: Converting Quarterly Budget Matrix to Time Series
+#### TechCorp Example: Converting Quarterly d.Budget Matrix to Time Series
 ```sql
 -- Normalize quarterly budget data for trend analysis and forecasting
 WITH QuarterlyBudgetMatrix AS (
     -- Simulate quarterly budget crosstab (would typically come from PIVOT or imported data)
     SELECT d.DepartmentName,
-        SUM(CASE WHEN MONTH(p.StartDate) BETWEEN 1 AND 3 THEN p.Budget ELSE 0 END) AS Q1_Budget,
-        SUM(CASE WHEN MONTH(p.StartDate) BETWEEN 4 AND 6 THEN p.Budget ELSE 0 END) AS Q2_Budget,
-        SUM(CASE WHEN MONTH(p.StartDate) BETWEEN 7 AND 9 THEN p.Budget ELSE 0 END) AS Q3_Budget,
-        SUM(CASE WHEN MONTH(p.StartDate) BETWEEN 10 AND 12 THEN p.Budget ELSE 0 END) AS Q4_Budget
+        SUM(CASE WHEN MONTH(p.StartDate) BETWEEN 1 AND 3 THEN p.d.Budget ELSE 0 END) AS Q1_Budget,
+        SUM(CASE WHEN MONTH(p.StartDate) BETWEEN 4 AND 6 THEN p.d.Budget ELSE 0 END) AS Q2_Budget,
+        SUM(CASE WHEN MONTH(p.StartDate) BETWEEN 7 AND 9 THEN p.d.Budget ELSE 0 END) AS Q3_Budget,
+        SUM(CASE WHEN MONTH(p.StartDate) BETWEEN 10 AND 12 THEN p.d.Budget ELSE 0 END) AS Q4_Budget
     FROM Departments d
-    INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+    INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
     INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
     WHERE d.IsActive = 1
       AND e.IsActive = 1
@@ -489,61 +489,61 @@ WITH PerformanceMatrix AS (
         CAST(ISNULL(team_metrics.TeamScore, 0) AS DECIMAL(5,2)) AS Team_Collaboration,
         CAST(ISNULL(innovation_metrics.InnovationScore, 0) AS DECIMAL(5,2)) AS Innovation_Index
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
     LEFT JOIN (
         -- Project performance scoring
         SELECT 
-            ep.EmployeeID,
+            ep.e.EmployeeID,
             AVG(CASE WHEN ep.HoursWorked > 40 THEN 85 + (ep.HoursWorked - 40) * 0.3 ELSE ep.HoursWorked * 2 END) AS ProjectScore
         FROM EmployeeProjects ep
         WHERE ep.IsActive = 1
-        GROUP BY ep.EmployeeID
-    ) proj_metrics ON e.EmployeeID = proj_metrics.EmployeeID
+        GROUP BY ep.e.EmployeeID
+    ) proj_metrics ON e.EmployeeID = proj_metrics.e.EmployeeID
     LEFT JOIN (
         -- Customer relations scoring
         SELECT 
-            o.EmployeeID,
+            o.e.EmployeeID,
             AVG(CASE WHEN o.TotalAmount > 5000 THEN 90 ELSE 60 + (o.TotalAmount / 100) END) AS CustomerScore
         FROM Orders o
         WHERE o.IsActive = 1
-        GROUP BY o.EmployeeID
-    ) customer_metrics ON e.EmployeeID = customer_metrics.EmployeeID
+        GROUP BY o.e.EmployeeID
+    ) customer_metrics ON e.EmployeeID = customer_metrics.e.EmployeeID
     LEFT JOIN (
         -- Team collaboration scoring (based on management span)
         SELECT 
-            mgr.EmployeeID,
+            mgr.e.EmployeeID,
             CASE 
                 WHEN subordinate_count.SubCount > 5 THEN 95
                 WHEN subordinate_count.SubCount > 2 THEN 80
                 WHEN subordinate_count.SubCount > 0 THEN 70
                 ELSE 60
             END AS TeamScore
-        FROM Employees mgr
+        FROM Employees e mgr
         LEFT JOIN (
             SELECT ManagerID, COUNT(*) AS SubCount
-            FROM Employees
+            FROM Employees e
             WHERE IsActive = 1
             GROUP BY ManagerID
-        ) subordinate_count ON mgr.EmployeeID = subordinate_count.ManagerID
+        ) subordinate_count ON mgr.e.EmployeeID = subordinate_count.ManagerID
         WHERE mgr.IsActive = 1
-    ) team_metrics ON e.EmployeeID = team_metrics.EmployeeID
+    ) team_metrics ON e.EmployeeID = team_metrics.e.EmployeeID
     LEFT JOIN (
         -- Innovation index (project variety and complexity)
         SELECT 
-            ep.EmployeeID,
+            ep.e.EmployeeID,
             COUNT(DISTINCT ep.Role) * 15 + COUNT(DISTINCT ep.ProjectID) * 5 AS InnovationScore
         FROM EmployeeProjects ep
         WHERE ep.IsActive = 1
-        GROUP BY ep.EmployeeID
-    ) innovation_metrics ON e.EmployeeID = innovation_metrics.EmployeeID
+        GROUP BY ep.e.EmployeeID
+    ) innovation_metrics ON e.EmployeeID = innovation_metrics.e.EmployeeID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
 )
 -- UNPIVOT the performance matrix for analytical processing
 SELECT 
     EmployeeName,
-    DepartmentName,
-    JobTitle,
+    d.DepartmentName,
+    e.JobTitle,
     Performance_Category,
     Performance_Score,
     -- Add performance grade
@@ -556,7 +556,7 @@ SELECT
     END AS Performance_Grade,
     -- Calculate departmental ranking for each category
     RANK() OVER (
-        PARTITION BY DepartmentName, Performance_Category 
+        PARTITION BY d.DepartmentName, Performance_Category 
         ORDER BY Performance_Score DESC
     ) AS Department_Rank,
     -- Calculate company-wide ranking for each category
@@ -628,7 +628,7 @@ WITH DepartmentKPIMatrix AS (
             'Employee_Count' AS KPI_Type,
             CAST(COUNT(DISTINCT e.EmployeeID) AS DECIMAL(15,2)) AS KPI_Value
         FROM Departments d
-        LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID AND e.IsActive = 1
+        LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
         WHERE d.IsActive = 1
         GROUP BY d.DepartmentName
         
@@ -638,7 +638,7 @@ WITH DepartmentKPIMatrix AS (
             'Avg_Salary' AS KPI_Type,
             CAST(AVG(e.BaseSalary) AS DECIMAL(15,2)) AS KPI_Value
         FROM Departments d
-        INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+        INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
         WHERE d.IsActive = 1 AND e.IsActive = 1
         GROUP BY d.DepartmentName
         
@@ -648,7 +648,7 @@ WITH DepartmentKPIMatrix AS (
             'Total_Projects' AS KPI_Type,
             CAST(COUNT(DISTINCT p.ProjectID) AS DECIMAL(15,2)) AS KPI_Value
         FROM Departments d
-        INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+        INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
         INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
         WHERE d.IsActive = 1 AND e.IsActive = 1 AND p.IsActive = 1
         GROUP BY d.DepartmentName
@@ -657,9 +657,9 @@ WITH DepartmentKPIMatrix AS (
         
         SELECT d.DepartmentName,
             'Project_Budget' AS KPI_Type,
-            CAST(SUM(p.Budget) AS DECIMAL(15,2)) AS KPI_Value
+            CAST(SUM(p.d.Budget) AS DECIMAL(15,2)) AS KPI_Value
         FROM Departments d
-        INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+        INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
         INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
         WHERE d.IsActive = 1 AND e.IsActive = 1 AND p.IsActive = 1
         GROUP BY d.DepartmentName
@@ -670,7 +670,7 @@ WITH DepartmentKPIMatrix AS (
             'Customer_Orders' AS KPI_Type,
             CAST(COUNT(o.OrderID) AS DECIMAL(15,2)) AS KPI_Value
         FROM Departments d
-        INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+        INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
         INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
         WHERE d.IsActive = 1 AND e.IsActive = 1 AND o.IsActive = 1
         GROUP BY d.DepartmentName
@@ -681,7 +681,7 @@ WITH DepartmentKPIMatrix AS (
             'Order_Revenue' AS KPI_Type,
             CAST(SUM(o.TotalAmount) AS DECIMAL(15,2)) AS KPI_Value
         FROM Departments d
-        INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+        INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
         INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
         WHERE d.IsActive = 1 AND e.IsActive = 1 AND o.IsActive = 1
         GROUP BY d.DepartmentName
@@ -791,7 +791,7 @@ ORDER BY d.DepartmentName,
 -- Recommended indexes for optimal PIVOT/UNPIVOT performance
 -- CREATE INDEX IX_Orders_Employee_Date_Amount ON Orders(EmployeeID, OrderDate, TotalAmount) INCLUDE (CustomerID, IsActive);
 -- CREATE INDEX IX_EmployeeProjects_Employee_Project ON EmployeeProjects(EmployeeID, ProjectID, IsActive) INCLUDE (Role, HoursWorked);
--- CREATE INDEX IX_Employees_Department_Salary ON Employees(DepartmentID, BaseSalary, IsActive) INCLUDE (FirstName, LastName, JobTitle);
+-- CREATE INDEX IX_Employees_Department_Salary ON Employees(d.DepartmentID, BaseSalary, IsActive) INCLUDE (FirstName, LastName, JobTitle);
 
 -- Example of optimized PIVOT query design
 WITH OptimizedPivotSource AS (
@@ -800,7 +800,7 @@ WITH OptimizedPivotSource AS (
         o.TotalAmount
     FROM Orders o WITH(INDEX(IX_Orders_Employee_Date_Amount))  -- Force index usage
     INNER JOIN Employees e WITH(INDEX(IX_Employees_Department_Salary)) ON o.EmployeeID = e.EmployeeID
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
     WHERE o.IsActive = 1
       AND e.IsActive = 1
       AND d.IsActive = 1
@@ -829,7 +829,7 @@ WITH FilteredData AS (
         o.TotalAmount
     FROM Orders o
     INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
     WHERE o.IsActive = 1
       AND e.IsActive = 1
       AND d.IsActive = 1
@@ -897,9 +897,9 @@ FROM (
             WHEN MONTH(p.StartDate) BETWEEN 7 AND 9 THEN 'Q3'
             ELSE 'Q4'
         END AS Quarter,
-        p.Budget AS Revenue
+        p.d.Budget AS Revenue
     FROM Departments d
-    LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID
+    LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
     LEFT JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
     WHERE d.IsActive = 1
       AND (e.IsActive = 1 OR e.EmployeeID IS NULL)
@@ -915,7 +915,7 @@ ORDER BY d.DepartmentName;
 -- ❌ PROBLEM: Hard-coded column names in PIVOT
 SELECT d.DepartmentName, [Project Alpha], [Project Beta], [Project Gamma]
 FROM project_data
-PIVOT (SUM(Budget) FOR ProjectName IN ([Project Alpha], [Project Beta], [Project Gamma])) p;
+PIVOT (SUM(d.Budget) FOR ProjectName IN ([Project Alpha], [Project Beta], [Project Gamma])) p;
 -- Problem: Doesn't adapt to new projects
 
 -- ✅ SOLUTION: Dynamic PIVOT with proper error handling
@@ -939,9 +939,9 @@ BEGIN
     WITH ProjectBudgetData AS (
         SELECT d.DepartmentName,
             p.ProjectName,
-            p.Budget
+            p.d.Budget
         FROM Departments d
-        INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+        INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
         INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
         WHERE d.IsActive = 1
           AND e.IsActive = 1
@@ -953,7 +953,7 @@ BEGIN
         FORMAT((' + REPLACE(@ProjectColumns, ', ', ' + ISNULL(') + ', 0) + ISNULL(') + ', 0)), ''C'') AS Total_Department_Budget
     FROM ProjectBudgetData
     PIVOT (
-        SUM(Budget) FOR ProjectName IN (' + @ProjectColumns + ')
+        SUM(d.Budget) FOR ProjectName IN (' + @ProjectColumns + ')
     ) project_pivot
     ORDER BY Total_Department_Budget DESC;';
 

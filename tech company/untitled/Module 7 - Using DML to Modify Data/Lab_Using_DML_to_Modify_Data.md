@@ -39,11 +39,11 @@ SELECT
 SELECT 
     'Companies' as Entity, COUNT(*) as Count FROM Companies
 UNION ALL
-SELECT 'Departments', COUNT(*) FROM Departments  
+SELECT 'Departments', COUNT(*) FROM Departments d  
 UNION ALL
-SELECT 'Employees', COUNT(*) FROM Employees
+SELECT 'Employees', COUNT(*) FROM Employees e
 UNION ALL
-SELECT 'Projects', COUNT(*) FROM Projects
+SELECT 'Projects', COUNT(*) FROM Projects p
 UNION ALL
 SELECT 'EmployeeProjects', COUNT(*) FROM EmployeeProjects;
 ```

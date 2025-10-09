@@ -17,11 +17,11 @@ Parameters are the cornerstone of stored procedure flexibility and reusability, 
 
 **Core Tables for Parameter-Based Operations:**
 ```sql
-Employees: EmployeeID (3001+), FirstName, LastName, BaseSalary, DepartmentID, ManagerID, JobTitle, HireDate, WorkEmail, IsActive
-Departments: DepartmentID (2001+), DepartmentName, Budget, Location, IsActive
-Projects: ProjectID (4001+), ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
-Orders: OrderID (5001+), CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
-EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
+Employees: e.EmployeeID (3001+), e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID, ManagerID, e.JobTitle, e.HireDate, WorkEmail, IsActive
+Departments: d.DepartmentID (2001+), d.DepartmentName, d.Budget, Location, IsActive
+Projects: ProjectID (4001+), ProjectName, d.Budget, ProjectManagerID, StartDate, EndDate, IsActive
+Orders: OrderID (5001+), CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
+EmployeeProjects: e.EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
 Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, WorkEmail, IsActive
 ```
 
@@ -102,7 +102,7 @@ END;
 ```sql
 -- Create comprehensive employee search with multiple input parameters
 CREATE PROCEDURE sp_SearchEmployeesAdvanced
-    @DepartmentID INT = NULL,
+    @d.DepartmentID INT = NULL,
     @LocationFilter VARCHAR(50) = NULL,
     @MinSalary DECIMAL(10,2) = NULL,
     @MaxSalary DECIMAL(10,2) = NULL,
@@ -110,7 +110,7 @@ CREATE PROCEDURE sp_SearchEmployeesAdvanced
     @HireStartDate DATE = NULL,
     @HireEndDate DATE = NULL,
     @IncludeInactive BIT = 0,
-    @SortColumn VARCHAR(20) = 'LastName',
+    @SortColumn VARCHAR(20) = 'e.LastName',
     @SortDirection VARCHAR(4) = 'ASC',
     @MaxResults INT = 100
 AS
@@ -120,7 +120,7 @@ BEGIN
     -- Parameter validation
     IF @MinSalary IS NOT NULL AND @MaxSalary IS NOT NULL AND @MinSalary > @MaxSalary
     BEGIN
-        RAISERROR('Minimum BaseSalary cannot be greater than maximum BaseSalary.', 16, 1);
+        RAISERROR('Minimum e.BaseSalary cannot be greater than maximum e.BaseSalary.', 16, 1);
         RETURN -1;
     END
     
@@ -158,7 +158,7 @@ BEGIN
             e.WorkEmail,
             CASE WHEN e.IsActive = 1 THEN 'Active' ELSE 'Inactive' END AS Status,
             -- Manager information
-            ISNULL(mgr.FirstName + ' ' + mgr.LastName, 'No Manager') AS ManagerName,
+            ISNULL(mgr.e.FirstName + ' ' + mgr.e.LastName, 'No Manager') AS ManagerName,
             -- Additional metrics
             CASE 
                 WHEN e.BaseSalary >= 80000 THEN 'Senior Level'
@@ -167,17 +167,17 @@ BEGIN
                 ELSE 'Entry Level'
             END AS SalaryBand,
             -- Search relevance scoring
-            (CASE WHEN @DepartmentID IS NOT NULL AND e.DepartmentID = @DepartmentID THEN 10 ELSE 0 END +
+            (CASE WHEN @d.DepartmentID IS NOT NULL AND e.d.DepartmentID = @d.DepartmentID THEN 10 ELSE 0 END +
              CASE WHEN @LocationFilter IS NOT NULL AND d.Location LIKE '%' + @LocationFilter + '%' THEN 5 ELSE 0 END +
              CASE WHEN @JobTitlePattern IS NOT NULL AND e.JobTitle LIKE '%' + @JobTitlePattern + '%' THEN 8 ELSE 0 END +
              CASE WHEN @MinSalary IS NOT NULL AND e.BaseSalary >= @MinSalary THEN 3 ELSE 0 END +
              CASE WHEN @MaxSalary IS NOT NULL AND e.BaseSalary <= @MaxSalary THEN 3 ELSE 0 END) AS RelevanceScore
         FROM Employees e
-        INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-        LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
+        INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+        LEFT JOIN Employees mgr ON e.ManagerID = mgr.e.EmployeeID
         WHERE d.IsActive = 1
           -- Apply all filter parameters
-          AND (@DepartmentID IS NULL OR e.DepartmentID = @DepartmentID)
+          AND (@d.DepartmentID IS NULL OR e.d.DepartmentID = @d.DepartmentID)
           AND (@LocationFilter IS NULL OR d.Location LIKE '%' + @LocationFilter + '%')
           AND (@MinSalary IS NULL OR e.BaseSalary >= @MinSalary)
           AND (@MaxSalary IS NULL OR e.BaseSalary <= @MaxSalary)
@@ -187,54 +187,54 @@ BEGIN
           AND (e.IsActive = 1 OR @IncludeInactive = 1)
     )
     SELECT TOP (@MaxResults)
-        EmployeeID,
-        FirstName,
-        LastName,
+        e.EmployeeID,
+        e.FirstName,
+        e.LastName,
         FullName,
-        JobTitle,
+        e.JobTitle,
         FormattedSalary,
-        BaseSalary,
-        DepartmentName,
+        e.BaseSalary,
+        d.DepartmentName,
         Location,
-        HireDate,
+        e.HireDate,
         YearsOfService,
         WorkEmail,
         Status,
         ManagerName,
         SalaryBand,
         RelevanceScore
-    FROM Employees eearchResults
+    FROM Employees e eearchResults
     ORDER BY 
         CASE 
-            WHEN @SortColumn = 'LastName' AND @SortDirection = 'ASC' THEN LastName
-            WHEN @SortColumn = 'FirstName' AND @SortDirection = 'ASC' THEN FirstName
-            WHEN @SortColumn = 'HireDate' AND @SortDirection = 'ASC' THEN CAST(HireDate AS VARCHAR)
-            WHEN @SortColumn = 'BaseSalary' AND @SortDirection = 'ASC' THEN CAST(BaseSalary AS VARCHAR)
+            WHEN @SortColumn = 'e.LastName' AND @SortDirection = 'ASC' THEN e.LastName
+            WHEN @SortColumn = 'e.FirstName' AND @SortDirection = 'ASC' THEN e.FirstName
+            WHEN @SortColumn = 'e.HireDate' AND @SortDirection = 'ASC' THEN CAST(e.HireDate AS VARCHAR)
+            WHEN @SortColumn = 'e.BaseSalary' AND @SortDirection = 'ASC' THEN CAST(e.BaseSalary AS VARCHAR)
             WHEN @SortColumn = 'Department' AND @SortDirection = 'ASC' THEN d.DepartmentName
         END ASC,
         CASE 
-            WHEN @SortColumn = 'LastName' AND @SortDirection = 'DESC' THEN LastName
-            WHEN @SortColumn = 'FirstName' AND @SortDirection = 'DESC' THEN FirstName
-            WHEN @SortColumn = 'HireDate' AND @SortDirection = 'DESC' THEN CAST(HireDate AS VARCHAR)
-            WHEN @SortColumn = 'BaseSalary' AND @SortDirection = 'DESC' THEN CAST(BaseSalary AS VARCHAR)
+            WHEN @SortColumn = 'e.LastName' AND @SortDirection = 'DESC' THEN e.LastName
+            WHEN @SortColumn = 'e.FirstName' AND @SortDirection = 'DESC' THEN e.FirstName
+            WHEN @SortColumn = 'e.HireDate' AND @SortDirection = 'DESC' THEN CAST(e.HireDate AS VARCHAR)
+            WHEN @SortColumn = 'e.BaseSalary' AND @SortDirection = 'DESC' THEN CAST(e.BaseSalary AS VARCHAR)
             WHEN @SortColumn = 'Department' AND @SortDirection = 'DESC' THEN d.DepartmentName
         END DESC,
         RelevanceScore DESC,
-        LastName, FirstName;
+        e.LastName, e.FirstName;
     
     RETURN 0;  -- Success
 END;
 
 -- Example executions with various parameter combinations
 -- Basic d.DepartmentName search
-EXEC sp_SearchEmployeesAdvanced @DepartmentID = 2001;
+EXEC sp_SearchEmployeesAdvanced @d.DepartmentID = 2001;
 
--- BaseSalary range search with location filter
+-- e.BaseSalary range search with location filter
 EXEC sp_SearchEmployeesAdvanced 
     @MinSalary = 60000, 
     @MaxSalary = 100000, 
     @LocationFilter = 'New York',
-    @SortColumn = 'BaseSalary',
+    @SortColumn = 'e.BaseSalary',
     @SortDirection = 'DESC';
 
 -- Job title pattern search with date range
@@ -246,12 +246,12 @@ EXEC sp_SearchEmployeesAdvanced
 
 -- Comprehensive search with all parameters
 EXEC sp_SearchEmployeesAdvanced 
-    @DepartmentID = 2002,
+    @d.DepartmentID = 2002,
     @LocationFilter = 'Chicago',
     @MinSalary = 50000,
     @JobTitlePattern = 'Analyst',
     @IncludeInactive = 1,
-    @SortColumn = 'HireDate',
+    @SortColumn = 'e.HireDate',
     @SortDirection = 'ASC',
     @MaxResults = 25;
 ```
@@ -262,7 +262,7 @@ EXEC sp_SearchEmployeesAdvanced
 ```sql
 -- Create comprehensive financial analysis with date and filtering parameters
 CREATE PROCEDURE sp_AnalyzeDepartmentFinancials
-    @DepartmentID INT = NULL,
+    @d.DepartmentID INT = NULL,
     @StartDate DATE = NULL,
     @EndDate DATE = NULL,
     @IncludeProjectData BIT = 1,
@@ -333,21 +333,21 @@ BEGIN
         INNER JOIN (
             -- Employee cost aggregation
             SELECT 
-                e.DepartmentID,
+                e.d.DepartmentID,
                 COUNT(*) AS EmployeeCount,
                 SUM(e.BaseSalary) AS TotalBaseSalaryCost,
                 AVG(e.BaseSalary) AS AverageBaseSalary
             FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
             WHERE e.IsActive = 1
-            GROUP BY e.DepartmentID
-        ) employee_data ON d.DepartmentID = employee_data.DepartmentID
+            GROUP BY e.d.DepartmentID
+        ) employee_data ON d.DepartmentID = employee_data.d.DepartmentID
         LEFT JOIN (
             -- Project data aggregation (only if parameter enabled)
             SELECT 
-                e.DepartmentID,
+                e.d.DepartmentID,
                 COUNT(DISTINCT p.ProjectID) AS ProjectCount,
-                SUM(p.Budget) AS ProjectBudget
+                SUM(p.d.Budget) AS ProjectBudget
             FROM Projects p
             INNER JOIN Employees e ON p.ProjectManagerID = e.EmployeeID
             WHERE p.IsActive = 1
@@ -355,27 +355,27 @@ BEGIN
               AND (@IncludeProjectData = 1)
               AND p.StartDate >= @StartDate
               AND p.StartDate <= @EndDate
-            GROUP BY e.DepartmentID
-        ) project_data ON d.DepartmentID = project_data.DepartmentID
+            GROUP BY e.d.DepartmentID
+        ) project_data ON d.DepartmentID = project_data.d.DepartmentID
         LEFT JOIN (
             -- Order data aggregation (only if parameter enabled)
             SELECT 
-                e.DepartmentID,
+                e.d.DepartmentID,
                 COUNT(o.OrderID) AS OrderCount,
                 SUM(o.TotalAmount) AS OrderRevenue,
                 COUNT(DISTINCT o.CustomerID) AS UniqueCustomers
             FROM Orders o
-            INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
+            INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
             WHERE o.IsActive = 1
               AND e.IsActive = 1
               AND (@IncludeOrderData = 1)
               AND o.OrderDate >= @StartDate
               AND o.OrderDate <= @EndDate
               AND o.TotalAmount >= @MinimumOrderValue
-            GROUP BY e.DepartmentID
-        ) order_data ON d.DepartmentID = order_data.DepartmentID
+            GROUP BY e.d.DepartmentID
+        ) order_data ON d.DepartmentID = order_data.d.DepartmentID
         WHERE d.IsActive = 1
-          AND (@DepartmentID IS NULL OR d.DepartmentID = @DepartmentID)
+          AND (@d.DepartmentID IS NULL OR d.DepartmentID = @d.DepartmentID)
     )
     -- Final result set based on grouping level parameter
     SELECT 
@@ -392,7 +392,7 @@ BEGIN
         CASE @GroupingLevel
             WHEN 'Location' THEN NULL
             ELSE d.DepartmentName
-        END AS DepartmentName,
+        END AS d.DepartmentName,
         CASE @GroupingLevel
             WHEN 'Department' THEN NULL
             ELSE Location
@@ -446,7 +446,7 @@ END;
 
 -- Example executions with different parameter combinations
 -- Basic d.DepartmentName analysis
-EXEC sp_AnalyzeDepartmentFinancials @DepartmentID = 2001;
+EXEC sp_AnalyzeDepartmentFinancials @d.DepartmentID = 2001;
 
 -- Date range analysis with project data only
 EXEC sp_AnalyzeDepartmentFinancials 
@@ -479,7 +479,7 @@ EXEC sp_AnalyzeDepartmentFinancials
 ```sql
 -- Create procedure with multiple output parameters for comprehensive statistics
 CREATE PROCEDURE sp_CalculateEmployeeStatistics
-    @DepartmentID INT = NULL,
+    @d.DepartmentID INT = NULL,
     @AnalysisPeriodMonths INT = 12,
     -- Output parameters for statistics
     @TotalEmployees INT OUTPUT,
@@ -518,11 +518,11 @@ BEGIN
     END
     
     -- Validate d.DepartmentName exists if specified
-    IF @DepartmentID IS NOT NULL AND NOT EXISTS (
-        SELECT 1 FROM Departments WHERE DepartmentID = @DepartmentID AND IsActive = 1
+    IF @d.DepartmentID IS NOT NULL AND NOT EXISTS (
+        SELECT 1 FROM Departments d WHERE d.DepartmentID = @d.DepartmentID AND IsActive = 1
     )
     BEGIN
-        SET @StatusMessage = 'Error: d.DepartmentName ID ' + CAST(@DepartmentID AS VARCHAR) + ' does not exist or is inactive.';
+        SET @StatusMessage = 'Error: d.DepartmentName ID ' + CAST(@d.DepartmentID AS VARCHAR) + ' does not exist or is inactive.';
         RETURN -2;
     END
     
@@ -530,27 +530,27 @@ BEGIN
     SELECT 
         @TotalEmployees = COUNT(*),
         @ActiveEmployees = SUM(CASE WHEN IsActive = 1 THEN 1 ELSE 0 END),
-        @AverageSalary = AVG(CASE WHEN IsActive = 1 THEN BaseSalary ELSE NULL END),
-        @MinSalary = MIN(CASE WHEN IsActive = 1 THEN BaseSalary ELSE NULL END),
-        @MaxSalary = MAX(CASE WHEN IsActive = 1 THEN BaseSalary ELSE NULL END),
-        @TotalPayroll = SUM(CASE WHEN IsActive = 1 THEN BaseSalary ELSE 0 END),
-        @AverageYearsOfService = AVG(CASE WHEN IsActive = 1 THEN DATEDIFF(YEAR, HireDate, GETDATE()) ELSE NULL END)
+        @AverageSalary = AVG(CASE WHEN IsActive = 1 THEN e.BaseSalary ELSE NULL END),
+        @MinSalary = MIN(CASE WHEN IsActive = 1 THEN e.BaseSalary ELSE NULL END),
+        @MaxSalary = MAX(CASE WHEN IsActive = 1 THEN e.BaseSalary ELSE NULL END),
+        @TotalPayroll = SUM(CASE WHEN IsActive = 1 THEN e.BaseSalary ELSE 0 END),
+        @AverageYearsOfService = AVG(CASE WHEN IsActive = 1 THEN DATEDIFF(YEAR, e.HireDate, GETDATE()) ELSE NULL END)
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
     WHERE d.IsActive = 1
-      AND (@DepartmentID IS NULL OR e.DepartmentID = @DepartmentID);
+      AND (@d.DepartmentID IS NULL OR e.d.DepartmentID = @d.DepartmentID);
     
-    -- Calculate median BaseSalary using a more complex query
+    -- Calculate median e.BaseSalary using a more complex query
     WITH SalaryRanked AS (
         SELECT 
-            BaseSalary,
-            ROW_NUMBER() OVER (ORDER BY BaseSalary) AS RowAsc,
-            ROW_NUMBER() OVER (ORDER BY BaseSalary DESC) AS RowDesc
+            e.BaseSalary,
+            ROW_NUMBER() OVER (ORDER BY e.BaseSalary) AS RowAsc,
+            ROW_NUMBER() OVER (ORDER BY e.BaseSalary DESC) AS RowDesc
         FROM Employees e
-        INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+        INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
         WHERE e.IsActive = 1
           AND d.IsActive = 1
-          AND (@DepartmentID IS NULL OR e.DepartmentID = @DepartmentID)
+          AND (@d.DepartmentID IS NULL OR e.d.DepartmentID = @d.DepartmentID)
     )
     SELECT @MedianSalary = AVG(e.BaseSalary)
     FROM SalaryRanked
@@ -560,40 +560,40 @@ BEGIN
     SELECT @ProjectEngagementRate = 
         CASE 
             WHEN @ActiveEmployees > 0 
-            THEN CAST(COUNT(DISTINCT ep.EmployeeID) * 100.0 / @ActiveEmployees AS DECIMAL(5,2))
+            THEN CAST(COUNT(DISTINCT ep.e.EmployeeID) * 100.0 / @ActiveEmployees AS DECIMAL(5,2))
             ELSE 0
         END
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
       AND ep.IsActive = 1
       AND ep.StartDate >= DATEADD(MONTH, -@AnalysisPeriodMonths, GETDATE())
-      AND (@DepartmentID IS NULL OR e.DepartmentID = @DepartmentID);
+      AND (@d.DepartmentID IS NULL OR e.d.DepartmentID = @d.DepartmentID);
     
     -- Calculate customer service rate
     SELECT @CustomerServiceRate = 
         CASE 
             WHEN @ActiveEmployees > 0 
-            THEN CAST(COUNT(DISTINCT o.EmployeeID) * 100.0 / @ActiveEmployees AS DECIMAL(5,2))
+            THEN CAST(COUNT(DISTINCT o.e.EmployeeID) * 100.0 / @ActiveEmployees AS DECIMAL(5,2))
             ELSE 0
         END
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Orders o ON e.EmployeeID = o.e.EmployeeID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
       AND o.IsActive = 1
       AND o.OrderDate >= DATEADD(MONTH, -@AnalysisPeriodMonths, GETDATE())
-      AND (@DepartmentID IS NULL OR e.DepartmentID = @DepartmentID);
+      AND (@d.DepartmentID IS NULL OR e.d.DepartmentID = @d.DepartmentID);
     
     -- Set success status message with summary
     SET @StatusMessage = 'Success: Analyzed ' + CAST(@TotalEmployees AS VARCHAR) + ' total employees';
-    IF @DepartmentID IS NOT NULL
+    IF @d.DepartmentID IS NOT NULL
     BEGIN
         DECLARE @DeptName VARCHAR(100);
-        SELECT @DeptName = d.DepartmentName FROM Departments WHERE DepartmentID = @DepartmentID;
+        SELECT @DeptName = d.DepartmentName FROM Departments d WHERE d.DepartmentID = @d.DepartmentID;
         SET @StatusMessage = @StatusMessage + ' in ' + @DeptName + ' department';
     END
     SET @StatusMessage = @StatusMessage + ' over ' + CAST(@AnalysisPeriodMonths AS VARCHAR) + ' month period.';
@@ -618,7 +618,7 @@ DECLARE
 
 -- Execute procedure for IT d.DepartmentName
 EXEC @ReturnCode = sp_CalculateEmployeeStatistics 
-    @DepartmentID = 2001,
+    @d.DepartmentID = 2001,
     @AnalysisPeriodMonths = 12,
     @TotalEmployees = @TotalEmps OUTPUT,
     @ActiveEmployees = @ActiveEmps OUTPUT,
@@ -694,7 +694,7 @@ BEGIN
     END
     
     IF @ProcessingEmployeeID IS NULL OR NOT EXISTS (
-        SELECT 1 FROM Employees WHERE EmployeeID = @ProcessingEmployeeID AND IsActive = 1
+        SELECT 1 FROM Employees e WHERE e.EmployeeID = @ProcessingEmployeeID AND IsActive = 1
     )
     BEGIN
         SET @StatusSummary = 'Error: Invalid or inactive processing employee ID.';
@@ -716,9 +716,9 @@ BEGIN
     FROM Customers 
     WHERE CustomerID = @CustomerID;
     
-    SELECT @EmployeeName = FirstName + ' ' + LastName
-    FROM Employees 
-    WHERE EmployeeID = @ProcessingEmployeeID;
+    SELECT @EmployeeName = e.FirstName + ' ' + e.LastName
+    FROM Employees e 
+    WHERE e.EmployeeID = @ProcessingEmployeeID;
     
     -- Process orders in the specified date range
     SELECT 
@@ -730,7 +730,7 @@ BEGIN
       AND IsActive = 1
       AND OrderDate BETWEEN @StartDate AND @EndDate
       AND TotalAmount >= @MinOrderValue
-      AND EmployeeID = @ProcessingEmployeeID;
+      AND e.EmployeeID = @ProcessingEmployeeID;
     
     -- Calculate customer's total lifetime value
     SELECT @CustomerTotalLifetimeValue = ISNULL(SUM(TotalAmount), 0)
@@ -819,7 +819,7 @@ SELECT
 ```sql
 -- Create procedure with input/output parameters for performance calculations
 CREATE PROCEDURE sp_CalculateEmployeePerformanceRating
-    @EmployeeID INT,
+    @e.EmployeeID INT,
     @PerformancePeriodMonths INT = 12,
     -- Bidirectional parameters (can be input with defaults, always output)
     @ProjectScore DECIMAL(5,2) = NULL OUTPUT,
@@ -835,8 +835,8 @@ BEGIN
     SET NOCOUNT ON;
     
     -- Input validation
-    IF @EmployeeID IS NULL OR NOT EXISTS (
-        SELECT 1 FROM Employees WHERE EmployeeID = @EmployeeID AND IsActive = 1
+    IF @e.EmployeeID IS NULL OR NOT EXISTS (
+        SELECT 1 FROM Employees e WHERE e.EmployeeID = @e.EmployeeID AND IsActive = 1
     )
     BEGIN
         SET @PerformanceCategory = 'Error: Invalid Employee';
@@ -845,13 +845,13 @@ BEGIN
     END
     
     -- Get employee information
-    DECLARE @EmployeeName VARCHAR(200), @DepartmentID INT, @JobTitle VARCHAR(100);
+    DECLARE @EmployeeName VARCHAR(200), @DepartmentID INT, @e.JobTitle VARCHAR(100);
     SELECT 
-        @EmployeeName = FirstName + ' ' + LastName,
+        @EmployeeName = e.FirstName + ' ' + e.LastName,
         @DepartmentID = DepartmentID,
-        @JobTitle = JobTitle
-    FROM Employees 
-    WHERE EmployeeID = @EmployeeID;
+        @e.JobTitle = e.JobTitle
+    FROM Employees e 
+    WHERE e.EmployeeID = @e.EmployeeID;
     
     -- Calculate or use provided project score
     IF @ProjectScore IS NULL
@@ -874,7 +874,7 @@ BEGIN
                 COUNT(DISTINCT ep.ProjectID) AS ProjectCount,
                 SUM(ep.HoursWorked) AS TotalHours
             FROM EmployeeProjects ep
-            WHERE ep.EmployeeID = @EmployeeID
+            WHERE ep.e.EmployeeID = @e.EmployeeID
               AND ep.IsActive = 1
               AND ep.StartDate >= DATEADD(MONTH, -@PerformancePeriodMonths, GETDATE())
         ) project_data;
@@ -904,7 +904,7 @@ BEGIN
                 COUNT(o.OrderID) AS OrderCount,
                 SUM(o.TotalAmount) AS TotalRevenue
             FROM Orders o
-            WHERE o.EmployeeID = @EmployeeID
+            WHERE o.e.EmployeeID = @e.EmployeeID
               AND o.IsActive = 1
               AND o.OrderDate >= DATEADD(MONTH, -@PerformancePeriodMonths, GETDATE())
         ) customer_data;
@@ -929,8 +929,8 @@ BEGIN
             END
         FROM (
             SELECT 
-                (SELECT COUNT(*) FROM Employees WHERE ManagerID = @EmployeeID AND IsActive = 1) AS DirectReports,
-                (SELECT COUNT(*) FROM Projects WHERE ProjectManagerID = @EmployeeID AND IsActive = 1) AS ManagedProjects
+                (SELECT COUNT(*) FROM Employees e WHERE ManagerID = @e.EmployeeID AND IsActive = 1) AS DirectReports,
+                (SELECT COUNT(*) FROM Projects p WHERE ProjectManagerID = @e.EmployeeID AND IsActive = 1) AS ManagedProjects
         ) leadership_data;
         
         SET @TeamLeadershipScore = ISNULL(@TeamLeadershipScore, 40.0);
@@ -986,31 +986,31 @@ BEGIN
         FROM Employees e
         LEFT JOIN (
             SELECT 
-                ep.EmployeeID,
+                ep.e.EmployeeID,
                 CASE WHEN COUNT(DISTINCT ep.ProjectID) >= 3 THEN 80 ELSE 40 END AS score
             FROM EmployeeProjects ep
             WHERE ep.IsActive = 1
-            GROUP BY ep.EmployeeID
-        ) proj ON e.EmployeeID = proj.EmployeeID
+            GROUP BY ep.e.EmployeeID
+        ) proj ON e.EmployeeID = proj.e.EmployeeID
         LEFT JOIN (
             SELECT 
-                o.EmployeeID,
+                o.e.EmployeeID,
                 CASE WHEN COUNT(o.OrderID) >= 10 THEN 75 ELSE 35 END AS score
             FROM Orders o
             WHERE o.IsActive = 1
-            GROUP BY o.EmployeeID
-        ) cust ON e.EmployeeID = cust.EmployeeID
+            GROUP BY o.e.EmployeeID
+        ) cust ON e.EmployeeID = cust.e.EmployeeID
         LEFT JOIN (
             SELECT 
-                mgr.EmployeeID,
-                CASE WHEN COUNT(sub.EmployeeID) >= 2 THEN 70 ELSE 45 END AS score
-            FROM Employees mgr
-            LEFT JOIN Employees sub ON mgr.EmployeeID = sub.ManagerID
-            GROUP BY mgr.EmployeeID
-        ) lead ON e.EmployeeID = lead.EmployeeID
+                mgr.e.EmployeeID,
+                CASE WHEN COUNT(sub.e.EmployeeID) >= 2 THEN 70 ELSE 45 END AS score
+            FROM Employees e mgr
+            LEFT JOIN Employees sub ON mgr.e.EmployeeID = sub.ManagerID
+            GROUP BY mgr.e.EmployeeID
+        ) lead ON e.EmployeeID = lead.e.EmployeeID
         WHERE e.DepartmentID = @DepartmentID 
           AND e.IsActive = 1
-          AND e.EmployeeID != @EmployeeID
+          AND e.EmployeeID != @e.EmployeeID
     ) calculated_rating;
     
     SET @ComparisonToPeers = 
@@ -1038,7 +1038,7 @@ DECLARE
 
 -- Execute performance calculation
 EXEC @Result = sp_CalculateEmployeePerformanceRating
-    @EmployeeID = 3001,
+    @e.EmployeeID = 3001,
     @PerformancePeriodMonths = 12,
     @ProjectScore = @ProjScore OUTPUT,          -- Input/Output
     @CustomerScore = @CustScore OUTPUT,         -- Output only
@@ -1067,7 +1067,7 @@ SELECT
 ```sql
 -- ✅ GOOD: Comprehensive parameter validation
 CREATE PROCEDURE sp_ValidateParametersExample
-    @EmployeeID INT,
+    @e.EmployeeID INT,
     @StartDate DATE = NULL,
     @EndDate DATE = NULL,
     @MaxResults INT = 100,
@@ -1077,16 +1077,16 @@ BEGIN
     SET NOCOUNT ON;
     
     -- Required parameter validation
-    IF @EmployeeID IS NULL OR @EmployeeID <= 0
+    IF @e.EmployeeID IS NULL OR @e.EmployeeID <= 0
     BEGIN
-        RAISERROR('EmployeeID is required and must be positive.', 16, 1);
+        RAISERROR('e.EmployeeID is required and must be positive.', 16, 1);
         RETURN -1;
     END
     
     -- Business rule validation
-    IF NOT EXISTS (SELECT 1 FROM Employees WHERE EmployeeID = @EmployeeID)
+    IF NOT EXISTS (SELECT 1 FROM Employees e WHERE e.EmployeeID = @e.EmployeeID)
     BEGIN
-        RAISERROR('Employee ID %d does not exist.', 16, 1, @EmployeeID);
+        RAISERROR('Employee ID %d does not exist.', 16, 1, @e.EmployeeID);
         RETURN -2;
     END
     
@@ -1119,7 +1119,7 @@ BEGIN
         e.FirstName + ' ' + e.LastName AS EmployeeName,
         e.JobTitle
     FROM Employees e
-    WHERE e.EmployeeID = @EmployeeID;
+    WHERE e.EmployeeID = @e.EmployeeID;
     
     RETURN 0;  -- Success
 END;

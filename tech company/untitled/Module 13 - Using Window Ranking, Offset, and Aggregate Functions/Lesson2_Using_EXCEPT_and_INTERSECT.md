@@ -17,13 +17,13 @@ EXCEPT and INTERSECT are advanced set operators that perform mathematical set op
 
 **Primary Tables for Set Analysis:**
 ```sql
-Employees: EmployeeID (3001+), FirstName, LastName, BaseSalary, DepartmentID, ManagerID, JobTitle, HireDate, WorkEmail, IsActive
+Employees: e.EmployeeID (3001+), e.FirstName, e.LastName, e.BaseSalary, DepartmentID, ManagerID, e.JobTitle, e.HireDate, WorkEmail, IsActive
 Departments: DepartmentID (2001+), DepartmentName, Budget, Location, IsActive
 Projects: ProjectID (4001+), ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
-Orders: OrderID (5001+), CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
-EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
+Orders: OrderID (5001+), CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
+EmployeeProjects: e.EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
 Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, WorkEmail, IsActive
-EmployeeArchive: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, TerminationDate, Reason, IsActive
+EmployeeArchive: e.EmployeeID, e.FirstName, e.LastName, e.BaseSalary, DepartmentID, TerminationDate, Reason, IsActive
 ```
 
 ## Understanding Set Operations
@@ -108,7 +108,7 @@ SELECT
     FORMAT(e.BaseSalary, 'C') AS CurrentSalary
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 WHERE e.IsActive = 1
   AND d.IsActive = 1
   AND ep.IsActive = 1
@@ -175,7 +175,7 @@ ORDER BY DaysSinceLastOrder DESC;
 
 #### TechCorp Example: High Earners Without Management Responsibilities
 ```sql
--- Identify employees violating company policy: high BaseSalary without management duties
+-- Identify employees violating company policy: high e.BaseSalary without management duties
 SELECT 
     e.EmployeeID,
     e.FirstName + ' ' + e.LastName AS EmployeeName,
@@ -183,32 +183,32 @@ SELECT
     e.JobTitle,
     d.DepartmentName,
     DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
-    'Policy Violation: High BaseSalary Without Management' AS ComplianceIssue
+    'Policy Violation: High e.BaseSalary Without Management' AS ComplianceIssue
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE e.BaseSalary > 85000  -- High BaseSalary threshold
+WHERE e.BaseSalary > 85000  -- High e.BaseSalary threshold
   AND e.IsActive = 1
   AND d.IsActive = 1
 
 EXCEPT
 
 SELECT 
-    mgr.EmployeeID,
-    mgr.FirstName + ' ' + mgr.LastName AS EmployeeName,
-    FORMAT(mgr.BaseSalary, 'C') AS CurrentSalary,
-    mgr.JobTitle,
+    mgr.e.EmployeeID,
+    mgr.e.FirstName + ' ' + mgr.e.LastName AS EmployeeName,
+    FORMAT(mgr.e.BaseSalary, 'C') AS CurrentSalary,
+    mgr.e.JobTitle,
     d.DepartmentName,
-    DATEDIFF(YEAR, mgr.HireDate, GETDATE()) AS YearsOfService,
-    'Policy Violation: High BaseSalary Without Management' AS ComplianceIssue
-FROM Employees mgr
+    DATEDIFF(YEAR, mgr.e.HireDate, GETDATE()) AS YearsOfService,
+    'Policy Violation: High e.BaseSalary Without Management' AS ComplianceIssue
+FROM Employees e mgr
 INNER JOIN Departments d ON mgr.DepartmentID = d.DepartmentID
 WHERE mgr.IsActive = 1
   AND d.IsActive = 1
-  AND mgr.BaseSalary > 85000
+  AND mgr.e.BaseSalary > 85000
   AND EXISTS (
       SELECT 1
-      FROM Employees subordinate
-      WHERE subordinate.ManagerID = mgr.EmployeeID
+      FROM Employees e subordinate
+      WHERE subordinate.ManagerID = mgr.e.EmployeeID
         AND subordinate.IsActive = 1
   )
 
@@ -225,13 +225,13 @@ SELECT
     e.FirstName + ' ' + e.LastName AS NewEmployeeName,
     e.JobTitle,
     d.DepartmentName,
-    FORMAT(e.HireDate, 'yyyy-MM-dd') AS HireDate,
+    FORMAT(e.HireDate, 'yyyy-MM-dd') AS e.HireDate,
     FORMAT(e.BaseSalary, 'C') AS StartingSalary,
     CASE 
         WHEN e.ManagerID IS NOT NULL 
-        THEN (SELECT mgr.FirstName + ' ' + mgr.LastName 
-              FROM Employees mgr 
-              WHERE mgr.EmployeeID = e.ManagerID 
+        THEN (SELECT mgr.e.FirstName + ' ' + mgr.e.LastName 
+              FROM Employees e mgr 
+              WHERE mgr.e.EmployeeID = e.ManagerID 
                 AND mgr.IsActive = 1)
         ELSE 'No Manager Assigned'
     END AS ReportsTo
@@ -248,13 +248,13 @@ SELECT
     e.FirstName + ' ' + e.LastName AS NewEmployeeName,
     e.JobTitle,
     d.DepartmentName,
-    FORMAT(e.HireDate, 'yyyy-MM-dd') AS HireDate,
+    FORMAT(e.HireDate, 'yyyy-MM-dd') AS e.HireDate,
     FORMAT(e.BaseSalary, 'C') AS StartingSalary,
     CASE 
         WHEN e.ManagerID IS NOT NULL 
-        THEN (SELECT mgr.FirstName + ' ' + mgr.LastName 
-              FROM Employees mgr 
-              WHERE mgr.EmployeeID = e.ManagerID 
+        THEN (SELECT mgr.e.FirstName + ' ' + mgr.e.LastName 
+              FROM Employees e mgr 
+              WHERE mgr.e.EmployeeID = e.ManagerID 
                 AND mgr.IsActive = 1)
         ELSE 'No Manager Assigned'
     END AS ReportsTo
@@ -265,7 +265,7 @@ WHERE e.IsActive = 1
   AND e.HireDate >= DATEADD(MONTH, -2, GETDATE())  -- Previous period hires
   AND e.HireDate < DATEADD(MONTH, -1, GETDATE())
 
-ORDER BY HireDate DESC, d.DepartmentName;
+ORDER BY e.HireDate DESC, d.DepartmentName;
 ```
 
 ## INTERSECT Operations for Common Analysis
@@ -380,17 +380,17 @@ SELECT
     (SELECT COUNT(DISTINCT p.ProjectID)
      FROM EmployeeProjects ep
      INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-     INNER JOIN Employees mgr ON p.ProjectManagerID = mgr.EmployeeID
-     WHERE ep.EmployeeID = e.EmployeeID
+     INNER JOIN Employees mgr ON p.ProjectManagerID = mgr.e.EmployeeID
+     WHERE ep.e.EmployeeID = e.EmployeeID
        AND mgr.DepartmentID <> e.DepartmentID
        AND ep.IsActive = 1
        AND p.IsActive = 1
        AND mgr.IsActive = 1) AS CrossDeptProjects
 FROM Employees e
 INNER JOIN Departments home_dept ON e.DepartmentID = home_dept.DepartmentID
-INNER JOIN EmployeeProjects ep1 ON e.EmployeeID = ep1.EmployeeID
+INNER JOIN EmployeeProjects ep1 ON e.EmployeeID = ep1.e.EmployeeID
 INNER JOIN Projects p1 ON ep1.ProjectID = p1.ProjectID
-INNER JOIN Employees mgr1 ON p1.ProjectManagerID = mgr1.EmployeeID
+INNER JOIN Employees mgr1 ON p1.ProjectManagerID = mgr1.e.EmployeeID
 WHERE e.IsActive = 1
   AND home_dept.IsActive = 1
   AND ep1.IsActive = 1
@@ -408,17 +408,17 @@ SELECT
     (SELECT COUNT(DISTINCT p.ProjectID)
      FROM EmployeeProjects ep
      INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-     INNER JOIN Employees mgr ON p.ProjectManagerID = mgr.EmployeeID
-     WHERE ep.EmployeeID = e.EmployeeID
+     INNER JOIN Employees mgr ON p.ProjectManagerID = mgr.e.EmployeeID
+     WHERE ep.e.EmployeeID = e.EmployeeID
        AND mgr.DepartmentID <> e.DepartmentID
        AND ep.IsActive = 1
        AND p.IsActive = 1
        AND mgr.IsActive = 1) AS CrossDeptProjects
 FROM Employees e
 INNER JOIN Departments home_dept ON e.DepartmentID = home_dept.DepartmentID
-INNER JOIN EmployeeProjects ep2 ON e.EmployeeID = ep2.EmployeeID
+INNER JOIN EmployeeProjects ep2 ON e.EmployeeID = ep2.e.EmployeeID
 INNER JOIN Projects p2 ON ep2.ProjectID = p2.ProjectID
-INNER JOIN Employees mgr2 ON p2.ProjectManagerID = mgr2.EmployeeID
+INNER JOIN Employees mgr2 ON p2.ProjectManagerID = mgr2.e.EmployeeID
 WHERE e.IsActive = 1
   AND home_dept.IsActive = 1
   AND ep2.IsActive = 1
@@ -447,7 +447,7 @@ WITH HighPerformers AS (
         'High Performer' AS Classification
     FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    WHERE e.BaseSalary > (SELECT AVG(e.BaseSalary) * 1.2 FROM Employees WHERE IsActive = 1)
+    WHERE e.BaseSalary > (SELECT AVG(e.BaseSalary) * 1.2 FROM Employees e WHERE IsActive = 1)
       AND e.IsActive = 1
       AND d.IsActive = 1
 ),
@@ -462,7 +462,7 @@ ProjectContributors AS (
         'Project Contributor' AS Classification
     FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
       AND ep.IsActive = 1
@@ -475,14 +475,14 @@ SELECT *
 FROM HighPerformers
 EXCEPT
 SELECT 
-    pc.EmployeeID,
+    pc.e.EmployeeID,
     pc.EmployeeName,
-    pc.JobTitle,
+    pc.e.JobTitle,
     pc.DepartmentName,
-    pc.BaseSalary,
+    pc.e.BaseSalary,
     'High Performer' AS Classification
 FROM ProjectContributors pc
-ORDER BY BaseSalary DESC;
+ORDER BY e.BaseSalary DESC;
 ```
 
 ### 2. Market Analysis and Competitive Intelligence
@@ -541,14 +541,14 @@ ORDER BY analysis_results.TotalSpent DESC;
 #### Optimized Query with Proper Indexing
 ```sql
 -- Recommended indexes for optimal performance:
--- CREATE INDEX IX_Employees_Active_Salary ON Employees(IsActive, BaseSalary) INCLUDE (EmployeeID, FirstName, LastName, JobTitle, DepartmentID);
+-- CREATE INDEX IX_Employees_Active_Salary ON Employees(IsActive, e.BaseSalary) INCLUDE (e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, DepartmentID);
 -- CREATE INDEX IX_Projects_Active_Manager ON Projects(IsActive, ProjectManagerID) INCLUDE (ProjectID, ProjectName, Budget);
 
 SELECT 
     e.EmployeeID,
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     e.JobTitle,
-    FORMAT(e.BaseSalary, 'C') AS BaseSalary
+    FORMAT(e.BaseSalary, 'C') AS e.BaseSalary
 FROM Employees e
 WHERE e.IsActive = 1
   AND e.BaseSalary > 70000
@@ -559,14 +559,14 @@ SELECT
     e.EmployeeID,
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     e.JobTitle,
-    FORMAT(e.BaseSalary, 'C') AS BaseSalary
+    FORMAT(e.BaseSalary, 'C') AS e.BaseSalary
 FROM Employees e
 INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
 WHERE e.IsActive = 1
   AND p.IsActive = 1
   AND e.BaseSalary > 70000
 
-ORDER BY BaseSalary DESC;
+ORDER BY e.BaseSalary DESC;
 ```
 
 ### 2. Alternative Approaches for Better Performance
@@ -580,7 +580,7 @@ WHERE e.IsActive = 1
 EXCEPT
 SELECT e.EmployeeID, e.FirstName, e.LastName
 FROM Employees e
-INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
+INNER JOIN Orders o ON e.EmployeeID = o.e.EmployeeID
 WHERE e.IsActive = 1 AND o.IsActive = 1;
 
 -- Alternative: NOT EXISTS approach (often more efficient)
@@ -590,7 +590,7 @@ WHERE e.IsActive = 1
   AND NOT EXISTS (
       SELECT 1
       FROM Orders o
-      WHERE o.EmployeeID = e.EmployeeID
+      WHERE o.e.EmployeeID = e.EmployeeID
         AND o.IsActive = 1
   );
 
@@ -607,7 +607,7 @@ WHERE e.IsActive = 1
   AND EXISTS (
       SELECT 1
       FROM Orders o
-      WHERE o.EmployeeID = e.EmployeeID
+      WHERE o.e.EmployeeID = e.EmployeeID
         AND o.IsActive = 1
   );
 ```
@@ -624,7 +624,7 @@ SELECT
     'Underutilized High Earners' AS KPIName,
     COUNT(*) AS KPIValue,
     'Critical' AS AlertLevel,
-    'High-BaseSalary employees without project assignments may indicate resource inefficiency' AS BusinessImpact
+    'High-e.BaseSalary employees without project assignments may indicate resource inefficiency' AS BusinessImpact
 FROM (
     SELECT e.EmployeeID
     FROM Employees e
@@ -632,7 +632,7 @@ FROM (
     EXCEPT
     SELECT DISTINCT e.EmployeeID
     FROM Employees e
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
     WHERE e.IsActive = 1 AND ep.IsActive = 1
 ) underutilized
 
@@ -775,12 +775,12 @@ ORDER BY
 -- This may produce unexpected results
 
 -- Example: Finding employees without email addresses
-SELECT EmployeeID, FirstName, LastName, WorkEmail
-FROM Employees
+SELECT e.EmployeeID, e.FirstName, e.LastName, WorkEmail
+FROM Employees e
 WHERE IsActive = 1
 EXCEPT
-SELECT EmployeeID, FirstName, LastName, WorkEmail
-FROM Employees
+SELECT e.EmployeeID, e.FirstName, e.LastName, WorkEmail
+FROM Employees e
 WHERE IsActive = 1 AND WorkEmail IS NOT NULL;
 
 -- This correctly identifies employees with NULL email addresses
@@ -792,15 +792,15 @@ WHERE IsActive = 1 AND WorkEmail IS NOT NULL;
 #### Problem and Solution
 ```sql
 -- ❌ PROBLEM: Inconsistent column types or order
-SELECT EmployeeID, BaseSalary FROM Employees e  -- INT, DECIMAL
+SELECT e.EmployeeID, e.BaseSalary FROM Employees e  -- INT, DECIMAL
 EXCEPT
 SELECT CustomerID, CompanyName FROM Customers;  -- INT, VARCHAR
 
 -- ✅ SOLUTION: Ensure compatible types and consistent column order
 SELECT 
-    CAST(EmployeeID AS VARCHAR(20)) AS RecordID,
-    CAST(BaseSalary AS VARCHAR(20)) AS RecordValue
-FROM Employees
+    CAST(e.EmployeeID AS VARCHAR(20)) AS RecordID,
+    CAST(e.BaseSalary AS VARCHAR(20)) AS RecordValue
+FROM Employees e
 WHERE IsActive = 1
 EXCEPT
 SELECT 
@@ -820,19 +820,19 @@ EXCEPT
 SELECT * FROM LargeTable2;
 
 -- ✅ SOLUTION: Filter early and use appropriate indexes
-SELECT EmployeeID, FirstName, LastName
-FROM Employees
+SELECT e.EmployeeID, e.FirstName, e.LastName
+FROM Employees e
 WHERE IsActive = 1
   AND DepartmentID IN (2001, 2002)  -- Filter early
 EXCEPT
-SELECT EmployeeID, FirstName, LastName
-FROM Employees
+SELECT e.EmployeeID, e.FirstName, e.LastName
+FROM Employees e
 WHERE IsActive = 1
   AND DepartmentID IN (2001, 2002)  -- Consistent filtering
   AND EXISTS (
       SELECT 1
       FROM EmployeeProjects ep
-      WHERE ep.EmployeeID = Employees.EmployeeID
+      WHERE ep.e.EmployeeID = Employees.e.EmployeeID
         AND ep.IsActive = 1
   );
 ```

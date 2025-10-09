@@ -43,7 +43,7 @@ SELECT
     d.DepartmentName,
     d.Location
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID;
 
 -- Result: Only employees who have a valid d.DepartmentName assignment
 ```
@@ -56,9 +56,9 @@ SELECT
     e.JobTitle AS [Position],
     d.DepartmentName AS [Department],
     d.Location AS [Office Location],
-    FORMAT(e.BaseSalary, 'C') AS [Annual BaseSalary]
+    FORMAT(e.BaseSalary, 'C') AS [Annual e.BaseSalary]
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 ORDER BY d.DepartmentName, e.LastName;
 ```
 
@@ -72,7 +72,7 @@ SELECT
     e.HireDate,
     d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE d.DepartmentName = 'Information Technology'
   AND e.BaseSalary >= 70000
   AND e.HireDate >= '2020-01-01'
@@ -93,8 +93,8 @@ SELECT
     ep.HoursWorked AS [Hours Worked],
     FORMAT(ep.HourlyRate, 'C') AS [Hourly Rate]
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE p.IsActive = 'In Progress'
 ORDER BY d.DepartmentName, e.LastName, p.ProjectName;
@@ -106,12 +106,12 @@ ORDER BY d.DepartmentName, e.LastName, p.ProjectName;
 SELECT d.DepartmentName AS [Department],
     d.Location AS [Location],
     COUNT(e.EmployeeID) AS [Employee Count],
-    FORMAT(AVG(e.BaseSalary), 'C0') AS [Average BaseSalary],
-    FORMAT(MIN(e.BaseSalary), 'C0') AS [Minimum BaseSalary],
-    FORMAT(MAX(e.BaseSalary), 'C0') AS [Maximum BaseSalary],
+    FORMAT(AVG(e.BaseSalary), 'C0') AS [Average e.BaseSalary],
+    FORMAT(MIN(e.BaseSalary), 'C0') AS [Minimum e.BaseSalary],
+    FORMAT(MAX(e.BaseSalary), 'C0') AS [Maximum e.BaseSalary],
     FORMAT(SUM(e.BaseSalary), 'C0') AS [Total d.DepartmentName Payroll]
 FROM Departments d
-INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
 WHERE e.IsActive = 1
 GROUP BY d.DepartmentID, d.DepartmentName, d.Location
 HAVING COUNT(e.EmployeeID) >= 2  -- Only departments with 2+ employees
@@ -129,12 +129,12 @@ SELECT
     p.Priority,
     ep.Role
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE p.ProjectID IN (
     SELECT ProjectID 
-    FROM Projects 
+    FROM Projects p 
     WHERE Priority = 'Critical' 
     AND IsActive = 'In Progress'
 )
@@ -152,8 +152,8 @@ SELECT
     COUNT(ep.ProjectID) AS [Active Projects],
     AVG(ep.HoursWorked / NULLIF(ep.HoursAllocated, 0) * 100) AS [Avg Completion %]
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE e.IsActive = 1
   AND p.IsActive IN ('In Progress', 'Planning')
@@ -171,29 +171,29 @@ ORDER BY [Avg Completion %] DESC, e.BaseSalary DESC;
 -- Comprehensive employee performance analysis
 WITH ProjectPerformance AS (
     SELECT 
-        ep.EmployeeID,
+        ep.e.EmployeeID,
         COUNT(ep.ProjectID) AS TotalProjects,
         AVG(ep.HoursWorked / NULLIF(ep.HoursAllocated, 0)) AS AvgEfficiency,
         SUM(ep.HoursWorked * ep.HourlyRate) AS TotalProjectRevenue,
         COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects
     FROM EmployeeProjects ep
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-    GROUP BY ep.EmployeeID
+    GROUP BY ep.e.EmployeeID
 ),
 SkillAssessment AS (
     SELECT 
-        es.EmployeeID,
+        es.e.EmployeeID,
         COUNT(es.SkillID) AS TotalSkills,
         COUNT(CASE WHEN es.ProficiencyLevel = 'Expert' THEN 1 END) AS ExpertSkills,
         AVG(es.YearsExperience) AS AvgSkillExperience
-    FROM Employees ekills es
-    GROUP BY es.EmployeeID
+    FROM Employees e ekills es
+    GROUP BY es.e.EmployeeID
 )
 SELECT 
     e.FirstName + ' ' + e.LastName AS [Employee Name],
     e.JobTitle AS [Position],
     d.DepartmentName AS [Department],
-    FORMAT(e.BaseSalary, 'C0') AS [BaseSalary],
+    FORMAT(e.BaseSalary, 'C0') AS [e.BaseSalary],
     DATEDIFF(YEAR, e.HireDate, GETDATE()) AS [Years of Service],
     
     -- Project performance metrics
@@ -227,9 +227,9 @@ SELECT
         ELSE 'Investment Development'
     END AS [Value Assessment]
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-LEFT JOIN ProjectPerformance pp ON e.EmployeeID = pp.EmployeeID
-LEFT JOIN SkillAssessment sa ON e.EmployeeID = sa.EmployeeID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+LEFT JOIN ProjectPerformance pp ON e.EmployeeID = pp.e.EmployeeID
+LEFT JOIN SkillAssessment sa ON e.EmployeeID = sa.e.EmployeeID
 WHERE e.IsActive = 1
 ORDER BY 
     CASE 
@@ -247,25 +247,25 @@ SELECT
     e.FirstName + ' ' + e.LastName AS [Employee Name],
     e.JobTitle,
     d.DepartmentName,
-    FORMAT(e.BaseSalary, 'C0') AS [BaseSalary],
+    FORMAT(e.BaseSalary, 'C0') AS [e.BaseSalary],
     
     -- Ranking within d.DepartmentName
-    RANK() OVER (PARTITION BY d.DepartmentID ORDER BY e.BaseSalary DESC) AS [Dept BaseSalary Rank],
+    RANK() OVER (PARTITION BY d.DepartmentID ORDER BY e.BaseSalary DESC) AS [Dept e.BaseSalary Rank],
     DENSE_RANK() OVER (PARTITION BY d.DepartmentID ORDER BY e.HireDate) AS [Dept Seniority Rank],
     
     -- d.DepartmentName statistics
-    FORMAT(AVG(e.BaseSalary) OVER (PARTITION BY d.DepartmentID), 'C0') AS [Dept Avg BaseSalary],
+    FORMAT(AVG(e.BaseSalary) OVER (PARTITION BY d.DepartmentID), 'C0') AS [Dept Avg e.BaseSalary],
     COUNT(e.EmployeeID) OVER (PARTITION BY d.DepartmentID) AS [Dept Employee Count],
     
-    -- BaseSalary analysis
-    FORMAT(e.BaseSalary - AVG(e.BaseSalary) OVER (PARTITION BY d.DepartmentID), 'C0') AS [BaseSalary vs Dept Avg],
+    -- e.BaseSalary analysis
+    FORMAT(e.BaseSalary - AVG(e.BaseSalary) OVER (PARTITION BY d.DepartmentID), 'C0') AS [e.BaseSalary vs Dept Avg],
     CASE 
         WHEN e.BaseSalary > AVG(e.BaseSalary) OVER (PARTITION BY d.DepartmentID) * 1.2 
              THEN 'Above Average'
         WHEN e.BaseSalary < AVG(e.BaseSalary) OVER (PARTITION BY d.DepartmentID) * 0.8 
              THEN 'Below Average'
         ELSE 'Average Range'
-    END AS [BaseSalary Position],
+    END AS [e.BaseSalary Position],
     
     -- Project involvement
     COUNT(ep.ProjectID) AS [Current Projects],
@@ -275,13 +275,13 @@ SELECT
         ELSE 'Heavy Load'
     END AS [Workload IsActive]
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'In Progress'
 WHERE e.IsActive = 1
 GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.BaseSalary, 
          e.HireDate, d.DepartmentID, d.DepartmentName
-ORDER BY d.DepartmentName, [Dept BaseSalary Rank];
+ORDER BY d.DepartmentName, [Dept e.BaseSalary Rank];
 ```
 
 ### Complex Business Intelligence with Inner Joins
@@ -294,12 +294,12 @@ SELECT
     d.DepartmentName AS [Lead Department],
     
     -- Financial metrics
-    FORMAT(p.Budget, 'C0') AS [Project Budget],
+    FORMAT(p.d.Budget, 'C0') AS [Project d.Budget],
     FORMAT(ISNULL(p.ActualCost, 0), 'C0') AS [Actual Cost],
-    FORMAT(p.Budget - ISNULL(p.ActualCost, 0), 'C0') AS [Budget Variance],
+    FORMAT(p.d.Budget - ISNULL(p.ActualCost, 0), 'C0') AS [d.Budget Variance],
     
     -- Resource metrics
-    COUNT(DISTINCT ep.EmployeeID) AS [Team Size],
+    COUNT(DISTINCT ep.e.EmployeeID) AS [Team Size],
     SUM(ep.HoursAllocated) AS [Total Hours Allocated],
     SUM(ep.HoursWorked) AS [Total Hours Worked],
     SUM(ep.HoursWorked * ep.HourlyRate) AS [Total Labor Cost],
@@ -319,14 +319,14 @@ SELECT
     
     -- Performance indicators
     CASE 
-        WHEN p.IsActive = 'Completed' AND ISNULL(p.ActualCost, 0) <= p.Budget * 0.95 
-             THEN 'Excellent - Under Budget'
-        WHEN p.IsActive = 'Completed' AND ISNULL(p.ActualCost, 0) <= p.Budget 
-             THEN 'Good - On Budget'
-        WHEN p.IsActive = 'In Progress' AND ISNULL(p.ActualCost, 0) <= p.Budget * 0.8 
+        WHEN p.IsActive = 'Completed' AND ISNULL(p.ActualCost, 0) <= p.d.Budget * 0.95 
+             THEN 'Excellent - Under d.Budget'
+        WHEN p.IsActive = 'Completed' AND ISNULL(p.ActualCost, 0) <= p.d.Budget 
+             THEN 'Good - On d.Budget'
+        WHEN p.IsActive = 'In Progress' AND ISNULL(p.ActualCost, 0) <= p.d.Budget * 0.8 
              THEN 'On Track'
-        WHEN ISNULL(p.ActualCost, 0) > p.Budget 
-             THEN 'Over Budget - Review Required'
+        WHEN ISNULL(p.ActualCost, 0) > p.d.Budget 
+             THEN 'Over d.Budget - Review Required'
         ELSE 'Monitor Closely'
     END AS [Project Health],
     
@@ -345,14 +345,14 @@ SELECT
 FROM Projects p
 INNER JOIN Clients c ON p.ClientID = c.ClientID
 INNER JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
-INNER JOIN Employees e ON ep.EmployeeID = e.EmployeeID
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Employees e ON ep.e.EmployeeID = e.EmployeeID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE p.IsActive IN ('Completed', 'In Progress')
-GROUP BY p.ProjectID, p.ProjectName, p.ProjectCode, p.Budget, p.ActualCost,
+GROUP BY p.ProjectID, p.ProjectName, p.ProjectCode, p.d.Budget, p.ActualCost,
          p.IsActive, p.StartDate, p.EndDate, p.PlannedEndDate,
          c.ClientName, d.DepartmentName
-HAVING COUNT(DISTINCT ep.EmployeeID) >= 2  -- Projects with teams of 2+
-ORDER BY [Project Health], p.Budget DESC;
+HAVING COUNT(DISTINCT ep.e.EmployeeID) >= 2  -- Projects with teams of 2+
+ORDER BY [Project Health], p.d.Budget DESC;
 ```
 
 ## Inner Join Performance Optimization
@@ -440,7 +440,7 @@ ORDER BY [Project Health], p.Budget DESC;
 │  ┌─────────────────────────────────────────────────────────────────────────┤
 │  │  Index includes all needed columns                                      │
 │  │  ┌─────────────────────────────────────┐                               │
-│  │  │ DeptID │ DeptName │ Location │ Budget │  All data in index          │
+│  │  │ DeptID │ DeptName │ Location │ d.Budget │  All data in index          │
 │  │  ├─────────────────────────────────────┤  • No base table access      │
 │  │  │   1    │    IT    │ Seattle  │ 500K  │  • Fastest possible         │
 │  │  │   2    │    HR    │ Portland │ 300K  │                             │
@@ -457,15 +457,15 @@ ORDER BY [Project Health], p.Budget DESC;
 ### 1. Index Strategy for Inner Joins
 ```sql
 -- Create appropriate indexes for common join patterns
-CREATE INDEX IX_Employees_DepartmentID ON Employees(DepartmentID);
-CREATE INDEX IX_EmployeeProjects_EmployeeID ON EmployeeProjects(EmployeeID);
+CREATE INDEX IX_Employees_DepartmentID ON Employees(d.DepartmentID);
+CREATE INDEX IX_EmployeeProjects_EmployeeID ON EmployeeProjects(e.EmployeeID);
 CREATE INDEX IX_EmployeeProjects_ProjectID ON EmployeeProjects(ProjectID);
 CREATE INDEX IX_Projects_IsActive ON Projects(IsActive);
 
 -- Covering index for common query patterns
 CREATE INDEX IX_Employees_Covering 
-ON Employees(DepartmentID, IsActive) 
-INCLUDE (FirstName, LastName, Title, BaseSalary, HireDate);
+ON Employees(d.DepartmentID, IsActive) 
+INCLUDE (e.FirstName, e.LastName, Title, e.BaseSalary, e.HireDate);
 ```
 
 ### 2. Efficient Join Conditions
@@ -473,17 +473,17 @@ INCLUDE (FirstName, LastName, Title, BaseSalary, HireDate);
 -- Good: Equality join on indexed column
 SELECT e.FirstName, d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID;
 
 -- Avoid: Function in join condition (not sargable)
 SELECT e.FirstName, d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON UPPER(e.DepartmentCode) = UPPER(d.DepartmentCode);
+INNER JOIN Departments d ON UPPER(e.d.DepartmentCode) = UPPER(d.DepartmentCode);
 
 -- Better: Use computed column or fix data consistency
 SELECT e.FirstName, d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentCode = d.DepartmentCode;
+INNER JOIN Departments d ON e.d.DepartmentCode = d.DepartmentCode;
 ```
 
 ### 3. Filtering Strategies
@@ -491,7 +491,7 @@ INNER JOIN Departments d ON e.DepartmentCode = d.DepartmentCode;
 -- Filter early in the join process
 SELECT e.FirstName, e.LastName, d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1  -- Filter on Employees table
   AND d.IsActive = 1  -- Filter on Departments table
   AND e.HireDate >= '2020-01-01';
@@ -499,10 +499,10 @@ WHERE e.IsActive = 1  -- Filter on Employees table
 -- Use EXISTS for existence checks instead of IN with subqueries
 SELECT e.FirstName, e.LastName
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE EXISTS (
     SELECT 1 FROM EmployeeProjects ep 
-    WHERE ep.EmployeeID = e.EmployeeID
+    WHERE ep.e.EmployeeID = e.EmployeeID
 );
 ```
 
@@ -517,8 +517,8 @@ SELECT
     c.CompanyName,
     od.ProductName,
     od.Quantity,
-    od.BaseSalary,
-    od.Quantity * od.BaseSalary AS LineTotal
+    od.e.BaseSalary,
+    od.Quantity * od.e.BaseSalary AS LineTotal
 FROM Orders o
 INNER JOIN Customers c ON o.CustomerID = c.CustomerID
 INNER JOIN OrderDetails od ON o.OrderID = od.OrderID
@@ -537,7 +537,7 @@ SELECT
 FROM Employees e
 INNER JOIN EmployeeTypes et ON e.EmployeeTypeID = et.EmployeeTypeID
 INNER JOIN EmployeeIsActivees es ON e.IsActiveID = es.IsActiveID
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID;
 ```
 
 ### 3. Many-to-Many Resolution Pattern
@@ -564,12 +564,12 @@ ORDER BY s.StudentName, c.CourseName;
 -- Good: Clear and concise
 SELECT e.FirstName, d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID;
 
 -- Avoid: Verbose and unclear
-SELECT Employees.FirstName, Departments.d.DepartmentName
-FROM Employees
-INNER JOIN Departments d ON Employees.DepartmentID = Departments.DepartmentID;
+SELECT Employees.e.FirstName, Departments.d.DepartmentName
+FROM Employees e
+INNER JOIN Departments d ON Employees.d.DepartmentID = Departments.d.DepartmentID;
 ```
 
 ### 2. Join Order Considerations
@@ -578,7 +578,7 @@ INNER JOIN Departments d ON Employees.DepartmentID = Departments.DepartmentID;
 SELECT p.ProjectName, e.FirstName, e.LastName
 FROM Projects p  -- If fewer projects than employees
 INNER JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
-INNER JOIN Employees e ON ep.EmployeeID = e.EmployeeID
+INNER JOIN Employees e ON ep.e.EmployeeID = e.EmployeeID
 WHERE p.IsActive = 'Critical';
 ```
 
@@ -592,9 +592,9 @@ SELECT
     ep.Role
 FROM Employees e
     INNER JOIN Departments d 
-        ON e.DepartmentID = d.DepartmentID
+        ON e.d.DepartmentID = d.DepartmentID
     INNER JOIN EmployeeProjects ep 
-        ON e.EmployeeID = ep.EmployeeID
+        ON e.EmployeeID = ep.e.EmployeeID
     INNER JOIN Projects p 
         ON ep.ProjectID = p.ProjectID
 WHERE e.IsActive = 1
@@ -609,13 +609,13 @@ ORDER BY d.DepartmentName, e.LastName;
 -- PROBLEM: This excludes employees without projects
 SELECT e.FirstName, e.LastName, p.ProjectName
 FROM Employees e
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID;
 
 -- SOLUTION: Use LEFT JOIN if you want all employees
 SELECT e.FirstName, e.LastName, ISNULL(p.ProjectName, 'No Project') AS Project
 FROM Employees e
-LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID;
 ```
 
@@ -629,7 +629,7 @@ INNER JOIN Departments d;  -- Missing ON clause
 -- CORRECT: Always specify join condition
 SELECT e.FirstName, d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID;
 ```
 
 ### 3. Incorrect Aggregation
@@ -638,7 +638,7 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 SELECT d.DepartmentName,
     COUNT(e.EmployeeID) AS EmployeeCount  -- This might be wrong if employees have multiple projects
 FROM Departments d
-INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 GROUP BY d.DepartmentName;
 
@@ -646,7 +646,7 @@ GROUP BY d.DepartmentName;
 SELECT d.DepartmentName,
     COUNT(DISTINCT e.EmployeeID) AS EmployeeCount
 FROM Departments d
-INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 GROUP BY d.DepartmentName;
 ```

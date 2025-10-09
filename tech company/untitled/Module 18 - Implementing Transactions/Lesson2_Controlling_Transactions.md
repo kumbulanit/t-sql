@@ -19,12 +19,12 @@ Transaction control is essential for managing data consistency, handling errors,
 **Core Tables for Transaction Control Examples:**
 
 ```sql
-Employees: EmployeeID (3001+), FirstName, LastName, BaseSalary, DepartmentID, ManagerID, HireDate, IsActive
-Departments: DepartmentID (2001+), DepartmentName, Budget, Location, IsActive
-Projects: ProjectID (4001+), ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
-Orders: OrderID (5001+), CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
+Employees: e.EmployeeID (3001+), e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID, ManagerID, e.HireDate, IsActive
+Departments: d.DepartmentID (2001+), d.DepartmentName, d.Budget, Location, IsActive
+Projects: ProjectID (4001+), ProjectName, d.Budget, ProjectManagerID, StartDate, EndDate, IsActive
+Orders: OrderID (5001+), CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
 Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, IsActive
-EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
+EmployeeProjects: e.EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
 TransactionAudit: TransactionID, TransactionType, TableName, RecordID, OldValues, NewValues, Timestamp
 ```
 
@@ -41,7 +41,7 @@ Explicit transaction control provides precise management over when transactions 
 -- Demonstrates complete control over transaction lifecycle
 
 CREATE OR ALTER PROCEDURE sp_TransferEmployee
-    @EmployeeID INT,
+    @e.EmployeeID INT,
     @NewDepartmentID INT,
     @TransferDate DATE = NULL,
     @Reason NVARCHAR(200) = 'Department Transfer'
@@ -54,7 +54,7 @@ BEGIN
     DECLARE @EmployeeName NVARCHAR(100);
     DECLARE @CurrentSalary DECIMAL(10,2);
     DECLARE @NewDepartmentBudget DECIMAL(15,2);
-    DECLARE @TransactionName NVARCHAR(50) = 'EmployeeTransfer_' + CAST(@EmployeeID AS NVARCHAR(10));
+    DECLARE @TransactionName NVARCHAR(50) = 'EmployeeTransfer_' + CAST(@e.EmployeeID AS NVARCHAR(10));
     
     SET @TransferDate = ISNULL(@TransferDate, GETDATE());
     
@@ -64,15 +64,16 @@ BEGIN
     BEGIN TRY
         -- Step 1: Validate employee exists and get current details
         SELECT 
-            @CurrentDepartmentID = DepartmentID,
-            @EmployeeName = FirstName + ' ' + LastName,
-            @CurrentSalary = BaseSalary
-        FROM Employees 
-        WHERE EmployeeID = @EmployeeID AND IsActive = 1;
+            @CurrentDepartmentID = d.DepartmentID,
+            @EmployeeName = e.FirstName + ' ' + e.LastName,
+            @CurrentSalary = e.BaseSalary
+        FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+        WHERE e.EmployeeID = @e.EmployeeID AND IsActive = 1;
         
         IF @CurrentDepartmentID IS NULL
         BEGIN
-            RAISERROR('Employee not found or inactive: %d', 16, 1, @EmployeeID);
+            RAISERROR('Employee not found or inactive: %d', 16, 1, @e.EmployeeID);
         END;
         
         IF @CurrentDepartmentID = @NewDepartmentID
@@ -81,9 +82,9 @@ BEGIN
         END;
         
         -- Step 2: Validate new d.DepartmentName and check budget capacity
-        SELECT @NewDepartmentBudget = Budget
-        FROM Departments 
-        WHERE DepartmentID = @NewDepartmentID AND IsActive = 1;
+        SELECT @NewDepartmentBudget = d.Budget
+        FROM Departments d 
+        WHERE d.DepartmentID = @NewDepartmentID AND IsActive = 1;
         
         IF @NewDepartmentBudget IS NULL
         BEGIN
@@ -92,43 +93,43 @@ BEGIN
         
         IF @NewDepartmentBudget < @CurrentSalary
         BEGIN
-            RAISERROR('Insufficient budget in target d.DepartmentName for employee BaseSalary', 16, 1);
+            RAISERROR('Insufficient budget in target d.DepartmentName for employee e.BaseSalary', 16, 1);
         END;
         
         -- Step 3: Record transfer in audit table (before making changes)
         INSERT INTO TransactionAudit 
         (TransactionType, TableName, RecordID, OldValues, NewValues, Timestamp, Description)
         VALUES 
-        ('EMPLOYEE_TRANSFER', 'Employees', @EmployeeID, 
-         'DepartmentID: ' + CAST(@CurrentDepartmentID AS NVARCHAR(10)),
-         'DepartmentID: ' + CAST(@NewDepartmentID AS NVARCHAR(10)),
+        ('EMPLOYEE_TRANSFER', 'Employees', @e.EmployeeID, 
+         'd.DepartmentID: ' + CAST(@CurrentDepartmentID AS NVARCHAR(10)),
+         'd.DepartmentID: ' + CAST(@NewDepartmentID AS NVARCHAR(10)),
          GETDATE(),
          @Reason);
         
         -- Step 4: Update employee d.DepartmentName
         UPDATE Employees 
-        SET DepartmentID = @NewDepartmentID,
+        SET d.DepartmentID = @NewDepartmentID,
             ModifiedDate = @TransferDate
-        WHERE EmployeeID = @EmployeeID;
+        WHERE e.EmployeeID = @e.EmployeeID;
         
         -- Step 5: Update old d.DepartmentName budget (free up budget)
         UPDATE Departments 
-        SET Budget = Budget + @CurrentSalary,
+        SET d.Budget = d.Budget + @CurrentSalary,
             ModifiedDate = @TransferDate
-        WHERE DepartmentID = @CurrentDepartmentID;
+        WHERE d.DepartmentID = @CurrentDepartmentID;
         
         -- Step 6: Update new d.DepartmentName budget (allocate budget)
         UPDATE Departments 
-        SET Budget = Budget - @CurrentSalary,
+        SET d.Budget = d.Budget - @CurrentSalary,
             ModifiedDate = @TransferDate
-        WHERE DepartmentID = @NewDepartmentID;
+        WHERE d.DepartmentID = @NewDepartmentID;
         
         -- Step 7: End current project assignments if any
         UPDATE EmployeeProjects 
         SET EndDate = @TransferDate,
             IsActive = 0,
             ModifiedDate = @TransferDate
-        WHERE EmployeeID = @EmployeeID 
+        WHERE e.EmployeeID = @e.EmployeeID 
         AND IsActive = 1
         AND EndDate IS NULL;
         
@@ -137,7 +138,7 @@ BEGIN
         
         -- Return success status
         SELECT 
-            @EmployeeID AS EmployeeID,
+            @e.EmployeeID AS e.EmployeeID,
             @EmployeeName AS EmployeeName,
             @CurrentDepartmentID AS FromDepartmentID,
             @NewDepartmentID AS ToDepartmentID,
@@ -156,12 +157,12 @@ BEGIN
         INSERT INTO ErrorLog (ErrorProcedure, ErrorMessage, ErrorTime, AdditionalInfo)
         VALUES 
         ('sp_TransferEmployee', ERROR_MESSAGE(), GETDATE(),
-         'EmployeeID: ' + CAST(@EmployeeID AS NVARCHAR(10)) + 
+         'e.EmployeeID: ' + CAST(@e.EmployeeID AS NVARCHAR(10)) + 
          ', NewDepartmentID: ' + CAST(@NewDepartmentID AS NVARCHAR(10)));
         
         -- Return error status
         SELECT 
-            @EmployeeID AS EmployeeID,
+            @e.EmployeeID AS e.EmployeeID,
             ERROR_NUMBER() AS ErrorNumber,
             ERROR_MESSAGE() AS ErrorMessage,
             'ERROR' AS Status;
@@ -173,7 +174,7 @@ END;
 
 -- Test the transfer procedure
 EXEC sp_TransferEmployee 
-    @EmployeeID = 3001,
+    @e.EmployeeID = 3001,
     @NewDepartmentID = 2002,
     @Reason = 'Strategic reorganization';
 ```
@@ -193,7 +194,7 @@ Savepoints allow partial rollbacks within a transaction, providing fine-grained 
 CREATE OR ALTER PROCEDURE sp_SetupComplexProject
     @ProjectName NVARCHAR(200),
     @ProjectManagerID INT,
-    @Budget DECIMAL(15,2),
+    @d.Budget DECIMAL(15,2),
     @TeamMembers TeamMemberTableType READONLY  -- User-defined table type
 AS
 BEGIN
@@ -212,9 +213,9 @@ BEGIN
     BEGIN TRY
         -- Phase 1: Create project record
         INSERT INTO Projects 
-        (ProjectName, ProjectManagerID, Budget, StartDate, IsActive, CreatedDate)
+        (ProjectName, ProjectManagerID, d.Budget, StartDate, IsActive, CreatedDate)
         VALUES 
-        (@ProjectName, @ProjectManagerID, @Budget, GETDATE(), 1, GETDATE());
+        (@ProjectName, @ProjectManagerID, @d.Budget, GETDATE(), 1, GETDATE());
         
         SET @ProjectID = SCOPE_IDENTITY();
         
@@ -230,7 +231,7 @@ BEGIN
         
         -- Cursor for team member assignment
         DECLARE team_cursor CURSOR FOR
-        SELECT EmployeeID, Role FROM @TeamMembers;
+        SELECT e.EmployeeID, Role FROM @TeamMembers;
         
         OPEN team_cursor;
         FETCH NEXT FROM team_cursor INTO @CurrentMemberID, @CurrentRole;
@@ -238,7 +239,8 @@ BEGIN
         WHILE @@FETCH_STATUS = 0
         BEGIN
             -- Validate each team member
-            IF NOT EXISTS (SELECT 1 FROM Employees WHERE EmployeeID = @CurrentMemberID AND IsActive = 1)
+            IF NOT EXISTS (SELECT 1 FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE e.EmployeeID = @CurrentMemberID AND IsActive = 1)
             BEGIN
                 CLOSE team_cursor;
                 DEALLOCATE team_cursor;
@@ -249,7 +251,7 @@ BEGIN
             DECLARE @CurrentProjectCount INT;
             SELECT @CurrentProjectCount = COUNT(*)
             FROM EmployeeProjects 
-            WHERE EmployeeID = @CurrentMemberID AND IsActive = 1;
+            WHERE e.EmployeeID = @CurrentMemberID AND IsActive = 1;
             
             IF @CurrentProjectCount >= 3
             BEGIN
@@ -260,7 +262,7 @@ BEGIN
             
             -- Assign team member to project
             INSERT INTO EmployeeProjects 
-            (EmployeeID, ProjectID, Role, StartDate, IsActive, CreatedDate)
+            (e.EmployeeID, ProjectID, Role, StartDate, IsActive, CreatedDate)
             VALUES 
             (@CurrentMemberID, @ProjectID, @CurrentRole, GETDATE(), 1, GETDATE());
             
@@ -279,31 +281,32 @@ BEGIN
         
         -- Phase 3: Allocate d.DepartmentName budgets
         DECLARE @ManagerDepartmentID INT;
-        SELECT @ManagerDepartmentID = DepartmentID 
-        FROM Employees 
-        WHERE EmployeeID = @ProjectManagerID;
+        SELECT @ManagerDepartmentID = d.DepartmentID 
+        FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+        WHERE e.EmployeeID = @ProjectManagerID;
         
         -- Check if d.DepartmentName has sufficient budget
         DECLARE @DepartmentBudget DECIMAL(15,2);
-        SELECT @DepartmentBudget = Budget 
-        FROM Departments 
-        WHERE DepartmentID = @ManagerDepartmentID;
+        SELECT @DepartmentBudget = d.Budget 
+        FROM Departments d 
+        WHERE d.DepartmentID = @ManagerDepartmentID;
         
-        IF @DepartmentBudget < @Budget
+        IF @DepartmentBudget < @d.Budget
         BEGIN
             RAISERROR('Insufficient d.DepartmentName budget for project', 16, 1);
         END;
         
         -- Allocate budget from d.DepartmentName
         UPDATE Departments 
-        SET Budget = Budget - @Budget,
+        SET d.Budget = d.Budget - @d.Budget,
             ModifiedDate = GETDATE()
-        WHERE DepartmentID = @ManagerDepartmentID;
+        WHERE d.DepartmentID = @ManagerDepartmentID;
         
         -- Create savepoint after budget allocation
         SAVE TRANSACTION @BudgetSavePoint;
         
-        PRINT 'Phase 3 Complete: Budget allocated FROM Departments';
+        PRINT 'Phase 3 Complete: d.Budget allocated FROM Departments d';
         
         -- Phase 4: Final validations and setup
         -- Update project with final team count
@@ -320,7 +323,7 @@ BEGIN
             @ProjectID AS ProjectID,
             @ProjectName AS ProjectName,
             @MemberCount AS TeamMemberCount,
-            @Budget AS AllocatedBudget,
+            @d.Budget AS AllocatedBudget,
             'SUCCESS' AS Status,
             'Complex project setup completed successfully' AS Message;
         
@@ -332,8 +335,8 @@ BEGIN
         -- Determine appropriate rollback strategy based on error
         IF @ErrorMessage LIKE '%budget%'
         BEGIN
-            -- Budget-related error - rollback to team assignment savepoint
-            PRINT 'Budget error detected - rolling back budget allocation only';
+            -- d.Budget-related error - rollback to team assignment savepoint
+            PRINT 'd.Budget error detected - rolling back budget allocation only';
             ROLLBACK TRANSACTION @BudgetSavePoint;
             
             -- Try to continue with reduced scope
@@ -383,7 +386,7 @@ END;
 
 -- Example usage with team member table type
 DECLARE @TeamMembers AS TeamMemberTableType;
-INSERT INTO @TeamMembers (EmployeeID, Role) VALUES 
+INSERT INTO @TeamMembers (e.EmployeeID, Role) VALUES 
 (3001, 'Senior Developer'),
 (3002, 'Business Analyst'),
 (3003, 'QA Engineer');
@@ -391,7 +394,7 @@ INSERT INTO @TeamMembers (EmployeeID, Role) VALUES
 EXEC sp_SetupComplexProject 
     @ProjectName = 'TechCorp Digital Transformation',
     @ProjectManagerID = 3001,
-    @Budget = 500000.00,
+    @d.Budget = 500000.00,
     @TeamMembers = @TeamMembers;
 ```
 
@@ -426,7 +429,7 @@ BEGIN
     ELSE IF @IsolationLevel = 'SNAPSHOT'
         SET TRANSACTION ISOLATION LEVEL SNAPSHOT;
     
-    DECLARE @EmployeeID INT = 3001;
+    DECLARE @e.EmployeeID INT = 3001;
     DECLARE @InitialSalary DECIMAL(10,2);
     DECLARE @FinalSalary DECIMAL(10,2);
     
@@ -436,28 +439,28 @@ BEGIN
     
     BEGIN TRY
         -- First read
-        SELECT @InitialSalary = BaseSalary 
-        FROM Employees 
-        WHERE EmployeeID = @EmployeeID;
+        SELECT @InitialSalary = e.BaseSalary 
+        FROM Employees e 
+        WHERE e.EmployeeID = @e.EmployeeID;
         
-        PRINT 'Initial BaseSalary read: ' + CAST(@InitialSalary AS NVARCHAR(20));
+        PRINT 'Initial e.BaseSalary read: ' + CAST(@InitialSalary AS NVARCHAR(20));
         
         -- Simulate processing time to allow concurrent modifications
         PRINT 'Simulating processing time (5 seconds)...';
         WAITFOR DELAY '00:00:05';
         
         -- Second read (behavior depends on isolation level)
-        SELECT @FinalSalary = BaseSalary 
-        FROM Employees 
-        WHERE EmployeeID = @EmployeeID;
+        SELECT @FinalSalary = e.BaseSalary 
+        FROM Employees e 
+        WHERE e.EmployeeID = @e.EmployeeID;
         
-        PRINT 'Final BaseSalary read: ' + CAST(@FinalSalary AS NVARCHAR(20));
+        PRINT 'Final e.BaseSalary read: ' + CAST(@FinalSalary AS NVARCHAR(20));
         
         -- Check for phantom reads or non-repeatable reads
         IF @InitialSalary <> @FinalSalary
         BEGIN
             PRINT 'WARNING: Non-repeatable read detected!';
-            PRINT 'BaseSalary changed from ' + CAST(@InitialSalary AS NVARCHAR(20)) + 
+            PRINT 'e.BaseSalary changed from ' + CAST(@InitialSalary AS NVARCHAR(20)) + 
                   ' to ' + CAST(@FinalSalary AS NVARCHAR(20));
         END
         ELSE
@@ -481,8 +484,8 @@ EXEC sp_DemonstrateIsolationLevels @IsolationLevel = 'READ_COMMITTED';
 -- Session 2: Writer (run concurrently with Session 1)
 -- This should be executed during the WAITFOR DELAY in Session 1
 UPDATE Employees 
-SET BaseSalary = BaseSalary + 1000 
-WHERE EmployeeID = 3001;
+SET e.BaseSalary = e.BaseSalary + 1000 
+WHERE e.EmployeeID = 3001;
 ```
 
 ### Snapshot Isolation for TechCorp Reporting
@@ -497,7 +500,7 @@ WHERE EmployeeID = 3001;
 
 CREATE OR ALTER PROCEDURE sp_GenerateConsistentReport
     @ReportDate DATE = NULL,
-    @DepartmentID INT = NULL
+    @d.DepartmentID INT = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -512,7 +515,7 @@ BEGIN
         
         -- Create temporary table for report data
         CREATE TABLE #ReportData (
-            DepartmentID INT,
+            d.DepartmentID INT,
             d.DepartmentName NVARCHAR(100),
             EmployeeCount INT,
             TotalSalary DECIMAL(15,2),
@@ -532,12 +535,12 @@ BEGIN
             COUNT(DISTINCT p.ProjectID) AS ProjectCount,
             GETDATE() AS ReportTimestamp
         FROM Departments d
-        LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID AND e.IsActive = 1
+        LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
         LEFT JOIN Projects p ON d.DepartmentID = (
-            SELECT DepartmentID FROM Employees WHERE EmployeeID = p.ProjectManagerID
+            SELECT d.DepartmentID FROM Employees e WHERE e.EmployeeID = p.ProjectManagerID
         ) AND p.IsActive = 1
         WHERE d.IsActive = 1
-        AND (@DepartmentID IS NULL OR d.DepartmentID = @DepartmentID)
+        AND (@d.DepartmentID IS NULL OR d.DepartmentID = @d.DepartmentID)
         GROUP BY d.DepartmentID, d.DepartmentName;
         
         -- Simulate long-running report generation
@@ -547,7 +550,7 @@ BEGIN
         -- Generate final report
         SELECT 'TechCorp d.DepartmentName Analysis Report' AS ReportTitle,
             @ReportDate AS ReportDate,
-            DepartmentName,
+            d.DepartmentName,
             EmployeeCount,
             FORMAT(TotalSalary, 'C') AS TotalSalary,
             FORMAT(AverageSalary, 'C') AS AverageBaseSalary,
@@ -585,7 +588,7 @@ BEGIN
 END;
 
 -- Execute consistent report
-EXEC sp_GenerateConsistentReport @DepartmentID = NULL;
+EXEC sp_GenerateConsistentReport @d.DepartmentID = NULL;
 ```
 
 ---
@@ -645,7 +648,7 @@ BEGIN
         -- Calculate total payroll amount
         DECLARE @TotalPayrollAmount DECIMAL(15,2);
         SELECT @TotalPayrollAmount = SUM(e.BaseSalary)
-        FROM Employees 
+        FROM Employees e 
         WHERE IsActive = 1;
         
         -- Insert financial transaction record

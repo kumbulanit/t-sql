@@ -188,8 +188,9 @@ FROM Colors CROSS JOIN Sizes;
 ```sql
 -- Mathematical: σ(condition)(R)
 -- Selects tuples that satisfy the condition
-SELECT * FROM Employees
-WHERE d.DepartmentName = 'Sales' AND BaseSalary > 50000;
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+WHERE d.DepartmentName = 'Sales' AND e.BaseSalary > 50000;
 
 -- Result: Subset of employees meeting the criteria
 ```
@@ -198,7 +199,7 @@ WHERE d.DepartmentName = 'Sales' AND BaseSalary > 50000;
 ```sql
 -- Mathematical: π(attribute_list)(R)
 -- Projects specified attributes from relation
-SELECT EmployeeID, FirstName, LastName
+SELECT e.EmployeeID, e.FirstName, e.LastName
 FROM Employees e;
 
 -- Result: New relation with only specified columns

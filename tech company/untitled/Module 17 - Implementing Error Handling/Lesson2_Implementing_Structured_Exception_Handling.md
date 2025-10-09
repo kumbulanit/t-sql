@@ -59,7 +59,7 @@ BEGIN
         IF EXISTS (
             SELECT 1 FROM PayrollHistory 
             WHERE PayrollMonth = @PayrollMonth 
-            AND Status = 'COMPLETED'
+            AND IsActive = 'COMPLETED'
         )
         BEGIN
             RAISERROR('Payroll for %s has already been processed', 16, 1, FORMAT(@PayrollMonth, 'MMMM yyyy'));
@@ -78,23 +78,23 @@ BEGIN
         
         -- Get total employee count
         SELECT @TotalEmployees = COUNT(*)
-        FROM Employees 
+        FROM Employees e 
         WHERE IsActive = 1 
-        AND HireDate <= @PayrollMonth;
+        AND e.HireDate <= @PayrollMonth;
         
         PRINT 'Starting payroll processing for ' + CAST(@TotalEmployees AS VARCHAR(10)) + ' employees';
         
         -- Level 2: Individual employee processing with nested error handling
-        DECLARE @EmployeeID INT, @EmployeeName NVARCHAR(100), @BaseSalary MONEY;
+        DECLARE @e.EmployeeID INT, @EmployeeName NVARCHAR(100), @e.BaseSalary MONEY;
         
         DECLARE employee_cursor CURSOR FOR
-        SELECT EmployeeID, FirstName + ' ' + LastName, BaseSalary
-        FROM Employees 
-        WHERE IsActive = 1 AND HireDate <= @PayrollMonth
-        ORDER BY EmployeeID;
+        SELECT e.EmployeeID, e.FirstName + ' ' + e.LastName, e.BaseSalary
+        FROM Employees e 
+        WHERE IsActive = 1 AND e.HireDate <= @PayrollMonth
+        ORDER BY e.EmployeeID;
         
         OPEN employee_cursor;
-        FETCH NEXT FROM employee_cursor INTO @EmployeeID, @EmployeeName, @BaseSalary;
+        FETCH NEXT FROM employee_cursor INTO @e.EmployeeID, @EmployeeName, @e.BaseSalary;
         
         WHILE @@FETCH_STATUS = 0
         BEGIN
@@ -106,13 +106,13 @@ BEGIN
                 BEGIN TRY
                     -- Calculate gross pay (includes overtime, bonuses, etc.)
                     EXEC CalculateGrossPay 
-                        @EmployeeID = @EmployeeID,
+                        @e.EmployeeID = @e.EmployeeID,
                         @PayrollMonth = @PayrollMonth,
                         @GrossPay = @GrossPay OUTPUT;
                     
                     -- Calculate deductions (taxes, benefits, etc.)
                     EXEC CalculateDeductions 
-                        @EmployeeID = @EmployeeID,
+                        @e.EmployeeID = @e.EmployeeID,
                         @GrossPay = @GrossPay,
                         @PayrollMonth = @PayrollMonth,
                         @Deductions = @Deductions OUTPUT;
@@ -122,16 +122,16 @@ BEGIN
                     -- Validate payroll amounts
                     IF @GrossPay < 0 OR @Deductions < 0 OR @NetPay < 0
                     BEGIN
-                        RAISERROR('Invalid payroll calculation for employee %s (ID: %d)', 16, 1, @EmployeeName, @EmployeeID);
+                        RAISERROR('Invalid payroll calculation for employee %s (ID: %d)', 16, 1, @EmployeeName, @e.EmployeeID);
                     END
                     
                     -- Insert payroll record
                     INSERT INTO PayrollDetails (
-                        EmployeeID, PayrollMonth, GrossPay, Deductions, NetPay,
+                        e.EmployeeID, PayrollMonth, GrossPay, Deductions, NetPay,
                         ProcessedDate, ProcessedBy, ProcessLogID
                     )
                     VALUES (
-                        @EmployeeID, @PayrollMonth, @GrossPay, @Deductions, @NetPay,
+                        @e.EmployeeID, @PayrollMonth, @GrossPay, @Deductions, @NetPay,
                         GETDATE(), @ProcessedBy, @ProcessID
                     );
                     
@@ -144,7 +144,7 @@ BEGIN
                     )
                     VALUES (
                         @ProcessID, 'Monthly Payroll', 'Employee Processing', 'COMPLETED', GETDATE(), GETDATE(),
-                        'EmployeeID: ' + CAST(@EmployeeID AS VARCHAR(10)) + 
+                        'e.EmployeeID: ' + CAST(@e.EmployeeID AS VARCHAR(10)) + 
                         ', GrossPay: $' + FORMAT(@GrossPay, 'N2') + 
                         ', NetPay: $' + FORMAT(@NetPay, 'N2')
                     );
@@ -156,7 +156,7 @@ BEGIN
                     
                     DECLARE @EmployeeErrorMsg NVARCHAR(MAX) = 
                         'Error processing payroll for ' + @EmployeeName + 
-                        ' (ID: ' + CAST(@EmployeeID AS VARCHAR(10)) + '): ' + ERROR_MESSAGE();
+                        ' (ID: ' + CAST(@e.EmployeeID AS VARCHAR(10)) + '): ' + ERROR_MESSAGE();
                     
                     -- Log employee-specific error
                     INSERT INTO ErrorLog (
@@ -171,10 +171,10 @@ BEGIN
                     
                     -- Insert error record for manual review
                     INSERT INTO PayrollErrors (
-                        EmployeeID, PayrollMonth, ErrorMessage, ProcessLogID, CreatedDate
+                        e.EmployeeID, PayrollMonth, ErrorMessage, ProcessLogID, CreatedDate
                     )
                     VALUES (
-                        @EmployeeID, @PayrollMonth, @EmployeeErrorMsg, @ProcessID, GETDATE()
+                        @e.EmployeeID, @PayrollMonth, @EmployeeErrorMsg, @ProcessID, GETDATE()
                     );
                     
                     PRINT 'Error processing employee ' + @EmployeeName + ': ' + ERROR_MESSAGE();
@@ -195,7 +195,7 @@ BEGIN
                     ERROR_NUMBER(), 'Unexpected error in employee processing: ' + ERROR_MESSAGE(), 
                     ERROR_PROCEDURE(), ERROR_LINE(), ERROR_SEVERITY(), ERROR_STATE(), 
                     @ProcessedBy, GETDATE(),
-                    'EmployeeID: ' + CAST(@EmployeeID AS VARCHAR(10)) + ', ProcessID: ' + CAST(@ProcessID AS VARCHAR(50))
+                    'e.EmployeeID: ' + CAST(@e.EmployeeID AS VARCHAR(10)) + ', ProcessID: ' + CAST(@ProcessID AS VARCHAR(50))
                 );
                 
                 -- Log critical employee processing failure
@@ -204,11 +204,11 @@ BEGIN
                 )
                 VALUES (
                     @ProcessID, 'Monthly Payroll', 'Employee Processing', 'FAILED', GETDATE(), GETDATE(),
-                    'Critical error processing EmployeeID: ' + CAST(@EmployeeID AS VARCHAR(10)) + ' - ' + ERROR_MESSAGE()
+                    'Critical error processing e.EmployeeID: ' + CAST(@e.EmployeeID AS VARCHAR(10)) + ' - ' + ERROR_MESSAGE()
                 );
             END CATCH
             
-            FETCH NEXT FROM employee_cursor INTO @EmployeeID, @EmployeeName, @BaseSalary;
+            FETCH NEXT FROM employee_cursor INTO @e.EmployeeID, @EmployeeName, @e.BaseSalary;
         END
         
         CLOSE employee_cursor;
@@ -592,7 +592,7 @@ BEGIN
             SET @Success = 1;
             
             UPDATE ExecutionLog 
-            SET Status = 'COMPLETED',
+            SET IsActive = 'COMPLETED',
                 EndTime = GETDATE(),
                 SuccessfulAttempt = @AttemptCount
             WHERE ExecutionLogID = @ExecutionLogID;
@@ -680,7 +680,7 @@ BEGIN
     IF @Success = 0
     BEGIN
         UPDATE ExecutionLog 
-        SET Status = 'FAILED',
+        SET IsActive = 'FAILED',
             EndTime = GETDATE(),
             FinalError = @LastError,
             TotalAttempts = @AttemptCount

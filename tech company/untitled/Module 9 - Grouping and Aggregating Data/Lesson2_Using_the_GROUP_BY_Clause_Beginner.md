@@ -117,7 +117,7 @@ SELECT
     YEAR(StartDate) AS ProjectYear,
     MONTH(StartDate) AS ProjectMonth,
     COUNT(*) AS ProjectsStarted
-FROM Projects
+FROM Projects p
 WHERE StartDate IS NOT NULL
 GROUP BY YEAR(StartDate), MONTH(StartDate)
 ORDER BY ProjectYear, ProjectMonth;
@@ -167,10 +167,10 @@ ORDER BY NumberOfClients DESC;
 ```sql
 -- How many employees were hired each year?
 SELECT 
-    YEAR(HireDate) AS HireYear,
+    YEAR(e.HireDate) AS HireYear,
     COUNT(*) AS EmployeesHired
-FROM Employees
-GROUP BY YEAR(HireDate)
+FROM Employees e
+GROUP BY YEAR(e.HireDate)
 ORDER BY HireYear;
 ```
 

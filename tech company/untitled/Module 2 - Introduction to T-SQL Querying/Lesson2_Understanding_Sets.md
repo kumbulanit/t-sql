@@ -83,12 +83,12 @@ Result: Elements in A but not in B
 #### 1. UNION - Combining Sets
 ```sql
 -- Basic UNION (removes duplicates)
-SELECT FirstName, LastName FROM Employees
+SELECT e.FirstName, e.LastName FROM Employees e
 UNION
-SELECT FirstName, LastName FROM Customers;
+SELECT e.FirstName, e.LastName FROM Customers;
 
 -- UNION ALL (keeps duplicates)
-SELECT City FROM Employees
+SELECT City FROM Employees e
 UNION ALL
 SELECT City FROM Customers;
 ```
@@ -96,7 +96,7 @@ SELECT City FROM Customers;
 #### 2. INTERSECT - Common Elements
 ```sql
 -- Find cities that have both employees and customers
-SELECT City FROM Employees
+SELECT City FROM Employees e
 INTERSECT
 SELECT City FROM Customers;
 ```
@@ -104,7 +104,7 @@ SELECT City FROM Customers;
 #### 3. EXCEPT - Set Difference
 ```sql
 -- Find cities with employees but no customers
-SELECT City FROM Employees
+SELECT City FROM Employees e
 EXCEPT
 SELECT City FROM Customers;
 ```
@@ -115,17 +115,17 @@ SELECT City FROM Customers;
 ```sql
 -- Multiple set operations with ordering
 (
-    SELECT 'Employee' AS Type, FirstName, LastName, City
-    FROM Employees
+    SELECT 'Employee' AS Type, e.FirstName, e.LastName, City
+    FROM Employees e
     WHERE City IN ('New York', 'Los Angeles')
 )
 UNION
 (
-    SELECT 'Customer' AS Type, FirstName, LastName, City
+    SELECT 'Customer' AS Type, e.FirstName, e.LastName, City
     FROM Customers
     WHERE City IN ('New York', 'Los Angeles')
 )
-ORDER BY City, Type, LastName;
+ORDER BY City, Type, e.LastName;
 ```
 
 #### 2. Set Membership with IN
@@ -135,11 +135,11 @@ SELECT CustomerID, CompanyName FROM Customers
 WHERE CategoryID IN (1, 3, 5);
 
 -- Subquery membership test
-SELECT * FROM Employees
-WHERE DepartmentID IN (
-    SELECT DepartmentID 
-    FROM Departments 
-    WHERE Budget > 100000
+SELECT * FROM Employees e
+WHERE d.DepartmentID IN (
+    SELECT d.DepartmentID 
+    FROM Departments d 
+    WHERE d.Budget > 100000
 );
 ```
 
@@ -151,14 +151,14 @@ FROM Employees e
 WHERE EXISTS (
     SELECT 1 
     FROM Orders o 
-    WHERE o.EmployeeID = e.EmployeeID
+    WHERE o.e.EmployeeID = e.EmployeeID
 );
 
 -- Using IN (simpler syntax)
 SELECT e.FirstName, e.LastName
 FROM Employees e
 WHERE e.EmployeeID IN (
-    SELECT DISTINCT o.EmployeeID 
+    SELECT DISTINCT o.e.EmployeeID 
     FROM Orders o
 );
 ```
@@ -198,22 +198,22 @@ WHERE c.CustomerID IN (SELECT CustomerID FROM ActiveHighValueCustomers);
 -- Find employees with unique skill combinations
 WITH EmployeeSkills AS (
     SELECT 
-        EmployeeID,
+        e.EmployeeID,
         STRING_AGG(SkillName, ',') WITHIN GROUP (ORDER BY SkillName) AS SkillSet
-    FROM Employees ekills es
+    FROM Employees e ekills es
     INNER JOIN Skills s ON es.SkillID = s.SkillID
-    GROUP BY EmployeeID
+    GROUP BY e.EmployeeID
 )
 SELECT 
     e.FirstName,
     e.LastName,
     es.SkillSet
 FROM Employees e
-INNER JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
+INNER JOIN EmployeeSkills es ON e.EmployeeID = es.e.EmployeeID
 WHERE es.SkillSet NOT IN (
     SELECT SkillSet 
-    FROM Employees ekills 
-    WHERE EmployeeID != e.EmployeeID
+    FROM Employees e ekills 
+    WHERE e.EmployeeID != e.EmployeeID
 );
 ```
 
@@ -251,25 +251,25 @@ WHERE p.ProductID IN (SELECT ProductID FROM ProductsOrderedByAll);
 ### Procedural Approach (Avoid)
 ```sql
 -- Inefficient cursor-based approach
-DECLARE @EmployeeID INT;
+DECLARE @e.EmployeeID INT;
 DECLARE @TotalSales DECIMAL(10,2);
 DECLARE employee_cursor CURSOR FOR 
-    SELECT EmployeeID FROM Employees e;
+    SELECT e.EmployeeID FROM Employees e;
 
 OPEN employee_cursor;
-FETCH NEXT FROM employee_cursor INTO @EmployeeID;
+FETCH NEXT FROM employee_cursor INTO @e.EmployeeID;
 
 WHILE @@FETCH_STATUS = 0
 BEGIN
     SELECT @TotalSales = SUM(OrderTotal)
     FROM Orders
-    WHERE EmployeeID = @EmployeeID;
+    WHERE e.EmployeeID = @e.EmployeeID;
     
     UPDATE Employees 
     SET TotalSales = @TotalSales
-    WHERE EmployeeID = @EmployeeID;
+    WHERE e.EmployeeID = @e.EmployeeID;
     
-    FETCH NEXT FROM employee_cursor INTO @EmployeeID;
+    FETCH NEXT FROM employee_cursor INTO @e.EmployeeID;
 END
 
 CLOSE employee_cursor;
@@ -284,11 +284,11 @@ SET TotalSales = ISNULL(o.TotalSales, 0)
 FROM Employees e
 LEFT JOIN (
     SELECT 
-        EmployeeID,
+        e.EmployeeID,
         SUM(OrderTotal) AS TotalSales
     FROM Orders
-    GROUP BY EmployeeID
-) o ON e.EmployeeID = o.EmployeeID;
+    GROUP BY e.EmployeeID
+) o ON e.EmployeeID = o.e.EmployeeID;
 ```
 
 ## Working with NULL Values in Sets
@@ -302,11 +302,11 @@ SELECT Name FROM Table2 WHERE Name IS NOT NULL;
 
 -- NULL-safe comparisons
 SELECT *
-FROM Employees e1
+FROM Employees e e1
 WHERE NOT EXISTS (
     SELECT 1
-    FROM Employees e2
-    WHERE e2.EmployeeID != e1.EmployeeID
+    FROM Employees e e2
+    WHERE e2.e.EmployeeID != e1.e.EmployeeID
     AND (
         (e2.MiddleName = e1.MiddleName) OR 
         (e2.MiddleName IS NULL AND e1.MiddleName IS NULL)
@@ -325,7 +325,7 @@ CREATE INDEX IX_Employees_City ON Employees(City);
 CREATE INDEX IX_Customers_City ON Customers(City);
 
 -- Now set operations will be more efficient
-SELECT City FROM Employees
+SELECT City FROM Employees e
 INTERSECT
 SELECT City FROM Customers;
 ```
@@ -361,7 +361,7 @@ SELECT e.EmployeeID, e.FirstName, e.LastName
 FROM Employees e
 WHERE NOT EXISTS (
     SELECT 1 FROM Orders o 
-    WHERE o.EmployeeID = e.EmployeeID
+    WHERE o.e.EmployeeID = e.EmployeeID
 );
 ```
 

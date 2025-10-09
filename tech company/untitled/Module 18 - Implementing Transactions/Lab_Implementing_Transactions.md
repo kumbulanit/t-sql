@@ -16,12 +16,12 @@ You are part of TechCorp's database development team responsible for implementin
 
 ```sql
 -- Core Business Tables
-Employees: EmployeeID (3001+), FirstName, LastName, BaseSalary, DepartmentID, ManagerID, HireDate, IsActive
-Departments: DepartmentID (2001+), DepartmentName, Budget, Location, IsActive
-Projects: ProjectID (4001+), ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
-Orders: OrderID (5001+), CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
+Employees: e.EmployeeID (3001+), e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID, ManagerID, e.HireDate, IsActive
+Departments: d.DepartmentID (2001+), d.DepartmentName, d.Budget, Location, IsActive
+Projects: ProjectID (4001+), ProjectName, d.Budget, ProjectManagerID, StartDate, EndDate, IsActive
+Orders: OrderID (5001+), CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
 Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, IsActive
-EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
+EmployeeProjects: e.EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
 
 -- Supporting Tables
 TransactionAudit: TransactionID, TransactionType, TableName, RecordID, OldValues, NewValues, Timestamp
@@ -69,11 +69,11 @@ END;
 -- Verify core table data
 SELECT 'Table Verification' AS CheckType,
        'Employees' AS TableName, COUNT(*) AS RecordCount 
-FROM Employees WHERE IsActive = 1
+FROM Employees e WHERE IsActive = 1
 UNION ALL
-SELECT 'Table Verification', 'Departments', COUNT(*) FROM Departments WHERE IsActive = 1
+SELECT 'Table Verification', 'Departments', COUNT(*) FROM Departments d WHERE IsActive = 1
 UNION ALL
-SELECT 'Table Verification', 'Projects', COUNT(*) FROM Projects WHERE IsActive = 1
+SELECT 'Table Verification', 'Projects', COUNT(*) FROM Projects p WHERE IsActive = 1
 UNION ALL
 SELECT 'Table Verification', 'Orders', COUNT(*) FROM Orders WHERE IsActive = 1
 UNION ALL
@@ -104,14 +104,14 @@ WHERE session_id = @@SPID;
 **Business Scenario:** Implement a BaseSalary update process that maintains data consistency between employee records and d.DepartmentName budgets.
 
 ```sql
--- Challenge: Create a transaction-controlled BaseSalary update procedure
--- Requirements: Update employee BaseSalary and adjust d.DepartmentName budget accordingly
+-- Challenge: Create a transaction-controlled e.BaseSalary update procedure
+-- Requirements: Update employee e.BaseSalary and adjust d.DepartmentName budget accordingly
 
 CREATE OR ALTER PROCEDURE sp_UpdateEmployeeSalary
-    @EmployeeID INT,
+    @e.EmployeeID INT,
     @NewSalary DECIMAL(10,2),
     @EffectiveDate DATE = NULL,
-    @Reason NVARCHAR(200) = 'BaseSalary Adjustment'
+    @Reason NVARCHAR(200) = 'e.BaseSalary Adjustment'
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -120,16 +120,16 @@ BEGIN
     -- Your implementation should include:
     -- 1. Input validation
     -- 2. Transaction control with proper error handling
-    -- 3. BaseSalary update with d.DepartmentName budget adjustment
+    -- 3. e.BaseSalary update with d.DepartmentName budget adjustment
     -- 4. Audit trail creation
     -- 5. Return appropriate status messages
     
     -- Variables declaration
     DECLARE @CurrentSalary DECIMAL(10,2);
-    DECLARE @DepartmentID INT;
+    DECLARE @d.DepartmentID INT;
     DECLARE @SalaryDifference DECIMAL(10,2);
     DECLARE @DepartmentBudget DECIMAL(15,2);
-    DECLARE @TransactionName NVARCHAR(50) = 'SalaryUpdate_' + CAST(@EmployeeID AS NVARCHAR(10));
+    DECLARE @TransactionName NVARCHAR(50) = 'SalaryUpdate_' + CAST(@e.EmployeeID AS NVARCHAR(10));
     
     SET @EffectiveDate = ISNULL(@EffectiveDate, GETDATE());
     
@@ -140,13 +140,13 @@ BEGIN
         -- Step 1: Validate and get current employee details
         -- YOUR CODE HERE
         
-        -- Step 2: Validate new BaseSalary amount
+        -- Step 2: Validate new e.BaseSalary amount
         -- YOUR CODE HERE
         
         -- Step 3: Check d.DepartmentName budget availability
         -- YOUR CODE HERE
         
-        -- Step 4: Update employee BaseSalary
+        -- Step 4: Update employee e.BaseSalary
         -- YOUR CODE HERE
         
         -- Step 5: Adjust d.DepartmentName budget
@@ -160,12 +160,12 @@ BEGIN
         
         -- Return success status
         SELECT 
-            @EmployeeID AS EmployeeID,
+            @e.EmployeeID AS e.EmployeeID,
             @CurrentSalary AS PreviousSalary,
             @NewSalary AS NewSalary,
             @SalaryDifference AS SalaryIncrease,
             'SUCCESS' AS Status,
-            'BaseSalary updated successfully' AS Message;
+            'e.BaseSalary updated successfully' AS Message;
         
     END TRY
     BEGIN CATCH
@@ -175,12 +175,12 @@ BEGIN
         -- Log error
         INSERT INTO ErrorLog (ErrorProcedure, ErrorMessage, ErrorTime, AdditionalInfo)
         VALUES ('sp_UpdateEmployeeSalary', ERROR_MESSAGE(), GETDATE(),
-                'EmployeeID: ' + CAST(@EmployeeID AS NVARCHAR(10)) + 
+                'e.EmployeeID: ' + CAST(@e.EmployeeID AS NVARCHAR(10)) + 
                 ', NewSalary: ' + CAST(@NewSalary AS NVARCHAR(20)));
         
         -- Return error status
         SELECT 
-            @EmployeeID AS EmployeeID,
+            @e.EmployeeID AS e.EmployeeID,
             ERROR_MESSAGE() AS ErrorMessage,
             'ERROR' AS Status;
         
@@ -191,19 +191,19 @@ END;
 -- Sample Solution (uncomment to see reference implementation):
 /*
 CREATE OR ALTER PROCEDURE sp_UpdateEmployeeSalary_Solution
-    @EmployeeID INT,
+    @e.EmployeeID INT,
     @NewSalary DECIMAL(10,2),
     @EffectiveDate DATE = NULL,
-    @Reason NVARCHAR(200) = 'BaseSalary Adjustment'
+    @Reason NVARCHAR(200) = 'e.BaseSalary Adjustment'
 AS
 BEGIN
     SET NOCOUNT ON;
     
     DECLARE @CurrentSalary DECIMAL(10,2);
-    DECLARE @DepartmentID INT;
+    DECLARE @d.DepartmentID INT;
     DECLARE @SalaryDifference DECIMAL(10,2);
     DECLARE @DepartmentBudget DECIMAL(15,2);
-    DECLARE @TransactionName NVARCHAR(50) = 'SalaryUpdate_' + CAST(@EmployeeID AS NVARCHAR(10));
+    DECLARE @TransactionName NVARCHAR(50) = 'SalaryUpdate_' + CAST(@e.EmployeeID AS NVARCHAR(10));
     
     SET @EffectiveDate = ISNULL(@EffectiveDate, GETDATE());
     
@@ -211,44 +211,45 @@ BEGIN
     
     BEGIN TRY
         -- Get current employee details
-        SELECT @CurrentSalary = BaseSalary, @DepartmentID = DepartmentID
-        FROM Employees WHERE EmployeeID = @EmployeeID AND IsActive = 1;
+        SELECT @CurrentSalary = e.BaseSalary, @d.DepartmentID = d.DepartmentID
+        FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE e.EmployeeID = @e.EmployeeID AND IsActive = 1;
         
         IF @CurrentSalary IS NULL
             RAISERROR('Employee not found or inactive', 16, 1);
         
         IF @NewSalary <= 0
-            RAISERROR('Invalid BaseSalary amount', 16, 1);
+            RAISERROR('Invalid e.BaseSalary amount', 16, 1);
         
         SET @SalaryDifference = @NewSalary - @CurrentSalary;
         
         -- Check d.DepartmentName budget
-        SELECT @DepartmentBudget = Budget 
-        FROM Departments WHERE DepartmentID = @DepartmentID;
+        SELECT @DepartmentBudget = d.Budget 
+        FROM Departments d WHERE d.DepartmentID = @d.DepartmentID;
         
         IF @DepartmentBudget < @SalaryDifference
             RAISERROR('Insufficient d.DepartmentName budget', 16, 1);
         
-        -- Update employee BaseSalary
+        -- Update employee e.BaseSalary
         UPDATE Employees 
-        SET BaseSalary = @NewSalary, ModifiedDate = @EffectiveDate
-        WHERE EmployeeID = @EmployeeID;
+        SET e.BaseSalary = @NewSalary, ModifiedDate = @EffectiveDate
+        WHERE e.EmployeeID = @e.EmployeeID;
         
         -- Adjust d.DepartmentName budget
         UPDATE Departments 
-        SET Budget = Budget - @SalaryDifference, ModifiedDate = @EffectiveDate
-        WHERE DepartmentID = @DepartmentID;
+        SET d.Budget = d.Budget - @SalaryDifference, ModifiedDate = @EffectiveDate
+        WHERE d.DepartmentID = @d.DepartmentID;
         
         -- Create audit record
         INSERT INTO TransactionAudit (TransactionType, TableName, RecordID, OldValues, NewValues, Description)
-        VALUES ('SALARY_UPDATE', 'Employees', @EmployeeID, 
-                'BaseSalary: ' + CAST(@CurrentSalary AS NVARCHAR(20)),
-                'BaseSalary: ' + CAST(@NewSalary AS NVARCHAR(20)),
+        VALUES ('SALARY_UPDATE', 'Employees', @e.EmployeeID, 
+                'e.BaseSalary: ' + CAST(@CurrentSalary AS NVARCHAR(20)),
+                'e.BaseSalary: ' + CAST(@NewSalary AS NVARCHAR(20)),
                 @Reason);
         
         COMMIT TRANSACTION @TransactionName;
         
-        SELECT @EmployeeID AS EmployeeID, @CurrentSalary AS PreviousSalary, 
+        SELECT @e.EmployeeID AS e.EmployeeID, @CurrentSalary AS PreviousSalary, 
                @NewSalary AS NewSalary, 'SUCCESS' AS Status;
         
     END TRY
@@ -263,7 +264,7 @@ END;
 
 -- Test your implementation
 EXEC sp_UpdateEmployeeSalary 
-    @EmployeeID = 3001,
+    @e.EmployeeID = 3001,
     @NewSalary = 85000.00,
     @Reason = 'Performance Review Increase';
 ```
@@ -312,7 +313,7 @@ END;
 
 CREATE OR ALTER PROCEDURE sp_ProcessCustomerOrder
     @CustomerID INT,
-    @EmployeeID INT,
+    @e.EmployeeID INT,
     @OrderItems NVARCHAR(MAX)  -- JSON format: [{"ProductID":1001,"Quantity":2}...]
 AS
 BEGIN
@@ -372,7 +373,7 @@ BEGIN
         INSERT INTO ErrorLog (ErrorProcedure, ErrorMessage, ErrorTime, AdditionalInfo)
         VALUES ('sp_ProcessCustomerOrder', ERROR_MESSAGE(), GETDATE(),
                 'CustomerID: ' + CAST(@CustomerID AS NVARCHAR(10)) + 
-                ', EmployeeID: ' + CAST(@EmployeeID AS NVARCHAR(10)));
+                ', e.EmployeeID: ' + CAST(@e.EmployeeID AS NVARCHAR(10)));
         
         SELECT 
             0 AS OrderID,
@@ -385,7 +386,7 @@ END;
 -- Test your implementation
 EXEC sp_ProcessCustomerOrder
     @CustomerID = 6001,
-    @EmployeeID = 3001,
+    @e.EmployeeID = 3001,
     @OrderItems = '[{"ProductID":1001,"Quantity":2},{"ProductID":1002,"Quantity":1}]';
 ```
 
@@ -406,7 +407,7 @@ BEGIN
     CREATE TABLE ProjectBudgetAllocations (
         AllocationID INT IDENTITY(1,1) PRIMARY KEY,
         ProjectID INT NOT NULL,
-        DepartmentID INT NOT NULL,
+        d.DepartmentID INT NOT NULL,
         AllocatedAmount DECIMAL(15,2) NOT NULL,
         AllocationDate DATE NOT NULL,
         IsActive BIT NOT NULL DEFAULT 1
@@ -418,7 +419,7 @@ CREATE OR ALTER PROCEDURE sp_SetupComplexProject
     @ProjectManagerID INT,
     @TotalBudget DECIMAL(15,2),
     @TeamMemberIDs NVARCHAR(MAX),  -- Comma-separated list: "3001,3002,3003"
-    @DepartmentBudgetAllocations NVARCHAR(MAX)  -- JSON: [{"DepartmentID":2001,"Amount":50000}...]
+    @DepartmentBudgetAllocations NVARCHAR(MAX)  -- JSON: [{"d.DepartmentID":2001,"Amount":50000}...]
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -429,7 +430,7 @@ BEGIN
     -- 1. Create project record
     -- 2. Assign project manager and validate
     -- 3. Assign team members with validation
-    -- 4. Allocate budgets from departments
+    -- 4. Allocate budgets FROM Departments d
     -- 5. Final validations and setup completion
     
     DECLARE @ProjectID INT;
@@ -470,7 +471,7 @@ BEGIN
         -- Validate d.DepartmentName budgets and allocate
         -- Create savepoint after this phase
         
-        PRINT 'Phase 4 Complete: Budget allocated';
+        PRINT 'Phase 4 Complete: d.Budget allocated';
         
         -- Phase 5: Final validations and completion
         -- YOUR CODE HERE
@@ -492,7 +493,7 @@ BEGIN
         -- Determine appropriate rollback level based on error type
         -- YOUR CODE HERE
         -- Implement intelligent rollback strategy:
-        -- - Budget errors: rollback to Phase 3
+        -- - d.Budget errors: rollback to Phase 3
         -- - Team assignment errors: rollback to Phase 2
         -- - Manager errors: rollback to Phase 1
         -- - Project creation errors: full rollback
@@ -512,14 +513,14 @@ EXEC sp_SetupComplexProject
     @ProjectManagerID = 3001,
     @TotalBudget = 750000.00,
     @TeamMemberIDs = '3002,3003,3004,3005',
-    @DepartmentBudgetAllocations = '[{"DepartmentID":2001,"Amount":400000},{"DepartmentID":2002,"Amount":350000}]';
+    @DepartmentBudgetAllocations = '[{"d.DepartmentID":2001,"Amount":400000},{"d.DepartmentID":2002,"Amount":350000}]';
 ```
 
 ---
 
 ## 🏋️‍♂️ Exercise 3: Isolation Levels and Concurrency Control
 
-### 🎯 Exercise 3.1: Concurrent BaseSalary Processing (⭐⭐⭐ ADVANCED)
+### 🎯 Exercise 3.1: Concurrent e.BaseSalary Processing (⭐⭐⭐ ADVANCED)
 
 **Business Scenario:** Implement a payroll processing system that handles concurrent operations with appropriate isolation levels.
 
@@ -531,12 +532,12 @@ IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'PayrollProcessing')
 BEGIN
     CREATE TABLE PayrollProcessing (
         ProcessingID INT IDENTITY(1,1) PRIMARY KEY,
-        EmployeeID INT NOT NULL,
+        e.EmployeeID INT NOT NULL,
         ProcessingDate DATE NOT NULL,
-        BaseSalary DECIMAL(10,2) NOT NULL,
+        e.BaseSalary DECIMAL(10,2) NOT NULL,
         Bonus DECIMAL(10,2) NOT NULL DEFAULT 0,
         Deductions DECIMAL(10,2) NOT NULL DEFAULT 0,
-        NetPay AS (BaseSalary + Bonus - Deductions),
+        NetPay AS (e.BaseSalary + Bonus - Deductions),
         ProcessingStatus NVARCHAR(20) NOT NULL DEFAULT 'PENDING',
         ProcessedBy NVARCHAR(128) NOT NULL DEFAULT SYSTEM_USER,
         CreatedDate DATETIME NOT NULL DEFAULT GETDATE()
@@ -976,14 +977,14 @@ EXEC sp_TechCorp_TransactionManagementSystem
 -- Test 2: Project setup
 EXEC sp_TechCorp_TransactionManagementSystem
     @Operation = 'SETUP_PROJECT',
-    @Parameters = '{"ProjectName":"AI Innovation Hub","ManagerID":3001,"Budget":500000,"TeamIDs":"3002,3003,3004"}',
+    @Parameters = '{"ProjectName":"AI Innovation Hub","ManagerID":3001,"d.Budget":500000,"TeamIDs":"3002,3003,3004"}',
     @ExecutionMode = 'EXECUTE',
     @IsolationLevel = 'READ_COMMITTED';
 
 -- Test 3: Order processing
 EXEC sp_TechCorp_TransactionManagementSystem
     @Operation = 'PROCESS_ORDERS',
-    @Parameters = '{"CustomerID":6001,"EmployeeID":3001,"Items":[{"ProductID":1001,"Quantity":5}]}',
+    @Parameters = '{"CustomerID":6001,"e.EmployeeID":3001,"Items":[{"ProductID":1001,"Quantity":5}]}',
     @ExecutionMode = 'EXECUTE',
     @IsolationLevel = 'READ_COMMITTED';
 ```
@@ -1030,7 +1031,7 @@ BEGIN
         'Performance Metrics' AS TestCategory,
         AVG(DATEDIFF(MILLISECOND, CreatedDate, GETDATE())) AS AvgTransactionAgeMS,
         COUNT(*) AS TotalTransactionsLogged,
-        SUM(CASE WHEN Status = 'SUCCESS' THEN 1 ELSE 0 END) AS SuccessfulTransactions,
+        SUM(CASE WHEN IsActive = 'SUCCESS' THEN 1 ELSE 0 END) AS SuccessfulTransactions,
         SUM(CASE WHEN Status LIKE 'ERROR%' THEN 1 ELSE 0 END) AS FailedTransactions
     FROM (
         SELECT 'SUCCESS' AS Status, CreatedDate FROM TransactionAudit
@@ -1041,9 +1042,9 @@ BEGIN
     -- 4. Data Integrity Validation
     SELECT 
         'Data Integrity' AS TestCategory,
-        (SELECT COUNT(*) FROM Employees WHERE IsActive = 1) AS ActiveEmployees,
-        (SELECT SUM(Budget) FROM Departments WHERE IsActive = 1) AS TotalDepartmentBudget,
-        (SELECT COUNT(*) FROM Projects WHERE IsActive = 1) AS ActiveProjects,
+        (SELECT COUNT(*) FROM Employees e WHERE IsActive = 1) AS ActiveEmployees,
+        (SELECT SUM(d.Budget) FROM Departments d WHERE IsActive = 1) AS TotalDepartmentBudget,
+        (SELECT COUNT(*) FROM Projects p WHERE IsActive = 1) AS ActiveProjects,
         (SELECT COUNT(*) FROM Orders WHERE IsActive = 1) AS TotalOrders,
         (SELECT COUNT(*) FROM TransactionAudit) AS AuditTrailRecords;
     

@@ -73,32 +73,32 @@ FROM table_name
 
 ### 1. Select All Columns
 ```sql
--- Retrieve all columns from Employees table
+-- Retrieve all columns FROM Employees e table
 SELECT * FROM Employees e;
 
 -- More explicit version (better practice)
 SELECT 
-    EmployeeID,
-    FirstName,
-    LastName,
+    e.EmployeeID,
+    e.FirstName,
+    e.LastName,
     WorkEmail,
     DepartmentID,
-    BaseSalary,
-    HireDate
+    e.BaseSalary,
+    e.HireDate
 FROM Employees e;
 ```
 
 ### 2. Select Specific Columns
 ```sql
 -- Basic column selection
-SELECT FirstName, LastName, BaseSalary
+SELECT e.FirstName, e.LastName, e.BaseSalary
 FROM Employees e;
 
 -- With consistent formatting
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary
 FROM Employees e;
 ```
 
@@ -106,17 +106,17 @@ FROM Employees e;
 ```sql
 -- Columns appear in the order specified
 SELECT 
-    LastName,
-    FirstName,
+    e.LastName,
+    e.FirstName,
     WorkEmail,
-    BaseSalary
+    e.BaseSalary
 FROM Employees e;
 
 -- Same data, different presentation
 SELECT 
-    BaseSalary,
-    LastName,
-    FirstName
+    e.BaseSalary,
+    e.LastName,
+    e.FirstName
 FROM Employees e;
 ```
 
@@ -125,19 +125,19 @@ FROM Employees e;
 -- Including literal values in results
 SELECT 
     'Employee' AS RecordType,
-    FirstName,
-    LastName,
+    e.FirstName,
+    e.LastName,
     'Active' AS IsActive,
     GETDATE() AS ReportDate
 FROM Employees e;
 
 -- Numeric literals
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
     100 AS BonusPercent,
-    BaseSalary * 1.1 AS SalaryWithBonus
+    e.BaseSalary * 1.1 AS SalaryWithBonus
 FROM Employees e;
 ```
 
@@ -147,23 +147,23 @@ FROM Employees e;
 ```sql
 -- Mathematical operations
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
-    BaseSalary / 12 AS MonthlySalary,
-    BaseSalary * 0.15 AS EstimatedTax,
-    BaseSalary - (BaseSalary * 0.15) AS NetAnnualSalary
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
+    e.BaseSalary / 12 AS MonthlySalary,
+    e.BaseSalary * 0.15 AS EstimatedTax,
+    e.BaseSalary - (e.BaseSalary * 0.15) AS NetAnnualSalary
 FROM Employees e;
 
 -- More complex calculations
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
     CASE 
-        WHEN BaseSalary > 80000 THEN BaseSalary * 0.08
-        WHEN BaseSalary > 60000 THEN BaseSalary * 0.06
-        ELSE BaseSalary * 0.04
+        WHEN e.BaseSalary > 80000 THEN e.BaseSalary * 0.08
+        WHEN e.BaseSalary > 60000 THEN e.BaseSalary * 0.06
+        ELSE e.BaseSalary * 0.04
     END AS BonusAmount
 FROM Employees e;
 ```
@@ -172,22 +172,22 @@ FROM Employees e;
 ```sql
 -- Basic string concatenation
 SELECT 
-    FirstName + ' ' + LastName AS FullName,
+    e.FirstName + ' ' + e.LastName AS FullName,
     WorkEmail,
-    BaseSalary
+    e.BaseSalary
 FROM Employees e;
 
 -- Handling NULL values in concatenation
 SELECT 
-    FirstName + ' ' + ISNULL(MiddleName + ' ', '') + LastName AS FullName,
+    e.FirstName + ' ' + ISNULL(MiddleName + ' ', '') + e.LastName AS FullName,
     WorkEmail,
-    BaseSalary
+    e.BaseSalary
 FROM Employees e;
 
 -- Using CONCAT function (SQL Server 2012+)
 SELECT 
-    CONCAT(FirstName, ' ', LastName) AS FullName,
-    CONCAT('$', FORMAT(BaseSalary, 'N0')) AS FormattedSalary
+    CONCAT(e.FirstName, ' ', e.LastName) AS FullName,
+    CONCAT('$', FORMAT(e.BaseSalary, 'N0')) AS FormattedSalary
 FROM Employees e;
 ```
 
@@ -195,22 +195,22 @@ FROM Employees e;
 ```sql
 -- Date calculations and formatting
 SELECT 
-    FirstName,
-    LastName,
-    HireDate,
-    DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsOfService,
-    DATEDIFF(DAY, HireDate, GETDATE()) AS DaysEmployed,
-    DATEADD(YEAR, 1, HireDate) AS FirstAnniversary
+    e.FirstName,
+    e.LastName,
+    e.HireDate,
+    DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
+    DATEDIFF(DAY, e.HireDate, GETDATE()) AS DaysEmployed,
+    DATEADD(YEAR, 1, e.HireDate) AS FirstAnniversary
 FROM Employees e;
 
 -- Date formatting
 SELECT 
-    FirstName,
-    LastName,
-    HireDate,
-    FORMAT(HireDate, 'MMMM dd, yyyy') AS FormattedHireDate,
-    DATENAME(WEEKDAY, HireDate) AS HireDayOfWeek,
-    YEAR(HireDate) AS HireYear
+    e.FirstName,
+    e.LastName,
+    e.HireDate,
+    FORMAT(e.HireDate, 'MMMM dd, yyyy') AS FormattedHireDate,
+    DATENAME(WEEKDAY, e.HireDate) AS HireDayOfWeek,
+    YEAR(e.HireDate) AS HireYear
 FROM Employees e;
 ```
 
@@ -218,31 +218,31 @@ FROM Employees e;
 ```sql
 -- Simple filtering
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
     DepartmentID
-FROM Employees
-WHERE BaseSalary > 70000;
+FROM Employees e
+WHERE e.BaseSalary > 70000;
 
 -- Multiple conditions
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
-    HireDate
-FROM Employees
-WHERE BaseSalary > 60000 
-  AND HireDate >= '2020-01-01';
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
+    e.HireDate
+FROM Employees e
+WHERE e.BaseSalary > 60000 
+  AND e.HireDate >= '2020-01-01';
 
 -- String filtering
 SELECT 
-    FirstName,
-    LastName,
+    e.FirstName,
+    e.LastName,
     WorkEmail
-FROM Employees
-WHERE FirstName LIKE 'J%'
-   OR LastName LIKE '%son';
+FROM Employees e
+WHERE e.FirstName LIKE 'J%'
+   OR e.LastName LIKE '%son';
 ```
 
 ## Advanced Examples
@@ -251,29 +251,29 @@ WHERE FirstName LIKE 'J%'
 ```sql
 -- Advanced business calculations
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
-    HireDate,
-    -- Performance rating based on tenure and BaseSalary
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
+    e.HireDate,
+    -- Performance rating based on tenure and e.BaseSalary
     CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 5 AND BaseSalary >= 80000 
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 5 AND e.BaseSalary >= 80000 
              THEN 'Senior High Performer'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 3 AND BaseSalary >= 65000 
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 3 AND e.BaseSalary >= 65000 
              THEN 'Experienced Contributor'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 1 AND BaseSalary >= 50000 
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 1 AND e.BaseSalary >= 50000 
              THEN 'Developing Professional'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 1 
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 1 
              THEN 'New Hire'
         ELSE 'Needs Review'
     END AS PerformanceCategory,
-    -- Projected BaseSalary growth
+    -- Projected e.BaseSalary growth
     CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 2 
-             THEN BaseSalary * 1.05
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 5 
-             THEN BaseSalary * 1.03
-        ELSE BaseSalary * 1.02
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 2 
+             THEN e.BaseSalary * 1.05
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 5 
+             THEN e.BaseSalary * 1.03
+        ELSE e.BaseSalary * 1.02
     END AS ProjectedSalary
 FROM Employees e;
 ```
@@ -282,21 +282,21 @@ FROM Employees e;
 ```sql
 -- Complex string operations
 SELECT 
-    FirstName,
-    LastName,
+    e.FirstName,
+    e.LastName,
     WorkEmail,
     -- Extract username from email
     LEFT(WorkEmail, CHARINDEX('@', WorkEmail) - 1) AS Username,
     -- Extract domain from email
     SUBSTRING(WorkEmail, CHARINDEX('@', WorkEmail) + 1, LEN(WorkEmail)) AS EmailDomain,
     -- Create initials
-    LEFT(FirstName, 1) + LEFT(LastName, 1) AS Initials,
+    LEFT(e.FirstName, 1) + LEFT(e.LastName, 1) AS Initials,
     -- Create display name variations
-    UPPER(LEFT(FirstName, 1)) + LOWER(SUBSTRING(FirstName, 2, LEN(FirstName))) + ' ' +
-    UPPER(LEFT(LastName, 1)) + LOWER(SUBSTRING(LastName, 2, LEN(LastName))) AS ProperCaseName,
+    UPPER(LEFT(e.FirstName, 1)) + LOWER(SUBSTRING(e.FirstName, 2, LEN(e.FirstName))) + ' ' +
+    UPPER(LEFT(e.LastName, 1)) + LOWER(SUBSTRING(e.LastName, 2, LEN(e.LastName))) AS ProperCaseName,
     -- Generate employee code
-    UPPER(LEFT(FirstName, 2)) + UPPER(LEFT(LastName, 2)) + 
-    RIGHT('000' + CAST(EmployeeID AS VARCHAR), 3) AS EmployeeCode
+    UPPER(LEFT(e.FirstName, 2)) + UPPER(LEFT(e.LastName, 2)) + 
+    RIGHT('000' + CAST(e.EmployeeID AS VARCHAR), 3) AS EmployeeCode
 FROM Employees e;
 ```
 
@@ -304,34 +304,34 @@ FROM Employees e;
 ```sql
 -- Comprehensive date analysis
 SELECT 
-    FirstName,
-    LastName,
-    HireDate,
+    e.FirstName,
+    e.LastName,
+    e.HireDate,
     -- Service time calculations
-    DATEDIFF(YEAR, HireDate, GETDATE()) AS CompletedYears,
-    DATEDIFF(MONTH, HireDate, GETDATE()) % 12 AS AdditionalMonths,
+    DATEDIFF(YEAR, e.HireDate, GETDATE()) AS CompletedYears,
+    DATEDIFF(MONTH, e.HireDate, GETDATE()) % 12 AS AdditionalMonths,
     DATEDIFF(DAY, 
-        DATEADD(MONTH, DATEDIFF(MONTH, HireDate, GETDATE()), HireDate), 
+        DATEADD(MONTH, DATEDIFF(MONTH, e.HireDate, GETDATE()), e.HireDate), 
         GETDATE()) AS AdditionalDays,
     -- Milestone dates
-    DATEADD(YEAR, 5, HireDate) AS FiveYearAnniversary,
-    DATEADD(YEAR, 10, HireDate) AS TenYearAnniversary,
+    DATEADD(YEAR, 5, e.HireDate) AS FiveYearAnniversary,
+    DATEADD(YEAR, 10, e.HireDate) AS TenYearAnniversary,
     -- Eligibility calculations
     CASE 
-        WHEN DATEDIFF(MONTH, HireDate, GETDATE()) >= 6 
+        WHEN DATEDIFF(MONTH, e.HireDate, GETDATE()) >= 6 
              THEN 'Eligible for Benefits'
         ELSE 'Not Yet Eligible'
     END AS BenefitEligibility,
     CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 2 
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 2 
              THEN 'Eligible for Promotion Review'
         ELSE 'Too Early for Promotion'
     END AS PromotionEligibility,
     -- Seasonal hire analysis
     CASE 
-        WHEN MONTH(HireDate) IN (12, 1, 2) THEN 'Winter Hire'
-        WHEN MONTH(HireDate) IN (3, 4, 5) THEN 'Spring Hire'
-        WHEN MONTH(HireDate) IN (6, 7, 8) THEN 'Summer Hire'
+        WHEN MONTH(e.HireDate) IN (12, 1, 2) THEN 'Winter Hire'
+        WHEN MONTH(e.HireDate) IN (3, 4, 5) THEN 'Spring Hire'
+        WHEN MONTH(e.HireDate) IN (6, 7, 8) THEN 'Summer Hire'
         ELSE 'Fall Hire'
     END AS HireSeason
 FROM Employees e;
@@ -341,36 +341,36 @@ FROM Employees e;
 ```sql
 -- Advanced business rule implementation
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
     DepartmentID,
-    HireDate,
+    e.HireDate,
     -- Compensation analysis
     CASE 
-        WHEN DepartmentID = 1 AND BaseSalary < 70000 THEN 'IT: Below Market'
-        WHEN DepartmentID = 1 AND BaseSalary >= 70000 THEN 'IT: Competitive'
-        WHEN DepartmentID = 2 AND BaseSalary < 60000 THEN 'HR: Below Market'
-        WHEN DepartmentID = 2 AND BaseSalary >= 60000 THEN 'HR: Competitive'
-        WHEN DepartmentID = 3 AND BaseSalary < 65000 THEN 'Finance: Below Market'
-        WHEN DepartmentID = 3 AND BaseSalary >= 65000 THEN 'Finance: Competitive'
+        WHEN DepartmentID = 1 AND e.BaseSalary < 70000 THEN 'IT: Below Market'
+        WHEN DepartmentID = 1 AND e.BaseSalary >= 70000 THEN 'IT: Competitive'
+        WHEN DepartmentID = 2 AND e.BaseSalary < 60000 THEN 'HR: Below Market'
+        WHEN DepartmentID = 2 AND e.BaseSalary >= 60000 THEN 'HR: Competitive'
+        WHEN DepartmentID = 3 AND e.BaseSalary < 65000 THEN 'Finance: Below Market'
+        WHEN DepartmentID = 3 AND e.BaseSalary >= 65000 THEN 'Finance: Competitive'
         ELSE 'Other Department'
     END AS CompensationAnalysis,
     -- Risk assessment
     CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) > 10 AND BaseSalary < 75000 
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) > 10 AND e.BaseSalary < 75000 
              THEN 'High Flight Risk - Long Tenure, Low Pay'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 1 AND BaseSalary > 90000 
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 1 AND e.BaseSalary > 90000 
              THEN 'New High Investment'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) BETWEEN 2 AND 5 AND BaseSalary BETWEEN 60000 AND 80000 
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) BETWEEN 2 AND 5 AND e.BaseSalary BETWEEN 60000 AND 80000 
              THEN 'Stable Contributor'
         ELSE 'Standard Risk Profile'
     END AS RiskAssessment,
     -- Career stage
     CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 2 THEN 'Entry Level'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) BETWEEN 2 AND 7 THEN 'Mid Career'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) BETWEEN 8 AND 15 THEN 'Senior Level'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 2 THEN 'Entry Level'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) BETWEEN 2 AND 7 THEN 'Mid Career'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) BETWEEN 8 AND 15 THEN 'Senior Level'
         ELSE 'Veteran'
     END AS CareerStage
 FROM Employees e;
@@ -381,7 +381,7 @@ FROM Employees e;
 ### 1. Column Selection
 ```sql
 -- Good: Specify only needed columns
-SELECT FirstName, LastName, WorkEmail
+SELECT e.FirstName, e.LastName, WorkEmail
 FROM Employees e;
 
 -- Avoid: Using SELECT * in production code
@@ -401,22 +401,22 @@ WHERE e.IsActive = 1
 ORDER BY e.LastName, e.FirstName;
 
 -- Avoid: Inconsistent formatting
--- SELECT FirstName,LastName,WorkEmail,BaseSalary FROM Employees WHERE IsActive=1;
+-- SELECT e.FirstName,e.LastName,WorkEmail,e.BaseSalary FROM Employees e WHERE IsActive=1;
 ```
 
 ### 3. Use Meaningful Column Names
 ```sql
 -- Good: Clear, descriptive names
 SELECT 
-    FirstName + ' ' + LastName AS EmployeeFullName,
-    BaseSalary / 12 AS MonthlySalary,
-    DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsOfService
+    e.FirstName + ' ' + e.LastName AS EmployeeFullName,
+    e.BaseSalary / 12 AS MonthlySalary,
+    DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService
 FROM Employees e;
 
 -- Avoid: Unclear abbreviations
--- SELECT FirstName + ' ' + LastName AS Name,
---        BaseSalary / 12 AS Sal,
---        DATEDIFF(YEAR, HireDate, GETDATE()) AS Yrs
+-- SELECT e.FirstName + ' ' + e.LastName AS Name,
+--        e.BaseSalary / 12 AS Sal,
+--        DATEDIFF(YEAR, e.HireDate, GETDATE()) AS Yrs
 -- FROM Employees e;
 ```
 
@@ -424,15 +424,15 @@ FROM Employees e;
 ```sql
 -- Good: Explicit NULL handling
 SELECT 
-    FirstName,
+    e.FirstName,
     ISNULL(MiddleName, 'N/A') AS MiddleName,
-    LastName,
+    e.LastName,
     ISNULL(ManagerID, 0) AS ManagerID
 FROM Employees e;
 
 -- Consider: Using COALESCE for multiple possible NULLs
 SELECT 
-    FirstName,
+    e.FirstName,
     COALESCE(MiddleName, NickName, 'N/A') AS DisplayMiddleName
 FROM Employees e;
 ```
@@ -441,19 +441,19 @@ FROM Employees e;
 ```sql
 -- Employee compensation analysis with business context
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
     -- Calculate annual bonus based on performance tier
     CASE 
-        WHEN BaseSalary >= 90000 THEN BaseSalary * 0.15  -- Executive level: 15%
-        WHEN BaseSalary >= 70000 THEN BaseSalary * 0.10  -- Senior level: 10%
-        WHEN BaseSalary >= 50000 THEN BaseSalary * 0.05  -- Mid level: 5%
-        ELSE BaseSalary * 0.02                       -- Entry level: 2%
+        WHEN e.BaseSalary >= 90000 THEN e.BaseSalary * 0.15  -- Executive level: 15%
+        WHEN e.BaseSalary >= 70000 THEN e.BaseSalary * 0.10  -- Senior level: 10%
+        WHEN e.BaseSalary >= 50000 THEN e.BaseSalary * 0.05  -- Mid level: 5%
+        ELSE e.BaseSalary * 0.02                       -- Entry level: 2%
     END AS AnnualBonus,
     -- Determine eligibility for stock options (must be employed 2+ years)
     CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 2 THEN 'Eligible'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 2 THEN 'Eligible'
         ELSE 'Not Eligible'
     END AS StockOptionEligibility
 FROM Employees e;
@@ -465,16 +465,16 @@ FROM Employees e;
 ```sql
 -- Problematic: Mixing data types
 SELECT 
-    FirstName,
-    LastName,
-    'Employee ID: ' + EmployeeID  -- Error if EmployeeID is INT
+    e.FirstName,
+    e.LastName,
+    'Employee ID: ' + e.EmployeeID  -- Error if e.EmployeeID is INT
 FROM Employees e;
 
 -- Correct: Explicit conversion
 SELECT 
-    FirstName,
-    LastName,
-    'Employee ID: ' + CAST(EmployeeID AS VARCHAR(10))
+    e.FirstName,
+    e.LastName,
+    'Employee ID: ' + CAST(e.EmployeeID AS VARCHAR(10))
 FROM Employees e;
 ```
 
@@ -482,12 +482,12 @@ FROM Employees e;
 ```sql
 -- Problematic: NULL in concatenation makes entire result NULL
 SELECT 
-    FirstName + ' ' + MiddleName + ' ' + LastName AS FullName
+    e.FirstName + ' ' + MiddleName + ' ' + e.LastName AS FullName
 FROM Employees e;
 
 -- Correct: Handle NULLs explicitly
 SELECT 
-    FirstName + ' ' + ISNULL(MiddleName + ' ', '') + LastName AS FullName
+    e.FirstName + ' ' + ISNULL(MiddleName + ' ', '') + e.LastName AS FullName
 FROM Employees e;
 ```
 
@@ -495,17 +495,17 @@ FROM Employees e;
 ```sql
 -- Problematic: Potential division by zero
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary / WorkHours AS HourlyRate  -- WorkHours might be 0
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary / WorkHours AS HourlyRate  -- WorkHours might be 0
 FROM Employees e;
 
 -- Correct: Check for zero before division
 SELECT 
-    FirstName,
-    LastName,
+    e.FirstName,
+    e.LastName,
     CASE 
-        WHEN WorkHours > 0 THEN BaseSalary / WorkHours
+        WHEN WorkHours > 0 THEN e.BaseSalary / WorkHours
         ELSE NULL
     END AS HourlyRate
 FROM Employees e;
@@ -516,7 +516,7 @@ FROM Employees e;
 ### 1. Column Selection Impact
 ```sql
 -- More efficient: Select only needed columns
-SELECT FirstName, LastName, WorkEmail
+SELECT e.FirstName, e.LastName, WorkEmail
 FROM Employees e;
 
 -- Less efficient: Selecting unnecessary large columns
@@ -527,10 +527,10 @@ FROM Employees e;
 ```sql
 -- Consider performance impact of functions
 SELECT 
-    FirstName,
-    LastName,
-    UPPER(FirstName) AS UpperFirstName,  -- Function applied to each row
-    BaseSalary
+    e.FirstName,
+    e.LastName,
+    UPPER(e.FirstName) AS UpperFirstName,  -- Function applied to each row
+    e.BaseSalary
 FROM Employees e;
 
 -- Sometimes better to handle formatting in application layer
@@ -544,10 +544,10 @@ FROM Employees e;
 
 -- Example: This complex calculation in every query
 SELECT 
-    FirstName,
-    LastName,
+    e.FirstName,
+    e.LastName,
     CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 5 AND BaseSalary >= 80000 
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 5 AND e.BaseSalary >= 80000 
              THEN 'Senior High Performer'
         -- ... more complex logic
     END AS PerformanceRating

@@ -304,43 +304,43 @@ SELECT
 -- Business scenario: Calculate years of service for performance reviews and bonuses
 
 SELECT 
-    EmployeeID,
-    FirstName + ' ' + LastName AS EmployeeName,
-    HireDate,
+    e.EmployeeID,
+    e.FirstName + ' ' + e.LastName AS EmployeeName,
+    e.HireDate,
     
     -- Calculate years of service (different methods)
-    DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsService_Simple,
+    DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsService_Simple,
     
     -- More accurate calculation considering actual dates
     CASE 
-        WHEN MONTH(GETDATE()) > MONTH(HireDate) 
-        OR (MONTH(GETDATE()) = MONTH(HireDate) AND DAY(GETDATE()) >= DAY(HireDate))
-        THEN DATEDIFF(YEAR, HireDate, GETDATE())
-        ELSE DATEDIFF(YEAR, HireDate, GETDATE()) - 1
+        WHEN MONTH(GETDATE()) > MONTH(e.HireDate) 
+        OR (MONTH(GETDATE()) = MONTH(e.HireDate) AND DAY(GETDATE()) >= DAY(e.HireDate))
+        THEN DATEDIFF(YEAR, e.HireDate, GETDATE())
+        ELSE DATEDIFF(YEAR, e.HireDate, GETDATE()) - 1
     END AS YearsService_Exact,
     
     -- Calculate total months and days
-    DATEDIFF(MONTH, HireDate, GETDATE()) AS TotalMonths,
-    DATEDIFF(DAY, HireDate, GETDATE()) AS TotalDays,
+    DATEDIFF(MONTH, e.HireDate, GETDATE()) AS TotalMonths,
+    DATEDIFF(DAY, e.HireDate, GETDATE()) AS TotalDays,
     
     -- Business logic for service milestones
     CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 10 THEN 'Veteran (10+ years)'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 5 THEN 'Senior (5-9 years)'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 2 THEN 'Experienced (2-4 years)'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 1 THEN 'Established (1-2 years)'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 10 THEN 'Veteran (10+ years)'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 5 THEN 'Senior (5-9 years)'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 2 THEN 'Experienced (2-4 years)'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 1 THEN 'Established (1-2 years)'
         ELSE 'New Hire (< 1 year)'
     END AS ServiceCategory,
     
     -- Next anniversary date
-    DATEADD(YEAR, DATEDIFF(YEAR, HireDate, GETDATE()) + 1, HireDate) AS NextAnniversary,
+    DATEADD(YEAR, DATEDIFF(YEAR, e.HireDate, GETDATE()) + 1, e.HireDate) AS NextAnniversary,
     
     -- Days until next anniversary
-    DATEDIFF(DAY, GETDATE(), DATEADD(YEAR, DATEDIFF(YEAR, HireDate, GETDATE()) + 1, HireDate)) AS DaysToAnniversary
+    DATEDIFF(DAY, GETDATE(), DATEADD(YEAR, DATEDIFF(YEAR, e.HireDate, GETDATE()) + 1, e.HireDate)) AS DaysToAnniversary
     
-FROM Employees
+FROM Employees e
 WHERE IsActive = 1
-ORDER BY YearsService_Exact DESC, LastName;
+ORDER BY YearsService_Exact DESC, e.LastName;
 ```
 
 ### Exercise 2.2: Advanced Date Calculations (🔴 EXPERT LEVEL)
@@ -506,7 +506,7 @@ WHERE p.IsActive = 1
 ORDER BY ProfitMarginPercent DESC;
 
 -- Lab 8.3.2: Employee Compensation Analysis
--- Business scenario: BaseSalary statistics and compensation benchmarking
+-- Business scenario: e.BaseSalary statistics and compensation benchmarking
 
 SELECT d.DepartmentName,
     COUNT(e.EmployeeID) AS EmployeeCount,
@@ -530,7 +530,7 @@ SELECT d.DepartmentName,
     MAX(e.BaseSalary) - MIN(e.BaseSalary) AS SalaryRange,
     ROUND((MAX(e.BaseSalary) - MIN(e.BaseSalary)) / AVG(e.BaseSalary) * 100.0, 2) AS SalaryRangePercent,
     
-    -- Logarithmic calculations for BaseSalary growth analysis
+    -- Logarithmic calculations for e.BaseSalary growth analysis
     ROUND(LOG(MAX(e.BaseSalary) / MIN(e.BaseSalary)), 4) AS SalaryGrowthLog,
     
     -- Exponential calculations

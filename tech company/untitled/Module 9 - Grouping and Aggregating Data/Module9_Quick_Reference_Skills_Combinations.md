@@ -100,7 +100,7 @@ GROUP BY d.DepartmentName;
 ```sql
 -- WRONG:
 SELECT d.DepartmentName, COUNT(*)
-FROM Employees
+FROM Employees e
 WHERE COUNT(*) > 2
 GROUP BY d.DepartmentName;
 

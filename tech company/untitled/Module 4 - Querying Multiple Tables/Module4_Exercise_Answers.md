@@ -41,11 +41,11 @@ SELECT
         ELSE 'Needs Attention'
     END AS [Performance IsActive]
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE e.IsActive = 1
-  AND p.Status = 'In Progress'
+  AND p.IsActive = 'In Progress'
   AND ep.HoursAllocated > 0
 ORDER BY 
     CASE 
@@ -73,18 +73,18 @@ WITH DepartmentMetrics AS (
         AVG(ep.HoursWorked / NULLIF(ep.HoursAllocated, 0)) AS AvgUtilizationRate,
         COUNT(DISTINCT es.SkillID) AS UniqueSkills
     FROM Departments d
-    INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID AND e.IsActive = 1
-    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-    LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.Status = 'In Progress'
-    LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
+    INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
+    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'In Progress'
+    LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.e.EmployeeID
     GROUP BY d.DepartmentID, d.DepartmentName, d.Budget, d.Location
 )
 SELECT d.DepartmentName AS [Department],
-    FORMAT(Budget, 'C0') AS [Annual Budget],
+    FORMAT(d.Budget, 'C0') AS [Annual d.Budget],
     Location AS [Location],
     ActiveEmployees AS [Active Employees],
-    FORMAT(TotalSalaryCost, 'C0') AS [BaseSalary Expense],
-    CAST(TotalSalaryCost * 100.0 / Budget AS DECIMAL(5,1)) AS [Budget Used %],
+    FORMAT(TotalSalaryCost, 'C0') AS [e.BaseSalary Expense],
+    CAST(TotalSalaryCost * 100.0 / d.Budget AS DECIMAL(5,1)) AS [d.Budget Used %],
     ActiveProjects AS [Active Projects],
     ISNULL(TotalProjectHours, 0) AS [Total Project Hours],
     CAST(ISNULL(AvgUtilizationRate * 100, 0) AS DECIMAL(5,1)) AS [Avg Utilization %],
@@ -92,7 +92,7 @@ SELECT d.DepartmentName AS [Department],
     
     -- d.DepartmentName health assessment
     CASE 
-        WHEN TotalSalaryCost > Budget THEN 'Over Budget - Review Required'
+        WHEN TotalSalaryCost > d.Budget THEN 'Over d.Budget - Review Required'
         WHEN ActiveProjects = 0 THEN 'No Active Projects'
         WHEN AvgUtilizationRate < 0.7 THEN 'Underutilized Resources'
         WHEN UniqueSkills < ActiveEmployees THEN 'Limited Skills Diversity'
@@ -100,7 +100,7 @@ SELECT d.DepartmentName AS [Department],
     END AS [Department IsActive]
 FROM DepartmentMetrics
 WHERE ActiveEmployees > 0
-ORDER BY [Budget Used %] DESC;
+ORDER BY [d.Budget Used %] DESC;
 ```
 
 **Explanation**: Complex analysis using CTE to aggregate d.DepartmentName metrics, including budget utilization, project involvement, and skills diversity with health indicators.
@@ -112,24 +112,24 @@ SELECT
     s.SkillName AS [Skill],
     s.SkillCategory AS [Category],
     s.MarketDemand AS [Market Demand],
-    COUNT(es.EmployeeID) AS [Employees with Skill],
+    COUNT(es.e.EmployeeID) AS [Employees with Skill],
     AVG(CAST(es.YearsExperience AS FLOAT)) AS [Avg Years Experience],
     COUNT(CASE WHEN es.CertificationDate IS NOT NULL THEN 1 END) AS [Certified Employees],
     CAST(COUNT(CASE WHEN es.CertificationDate IS NOT NULL THEN 1 END) * 100.0 
-         / COUNT(es.EmployeeID) AS DECIMAL(5,1)) AS [Certification Rate %],
+         / COUNT(es.e.EmployeeID) AS DECIMAL(5,1)) AS [Certification Rate %],
     
-    -- Average BaseSalary of employees with this skill
-    FORMAT(AVG(e.BaseSalary), 'C0') AS [Average BaseSalary],
+    -- Average e.BaseSalary of employees with this skill
+    FORMAT(AVG(e.BaseSalary), 'C0') AS [Average e.BaseSalary],
     
     -- Skills gap assessment
     CASE 
-        WHEN s.MarketDemand = 'Very High' AND COUNT(es.EmployeeID) <= 3 
+        WHEN s.MarketDemand = 'Very High' AND COUNT(es.e.EmployeeID) <= 3 
              THEN 'Critical Gap - High Priority'
-        WHEN s.MarketDemand = 'High' AND COUNT(es.EmployeeID) <= 5 
+        WHEN s.MarketDemand = 'High' AND COUNT(es.e.EmployeeID) <= 5 
              THEN 'Skills Gap - Priority Development'
-        WHEN s.MarketDemand = 'Very High' AND COUNT(es.EmployeeID) >= 8 
+        WHEN s.MarketDemand = 'Very High' AND COUNT(es.e.EmployeeID) >= 8 
              THEN 'Strong Internal Capability'
-        WHEN COUNT(CASE WHEN es.CertificationDate IS NOT NULL THEN 1 END) * 100.0 / COUNT(es.EmployeeID) < 50 
+        WHEN COUNT(CASE WHEN es.CertificationDate IS NOT NULL THEN 1 END) * 100.0 / COUNT(es.e.EmployeeID) < 50 
              THEN 'Certification Opportunity'
         ELSE 'Adequate Coverage'
     END AS [Skills Gap Assessment],
@@ -138,7 +138,7 @@ SELECT
     CASE 
         WHEN s.MarketDemand = 'Very High' AND AVG(e.BaseSalary) > 90000 
              THEN 'High Value - Retain and Expand'
-        WHEN COUNT(es.EmployeeID) <= 2 AND s.MarketDemand IN ('High', 'Very High') 
+        WHEN COUNT(es.e.EmployeeID) <= 2 AND s.MarketDemand IN ('High', 'Very High') 
              THEN 'Urgent Hiring/Training Need'
         WHEN COUNT(CASE WHEN es.CertificationDate IS NOT NULL THEN 1 END) = 0 
              THEN 'Certification Training Priority'
@@ -146,11 +146,11 @@ SELECT
     END AS [Investment Recommendation]
 FROM Skills s
 INNER JOIN EmployeeSkills es ON s.SkillID = es.SkillID
-INNER JOIN Employees e ON es.EmployeeID = e.EmployeeID
+INNER JOIN Employees e ON es.e.EmployeeID = e.EmployeeID
 WHERE e.IsActive = 1
   AND es.CertificationDate IS NOT NULL  -- Only certified skills
 GROUP BY s.SkillID, s.SkillName, s.SkillCategory, s.MarketDemand
-HAVING COUNT(es.EmployeeID) >= 1
+HAVING COUNT(es.e.EmployeeID) >= 1
 ORDER BY 
     CASE s.MarketDemand 
         WHEN 'Very High' THEN 1 
@@ -158,10 +158,10 @@ ORDER BY
         WHEN 'Medium' THEN 3 
         ELSE 4 
     END,
-    COUNT(es.EmployeeID) ASC;
+    COUNT(es.e.EmployeeID) ASC;
 ```
 
-**Explanation**: Comprehensive skills analysis combining market demand with internal capabilities, certification rates, and BaseSalary data to identify skills gaps and investment priorities.
+**Explanation**: Comprehensive skills analysis combining market demand with internal capabilities, certification rates, and e.BaseSalary data to identify skills gaps and investment priorities.
 
 **Answer 1.1.4**: Client Project Portfolio Review
 ```sql
@@ -171,24 +171,24 @@ SELECT
     c.Industry AS [Industry],
     FORMAT(c.AnnualRevenue, 'C0') AS [Client Revenue],
     p.ProjectName AS [Project],
-    FORMAT(p.Budget, 'C0') AS [Project Budget],
+    FORMAT(p.d.Budget, 'C0') AS [Project d.Budget],
     p.Status AS [Status],
     p.Priority AS [Priority],
-    pm.FirstName + ' ' + pm.LastName AS [Project Manager],
+    pm.e.FirstName + ' ' + pm.e.LastName AS [Project Manager],
     pm.WorkEmail AS [PM Contact],
     
     -- Timeline analysis
     DATEDIFF(DAY, p.StartDate, GETDATE()) AS [Days Active],
     DATEDIFF(DAY, GETDATE(), p.PlannedEndDate) AS [Days to Completion],
     
-    -- Budget and resource metrics
+    -- d.Budget and resource metrics
     CASE 
-        WHEN p.ActualCost IS NOT NULL AND p.Budget > 0
-        THEN CAST(p.ActualCost * 100.0 / p.Budget AS DECIMAL(5,1))
+        WHEN p.ActualCost IS NOT NULL AND p.d.Budget > 0
+        THEN CAST(p.ActualCost * 100.0 / p.d.Budget AS DECIMAL(5,1))
         ELSE 0
-    END AS [Budget Used %],
+    END AS [d.Budget Used %],
     
-    COUNT(ep.EmployeeID) AS [Team Size],
+    COUNT(ep.e.EmployeeID) AS [Team Size],
     SUM(ep.HoursAllocated) AS [Total Hours Allocated],
     
     -- Client value assessment
@@ -201,26 +201,26 @@ SELECT
     
     -- Project health indicator
     CASE 
-        WHEN p.Status = 'In Progress' AND GETDATE() > p.PlannedEndDate 
+        WHEN p.IsActive = 'In Progress' AND GETDATE() > p.PlannedEndDate 
              THEN 'Behind Schedule'
-        WHEN p.ActualCost > p.Budget * 0.9 
-             THEN 'Budget Risk'
-        WHEN COUNT(ep.EmployeeID) < 3 AND p.Priority = 'Critical' 
+        WHEN p.ActualCost > p.d.Budget * 0.9 
+             THEN 'd.Budget Risk'
+        WHEN COUNT(ep.e.EmployeeID) < 3 AND p.Priority = 'Critical' 
              THEN 'Understaffed'
-        WHEN p.Status = 'In Progress' THEN 'On Track'
+        WHEN p.IsActive = 'In Progress' THEN 'On Track'
         ELSE 'Monitor'
     END AS [Project Health]
 FROM Companies c
 INNER JOIN Projects p ON c.CompanyID = p.CompanyID
-INNER JOIN Employees pm ON p.ProjectManagerID = pm.EmployeeID
+INNER JOIN Employees pm ON p.ProjectManagerID = pm.e.EmployeeID
 LEFT JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
-WHERE p.Budget >= 200000
+WHERE p.d.Budget >= 200000
   AND c.IsActive = 1
 GROUP BY c.CompanyID, c.CompanyName, c.Industry, c.AnnualRevenue,
-         p.ProjectID, p.ProjectName, p.Budget, p.Status, p.Priority,
+         p.ProjectID, p.ProjectName, p.d.Budget, p.Status, p.Priority,
          p.StartDate, p.PlannedEndDate, p.ActualCost,
-         pm.FirstName, pm.LastName, pm.WorkEmail
-ORDER BY c.AnnualRevenue DESC, p.Budget DESC;
+         pm.e.FirstName, pm.e.LastName, pm.WorkEmail
+ORDER BY c.AnnualRevenue DESC, p.d.Budget DESC;
 ```
 
 **Explanation**: Client-centric analysis combining company financials with project metrics, timeline tracking, and health indicators for strategic account management.
@@ -235,7 +235,7 @@ WITH EmployeeMetrics AS (
         e.JobTitle,
         DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
         d.DepartmentName,
-        mgr.FirstName + ' ' + mgr.LastName AS ManagerName,
+        mgr.e.FirstName + ' ' + mgr.e.LastName AS ManagerName,
         COUNT(ep.ProjectID) AS ActiveProjects,
         SUM(ep.HoursAllocated) AS TotalHoursCommitted,
         AVG(ep.HourlyRate) AS AvgHourlyRate,
@@ -243,21 +243,21 @@ WITH EmployeeMetrics AS (
         COUNT(es.SkillID) AS SkillsCount,
         COUNT(CASE WHEN es.CertificationDate IS NOT NULL THEN 1 END) AS CertificationCount
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-    INNER JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.Status = 'In Progress'
-    LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    LEFT JOIN Employees mgr ON e.ManagerID = mgr.e.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    INNER JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'In Progress'
+    LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.e.EmployeeID
     WHERE e.IsActive = 1
     GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.HireDate,
-             d.DepartmentName, mgr.FirstName, mgr.LastName
+             d.DepartmentName, mgr.e.FirstName, mgr.e.LastName
     HAVING COUNT(ep.ProjectID) >= 2
 )
 SELECT 
     EmployeeName AS [Employee],
-    JobTitle AS [Position],
+    e.JobTitle AS [Position],
     YearsOfService AS [Years of Service],
-    DepartmentName AS [Department],
+    d.DepartmentName AS [Department],
     ISNULL(ManagerName, 'No Manager') AS [Manager],
     ActiveProjects AS [Active Projects],
     TotalHoursCommitted AS [Hours Committed],
@@ -314,8 +314,8 @@ WITH EmployeeIntegration AS (
         ISNULL(d.DepartmentName, 'Unassigned') AS DepartmentIsActive,
         
         -- Manager integration
-        CASE WHEN mgr.EmployeeID IS NOT NULL THEN 1 ELSE 0 END AS HasManager,
-        ISNULL(mgr.FirstName + ' ' + mgr.LastName, 'No Manager') AS ManagerIsActive,
+        CASE WHEN mgr.e.EmployeeID IS NOT NULL THEN 1 ELSE 0 END AS HasManager,
+        ISNULL(mgr.e.FirstName + ' ' + mgr.e.LastName, 'No Manager') AS ManagerIsActive,
         
         -- Project integration
         COUNT(ep.ProjectID) AS ProjectCount,
@@ -325,18 +325,18 @@ WITH EmployeeIntegration AS (
         COUNT(es.SkillID) AS SkillsCount,
         CASE WHEN COUNT(es.SkillID) > 0 THEN 1 ELSE 0 END AS HasSkills
     FROM Employees e
-    LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
-    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-    LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.Status = 'In Progress'
-    LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
+    LEFT JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    LEFT JOIN Employees mgr ON e.ManagerID = mgr.e.EmployeeID
+    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'In Progress'
+    LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.e.EmployeeID
     GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.HireDate, e.IsActive,
-             d.DepartmentID, d.DepartmentName, mgr.EmployeeID, mgr.FirstName, mgr.LastName
+             d.DepartmentID, d.DepartmentName, mgr.e.EmployeeID, mgr.e.FirstName, mgr.e.LastName
 )
 SELECT 
     EmployeeName AS [Employee],
-    JobTitle AS [Position],
-    FORMAT(HireDate, 'MMM yyyy') AS [Hire Date],
+    e.JobTitle AS [Position],
+    FORMAT(e.HireDate, 'MMM yyyy') AS [Hire Date],
     CASE WHEN IsActive = 1 THEN 'Active' ELSE 'Inactive' END AS [Status],
     DepartmentIsActive AS [Department],
     ManagerIsActive AS [Manager],
@@ -359,7 +359,7 @@ SELECT
     CASE 
         WHEN HasDepartment = 0 THEN 'Assign to Department'
         WHEN HasManager = 0 AND IsActive = 1 THEN 'Assign Manager'
-        WHEN HasProjects = 0 AND IsActive = 1 AND DATEDIFF(MONTH, HireDate, GETDATE()) >= 3 
+        WHEN HasProjects = 0 AND IsActive = 1 AND DATEDIFF(MONTH, e.HireDate, GETDATE()) >= 3 
              THEN 'Assign to Project'
         WHEN HasSkills = 0 THEN 'Complete Skills Assessment'
         WHEN (HasDepartment + HasManager + HasProjects + HasSkills) < 3 
@@ -368,7 +368,7 @@ SELECT
     END AS [Priority Action]
 FROM EmployeeIntegration
 WHERE IsActive = 1
-ORDER BY [Integration Score] ASC, HireDate ASC;
+ORDER BY [Integration Score] ASC, e.HireDate ASC;
 ```
 
 **Explanation**: Comprehensive integration analysis using multiple LEFT JOINs to assess employee assignment completeness across all organizational dimensions.
@@ -389,30 +389,30 @@ WITH DepartmentAnalysis AS (
         AVG(CASE WHEN ep.HoursAllocated > 0 THEN ep.HoursWorked / ep.HoursAllocated END) AS AvgEfficiency,
         COUNT(DISTINCT es.SkillID) AS SkillsCoverage
     FROM Departments d
-    LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID AND e.IsActive = 1
-    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+    LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
+    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
     LEFT JOIN (
-        SELECT DISTINCT ep.EmployeeID, p.ProjectID
+        SELECT DISTINCT ep.e.EmployeeID, p.ProjectID
         FROM EmployeeProjects ep
         INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
         WHERE p.IsActive = 'In Progress'
     ) proj_emp ON e.EmployeeID = proj_emp.EmployeeID
-    LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
+    LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.e.EmployeeID
     GROUP BY d.DepartmentID, d.DepartmentName, d.Budget, d.Location, d.IsActive
 )
 SELECT d.DepartmentName AS [Department],
     CASE WHEN DeptActive = 1 THEN 'Active' ELSE 'Inactive' END AS [Dept IsActive],
-    FORMAT(Budget, 'C0') AS [Budget],
+    FORMAT(d.Budget, 'C0') AS [d.Budget],
     Location AS [Location],
     CurrentHeadcount AS [Headcount],
-    FORMAT(TotalSalaryCost, 'C0') AS [BaseSalary Cost],
+    FORMAT(TotalSalaryCost, 'C0') AS [e.BaseSalary Cost],
     
-    -- Budget utilization
+    -- d.Budget utilization
     CASE 
-        WHEN Budget > 0 
-        THEN CAST(TotalSalaryCost * 100.0 / Budget AS DECIMAL(5,1))
+        WHEN d.Budget > 0 
+        THEN CAST(TotalSalaryCost * 100.0 / d.Budget AS DECIMAL(5,1))
         ELSE 0 
-    END AS [Budget Used %],
+    END AS [d.Budget Used %],
     
     ActiveProjectCount AS [Active Projects],
     CAST(ISNULL(AvgEfficiency * 100, 0) AS DECIMAL(5,1)) AS [Avg Efficiency %],
@@ -421,10 +421,10 @@ SELECT d.DepartmentName AS [Department],
     -- Capacity assessment
     CASE 
         WHEN CurrentHeadcount = 0 THEN 'Vacant Department'
-        WHEN TotalSalaryCost > Budget THEN 'Over Budget'
+        WHEN TotalSalaryCost > d.Budget THEN 'Over d.Budget'
         WHEN ActiveProjectCount = 0 AND CurrentHeadcount > 0 THEN 'No Active Projects'
         WHEN AvgEfficiency < 0.7 THEN 'Low Utilization'
-        WHEN Budget - TotalSalaryCost > TotalSalaryCost * 0.5 THEN 'Expansion Capacity'
+        WHEN d.Budget - TotalSalaryCost > TotalSalaryCost * 0.5 THEN 'Expansion Capacity'
         ELSE 'Optimal Utilization'
     END AS [Capacity IsActive],
     
@@ -432,11 +432,11 @@ SELECT d.DepartmentName AS [Department],
     CASE 
         WHEN CurrentHeadcount = 0 AND DeptActive = 1 
              THEN 'Hire staff or consolidate department'
-        WHEN TotalSalaryCost > Budget 
-             THEN 'Budget review required'
+        WHEN TotalSalaryCost > d.Budget 
+             THEN 'd.Budget review required'
         WHEN ActiveProjectCount = 0 AND CurrentHeadcount > 2 
              THEN 'Identify project opportunities'
-        WHEN Budget - TotalSalaryCost > 50000 AND ActiveProjectCount >= 2 
+        WHEN d.Budget - TotalSalaryCost > 50000 AND ActiveProjectCount >= 2 
              THEN 'Consider strategic hiring'
         WHEN SkillsCoverage < CurrentHeadcount AND CurrentHeadcount > 1 
              THEN 'Invest in skills development'
@@ -446,11 +446,11 @@ FROM DepartmentAnalysis
 ORDER BY 
     CASE 
         WHEN CurrentHeadcount = 0 THEN 1
-        WHEN TotalSalaryCost > Budget THEN 2
+        WHEN TotalSalaryCost > d.Budget THEN 2
         WHEN ActiveProjectCount = 0 THEN 3
         ELSE 4
     END,
-    Budget DESC;
+    d.Budget DESC;
 ```
 
 **Explanation**: Comprehensive d.DepartmentName analysis using LEFT JOINs to include all departments regardless of staffing, with capacity and efficiency assessments.
@@ -476,7 +476,7 @@ ORDER BY
 **Answer 2.1.5**: Organizational Structure and Reporting Analysis (Structure)
 ```sql
 -- Key elements: Self LEFT JOIN for manager relationships
--- Analyze: Span of control, BaseSalary progression, hierarchy depth
+-- Analyze: Span of control, e.BaseSalary progression, hierarchy depth
 -- Identify: Management gaps, succession planning needs
 -- Recommend: Organizational structure optimization
 ```
@@ -510,9 +510,9 @@ WITH EmployeeMetrics AS (
                  ELSE 1 END) AS MarketValue
     FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
     LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'In Progress'
-    LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
+    LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.e.EmployeeID
     LEFT JOIN Skills s ON es.SkillID = s.SkillID
     WHERE e.IsActive = 1
     GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.BaseSalary, 
@@ -531,16 +531,16 @@ PerformanceScoring AS (
         
         -- ROI calculation
         CASE WHEN ProjectCount > 0 
-             THEN (Efficiency * MarketValue * SkillCount * 1000) / (BaseSalary / 1000)
+             THEN (Efficiency * MarketValue * SkillCount * 1000) / (e.BaseSalary / 1000)
              ELSE 0 
         END AS ROIScore
     FROM EmployeeMetrics
 )
 SELECT 
     EmployeeName AS [Employee],
-    JobTitle AS [Position],
+    e.JobTitle AS [Position],
     DepartmentName AS [Department],
-    FORMAT(BaseSalary, 'C0') AS [BaseSalary],
+    FORMAT(e.BaseSalary, 'C0') AS [e.BaseSalary],
     Tenure AS [Years],
     ProjectCount AS [Projects],
     SkillCount AS [Skills],
@@ -615,32 +615,32 @@ WITH OrganizationalHierarchy AS (
         emp.HireDate,
         
         -- Level 1 Manager
-        mgr1.EmployeeID AS Manager1ID,
-        mgr1.FirstName + ' ' + mgr1.LastName AS Manager1Name,
-        mgr1.JobTitle AS Manager1Title,
-        mgr1.BaseSalary AS Manager1Salary,
+        mgr1.e.EmployeeID AS Manager1ID,
+        mgr1.e.FirstName + ' ' + mgr1.e.LastName AS Manager1Name,
+        mgr1.e.JobTitle AS Manager1Title,
+        mgr1.e.BaseSalary AS Manager1Salary,
         
         -- Level 2 Manager
-        mgr2.EmployeeID AS Manager2ID,
-        mgr2.FirstName + ' ' + mgr2.LastName AS Manager2Name,
-        mgr2.JobTitle AS Manager2Title,
-        mgr2.BaseSalary AS Manager2Salary,
+        mgr2.e.EmployeeID AS Manager2ID,
+        mgr2.e.FirstName + ' ' + mgr2.e.LastName AS Manager2Name,
+        mgr2.e.JobTitle AS Manager2Title,
+        mgr2.e.BaseSalary AS Manager2Salary,
         
         -- Level 3 Manager (Executive)
-        mgr3.EmployeeID AS Manager3ID,
-        mgr3.FirstName + ' ' + mgr3.LastName AS Manager3Name,
-        mgr3.JobTitle AS Manager3Title,
-        mgr3.BaseSalary AS Manager3Salary,
+        mgr3.e.EmployeeID AS Manager3ID,
+        mgr3.e.FirstName + ' ' + mgr3.e.LastName AS Manager3Name,
+        mgr3.e.JobTitle AS Manager3Title,
+        mgr3.e.BaseSalary AS Manager3Salary,
         
         -- Level 4 Manager (CEO level)
-        mgr4.EmployeeID AS Manager4ID,
-        mgr4.FirstName + ' ' + mgr4.LastName AS Manager4Name,
-        mgr4.JobTitle AS Manager4Title
-    FROM Employees emp
-    LEFT JOIN Employees mgr1 ON emp.ManagerID = mgr1.EmployeeID
-    LEFT JOIN Employees mgr2 ON mgr1.ManagerID = mgr2.EmployeeID
-    LEFT JOIN Employees mgr3 ON mgr2.ManagerID = mgr3.EmployeeID
-    LEFT JOIN Employees mgr4 ON mgr3.ManagerID = mgr4.EmployeeID
+        mgr4.e.EmployeeID AS Manager4ID,
+        mgr4.e.FirstName + ' ' + mgr4.e.LastName AS Manager4Name,
+        mgr4.e.JobTitle AS Manager4Title
+    FROM Employees e emp
+    LEFT JOIN Employees mgr1 ON emp.ManagerID = mgr1.e.EmployeeID
+    LEFT JOIN Employees mgr2 ON mgr1.ManagerID = mgr2.e.EmployeeID
+    LEFT JOIN Employees mgr3 ON mgr2.ManagerID = mgr3.e.EmployeeID
+    LEFT JOIN Employees mgr4 ON mgr3.ManagerID = mgr4.e.EmployeeID
     WHERE emp.IsActive = 1
 ),
 HierarchyAnalysis AS (
@@ -663,10 +663,10 @@ HierarchyAnalysis AS (
             ELSE EmployeeName + ' (Top Level)'
         END AS OrganizationalPath,
         
-        -- BaseSalary progression analysis
+        -- e.BaseSalary progression analysis
         CASE 
             WHEN Manager1Salary IS NOT NULL AND EmployeeSalary >= Manager1Salary 
-                 THEN 'BaseSalary Anomaly - Employee >= Manager'
+                 THEN 'e.BaseSalary Anomaly - Employee >= Manager'
             WHEN Manager1Salary IS NOT NULL 
                  THEN CAST((Manager1Salary - EmployeeSalary) * 100.0 / EmployeeSalary AS DECIMAL(5,1))
             ELSE NULL
@@ -677,21 +677,21 @@ SpanOfControl AS (
     SELECT 
         ManagerID,
         COUNT(*) AS DirectReports
-    FROM Employees
+    FROM Employees e
     WHERE IsActive = 1 AND ManagerID IS NOT NULL
     GROUP BY ManagerID
 )
 SELECT 
     ha.EmployeeName AS [Employee],
     ha.EmployeeTitle AS [Title],
-    FORMAT(ha.EmployeeSalary, 'C0') AS [BaseSalary],
+    FORMAT(ha.EmployeeSalary, 'C0') AS [e.BaseSalary],
     ha.HierarchyLevel AS [Level],
     ISNULL(ha.Manager1Name, 'Top Executive') AS [Direct Manager],
     ISNULL(ha.Manager2Name, 'N/A') AS [Skip Level Manager],
     ISNULL(ha.Manager3Name, 'N/A') AS [Executive Manager],
     ISNULL(soc.DirectReports, 0) AS [Direct Reports],
     ha.OrganizationalPath AS [Org Path],
-    ISNULL(CAST(ha.SalaryGapToManager AS VARCHAR) + '%', 'N/A') AS [BaseSalary Gap to Manager],
+    ISNULL(CAST(ha.SalaryGapToManager AS VARCHAR) + '%', 'N/A') AS [e.BaseSalary Gap to Manager],
     
     -- Management effectiveness
     CASE 
@@ -703,16 +703,16 @@ SELECT
     
     -- Succession planning
     CASE 
-        WHEN ha.HierarchyLevel <= 2 AND DATEDIFF(YEAR, ha.HireDate, GETDATE()) >= 10 
+        WHEN ha.HierarchyLevel <= 2 AND DATEDIFF(YEAR, ha.e.HireDate, GETDATE()) >= 10 
              THEN 'Succession Planning Critical'
-        WHEN ha.HierarchyLevel <= 3 AND DATEDIFF(YEAR, ha.HireDate, GETDATE()) >= 7 
+        WHEN ha.HierarchyLevel <= 3 AND DATEDIFF(YEAR, ha.e.HireDate, GETDATE()) >= 7 
              THEN 'Develop Succession Plan'
-        WHEN soc.DirectReports >= 3 AND DATEDIFF(YEAR, ha.HireDate, GETDATE()) >= 5 
+        WHEN soc.DirectReports >= 3 AND DATEDIFF(YEAR, ha.e.HireDate, GETDATE()) >= 5 
              THEN 'Key Manager - Plan Succession'
         ELSE 'Standard Succession Planning'
     END AS [Succession Priority]
 FROM HierarchyAnalysis ha
-LEFT JOIN SpanOfControl soc ON ha.EmployeeID = soc.ManagerID
+LEFT JOIN SpanOfControl soc ON ha.e.EmployeeID = soc.ManagerID
 ORDER BY ha.HierarchyLevel, ha.Manager3Name, ha.Manager2Name, ha.Manager1Name, ha.EmployeeName;
 ```
 

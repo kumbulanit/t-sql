@@ -19,11 +19,11 @@ Program flow control is essential for creating intelligent database applications
 **Core Tables for Control Flow Examples:**
 
 ```sql
-Employees: EmployeeID (3001+), FirstName, LastName, BaseSalary, DepartmentID, ManagerID, JobTitle, HireDate, WorkEmail, IsActive
-Departments: DepartmentID (2001+), DepartmentName, Budget, Location, IsActive
-Projects: ProjectID (4001+), ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
-Orders: OrderID (5001+), CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
-EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
+Employees: e.EmployeeID (3001+), e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID, ManagerID, e.JobTitle, e.HireDate, WorkEmail, IsActive
+Departments: d.DepartmentID (2001+), d.DepartmentName, d.Budget, Location, IsActive
+Projects: ProjectID (4001+), ProjectName, d.Budget, ProjectManagerID, StartDate, EndDate, IsActive
+Orders: OrderID (5001+), CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
+EmployeeProjects: e.EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
 Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, WorkEmail, IsActive
 ```
 
@@ -77,7 +77,7 @@ Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, WorkEmai
 ```sql
 -- Comprehensive employee performance review system using conditional logic
 CREATE PROCEDURE sp_TechCorp_ProcessPerformanceReview
-    @EmployeeID INT,
+    @e.EmployeeID INT,
     @ReviewPeriodMonths INT = 12,
     @AutoApproveRaises BIT = 0
 AS
@@ -87,12 +87,12 @@ BEGIN
     -- Declare variables for employee information
     DECLARE @EmployeeName VARCHAR(101);
     DECLARE @CurrentSalary DECIMAL(10,2);
-    DECLARE @DepartmentID INT;
+    DECLARE @d.DepartmentID INT;
     DECLARE @d.DepartmentName VARCHAR(100);
     DECLARE @YearsOfService INT;
-    DECLARE @JobTitle VARCHAR(100);
+    DECLARE @e.JobTitle VARCHAR(100);
     DECLARE @ManagerID INT;
-    DECLARE @HireDate DATE;
+    DECLARE @e.HireDate DATE;
     
     -- Performance metrics variables
     DECLARE @ProjectCount INT = 0;
@@ -112,52 +112,54 @@ BEGIN
     
     -- Get employee basic information
     SELECT 
-        @EmployeeName = FirstName + ' ' + LastName,
-        @CurrentSalary = BaseSalary,
-        @DepartmentID = DepartmentID,
-        @JobTitle = JobTitle,
+        @EmployeeName = e.FirstName + ' ' + e.LastName,
+        @CurrentSalary = e.BaseSalary,
+        @d.DepartmentID = d.DepartmentID,
+        @e.JobTitle = e.JobTitle,
         @ManagerID = ManagerID,
-        @HireDate = HireDate,
-        @YearsOfService = DATEDIFF(YEAR, HireDate, GETDATE())
-    FROM Employees
-    WHERE EmployeeID = @EmployeeID AND IsActive = 1;
+        @e.HireDate = e.HireDate,
+        @YearsOfService = DATEDIFF(YEAR, e.HireDate, GETDATE())
+    FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    WHERE e.EmployeeID = @e.EmployeeID AND IsActive = 1;
     
     -- Check if employee exists
     IF @EmployeeName IS NULL
     BEGIN
-        PRINT 'ERROR: Employee ID ' + CAST(@EmployeeID AS VARCHAR) + ' not found or inactive.';
+        PRINT 'ERROR: Employee ID ' + CAST(@e.EmployeeID AS VARCHAR) + ' not found or inactive.';
         RETURN -1;
     END
     
     -- Get d.DepartmentName information
     SELECT @d.DepartmentName = d.DepartmentName
-    FROM Departments
-    WHERE DepartmentID = @DepartmentID AND IsActive = 1;
+    FROM Departments d
+    WHERE d.DepartmentID = @d.DepartmentID AND IsActive = 1;
     
     -- Calculate performance metrics
     SELECT 
         @ProjectCount = COUNT(DISTINCT ep.ProjectID),
         @TotalProjectHours = ISNULL(SUM(ep.HoursWorked), 0)
     FROM EmployeeProjects ep
-    WHERE ep.EmployeeID = @EmployeeID
+    WHERE ep.e.EmployeeID = @e.EmployeeID
       AND ep.IsActive = 1
       AND ep.StartDate >= DATEADD(MONTH, -@ReviewPeriodMonths, GETDATE());
     
     SELECT @OrdersProcessed = COUNT(*)
     FROM Orders o
-    WHERE o.EmployeeID = @EmployeeID
+    WHERE o.e.EmployeeID = @e.EmployeeID
       AND o.IsActive = 1
       AND o.OrderDate >= DATEADD(MONTH, -@ReviewPeriodMonths, GETDATE());
     
     SELECT @DirectReports = COUNT(*)
-    FROM Employees
-    WHERE ManagerID = @EmployeeID AND IsActive = 1;
+    FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    WHERE ManagerID = @e.EmployeeID AND IsActive = 1;
     
     -- Start performance evaluation logic
     PRINT '=== TechCorp Performance Review ===';
-    PRINT 'Employee: ' + @EmployeeName + ' (' + CAST(@EmployeeID AS VARCHAR) + ')';
+    PRINT 'Employee: ' + @EmployeeName + ' (' + CAST(@e.EmployeeID AS VARCHAR) + ')';
     PRINT 'Department: ' + @d.DepartmentName;
-    PRINT 'Position: ' + @JobTitle;
+    PRINT 'Position: ' + @e.JobTitle;
     PRINT 'Review Period: ' + CAST(@ReviewPeriodMonths AS VARCHAR) + ' months';
     PRINT 'Years of Service: ' + CAST(@YearsOfService AS VARCHAR);
     PRINT '';
@@ -285,7 +287,7 @@ BEGIN
     -- Additional conditional logic for special circumstances
     IF @CurrentSalary >= 100000
     BEGIN
-        -- High BaseSalary employees have different criteria
+        -- High e.BaseSalary employees have different criteria
         IF @PerformanceScore < 70
         BEGIN
             SET @RequiresImprovement = 1;
@@ -294,7 +296,7 @@ BEGIN
     END
     
     -- Department-specific adjustments
-    IF @DepartmentName = 'Sales'
+    IF @d.DepartmentName = 'Sales'
     BEGIN
         IF @OrdersProcessed < 10
         BEGIN
@@ -302,7 +304,7 @@ BEGIN
             SET @ActionPlan = @ActionPlan + ' Sales d.DepartmentName requires minimum customer engagement levels.';
         END
     END
-    ELSE IF @DepartmentName = 'Engineering'
+    ELSE IF @d.DepartmentName = 'Engineering'
     BEGIN
         IF @ProjectCount < 2
         BEGIN
@@ -325,10 +327,10 @@ BEGIN
         DECLARE @NewSalary DECIMAL(10,2) = @CurrentSalary * (1 + @RecommendedRaise / 100.0);
         
         UPDATE Employees
-        SET BaseSalary = @NewSalary
-        WHERE EmployeeID = @EmployeeID;
+        SET e.BaseSalary = @NewSalary
+        WHERE e.EmployeeID = @e.EmployeeID;
         
-        PRINT 'AUTO-APPROVED: BaseSalary increased from ' + FORMAT(@CurrentSalary, 'C') + 
+        PRINT 'AUTO-APPROVED: e.BaseSalary increased from ' + FORMAT(@CurrentSalary, 'C') + 
               ' to ' + FORMAT(@NewSalary, 'C') + ' (' + FORMAT(@RecommendedRaise, 'N1') + '% increase)';
     END
     
@@ -357,7 +359,7 @@ END;
 
 -- Test the performance review system
 EXEC sp_TechCorp_ProcessPerformanceReview 
-    @EmployeeID = 3001, 
+    @e.EmployeeID = 3001, 
     @ReviewPeriodMonths = 12,
     @AutoApproveRaises = 0;
 
@@ -366,7 +368,7 @@ PRINT '--- Next Employee ---';
 PRINT '';
 
 EXEC sp_TechCorp_ProcessPerformanceReview 
-    @EmployeeID = 3002, 
+    @e.EmployeeID = 3002, 
     @ReviewPeriodMonths = 6,
     @AutoApproveRaises = 1;
 ```
@@ -381,7 +383,7 @@ EXEC sp_TechCorp_ProcessPerformanceReview
 -- Demonstrate WHILE loop usage for batch processing
 CREATE PROCEDURE sp_TechCorp_ProcessMonthlyBonusCalculation
     @ProcessingYear INT = NULL,
-    @DepartmentID INT = NULL,
+    @d.DepartmentID INT = NULL,
     @BatchSize INT = 10,
     @MaxProcessingTime INT = 300 -- Maximum seconds to run
 AS
@@ -401,14 +403,14 @@ BEGIN
     -- Get total number of employees to process
     SELECT @TotalEmployees = COUNT(*)
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
-      AND (@DepartmentID IS NULL OR e.DepartmentID = @DepartmentID);
+      AND (@d.DepartmentID IS NULL OR e.d.DepartmentID = @d.DepartmentID);
     
     PRINT '=== TechCorp Monthly Bonus Processing ===';
     PRINT 'Processing Year: ' + CAST(@ProcessingYear AS VARCHAR);
-    PRINT 'Department Filter: ' + ISNULL(CAST(@DepartmentID AS VARCHAR), 'All Departments');
+    PRINT 'Department Filter: ' + ISNULL(CAST(@d.DepartmentID AS VARCHAR), 'All Departments');
     PRINT 'Batch Size: ' + CAST(@BatchSize AS VARCHAR);
     PRINT 'Total Employees: ' + CAST(@TotalEmployees AS VARCHAR);
     PRINT 'Started at: ' + FORMAT(@StartTime, 'yyyy-MM-dd HH:mm:ss');
@@ -416,9 +418,9 @@ BEGIN
     
     -- Create temporary table for batch processing
     CREATE TABLE #EmployeeBonusProcessing (
-        EmployeeID INT,
+        e.EmployeeID INT,
         EmployeeName VARCHAR(101),
-        BaseSalary DECIMAL(10,2),
+        e.BaseSalary DECIMAL(10,2),
         BonusAmount DECIMAL(10,2),
         ProcessingStatus VARCHAR(50),
         ErrorMessage VARCHAR(500),
@@ -441,24 +443,24 @@ BEGIN
         DELETE FROM #EmployeeBonusProcessing;
         
         -- Get current batch of employees
-        INSERT INTO #EmployeeBonusProcessing (EmployeeID, EmployeeName, BaseSalary)
+        INSERT INTO #EmployeeBonusProcessing (e.EmployeeID, EmployeeName, e.BaseSalary)
         SELECT TOP (@BatchSize)
             e.EmployeeID,
             e.FirstName + ' ' + e.LastName,
             e.BaseSalary
         FROM Employees e
-        INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+        INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
         WHERE e.IsActive = 1
           AND d.IsActive = 1
-          AND (@DepartmentID IS NULL OR e.DepartmentID = @DepartmentID)
+          AND (@d.DepartmentID IS NULL OR e.d.DepartmentID = @d.DepartmentID)
           AND e.EmployeeID NOT IN (
               -- Exclude already processed employees (in real system, would use a status table)
               SELECT TOP (@ProcessedCount) emp.EmployeeID 
-              FROM Employees emp 
-              INNER JOIN Departments dep ON emp.DepartmentID = dep.DepartmentID
+              FROM Employees e emp 
+              INNER JOIN Departments dep ON emp.d.DepartmentID = dep.d.DepartmentID
               WHERE emp.IsActive = 1 
                 AND dep.IsActive = 1
-                AND (@DepartmentID IS NULL OR emp.DepartmentID = @DepartmentID)
+                AND (@d.DepartmentID IS NULL OR emp.d.DepartmentID = @d.DepartmentID)
               ORDER BY emp.EmployeeID
           )
         ORDER BY e.EmployeeID;
@@ -482,9 +484,9 @@ BEGIN
         
         -- Inner loop to process individual employees
         DECLARE employee_cursor CURSOR FOR
-        SELECT EmployeeID, EmployeeName, BaseSalary
+        SELECT e.EmployeeID, EmployeeName, e.BaseSalary
         FROM #EmployeeBonusProcessing
-        ORDER BY EmployeeID;
+        ORDER BY e.EmployeeID;
         
         OPEN employee_cursor;
         FETCH NEXT FROM employee_cursor INTO @CurrentEmployeeID, @CurrentEmployeeName, @CurrentBaseSalary;
@@ -503,19 +505,19 @@ BEGIN
                 DECLARE @BonusMultiplier DECIMAL(4,3) = 1.0;
                 
                 -- Get employee metrics
-                SELECT @YearsOfService = DATEDIFF(YEAR, HireDate, GETDATE())
-                FROM Employees
-                WHERE EmployeeID = @CurrentEmployeeID;
+                SELECT @YearsOfService = DATEDIFF(YEAR, e.HireDate, GETDATE())
+                FROM Employees e
+                WHERE e.EmployeeID = @CurrentEmployeeID;
                 
                 SELECT @ProjectCount = COUNT(DISTINCT ProjectID)
                 FROM EmployeeProjects
-                WHERE EmployeeID = @CurrentEmployeeID
+                WHERE e.EmployeeID = @CurrentEmployeeID
                   AND IsActive = 1
                   AND YEAR(StartDate) = @ProcessingYear;
                 
                 SELECT @OrderCount = COUNT(*)
                 FROM Orders
-                WHERE EmployeeID = @CurrentEmployeeID
+                WHERE e.EmployeeID = @CurrentEmployeeID
                   AND IsActive = 1
                   AND YEAR(OrderDate) = @ProcessingYear;
                 
@@ -548,7 +550,7 @@ BEGIN
                 
                 -- Apply business rules
                 IF @CalculatedBonus > (@CurrentBaseSalary * 0.3)
-                    SET @CalculatedBonus = @CurrentBaseSalary * 0.3; -- Cap at 30% of BaseSalary
+                    SET @CalculatedBonus = @CurrentBaseSalary * 0.3; -- Cap at 30% of e.BaseSalary
                 
                 IF @CalculatedBonus < 500
                     SET @CalculatedBonus = 500; -- Minimum bonus
@@ -558,7 +560,7 @@ BEGIN
                 SET BonusAmount = @CalculatedBonus,
                     ProcessingStatus = 'Success',
                     ProcessedAt = GETDATE()
-                WHERE EmployeeID = @CurrentEmployeeID;
+                WHERE e.EmployeeID = @CurrentEmployeeID;
                 
                 SET @SuccessCount = @SuccessCount + 1;
                 
@@ -570,7 +572,7 @@ BEGIN
                 SET ProcessingStatus = 'Error',
                     ErrorMessage = @ProcessingError,
                     ProcessedAt = GETDATE()
-                WHERE EmployeeID = @CurrentEmployeeID;
+                WHERE e.EmployeeID = @CurrentEmployeeID;
                 
                 SET @ErrorCount = @ErrorCount + 1;
                 
@@ -585,15 +587,15 @@ BEGIN
         
         -- Display batch results
         SELECT 
-            EmployeeID,
+            e.EmployeeID,
             EmployeeName,
-            FORMAT(BaseSalary, 'C') AS BaseSalary,
+            FORMAT(e.BaseSalary, 'C') AS e.BaseSalary,
             FORMAT(BonusAmount, 'C') AS BonusAmount,
             ProcessingStatus,
             ErrorMessage,
             ProcessedAt
         FROM #EmployeeBonusProcessing
-        ORDER BY EmployeeID;
+        ORDER BY e.EmployeeID;
         
         SET @ProcessedCount = @ProcessedCount + @CurrentBatchSize;
         SET @CurrentBatch = @CurrentBatch + 1;
@@ -644,7 +646,7 @@ END;
 -- Test the batch processing system
 EXEC sp_TechCorp_ProcessMonthlyBonusCalculation
     @ProcessingYear = 2024,
-    @DepartmentID = 2001, -- Engineering d.DepartmentName only
+    @d.DepartmentID = 2001, -- Engineering d.DepartmentName only
     @BatchSize = 5,
     @MaxProcessingTime = 60; -- 1 minute max processing time
 
@@ -702,7 +704,7 @@ EMPLOYEE_VALIDATION:
         -- Check for duplicate employee emails
         DECLARE @DuplicateEmails INT;
         SELECT @DuplicateEmails = COUNT(*) - COUNT(DISTINCT WorkEmail)
-        FROM Employees
+        FROM Employees e
         WHERE IsActive = 1 AND WorkEmail IS NOT NULL;
         
         IF @DuplicateEmails > 0
@@ -722,7 +724,7 @@ EMPLOYEE_VALIDATION:
         DECLARE @OrphanEmployees INT;
         SELECT @OrphanEmployees = COUNT(*)
         FROM Employees e
-        LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID
+        LEFT JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
         WHERE e.IsActive = 1 AND (d.DepartmentID IS NULL OR d.IsActive = 0);
         
         IF @OrphanEmployees > 0
@@ -732,7 +734,7 @@ EMPLOYEE_VALIDATION:
             SET @ErrorCount = @ErrorCount + 1;
         END
         
-        -- Check for BaseSalary anomalies
+        -- Check for e.BaseSalary anomalies
         DECLARE @SalaryAnomalies INT;
         SELECT @SalaryAnomalies = COUNT(*)
         FROM Employees e
@@ -743,14 +745,14 @@ EMPLOYEE_VALIDATION:
         
         IF @SalaryAnomalies > 0
         BEGIN
-            SET @CurrentError = 'Found ' + CAST(@SalaryAnomalies AS VARCHAR) + ' BaseSalary anomalies';
+            SET @CurrentError = 'Found ' + CAST(@SalaryAnomalies AS VARCHAR) + ' e.BaseSalary anomalies';
             PRINT 'WARNING: ' + @CurrentError;
             SET @WarningCount = @WarningCount + 1;
         END
         
         -- Count validated records
         SELECT @RecordsChecked = @RecordsChecked + COUNT(*)
-        FROM Employees
+        FROM Employees e
         WHERE IsActive = 1;
         
         PRINT 'Employee validation completed in ' + 
@@ -795,7 +797,7 @@ DEPARTMENT_VALIDATION:
         DECLARE @EmptyDepartments INT;
         SELECT @EmptyDepartments = COUNT(*)
         FROM Departments d
-        LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID AND e.IsActive = 1
+        LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
         WHERE d.IsActive = 1
         GROUP BY d.DepartmentID, d.DepartmentName
         HAVING COUNT(e.EmployeeID) = 0;
@@ -816,7 +818,7 @@ DEPARTMENT_VALIDATION:
                 d.Budget,
                 SUM(e.BaseSalary) AS TotalPayroll
             FROM Departments d
-            INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+            INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
             WHERE d.IsActive = 1 AND e.IsActive = 1
             GROUP BY d.DepartmentID, d.Budget
             HAVING SUM(e.BaseSalary) > d.Budget
@@ -831,7 +833,7 @@ DEPARTMENT_VALIDATION:
         
         -- Count validated records
         SELECT @RecordsChecked = @RecordsChecked + COUNT(*)
-        FROM Departments
+        FROM Departments d
         WHERE IsActive = 1;
         
         PRINT 'Department validation completed in ' + 
@@ -888,7 +890,7 @@ PROJECT_VALIDATION:
         -- Check for date inconsistencies
         DECLARE @DateInconsistencies INT;
         SELECT @DateInconsistencies = COUNT(*)
-        FROM Projects
+        FROM Projects p
         WHERE IsActive = 1 
           AND (EndDate < StartDate 
                OR StartDate > GETDATE() + 365 -- Projects starting more than a year in future
@@ -904,9 +906,9 @@ PROJECT_VALIDATION:
         -- Check for budget anomalies
         DECLARE @ProjectBudgetAnomalies INT;
         SELECT @ProjectBudgetAnomalies = COUNT(*)
-        FROM Projects
+        FROM Projects p
         WHERE IsActive = 1 
-          AND (Budget <= 0 OR Budget > 10000000 OR Budget IS NULL);
+          AND (d.Budget <= 0 OR d.Budget > 10000000 OR d.Budget IS NULL);
         
         IF @ProjectBudgetAnomalies > 0
         BEGIN
@@ -917,7 +919,7 @@ PROJECT_VALIDATION:
         
         -- Count validated records
         SELECT @RecordsChecked = @RecordsChecked + COUNT(*)
-        FROM Projects
+        FROM Projects p
         WHERE IsActive = 1;
         
         PRINT 'Project validation completed in ' + 
@@ -1024,7 +1026,7 @@ PRINT 'Return Code: ' + CAST(@Result AS VARCHAR);
 -- Advanced exception handling for critical business operations
 CREATE PROCEDURE sp_TechCorp_CriticalOrderProcessing
     @CustomerID INT,
-    @EmployeeID INT,
+    @e.EmployeeID INT,
     @OrderItems NVARCHAR(MAX), -- JSON format: [{"ProductID":1,"Quantity":2,"Price":100.00}]
     @PaymentMethod VARCHAR(50) = 'Credit Card',
     @EnableRetry BIT = 1,
@@ -1049,7 +1051,7 @@ BEGIN
     
     PRINT '=== TechCorp Critical Order Processing ===';
     PRINT 'Customer ID: ' + CAST(@CustomerID AS VARCHAR);
-    PRINT 'Employee ID: ' + CAST(@EmployeeID AS VARCHAR);
+    PRINT 'Employee ID: ' + CAST(@e.EmployeeID AS VARCHAR);
     PRINT 'Payment Method: ' + @PaymentMethod;
     PRINT 'Retry Enabled: ' + CASE WHEN @EnableRetry = 1 THEN 'YES' ELSE 'NO' END;
     PRINT 'Max Retry Attempts: ' + CAST(@MaxRetryAttempts AS VARCHAR);
@@ -1075,9 +1077,9 @@ BEGIN
             -- Step 2: Validate employee
             PRINT 'Step 2: Employee Validation';
             
-            IF NOT EXISTS (SELECT 1 FROM Employees WHERE EmployeeID = @EmployeeID AND IsActive = 1)
+            IF NOT EXISTS (SELECT 1 FROM Employees e WHERE e.EmployeeID = @e.EmployeeID AND IsActive = 1)
             BEGIN
-                RAISERROR('Invalid or inactive employee ID: %d', 16, 2, @EmployeeID);
+                RAISERROR('Invalid or inactive employee ID: %d', 16, 2, @e.EmployeeID);
             END
             
             SET @EmployeeValid = 1;
@@ -1108,8 +1110,8 @@ BEGIN
             BEGIN TRANSACTION CriticalOrder;
             
             -- Insert main order record
-            INSERT INTO Orders (CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive)
-            VALUES (@CustomerID, @EmployeeID, GETDATE(), @TotalOrderAmount, 1);
+            INSERT INTO Orders (CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive)
+            VALUES (@CustomerID, @e.EmployeeID, GETDATE(), @TotalOrderAmount, 1);
             
             SET @OrderID = SCOPE_IDENTITY();
             
@@ -1250,7 +1252,7 @@ BEGIN
         PRINT 'Order ID: ' + CAST(@OrderID AS VARCHAR);
         PRINT 'Order Total: ' + FORMAT(@TotalOrderAmount, 'C');
         PRINT 'Customer ID: ' + CAST(@CustomerID AS VARCHAR);
-        PRINT 'Employee ID: ' + CAST(@EmployeeID AS VARCHAR);
+        PRINT 'Employee ID: ' + CAST(@e.EmployeeID AS VARCHAR);
         PRINT 'Payment Method: ' + @PaymentMethod;
         
         -- Log successful order (in real system, would write to audit table)
@@ -1276,7 +1278,7 @@ DECLARE @Result INT;
 PRINT 'Test 1: Normal order processing';
 EXEC @Result = sp_TechCorp_CriticalOrderProcessing
     @CustomerID = 6001,
-    @EmployeeID = 3001,
+    @e.EmployeeID = 3001,
     @OrderItems = '[{"ProductID":1,"Quantity":2,"Price":75.00}]',
     @PaymentMethod = 'Credit Card',
     @EnableRetry = 1,
@@ -1289,7 +1291,7 @@ PRINT '';
 
 EXEC @Result = sp_TechCorp_CriticalOrderProcessing
     @CustomerID = 99999, -- Invalid customer
-    @EmployeeID = 3001,
+    @e.EmployeeID = 3001,
     @OrderItems = '[{"ProductID":1,"Quantity":1,"Price":50.00}]',
     @EnableRetry = 1;
 PRINT 'Result: ' + CAST(@Result AS VARCHAR);
@@ -1300,7 +1302,7 @@ PRINT '';
 
 EXEC @Result = sp_TechCorp_CriticalOrderProcessing
     @CustomerID = 6002,
-    @EmployeeID = 3002,
+    @e.EmployeeID = 3002,
     @OrderItems = '[{"ProductID":2,"Quantity":3,"Price":150.00}]',
     @EnableRetry = 0, -- No retries
     @MaxRetryAttempts = 1;

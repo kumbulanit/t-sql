@@ -19,11 +19,11 @@ Dynamic SQL is a powerful technique that allows developers to construct and exec
 **Core Tables for Dynamic SQL Examples:**
 
 ```sql
-Employees: EmployeeID (3001+), FirstName, LastName, BaseSalary, DepartmentID, ManagerID, JobTitle, HireDate, WorkEmail, IsActive
-Departments: DepartmentID (2001+), DepartmentName, Budget, Location, IsActive
-Projects: ProjectID (4001+), ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
-Orders: OrderID (5001+), CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
-EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
+Employees: e.EmployeeID (3001+), e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID, ManagerID, e.JobTitle, e.HireDate, WorkEmail, IsActive
+Departments: d.DepartmentID (2001+), d.DepartmentName, d.Budget, Location, IsActive
+Projects: ProjectID (4001+), ProjectName, d.Budget, ProjectManagerID, StartDate, EndDate, IsActive
+Orders: OrderID (5001+), CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
+EmployeeProjects: e.EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
 Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, WorkEmail, IsActive
 ```
 
@@ -85,7 +85,7 @@ EXEC sp_executesql @SQL;
 DECLARE @SQL NVARCHAR(MAX);
 DECLARE @Params NVARCHAR(4000);
 
-SET @SQL = 'SELECT * FROM Employees WHERE DepartmentID = @DeptID AND BaseSalary >= @MinSalary';
+SET @SQL = 'SELECT * FROM Employees e WHERE d.DepartmentID = @DeptID AND e.BaseSalary >= @MinSalary';
 SET @Params = '@DeptID INT, @MinSalary DECIMAL(10,2)';
 
 EXEC sp_executesql @SQL, @Params, @DeptID = 2001, @MinSalary = 50000;
@@ -95,7 +95,7 @@ DECLARE @SQL NVARCHAR(MAX);
 DECLARE @Params NVARCHAR(4000);
 DECLARE @Count INT;
 
-SET @SQL = 'SELECT @CountOut = COUNT(*) FROM Employees WHERE IsActive = @Active';
+SET @SQL = 'SELECT @CountOut = COUNT(*) FROM Employees e WHERE IsActive = @Active';
 SET @Params = '@Active BIT, @CountOut INT OUTPUT';
 
 EXEC sp_executesql @SQL, @Params, @Active = 1, @CountOut = @Count OUTPUT;
@@ -111,9 +111,9 @@ SELECT @Count AS ActiveEmployeeCount;
 ```sql
 -- Create flexible employee search procedure with dynamic criteria
 CREATE PROCEDURE sp_SearchEmployeesDynamic
-    @FirstName VARCHAR(50) = NULL,
-    @LastName VARCHAR(50) = NULL,
-    @DepartmentID INT = NULL,
+    @e.FirstName VARCHAR(50) = NULL,
+    @e.LastName VARCHAR(50) = NULL,
+    @d.DepartmentID INT = NULL,
     @d.DepartmentName VARCHAR(100) = NULL,
     @JobTitleSearch VARCHAR(100) = NULL,
     @MinSalary DECIMAL(10,2) = NULL,
@@ -122,7 +122,7 @@ CREATE PROCEDURE sp_SearchEmployeesDynamic
     @HireDateTo DATE = NULL,
     @ManagerID INT = NULL,
     @IsActive BIT = 1,
-    @SortBy VARCHAR(50) = 'LastName',
+    @SortBy VARCHAR(50) = 'e.LastName',
     @SortOrder VARCHAR(4) = 'ASC',
     @PageNumber INT = 1,
     @PageSize INT = 50
@@ -135,8 +135,8 @@ BEGIN
     IF @PageSize <= 0 OR @PageSize > 1000 SET @PageSize = 50;
     
     -- Validate sort column (whitelist approach for security)
-    IF @SortBy NOT IN ('FirstName', 'LastName', 'JobTitle', 'BaseSalary', 'HireDate', 'd.DepartmentName')
-        SET @SortBy = 'LastName';
+    IF @SortBy NOT IN ('e.FirstName', 'e.LastName', 'e.JobTitle', 'e.BaseSalary', 'e.HireDate', 'd.DepartmentName')
+        SET @SortBy = 'e.LastName';
     
     -- Validate sort order
     IF @SortOrder NOT IN ('ASC', 'DESC')
@@ -165,8 +165,8 @@ BEGIN
         e.WorkEmail,
         CASE WHEN e.IsActive = 1 THEN ''Active'' ELSE ''Inactive'' END AS Status,
         CASE 
-            WHEN mgr.EmployeeID IS NOT NULL 
-            THEN mgr.FirstName + '' '' + mgr.LastName
+            WHEN mgr.e.EmployeeID IS NOT NULL 
+            THEN mgr.e.FirstName + '' '' + mgr.e.LastName
             ELSE ''No Manager''
         END AS ManagerName,
         -- Row number for pagination
@@ -175,37 +175,37 @@ BEGIN
     -- Add dynamic sorting
     SET @SQL = @SQL + 
         CASE @SortBy
-            WHEN 'FirstName' THEN 'e.FirstName'
-            WHEN 'LastName' THEN 'e.LastName'
-            WHEN 'JobTitle' THEN 'e.JobTitle'
-            WHEN 'BaseSalary' THEN 'e.BaseSalary'
-            WHEN 'HireDate' THEN 'e.HireDate'
+            WHEN 'e.FirstName' THEN 'e.FirstName'
+            WHEN 'e.LastName' THEN 'e.LastName'
+            WHEN 'e.JobTitle' THEN 'e.JobTitle'
+            WHEN 'e.BaseSalary' THEN 'e.BaseSalary'
+            WHEN 'e.HireDate' THEN 'e.HireDate'
             WHEN 'd.DepartmentName' THEN 'd.DepartmentName'
             ELSE 'e.LastName'
         END + ' ' + @SortOrder + ') AS RowNum
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID';
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    LEFT JOIN Employees mgr ON e.ManagerID = mgr.e.EmployeeID';
     
     -- Build WHERE clause dynamically
     SET @WhereClause = ' WHERE 1=1';
     
     -- Add conditions based on provided parameters
-    IF @FirstName IS NOT NULL
+    IF @e.FirstName IS NOT NULL
     BEGIN
         SET @WhereClause = @WhereClause + ' AND e.FirstName LIKE @FirstNameParam';
         SET @Params = @Params + '@FirstNameParam VARCHAR(52), ';
     END
     
-    IF @LastName IS NOT NULL
+    IF @e.LastName IS NOT NULL
     BEGIN
         SET @WhereClause = @WhereClause + ' AND e.LastName LIKE @LastNameParam';
         SET @Params = @Params + '@LastNameParam VARCHAR(52), ';
     END
     
-    IF @DepartmentID IS NOT NULL
+    IF @d.DepartmentID IS NOT NULL
     BEGIN
-        SET @WhereClause = @WhereClause + ' AND e.DepartmentID = @DepartmentIDParam';
+        SET @WhereClause = @WhereClause + ' AND e.d.DepartmentID = @DepartmentIDParam';
         SET @Params = @Params + '@DepartmentIDParam INT, ';
     END
     
@@ -268,10 +268,10 @@ BEGIN
     -- Execute the dynamic query
     BEGIN TRY
         EXEC sp_executesql @SQL, @Params,
-            @FirstNameParam = @FirstName,
-            @LastNameParam = @LastName,
-            @DepartmentIDParam = @DepartmentID,
-            @DepartmentNameParam = @DepartmentName,
+            @FirstNameParam = @e.FirstName,
+            @LastNameParam = @e.LastName,
+            @DepartmentIDParam = @d.DepartmentID,
+            @DepartmentNameParam = @d.DepartmentName,
             @JobTitleParam = @JobTitleSearch,
             @MinSalaryParam = @MinSalary,
             @MaxSalaryParam = @MaxSalary,
@@ -289,14 +289,14 @@ BEGIN
         
         -- Build count query (reuse WHERE clause)
         SET @TotalCountSQL = 'SELECT @TotalOut = COUNT(*) FROM Employees e
-                              INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID' + @WhereClause;
+                              INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID' + @WhereClause;
         SET @TotalCountParams = REPLACE(@Params, '@PageNumberParam INT, @PageSizeParam INT', '') + '@TotalOut INT OUTPUT';
         
         EXEC sp_executesql @TotalCountSQL, @TotalCountParams,
-            @FirstNameParam = @FirstName,
-            @LastNameParam = @LastName,
-            @DepartmentIDParam = @DepartmentID,
-            @DepartmentNameParam = @DepartmentName,
+            @FirstNameParam = @e.FirstName,
+            @LastNameParam = @e.LastName,
+            @DepartmentIDParam = @d.DepartmentID,
+            @DepartmentNameParam = @d.DepartmentName,
             @JobTitleParam = @JobTitleSearch,
             @MinSalaryParam = @MinSalary,
             @MaxSalaryParam = @MaxSalary,
@@ -329,14 +329,14 @@ END;
 -- Test the dynamic search procedure
 -- Basic search
 EXEC sp_SearchEmployeesDynamic 
-    @DepartmentName = 'Engineering',
+    @d.DepartmentName = 'Engineering',
     @MinSalary = 60000,
-    @SortBy = 'BaseSalary',
+    @SortBy = 'e.BaseSalary',
     @SortOrder = 'DESC';
 
 -- Complex search with multiple criteria
 EXEC sp_SearchEmployeesDynamic
-    @LastName = 'Smith',
+    @e.LastName = 'Smith',
     @JobTitleSearch = 'Developer',
     @HireDateFrom = '2020-01-01',
     @PageNumber = 1,
@@ -401,7 +401,7 @@ BEGIN
         SUM(CASE WHEN e.IsActive = 0 THEN 1 ELSE 0 END) AS InactiveEmployees';
     END
     
-    -- Add BaseSalary statistics if requested
+    -- Add e.BaseSalary statistics if requested
     IF @IncludeSalaryStats = 1
     BEGIN
         SET @SelectClause = @SelectClause + ',
@@ -417,7 +417,7 @@ BEGIN
         SET @SelectClause = @SelectClause + ',
         COUNT(DISTINCT p.ProjectID) AS TotalProjects,
         SUM(CASE WHEN p.IsActive = 1 THEN 1 ELSE 0 END) AS ActiveProjects,
-        FORMAT(SUM(CASE WHEN p.IsActive = 1 THEN p.Budget ELSE 0 END), ''C'') AS TotalProjectBudget';
+        FORMAT(SUM(CASE WHEN p.IsActive = 1 THEN p.d.Budget ELSE 0 END), ''C'') AS TotalProjectBudget';
     END
     
     -- Add manager information if requested
@@ -431,15 +431,15 @@ BEGIN
     -- Build FROM clause with necessary joins
     SET @FromClause = '
     FROM Departments d
-    LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID';
+    LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID';
     
     -- Add project join if needed
     IF @IncludeProjectInfo = 1
     BEGIN
         SET @FromClause = @FromClause + '
         LEFT JOIN Projects p ON d.DepartmentID = (
-            SELECT TOP 1 emp.DepartmentID 
-            FROM Employees emp 
+            SELECT TOP 1 emp.d.DepartmentID 
+            FROM Employees e emp 
             WHERE emp.EmployeeID = p.ProjectManagerID
         )';
     END
@@ -450,12 +450,12 @@ BEGIN
         SET @FromClause = @FromClause + '
         LEFT JOIN (
             SELECT 
-                e1.EmployeeID,
+                e1.e.EmployeeID,
                 COUNT(e1.ManagerID) AS ManagerCount
-            FROM Employees e1
+            FROM Employees e e1
             WHERE e1.IsActive = 1
-            GROUP BY e1.EmployeeID
-        ) mgr_count ON e.EmployeeID = mgr_count.EmployeeID';
+            GROUP BY e1.e.EmployeeID
+        ) mgr_count ON e.EmployeeID = mgr_count.e.EmployeeID';
     END
     
     -- Build WHERE clause
@@ -705,7 +705,7 @@ BEGIN
     SET @FromClause = '
     FROM Orders o
     INNER JOIN Customers c ON o.CustomerID = c.CustomerID
-    INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
+    INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID';
     
     -- Build WHERE clause
@@ -728,7 +728,7 @@ BEGIN
     -- Add employee filter
     IF @EmployeeIDs IS NOT NULL AND LTRIM(RTRIM(@EmployeeIDs)) != ''
     BEGIN
-        SET @WhereClause = @WhereClause + ' AND o.EmployeeID IN (SELECT value FROM STRING_SPLIT(@EmployeeIDsParam, '',''))';
+        SET @WhereClause = @WhereClause + ' AND o.e.EmployeeID IN (SELECT value FROM STRING_SPLIT(@EmployeeIDsParam, '',''))';
         SET @Params = @Params + ', @EmployeeIDsParam VARCHAR(1000)';
     END
     
@@ -854,7 +854,7 @@ AS
 BEGIN
     DECLARE @SQL NVARCHAR(MAX);
     -- NEVER DO THIS - Direct string concatenation
-    SET @SQL = 'SELECT * FROM Employees WHERE LastName = ''' + @SearchTerm + '''';
+    SET @SQL = 'SELECT * FROM Employees e WHERE e.LastName = ''' + @SearchTerm + '''';
     EXEC(@SQL);  -- Vulnerable to injection
 END;
 
@@ -888,9 +888,9 @@ BEGIN
     DECLARE @Params NVARCHAR(500);
     
     -- Safe parameterized query
-    SET @SQL = 'SELECT EmployeeID, FirstName, LastName, JobTitle 
-                FROM Employees 
-                WHERE LastName LIKE @SearchPattern AND IsActive = 1';
+    SET @SQL = 'SELECT e.EmployeeID, e.FirstName, e.LastName, e.JobTitle 
+                FROM Employees e 
+                WHERE e.LastName LIKE @SearchPattern AND IsActive = 1';
     SET @Params = '@SearchPattern VARCHAR(102)';
     
     -- Execute with parameter binding
@@ -904,7 +904,7 @@ CREATE PROCEDURE sp_SecureDynamicColumns
 AS
 BEGIN
     -- Validate column exists in allowed columns (whitelist)
-    IF @ColumnName NOT IN ('EmployeeID', 'FirstName', 'LastName', 'JobTitle', 'BaseSalary', 'HireDate')
+    IF @ColumnName NOT IN ('e.EmployeeID', 'e.FirstName', 'e.LastName', 'e.JobTitle', 'e.BaseSalary', 'e.HireDate')
     BEGIN
         RAISERROR('Invalid column name specified.', 16, 1);
         RETURN -1;

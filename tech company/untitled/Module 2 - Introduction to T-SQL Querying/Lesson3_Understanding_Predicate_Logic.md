@@ -68,22 +68,22 @@ Unlike binary logic (TRUE/FALSE), SQL uses three-valued logic:
 #### 1. Comparison Predicates
 ```sql
 -- Basic comparison operators
-SELECT * FROM Employees WHERE BaseSalary > 50000;        -- Greater than
-SELECT * FROM Employees WHERE Age <= 30;             -- Less than or equal
+SELECT * FROM Employees e WHERE e.BaseSalary > 50000;        -- Greater than
+SELECT * FROM Employees e WHERE Age <= 30;             -- Less than or equal
 SELECT * FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Engineering';     -- Equal
-SELECT * FROM Employees WHERE DepartmentID != 2004;    -- Not equal
-SELECT * FROM Employees WHERE DepartmentID <> 2004;    -- Not equal (alternative)
+SELECT * FROM Employees e WHERE DepartmentID != 2004;    -- Not equal
+SELECT * FROM Employees e WHERE DepartmentID <> 2004;    -- Not equal (alternative)
 ```
 
 #### 2. BETWEEN Predicate
 ```sql
 -- Range checking
-SELECT * FROM Employees 
-WHERE BaseSalary BETWEEN 40000 AND 80000;
+SELECT * FROM Employees e 
+WHERE e.BaseSalary BETWEEN 40000 AND 80000;
 
 -- Equivalent to:
-SELECT * FROM Employees 
-WHERE BaseSalary >= 40000 AND BaseSalary <= 80000;
+SELECT * FROM Employees e 
+WHERE e.BaseSalary >= 40000 AND e.BaseSalary <= 80000;
 
 -- Date ranges
 SELECT * FROM Orders 
@@ -93,11 +93,13 @@ WHERE OrderDate BETWEEN '2023-01-01' AND '2023-12-31';
 #### 3. IN Predicate
 ```sql
 -- List membership
-SELECT * FROM Employees 
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
 WHERE d.DepartmentName IN ('IT', 'Finance', 'Marketing');
 
 -- Equivalent to:
-SELECT * FROM Employees 
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
 WHERE d.DepartmentName = 'Engineering' OR d.DepartmentName = 'Finance' OR d.DepartmentName = 'Marketing';
 
 -- With subquery
@@ -111,10 +113,10 @@ WHERE CategoryID IN (
 #### 4. LIKE Predicate (Pattern Matching)
 ```sql
 -- Basic pattern matching
-SELECT * FROM Employees WHERE FirstName LIKE 'J%';     -- Starts with 'J'
-SELECT * FROM Employees WHERE FirstName LIKE '%son';   -- Ends with 'son'
-SELECT * FROM Employees WHERE FirstName LIKE '%an%';   -- Contains 'an'
-SELECT * FROM Employees WHERE FirstName LIKE 'J_hn';   -- J followed by any char, then 'hn'
+SELECT * FROM Employees e WHERE e.FirstName LIKE 'J%';     -- Starts with 'J'
+SELECT * FROM Employees e WHERE e.FirstName LIKE '%son';   -- Ends with 'son'
+SELECT * FROM Employees e WHERE e.FirstName LIKE '%an%';   -- Contains 'an'
+SELECT * FROM Employees e WHERE e.FirstName LIKE 'J_hn';   -- J followed by any char, then 'hn'
 
 -- Escape characters
 SELECT CustomerID, CompanyName FROM Customers WHERE ProductName LIKE '%50[%]%';  -- Contains '50%'
@@ -125,12 +127,12 @@ SELECT CustomerID, CompanyName FROM Customers WHERE ProductName LIKE '%50[%]%'; 
 #### 1. NULL Predicates
 ```sql
 -- Testing for NULL values
-SELECT * FROM Employees WHERE MiddleName IS NULL;
-SELECT * FROM Employees WHERE MiddleName IS NOT NULL;
+SELECT * FROM Employees e WHERE MiddleName IS NULL;
+SELECT * FROM Employees e WHERE MiddleName IS NOT NULL;
 
 -- Common mistake - this returns no rows even if MiddleName contains NULLs
-SELECT * FROM Employees WHERE MiddleName = NULL;  -- WRONG!
-SELECT * FROM Employees WHERE MiddleName != NULL; -- WRONG!
+SELECT * FROM Employees e WHERE MiddleName = NULL;  -- WRONG!
+SELECT * FROM Employees e WHERE MiddleName != NULL; -- WRONG!
 ```
 
 #### 2. EXISTS Predicate
@@ -140,7 +142,7 @@ SELECT e.FirstName, e.LastName
 FROM Employees e
 WHERE EXISTS (
     SELECT 1 FROM Orders o 
-    WHERE o.EmployeeID = e.EmployeeID 
+    WHERE o.e.EmployeeID = e.EmployeeID 
     AND o.OrderDate >= '2023-01-01'
 );
 
@@ -156,19 +158,22 @@ WHERE NOT EXISTS (
 #### 3. Complex Logical Combinations
 ```sql
 -- AND, OR, NOT operators with proper grouping
-SELECT * FROM Employees 
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
 WHERE (Department = 'IT' OR d.DepartmentName = 'Engineering')
-  AND BaseSalary > 60000
-  AND HireDate >= '2020-01-01';
+  AND e.BaseSalary > 60000
+  AND e.HireDate >= '2020-01-01';
 
 -- De Morgan's Laws application
 -- NOT (A AND B) is equivalent to (NOT A) OR (NOT B)
-SELECT * FROM Employees 
-WHERE NOT (Department = 'HR' AND BaseSalary < 40000);
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE NOT (Department = 'HR' AND e.BaseSalary < 40000);
 
 -- Equivalent to:
-SELECT * FROM Employees 
-WHERE DepartmentID != 2004 OR BaseSalary >= 40000;
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE DepartmentID != 2004 OR e.BaseSalary >= 40000;
 ```
 
 ### Advanced Examples
@@ -177,23 +182,24 @@ WHERE DepartmentID != 2004 OR BaseSalary >= 40000;
 ```sql
 -- Multi-condition evaluation
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
     CASE 
-        WHEN BaseSalary IS NULL THEN 'No BaseSalary Data'
-        WHEN BaseSalary < 30000 THEN 'Entry Level'
-        WHEN BaseSalary BETWEEN 30000 AND 60000 THEN 'Mid Level'
-        WHEN BaseSalary BETWEEN 60001 AND 100000 THEN 'Senior Level'
+        WHEN e.BaseSalary IS NULL THEN 'No e.BaseSalary Data'
+        WHEN e.BaseSalary < 30000 THEN 'Entry Level'
+        WHEN e.BaseSalary BETWEEN 30000 AND 60000 THEN 'Mid Level'
+        WHEN e.BaseSalary BETWEEN 60001 AND 100000 THEN 'Senior Level'
         ELSE 'Executive Level'
     END AS SalaryCategory,
     CASE 
-        WHEN d.DepartmentName = 'Sales' AND BaseSalary > 80000 THEN 'Top Sales Performer'
-        WHEN d.DepartmentName = 'Engineering' AND DATEDIFF(YEAR, HireDate, GETDATE()) > 5 THEN 'Senior IT Professional'
+        WHEN d.DepartmentName = 'Sales' AND e.BaseSalary > 80000 THEN 'Top Sales Performer'
+        WHEN d.DepartmentName = 'Engineering' AND DATEDIFF(YEAR, e.HireDate, GETDATE()) > 5 THEN 'Senior IT Professional'
         WHEN Age < 25 AND d.DepartmentName = 'Marketing' THEN 'Young Marketing Talent'
         ELSE 'Standard Employee'
     END AS EmployeeType
-FROM Employees e;
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 ```
 
 #### 2. Advanced Pattern Matching
@@ -208,8 +214,8 @@ SELECT CustomerID, CompanyName FROM Customers
 WHERE Description LIKE '%' + REPLACE(@SearchTerm, '%', '\%') + '%' ESCAPE '\';
 
 -- Regular expression-like patterns (SQL Server 2022+)
-SELECT * FROM Employees 
-WHERE FirstName LIKE '%[aeiou]%[aeiou]%';  -- Contains at least two vowels
+SELECT * FROM Employees e 
+WHERE e.FirstName LIKE '%[aeiou]%[aeiou]%';  -- Contains at least two vowels
 ```
 
 #### 3. Advanced EXISTS Patterns
@@ -236,8 +242,8 @@ FROM Employees e
 WHERE EXISTS (
     SELECT 1
     FROM Orders o
-    WHERE o.EmployeeID = e.EmployeeID
-    GROUP BY o.EmployeeID
+    WHERE o.e.EmployeeID = e.EmployeeID
+    GROUP BY o.e.EmployeeID
     HAVING COUNT(*) > 10 AND AVG(o.OrderTotal) > 1000
 );
 ```
@@ -261,8 +267,8 @@ NULL  AND NULL  = NULL
 
 -- Example demonstrating NULL behavior
 SELECT *
-FROM Employees
-WHERE (BaseSalary > 50000) AND (MiddleName IS NOT NULL);
+FROM Employees e
+WHERE (e.BaseSalary > 50000) AND (MiddleName IS NOT NULL);
 ```
 
 ### OR Truth Table
@@ -282,7 +288,7 @@ NULL  OR NULL  = NULL
 
 -- Example demonstrating NULL behavior
 SELECT *
-FROM Employees
+FROM Employees e
 WHERE (Department = 'IT') OR (MiddleName IS NULL);
 ```
 
@@ -296,11 +302,11 @@ NOT NULL  = NULL
 */
 
 -- Be careful with NOT and NULLs
-SELECT * FROM Employees WHERE NOT (MiddleName = 'John');
+SELECT * FROM Employees e WHERE NOT (MiddleName = 'John');
 -- This excludes rows where MiddleName IS NULL!
 
 -- To include NULLs:
-SELECT * FROM Employees 
+SELECT * FROM Employees e 
 WHERE MiddleName != 'John' OR MiddleName IS NULL;
 ```
 
@@ -314,10 +320,11 @@ DECLARE @SearchDept NVARCHAR(50) = 'IT';
 DECLARE @MinSalary DECIMAL(10,2) = NULL;
 
 SELECT *
-FROM Employees
-WHERE (@SearchName IS NULL OR FirstName LIKE '%' + @SearchName + '%')
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+WHERE (@SearchName IS NULL OR e.FirstName LIKE '%' + @SearchName + '%')
   AND (@SearchDept IS NULL OR d.DepartmentName = @SearchDept)
-  AND (@MinSalary IS NULL OR BaseSalary >= @MinSalary);
+  AND (@MinSalary IS NULL OR e.BaseSalary >= @MinSalary);
 ```
 
 ### 2. Date Range Predicates
@@ -367,26 +374,26 @@ WHERE Price > (
 ### 1. Sargable Predicates
 ```sql
 -- Sargable (Search ARGument ABLE) - can use indexes efficiently
-SELECT * FROM Employees WHERE BaseSalary > 50000;
-SELECT * FROM Employees WHERE LastName = 'Smith';
-SELECT * FROM Employees WHERE HireDate >= '2023-01-01';
+SELECT * FROM Employees e WHERE e.BaseSalary > 50000;
+SELECT * FROM Employees e WHERE e.LastName = 'Smith';
+SELECT * FROM Employees e WHERE e.HireDate >= '2023-01-01';
 
 -- Non-sargable - cannot use indexes efficiently
-SELECT * FROM Employees WHERE YEAR(HireDate) = 2023;  -- Function on column
-SELECT * FROM Employees WHERE BaseSalary * 1.1 > 55000;   -- Expression on column
-SELECT * FROM Employees WHERE LastName LIKE '%smith'; -- Leading wildcard
+SELECT * FROM Employees e WHERE YEAR(e.HireDate) = 2023;  -- Function on column
+SELECT * FROM Employees e WHERE e.BaseSalary * 1.1 > 55000;   -- Expression on column
+SELECT * FROM Employees e WHERE e.LastName LIKE '%smith'; -- Leading wildcard
 ```
 
 ### 2. Optimizing Complex Predicates
 ```sql
 -- Instead of complex OR conditions that can't use indexes well
-SELECT * FROM Employees 
-WHERE FirstName = 'John' OR LastName = 'Smith' OR d.DepartmentName = 'Engineering';
+SELECT * FROM Employees e 
+WHERE e.FirstName = 'John' OR e.LastName = 'Smith' OR d.DepartmentName = 'Engineering';
 
 -- Consider UNION for better performance:
-SELECT * FROM Employees WHERE FirstName = 'John'
+SELECT * FROM Employees e WHERE e.FirstName = 'John'
 UNION
-SELECT * FROM Employees WHERE LastName = 'Smith'
+SELECT * FROM Employees e WHERE e.LastName = 'Smith'
 UNION
 SELECT * FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Engineering';
 ```
@@ -403,7 +410,7 @@ WHERE EXISTS (
 );
 
 -- IN performs well with small, static lists
-SELECT * FROM Employees 
+SELECT * FROM Employees e 
 WHERE DepartmentID IN (1, 2, 3, 4, 5);
 ```
 
@@ -413,12 +420,12 @@ WHERE DepartmentID IN (1, 2, 3, 4, 5);
 ```sql
 -- Always be explicit about NULL handling
 SELECT *
-FROM Employees
+FROM Employees e
 WHERE (MiddleName = @SearchMiddleName OR (MiddleName IS NULL AND @SearchMiddleName IS NULL));
 
 -- Use ISNULL/COALESCE for default values
 SELECT *
-FROM Employees
+FROM Employees e
 WHERE ISNULL(MiddleName, '') LIKE '%' + ISNULL(@SearchMiddleName, '') + '%';
 ```
 
@@ -426,10 +433,11 @@ WHERE ISNULL(MiddleName, '') LIKE '%' + ISNULL(@SearchMiddleName, '') + '%';
 ```sql
 -- Clear precedence with parentheses
 SELECT *
-FROM Employees
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE (Department = 'IT' OR d.DepartmentName = 'Engineering')
-  AND (BaseSalary > 60000)
-  AND (HireDate >= '2020-01-01' OR Title LIKE '%Senior%');
+  AND (e.BaseSalary > 60000)
+  AND (e.HireDate >= '2020-01-01' OR Title LIKE '%Senior%');
 ```
 
 ### 3. Consistent Data Types

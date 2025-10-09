@@ -69,7 +69,7 @@ SELECT
     
     -- Data summary (Module 9)
     (SELECT COUNT(*) FROM Employees e) as TotalEmployees,
-    (SELECT COUNT(*) FROM Projects) as TotalProjects,
+    (SELECT COUNT(*) FROM Projects p) as TotalProjects,
     (SELECT COUNT(*) FROM Clients) as TotalClients,
     
     -- Performance insight
@@ -98,8 +98,8 @@ FROM Employees e;
 SELECT 
     'Projects' as TableName,
     COUNT(*) as RowCount,
-    FORMAT(SUM(Budget), 'C0') as TotalBudget
-FROM Projects
+    FORMAT(SUM(d.Budget), 'C0') as TotalBudget
+FROM Projects p
 UNION ALL
 SELECT 
     'Clients' as TableName,
@@ -130,7 +130,7 @@ FROM Clients;
 -- Module 9: Using aggregate functions with good syntax
 
 -- ================================
--- EMPLOYEE BaseSalary ANALYSIS
+-- EMPLOYEE e.BaseSalary ANALYSIS
 -- Combining T-SQL fundamentals with aggregation
 -- ================================
 
@@ -167,11 +167,11 @@ DECLARE @HighEarners INT;
 -- Calculate aggregates and store in variables (Module 9 skill)
 SELECT @AverageSalary = AVG(e.BaseSalary) FROM Employees e;
 SELECT @TotalEmployees = COUNT(*) FROM Employees e;
-SELECT @HighEarners = COUNT(*) FROM Employees WHERE BaseSalary > @AverageSalary;
+SELECT @HighEarners = COUNT(*) FROM Employees e WHERE e.BaseSalary > @AverageSalary;
 
 -- Display results with T-SQL formatting
 SELECT 
-    'BaseSalary Analysis Report' AS ReportTitle,
+    'e.BaseSalary Analysis Report' AS ReportTitle,
     FORMAT(@AverageSalary, 'C0') AS AverageBaseSalary,
     @TotalEmployees AS TotalEmployees,
     @HighEarners AS EmployeesAboveAverage,
@@ -185,10 +185,10 @@ SELECT
 SELECT d.DepartmentName,                          -- NVARCHAR data type
     COUNT(*) AS EmployeeCount,          -- INT result
     AVG(e.BaseSalary) AS AverageBaseSalary,       -- DECIMAL result
-    MIN(HireDate) AS FirstHireDate,     -- DATE result
-    MAX(HireDate) AS LastHireDate       -- DATE result
+    MIN(e.HireDate) AS FirstHireDate,     -- DATE result
+    MAX(e.HireDate) AS LastHireDate       -- DATE result
 FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 GROUP BY d.DepartmentName
 ORDER BY AVG(e.BaseSalary) DESC;
 
@@ -215,10 +215,10 @@ ORDER BY AVG(e.BaseSalary) DESC;
 ```sql
 -- Module 3: Basic SELECT with specific columns
 SELECT 
-    FirstName, 
-    LastName, 
+    e.FirstName, 
+    e.LastName, 
     d.DepartmentName, 
-    BaseSalary
+    e.BaseSalary
 FROM Employees e;
 
 -- Module 3 + Module 9: SELECT with aggregation
@@ -227,7 +227,7 @@ SELECT d.DepartmentName,                                    -- Group by column
     FORMAT(AVG(e.BaseSalary), 'C0') AS AvgTeamSalary,  -- Average with formatting
     FORMAT(SUM(e.BaseSalary), 'C0') AS TeamTotalCost   -- Sum aggregation
 FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 GROUP BY d.DepartmentName;
 ```
 
@@ -237,12 +237,12 @@ GROUP BY d.DepartmentName;
 -- Using Module 3 column aliases to make Module 9 aggregates business-friendly
 SELECT d.DepartmentName AS 'Department Name',
     COUNT(*) AS 'Number of Employees',
-    FORMAT(MIN(e.BaseSalary), 'C0') AS 'Lowest BaseSalary in Department',
-    FORMAT(MAX(e.BaseSalary), 'C0') AS 'Highest BaseSalary in Department',
-    FORMAT(AVG(e.BaseSalary), 'C0') AS 'Department Average BaseSalary',
+    FORMAT(MIN(e.BaseSalary), 'C0') AS 'Lowest e.BaseSalary in Department',
+    FORMAT(MAX(e.BaseSalary), 'C0') AS 'Highest e.BaseSalary in Department',
+    FORMAT(AVG(e.BaseSalary), 'C0') AS 'Department Average e.BaseSalary',
     FORMAT(SUM(e.BaseSalary), 'C0') AS 'Total d.DepartmentName Payroll'
 FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 GROUP BY d.DepartmentName
 ORDER BY COUNT(*) DESC;
 ```
@@ -258,7 +258,7 @@ ORDER BY COUNT(*) DESC;
 SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount
 FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 INNER JOIN Projects p ON e.EmployeeID = p.AssignedEmployeeID;
 
 -- Module 4 + Module 9: JOIN + GROUP BY for business summary
@@ -266,9 +266,9 @@ SELECT d.DepartmentName,
     COUNT(e.EmployeeID) AS TotalEmployees,
     COUNT(p.ProjectID) AS TotalProjects,
     FORMAT(AVG(e.BaseSalary), 'C0') AS AvgSalary,
-    FORMAT(SUM(p.Budget), 'C0') AS TotalProjectBudget
+    FORMAT(SUM(p.d.Budget), 'C0') AS TotalProjectBudget
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 LEFT JOIN Projects p ON e.EmployeeID = p.AssignedEmployeeID
 GROUP BY d.DepartmentName
 ORDER BY COUNT(p.ProjectID) DESC;
@@ -286,23 +286,23 @@ SELECT
     
     -- Project statistics
     COUNT(p.ProjectID) AS TotalProjects,
-    COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) AS CompletedProjects,
-    COUNT(CASE WHEN p.Status = 'In Progress' THEN 1 END) AS ActiveProjects,
+    COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
+    COUNT(CASE WHEN p.IsActive = 'In Progress' THEN 1 END) AS ActiveProjects,
     
     -- Financial analysis
-    FORMAT(SUM(p.Budget), 'C0') AS TotalProjectValue,
-    FORMAT(AVG(p.Budget), 'C0') AS AverageProjectSize,
+    FORMAT(SUM(p.d.Budget), 'C0') AS TotalProjectValue,
+    FORMAT(AVG(p.d.Budget), 'C0') AS AverageProjectSize,
     
     -- Success rate
     CASE 
         WHEN COUNT(p.ProjectID) = 0 THEN 'No Projects'
-        ELSE FORMAT((COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) * 100.0 / COUNT(p.ProjectID)), 'N1') + '%'
+        ELSE FORMAT((COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) * 100.0 / COUNT(p.ProjectID)), 'N1') + '%'
     END AS SuccessRate
     
 FROM Clients c
 LEFT JOIN Projects p ON c.ClientID = p.ClientID
 GROUP BY c.ClientName, c.Industry
-ORDER BY SUM(p.Budget) DESC;
+ORDER BY SUM(p.d.Budget) DESC;
 ```
 
 ### Exercise 4.2: Employee-Department-Project Analysis (🟢 INTERMEDIATE)
@@ -317,8 +317,8 @@ SELECT d.DepartmentName,
     
     -- Project metrics
     COUNT(p.ProjectID) AS TotalProjects,
-    FORMAT(SUM(p.Budget), 'C0') AS TotalBudgetManaged,
-    FORMAT(AVG(p.Budget), 'C0') AS AvgProjectSize,
+    FORMAT(SUM(p.d.Budget), 'C0') AS TotalBudgetManaged,
+    FORMAT(AVG(p.d.Budget), 'C0') AS AvgProjectSize,
     
     -- Efficiency metrics
     CASE 
@@ -328,14 +328,14 @@ SELECT d.DepartmentName,
     
     CASE 
         WHEN COUNT(DISTINCT e.EmployeeID) = 0 THEN '$0'
-        ELSE FORMAT(SUM(p.Budget) / COUNT(DISTINCT e.EmployeeID), 'C0')
+        ELSE FORMAT(SUM(p.d.Budget) / COUNT(DISTINCT e.EmployeeID), 'C0')
     END AS BudgetPerEmployee
     
 FROM Departments d
-LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID
+LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
 LEFT JOIN Projects p ON e.EmployeeID = p.AssignedEmployeeID
 GROUP BY d.DepartmentName
-ORDER BY SUM(p.Budget) DESC;
+ORDER BY SUM(p.d.Budget) DESC;
 ```
 
 ---
@@ -357,18 +357,18 @@ ORDER BY SUM(p.Budget) DESC;
 
 ```sql
 -- Module 5: Basic filtering and sorting
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
-WHERE BaseSalary > 60000
-ORDER BY BaseSalary DESC;
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+WHERE e.BaseSalary > 60000
+ORDER BY e.BaseSalary DESC;
 
 -- Module 5 + Module 9: Filter rows, group, filter groups, sort results
 SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount
 FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE BaseSalary > 60000                    -- Filter rows first (Module 5)
-  AND HireDate >= '2020-01-01'         -- Multiple conditions (Module 5)
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+WHERE e.BaseSalary > 60000                    -- Filter rows first (Module 5)
+  AND e.HireDate >= '2020-01-01'         -- Multiple conditions (Module 5)
 GROUP BY d.DepartmentName                     -- Then group (Module 9)
 HAVING COUNT(*) >= 2                   -- Filter groups (Module 9)
 ORDER BY AVG(e.BaseSalary) DESC;             -- Sort results (Module 5)
@@ -387,13 +387,15 @@ SELECT TOP 3                           -- Limit results (Module 5)
     FORMAT(SUM(e.BaseSalary), 'C0') AS TotalPayroll,
     
     -- Calculate how much above company average
-    FORMAT(AVG(e.BaseSalary) - (SELECT AVG(e.BaseSalary) FROM Employees e), 'C0') AS AboveCompanyAvg
+    FORMAT(AVG(e.BaseSalary) - (SELECT AVG(e.BaseSalary) FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID), 'C0') AS AboveCompanyAvg
     
-FROM Employees
-WHERE BaseSalary IS NOT NULL               -- Filter out invalid data (Module 5)
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+WHERE e.BaseSalary IS NOT NULL               -- Filter out invalid data (Module 5)
 GROUP BY d.DepartmentName                    -- Group for aggregation (Module 9)
 HAVING COUNT(*) >= 3                  -- Filter groups (Module 9)
-ORDER BY AVG(e.BaseSalary) DESC;            -- Sort by average BaseSalary (Module 5)
+ORDER BY AVG(e.BaseSalary) DESC;            -- Sort by average e.BaseSalary (Module 5)
 ```
 
 ### Exercise 5.2: Recent Projects Analysis (🟢 INTERMEDIATE)
@@ -405,24 +407,24 @@ SELECT
     DATEPART(QUARTER, StartDate) AS Quarter,
     
     COUNT(*) AS ProjectsStarted,
-    COUNT(CASE WHEN Status = 'Completed' THEN 1 END) AS CompletedProjects,
-    COUNT(CASE WHEN Status = 'In Progress' THEN 1 END) AS ActiveProjects,
+    COUNT(CASE WHEN IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
+    COUNT(CASE WHEN IsActive = 'In Progress' THEN 1 END) AS ActiveProjects,
     
-    FORMAT(SUM(Budget), 'C0') AS TotalBudget,
-    FORMAT(AVG(Budget), 'C0') AS AvgProjectBudget,
+    FORMAT(SUM(d.Budget), 'C0') AS TotalBudget,
+    FORMAT(AVG(d.Budget), 'C0') AS AvgProjectBudget,
     
     -- Success rate calculation
     FORMAT(
-        COUNT(CASE WHEN Status = 'Completed' THEN 1 END) * 100.0 / COUNT(*), 
+        COUNT(CASE WHEN IsActive = 'Completed' THEN 1 END) * 100.0 / COUNT(*), 
         'N1'
     ) + '%' AS CompletionRate
     
-FROM Projects
+FROM Projects p
 WHERE StartDate >= '2022-01-01'        -- Only recent projects (Module 5)
   AND StartDate < '2024-01-01'         -- Date range filtering (Module 5)
-  AND Budget IS NOT NULL               -- Exclude invalid data (Module 5)
+  AND d.Budget IS NOT NULL               -- Exclude invalid data (Module 5)
 GROUP BY YEAR(StartDate), DATEPART(QUARTER, StartDate)  -- Group by year and quarter (Module 9)
-HAVING SUM(Budget) > 50000            -- Only significant quarters (Module 9)
+HAVING SUM(d.Budget) > 50000            -- Only significant quarters (Module 9)
 ORDER BY YEAR(StartDate) DESC,        -- Sort by year descending (Module 5)
          DATEPART(QUARTER, StartDate) DESC;  -- Then by quarter (Module 5)
 ```
@@ -439,7 +441,7 @@ SELECT d.DepartmentName,
     FORMAT(MIN(e.BaseSalary), 'C0') AS MinSalary,
     FORMAT(MAX(e.BaseSalary), 'C0') AS MaxSalary,
     
-    -- Calculate BaseSalary range
+    -- Calculate e.BaseSalary range
     FORMAT(MAX(e.BaseSalary) - MIN(e.BaseSalary), 'C0') AS SalaryRange,
     
     -- Determine pay equity
@@ -449,9 +451,10 @@ SELECT d.DepartmentName,
         ELSE 'Wide Range'
     END AS PayEquity
     
-FROM Employees
-WHERE BaseSalary BETWEEN 40000 AND 150000  -- Reasonable BaseSalary range (Module 5)
-  AND HireDate >= '2018-01-01'         -- Recent hires only (Module 5)
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+WHERE e.BaseSalary BETWEEN 40000 AND 150000  -- Reasonable e.BaseSalary range (Module 5)
+  AND e.HireDate >= '2018-01-01'         -- Recent hires only (Module 5)
   AND d.DepartmentName IN ('IT', 'Sales', 'Marketing')  -- Specific departments (Module 5)
 GROUP BY d.DepartmentName, Position          -- Group by both columns (Module 9)
 HAVING COUNT(*) >= 2                  -- Multiple employees in role (Module 9)
@@ -483,18 +486,18 @@ SELECT
     
     -- Numeric aggregation (Module 6 + Module 9)
     COUNT(*) AS TotalRecords,              -- INT result
-    AVG(CAST(BaseSalary AS FLOAT)) AS AvgSalaryFloat,    -- FLOAT result
+    AVG(CAST(e.BaseSalary AS FLOAT)) AS AvgSalaryFloat,    -- FLOAT result
     AVG(e.BaseSalary) AS AvgSalaryDecimal,       -- DECIMAL result
     
     -- String aggregation (Module 6 + Module 9)
     COUNT(DISTINCT Department) AS UniqueDepartments,  -- Count unique strings
-    MIN(FirstName) AS FirstNameAlphabetically,       -- MIN/MAX work on strings too
-    MAX(LastName) AS LastNameAlphabetically,
+    MIN(e.FirstName) AS FirstNameAlphabetically,       -- MIN/MAX work on strings too
+    MAX(e.LastName) AS LastNameAlphabetically,
     
     -- Date aggregation (Module 6 + Module 9)
-    MIN(HireDate) AS EarliestHire,         -- DATE result
-    MAX(HireDate) AS LatestHire,           -- DATE result
-    DATEDIFF(DAY, MIN(HireDate), MAX(HireDate)) AS HireDateSpanDays  -- INT result
+    MIN(e.HireDate) AS EarliestHire,         -- DATE result
+    MAX(e.HireDate) AS LatestHire,           -- DATE result
+    DATEDIFF(DAY, MIN(e.HireDate), MAX(e.HireDate)) AS HireDateSpanDays  -- INT result
     
 FROM Employees e;
 ```
@@ -508,21 +511,21 @@ FROM Employees e;
 -- Module 9: Grouping and aggregating date data
 
 SELECT 
-    YEAR(HireDate) AS HireYear,            -- Extract year (Module 6)
-    DATENAME(MONTH, HireDate) AS HireMonth, -- Extract month name (Module 6)
+    YEAR(e.HireDate) AS HireYear,            -- Extract year (Module 6)
+    DATENAME(MONTH, e.HireDate) AS HireMonth, -- Extract month name (Module 6)
     
     COUNT(*) AS EmployeesHired,
     FORMAT(AVG(e.BaseSalary), 'C0') AS AvgStartingSalary,
     
     -- Calculate tenure for current employees (Module 6 + Module 9)
-    AVG(DATEDIFF(YEAR, HireDate, GETDATE())) AS AvgYearsOfService,
-    MIN(DATEDIFF(YEAR, HireDate, GETDATE())) AS MinYearsOfService,
-    MAX(DATEDIFF(YEAR, HireDate, GETDATE())) AS MaxYearsOfService
+    AVG(DATEDIFF(YEAR, e.HireDate, GETDATE())) AS AvgYearsOfService,
+    MIN(DATEDIFF(YEAR, e.HireDate, GETDATE())) AS MinYearsOfService,
+    MAX(DATEDIFF(YEAR, e.HireDate, GETDATE())) AS MaxYearsOfService
     
-FROM Employees
-WHERE HireDate IS NOT NULL              -- Handle NULLs (Module 6)
-GROUP BY YEAR(HireDate), DATENAME(MONTH, HireDate)  -- Group by extracted date parts
-ORDER BY YEAR(HireDate), MONTH(HireDate);  -- Sort chronologically
+FROM Employees e
+WHERE e.HireDate IS NOT NULL              -- Handle NULLs (Module 6)
+GROUP BY YEAR(e.HireDate), DATENAME(MONTH, e.HireDate)  -- Group by extracted date parts
+ORDER BY YEAR(e.HireDate), MONTH(e.HireDate);  -- Sort chronologically
 ```
 
 ### Exercise 6.2: String Data Analysis (🟢 INTERMEDIATE)
@@ -533,11 +536,11 @@ ORDER BY YEAR(HireDate), MONTH(HireDate);  -- Sort chronologically
 
 SELECT 
     -- String analysis
-    LEN(FirstName) AS NameLength,         -- String length (Module 6)
+    LEN(e.FirstName) AS NameLength,         -- String length (Module 6)
     
     CASE 
-        WHEN LEN(FirstName) <= 4 THEN 'Short Name'
-        WHEN LEN(FirstName) <= 7 THEN 'Medium Name'
+        WHEN LEN(e.FirstName) <= 4 THEN 'Short Name'
+        WHEN LEN(e.FirstName) <= 7 THEN 'Medium Name'
         ELSE 'Long Name'
     END AS NameCategory,
     
@@ -546,16 +549,16 @@ SELECT
     FORMAT(AVG(e.BaseSalary), 'C0') AS AvgSalary,
     
     -- String aggregation examples
-    MIN(FirstName) AS FirstAlphabetically,
-    MAX(FirstName) AS LastAlphabetically
+    MIN(e.FirstName) AS FirstAlphabetically,
+    MAX(e.FirstName) AS LastAlphabetically
     
-FROM Employees
-WHERE FirstName IS NOT NULL            -- Handle NULL strings (Module 6)
-  AND LEN(TRIM(FirstName)) > 0        -- Exclude empty strings (Module 6)
+FROM Employees e
+WHERE e.FirstName IS NOT NULL            -- Handle NULL strings (Module 6)
+  AND LEN(TRIM(e.FirstName)) > 0        -- Exclude empty strings (Module 6)
 GROUP BY 
     CASE 
-        WHEN LEN(FirstName) <= 4 THEN 'Short Name'
-        WHEN LEN(FirstName) <= 7 THEN 'Medium Name'
+        WHEN LEN(e.FirstName) <= 4 THEN 'Short Name'
+        WHEN LEN(e.FirstName) <= 7 THEN 'Medium Name'
         ELSE 'Long Name'
     END
 ORDER BY COUNT(*) DESC;
@@ -573,16 +576,16 @@ SELECT d.DepartmentName,
     
     -- Count variations (Module 6 + Module 9)
     COUNT(*) AS TotalRows,                    -- Counts all rows including NULLs
-    COUNT(BaseSalary) AS EmployeesWithSalary,     -- Counts only non-NULL salaries
+    COUNT(e.BaseSalary) AS EmployeesWithSalary,     -- Counts only non-NULL salaries
     COUNT(PhoneNumber) AS EmployeesWithPhone, -- Counts only non-NULL phone numbers
     
     -- NULL analysis
-    COUNT(*) - COUNT(BaseSalary) AS MissingSalaries,
+    COUNT(*) - COUNT(e.BaseSalary) AS MissingSalaries,
     COUNT(*) - COUNT(PhoneNumber) AS MissingPhones,
     
     -- Percentage calculations
     FORMAT(
-        (COUNT(BaseSalary) * 100.0 / COUNT(*)), 'N1'
+        (COUNT(e.BaseSalary) * 100.0 / COUNT(*)), 'N1'
     ) + '%' AS SalaryDataCompleteness,
     
     -- Safe aggregation (handles NULLs properly)
@@ -590,10 +593,10 @@ SELECT d.DepartmentName,
     FORMAT(ISNULL(AVG(e.BaseSalary), 0), 'C0') AS AvgSalarySafe,  -- Convert NULL result to 0
     
     -- Conditional aggregation
-    AVG(CASE WHEN BaseSalary IS NOT NULL THEN BaseSalary END) AS AvgSalaryExplicit
+    AVG(CASE WHEN e.BaseSalary IS NOT NULL THEN e.BaseSalary END) AS AvgSalaryExplicit
     
 FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 GROUP BY d.DepartmentName
 ORDER BY COUNT(*) DESC;
 ```
@@ -623,10 +626,11 @@ SELECT
     COUNT(DISTINCT Department) AS UniqueDepartments,
     FORMAT(AVG(e.BaseSalary), 'C0') AS AvgSalary,
     FORMAT(SUM(e.BaseSalary), 'C0') AS TotalPayroll
-FROM Employees e;
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
 -- Module 7: INSERT new employees
-INSERT INTO Employees (FirstName, LastName, d.DepartmentName, Position, BaseSalary, HireDate)
+INSERT INTO Employees (e.FirstName, e.LastName, d.DepartmentName, Position, e.BaseSalary, e.HireDate)
 VALUES 
     ('John', 'Smith', 'IT', 'Developer', 75000, '2024-01-15'),
     ('Jane', 'Doe', 'Marketing', 'Manager', 85000, '2024-01-20');
@@ -638,7 +642,8 @@ SELECT
     COUNT(DISTINCT Department) AS UniqueDepartments,
     FORMAT(AVG(e.BaseSalary), 'C0') AS AvgSalary,
     FORMAT(SUM(e.BaseSalary), 'C0') AS TotalPayroll
-FROM Employees e;
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 ```
 
 ### Exercise 7.1: BaseSalary Update Impact Analysis (🟢 INTERMEDIATE)
@@ -651,14 +656,14 @@ SELECT 'IT d.DepartmentName - BEFORE Raise' AS Status,
     COUNT(*) AS ITEmployees,
     FORMAT(AVG(e.BaseSalary), 'C0') AS CurrentAvgSalary,
     FORMAT(SUM(e.BaseSalary), 'C0') AS CurrentTotalCost,
-    FORMAT(SUM(BaseSalary * 0.10), 'C0') AS ProjectedRaiseAmount,
-    FORMAT(SUM(BaseSalary * 1.10), 'C0') AS ProjectedNewTotal
-FROM Employees
+    FORMAT(SUM(e.BaseSalary * 0.10), 'C0') AS ProjectedRaiseAmount,
+    FORMAT(SUM(e.BaseSalary * 1.10), 'C0') AS ProjectedNewTotal
+FROM Employees e
 WHERE d.DepartmentName = 'IT';
 
 -- Step 2: Make the update (Module 7)
 UPDATE Employees
-SET BaseSalary = BaseSalary * 1.10
+SET e.BaseSalary = e.BaseSalary * 1.10
 WHERE d.DepartmentName = 'IT';
 
 -- Step 3: Verify the change (Module 9)
@@ -666,15 +671,15 @@ SELECT 'IT d.DepartmentName - AFTER Raise' AS Status,
     COUNT(*) AS ITEmployees,
     FORMAT(AVG(e.BaseSalary), 'C0') AS NewAvgSalary,
     FORMAT(SUM(e.BaseSalary), 'C0') AS NewTotalCost
-FROM Employees
+FROM Employees e
 WHERE d.DepartmentName = 'IT';
 
 -- Step 4: Company-wide impact analysis (Module 9)
 SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount
 FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID e
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 GROUP BY d.DepartmentName
 ORDER BY SUM(e.BaseSalary) DESC;
 ```
@@ -686,34 +691,34 @@ ORDER BY SUM(e.BaseSalary) DESC;
 SELECT 
     'Data Quality Report - BEFORE Cleanup' AS Status,
     COUNT(*) AS TotalEmployees,
-    COUNT(CASE WHEN BaseSalary IS NULL THEN 1 END) AS MissingSalaries,
-    COUNT(CASE WHEN BaseSalary <= 0 THEN 1 END) AS InvalidSalaries,
-    COUNT(CASE WHEN HireDate IS NULL THEN 1 END) AS MissingHireDates,
-    COUNT(CASE WHEN HireDate > GETDATE() THEN 1 END) AS FutureHireDates;
+    COUNT(CASE WHEN e.BaseSalary IS NULL THEN 1 END) AS MissingSalaries,
+    COUNT(CASE WHEN e.BaseSalary <= 0 THEN 1 END) AS InvalidSalaries,
+    COUNT(CASE WHEN e.HireDate IS NULL THEN 1 END) AS MissingHireDates,
+    COUNT(CASE WHEN e.HireDate > GETDATE() THEN 1 END) AS FutureHireDates;
 
 -- Step 2: Clean up invalid data (Module 7)
 -- Delete employees with invalid salaries
-DELETE FROM Employees 
-WHERE BaseSalary <= 0 OR BaseSalary IS NULL;
+DELETE FROM Employees e 
+WHERE e.BaseSalary <= 0 OR e.BaseSalary IS NULL;
 
 -- Update future hire dates to today
 UPDATE Employees 
-SET HireDate = GETDATE() 
-WHERE HireDate > GETDATE();
+SET e.HireDate = GETDATE() 
+WHERE e.HireDate > GETDATE();
 
 -- Step 3: Verify cleanup (Module 9)
 SELECT 
     'Data Quality Report - AFTER Cleanup' AS Status,
     COUNT(*) AS TotalEmployees,
-    COUNT(CASE WHEN BaseSalary IS NULL THEN 1 END) AS MissingSalaries,
-    COUNT(CASE WHEN BaseSalary <= 0 THEN 1 END) AS InvalidSalaries,
-    COUNT(CASE WHEN HireDate IS NULL THEN 1 END) AS MissingHireDates,
-    COUNT(CASE WHEN HireDate > GETDATE() THEN 1 END) AS FutureHireDates,
+    COUNT(CASE WHEN e.BaseSalary IS NULL THEN 1 END) AS MissingSalaries,
+    COUNT(CASE WHEN e.BaseSalary <= 0 THEN 1 END) AS InvalidSalaries,
+    COUNT(CASE WHEN e.HireDate IS NULL THEN 1 END) AS MissingHireDates,
+    COUNT(CASE WHEN e.HireDate > GETDATE() THEN 1 END) AS FutureHireDates,
     
     -- Quality metrics
     FORMAT(AVG(e.BaseSalary), 'C0') AS CleanAvgSalary,
-    MIN(HireDate) AS EarliestValidHire,
-    MAX(HireDate) AS LatestValidHire;
+    MIN(e.HireDate) AS EarliestValidHire,
+    MAX(e.HireDate) AS LatestValidHire;
 ```
 
 ### Exercise 7.3: Batch Operations with Monitoring (🟢 ADVANCED)
@@ -727,29 +732,29 @@ SELECT
     'Project Analysis - BEFORE Archive' AS Status,
     COUNT(*) AS TotalProjects,
     COUNT(CASE WHEN YEAR(StartDate) < 2020 THEN 1 END) AS OldProjects,
-    COUNT(CASE WHEN Status = 'Completed' THEN 1 END) AS CompletedProjects,
-    FORMAT(SUM(Budget), 'C0') AS TotalBudget,
-    FORMAT(AVG(Budget), 'C0') AS AvgBudget;
+    COUNT(CASE WHEN IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
+    FORMAT(SUM(d.Budget), 'C0') AS TotalBudget,
+    FORMAT(AVG(d.Budget), 'C0') AS AvgBudget;
 
 -- Step 2: Create archive table and move old data (Module 7)
 -- (In real scenario, you'd create ArchivedProjects table first)
 
 -- Simulate archiving by updating status
 UPDATE Projects 
-SET Status = 'Archived'
+SET IsActive = 'Archived'
 WHERE YEAR(StartDate) < 2020 
-  AND Status = 'Completed';
+  AND IsActive = 'Completed';
 
 -- Step 3: Analyze active projects after archiving (Module 9)
 SELECT 
     'Active Projects - AFTER Archive' AS Status,
     Status,
     COUNT(*) AS ProjectCount,
-    FORMAT(SUM(Budget), 'C0') AS TotalBudget,
-    FORMAT(AVG(Budget), 'C0') AS AvgBudget,
+    FORMAT(SUM(d.Budget), 'C0') AS TotalBudget,
+    FORMAT(AVG(d.Budget), 'C0') AS AvgBudget,
     MIN(StartDate) AS EarliestActive,
     MAX(StartDate) AS LatestActive
-FROM Projects
+FROM Projects p
 WHERE Status != 'Archived'
 GROUP BY Status
 ORDER BY COUNT(*) DESC;
@@ -776,13 +781,13 @@ ORDER BY COUNT(*) DESC;
 -- Module 8 + Module 9: Functions working with aggregation
 SELECT 
     -- String functions with aggregation
-    UPPER(Department) AS DepartmentName,       -- Transform d.DepartmentName names
+    UPPER(Department) AS d.DepartmentName,       -- Transform d.DepartmentName names
     COUNT(*) AS EmployeeCount,
     
     -- Date functions with aggregation
-    AVG(DATEDIFF(YEAR, HireDate, GETDATE())) AS AvgYearsService,
-    MIN(YEAR(HireDate)) AS FirstHireYear,
-    MAX(YEAR(HireDate)) AS LastHireYear,
+    AVG(DATEDIFF(YEAR, e.HireDate, GETDATE())) AS AvgYearsService,
+    MIN(YEAR(e.HireDate)) AS FirstHireYear,
+    MAX(YEAR(e.HireDate)) AS LastHireYear,
     
     -- Math functions with aggregation
     ROUND(AVG(e.BaseSalary), 0) AS RoundedAvgSalary,
@@ -792,8 +797,9 @@ SELECT
     FORMAT(SUM(e.BaseSalary), 'C0') AS FormattedTotalSalary,
     FORMAT(AVG(e.BaseSalary), 'N2') AS FormattedAvgSalary
     
-FROM Employees
-WHERE HireDate IS NOT NULL
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+WHERE e.HireDate IS NOT NULL
 GROUP BY UPPER(Department)
 ORDER BY COUNT(*) DESC;
 ```
@@ -807,49 +813,49 @@ ORDER BY COUNT(*) DESC;
 SELECT 
     -- Tenure grouping using date functions
     CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 1 THEN 'New (< 1 year)'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 3 THEN 'Junior (1-3 years)'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 7 THEN 'Experienced (3-7 years)'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 1 THEN 'New (< 1 year)'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 3 THEN 'Junior (1-3 years)'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 7 THEN 'Experienced (3-7 years)'
         ELSE 'Veteran (7+ years)'
     END AS TenureGroup,
     
     -- Seasonal hiring analysis
-    DATENAME(QUARTER, HireDate) AS HireQuarter,
+    DATENAME(QUARTER, e.HireDate) AS HireQuarter,
     
     -- Aggregation with date calculations
     COUNT(*) AS EmployeeCount,
     FORMAT(AVG(e.BaseSalary), 'C0') AS AvgSalary,
-    AVG(DATEDIFF(MONTH, HireDate, GETDATE())) AS AvgMonthsEmployed,
+    AVG(DATEDIFF(MONTH, e.HireDate, GETDATE())) AS AvgMonthsEmployed,
     
     -- Calculate retention insights
-    MIN(HireDate) AS EarliestHireInGroup,
-    MAX(HireDate) AS LatestHireInGroup,
+    MIN(e.HireDate) AS EarliestHireInGroup,
+    MAX(e.HireDate) AS LatestHireInGroup,
     
     -- Format complex calculations
     FORMAT(
-        AVG(e.BaseSalary) / NULLIF(AVG(DATEDIFF(YEAR, HireDate, GETDATE())), 0), 
+        AVG(e.BaseSalary) / NULLIF(AVG(DATEDIFF(YEAR, e.HireDate, GETDATE())), 0), 
         'C0'
     ) AS SalaryPerYearOfService
     
-FROM Employees
-WHERE HireDate IS NOT NULL 
-  AND HireDate <= GETDATE()  -- Ensure valid hire dates
+FROM Employees e
+WHERE e.HireDate IS NOT NULL 
+  AND e.HireDate <= GETDATE()  -- Ensure valid hire dates
 GROUP BY 
     CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 1 THEN 'New (< 1 year)'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 3 THEN 'Junior (1-3 years)'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 7 THEN 'Experienced (3-7 years)'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 1 THEN 'New (< 1 year)'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 3 THEN 'Junior (1-3 years)'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 7 THEN 'Experienced (3-7 years)'
         ELSE 'Veteran (7+ years)'
     END,
-    DATENAME(QUARTER, HireDate)
+    DATENAME(QUARTER, e.HireDate)
 ORDER BY 
     CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 1 THEN 1
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 3 THEN 2
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 7 THEN 3
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 1 THEN 1
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 3 THEN 2
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 7 THEN 3
         ELSE 4
     END,
-    DATENAME(QUARTER, HireDate);
+    DATENAME(QUARTER, e.HireDate);
 ```
 
 ### Exercise 8.2: String Analysis with Aggregation (🟢 INTERMEDIATE)
@@ -858,34 +864,34 @@ ORDER BY
 -- String functions combined with grouping
 SELECT 
     -- Extract and group by name characteristics
-    LEN(FirstName) AS FirstNameLength,
-    LEFT(LastName, 1) AS LastNameInitial,
+    LEN(e.FirstName) AS FirstNameLength,
+    LEFT(e.LastName, 1) AS LastNameInitial,
     
     -- String aggregation
     COUNT(*) AS EmployeeCount,
     
-    -- BaseSalary analysis by name patterns
+    -- e.BaseSalary analysis by name patterns
     FORMAT(AVG(e.BaseSalary), 'C0') AS AvgSalary,
     
     -- String concatenation in aggregation
     STRING_AGG(
-        CONCAT(LEFT(FirstName, 1), '. ', LastName), 
+        CONCAT(LEFT(e.FirstName, 1), '. ', e.LastName), 
         ', '
     ) AS EmployeeInitials,
     
     -- Complex string analysis
-    AVG(LEN(FirstName + LastName)) AS AvgFullNameLength,
-    MIN(UPPER(FirstName)) AS FirstAlphabetically,
-    MAX(UPPER(LastName)) AS LastAlphabetically
+    AVG(LEN(e.FirstName + e.LastName)) AS AvgFullNameLength,
+    MIN(UPPER(e.FirstName)) AS FirstAlphabetically,
+    MAX(UPPER(e.LastName)) AS LastAlphabetically
     
-FROM Employees
-WHERE FirstName IS NOT NULL 
-  AND LastName IS NOT NULL
-  AND LEN(TRIM(FirstName)) > 0
-  AND LEN(TRIM(LastName)) > 0
-GROUP BY LEN(FirstName), LEFT(LastName, 1)
+FROM Employees e
+WHERE e.FirstName IS NOT NULL 
+  AND e.LastName IS NOT NULL
+  AND LEN(TRIM(e.FirstName)) > 0
+  AND LEN(TRIM(e.LastName)) > 0
+GROUP BY LEN(e.FirstName), LEFT(e.LastName, 1)
 HAVING COUNT(*) >= 1  -- Include all groups for this analysis
-ORDER BY LEN(FirstName), LEFT(LastName, 1);
+ORDER BY LEN(e.FirstName), LEFT(e.LastName, 1);
 ```
 
 ### Exercise 8.3: Mathematical Functions in Business Analysis (🟢 ADVANCED)
@@ -897,27 +903,27 @@ SELECT d.DepartmentName,
     -- Basic aggregation
     COUNT(*) AS EmployeeCount,
     
-    -- BaseSalary statistics with math functions
+    -- e.BaseSalary statistics with math functions
     FORMAT(AVG(e.BaseSalary), 'C0') AS AvgSalary,
     FORMAT(ROUND(AVG(e.BaseSalary), -3), 'C0') AS RoundedAvgSalary,  -- Round to nearest $1000
     FORMAT(CEILING(AVG(e.BaseSalary) / 1000.0) * 1000, 'C0') AS CeilingAvgSalary,
     
     -- Statistical analysis
-    ROUND(STDEV(BaseSalary), 2) AS SalaryStandardDeviation,
-    ROUND(VAR(BaseSalary), 2) AS SalaryVariance,
+    ROUND(STDEV(e.BaseSalary), 2) AS SalaryStandardDeviation,
+    ROUND(VAR(e.BaseSalary), 2) AS SalaryVariance,
     
-    -- Calculate BaseSalary ranges and distribution
+    -- Calculate e.BaseSalary ranges and distribution
     FORMAT(MAX(e.BaseSalary) - MIN(e.BaseSalary), 'C0') AS SalaryRange,
     ROUND((MAX(e.BaseSalary) - MIN(e.BaseSalary)) * 100.0 / NULLIF(AVG(e.BaseSalary), 0), 1) AS RangePercentage,
     
     -- Complex calculations for business insights
     CASE 
-        WHEN STDEV(BaseSalary) / NULLIF(AVG(e.BaseSalary), 0) < 0.15 THEN 'Low Variance'
-        WHEN STDEV(BaseSalary) / NULLIF(AVG(e.BaseSalary), 0) < 0.25 THEN 'Moderate Variance'
+        WHEN STDEV(e.BaseSalary) / NULLIF(AVG(e.BaseSalary), 0) < 0.15 THEN 'Low Variance'
+        WHEN STDEV(e.BaseSalary) / NULLIF(AVG(e.BaseSalary), 0) < 0.25 THEN 'Moderate Variance'
         ELSE 'High Variance'
     END AS SalaryEquity,
     
-    -- Budget calculations with math functions
+    -- d.Budget calculations with math functions
     FORMAT(SUM(e.BaseSalary) * 1.15, 'C0') AS BudgetWith15PercentRaise,  -- 15% raise scenario
     FORMAT(ABS(SUM(e.BaseSalary) - AVG(SUM(e.BaseSalary)) OVER()), 'C0') AS DeviationFromAvgDepartment,
     
@@ -926,8 +932,9 @@ SELECT d.DepartmentName,
     FORMAT(AVG(e.BaseSalary) / 2080.0, 'C2') AS AvgHourlySalary,  -- Assuming 2080 work hours/year
     CAST(AVG(e.BaseSalary) / 1000.0 AS DECIMAL(10,1)) AS AvgSalaryInThousands
     
-FROM Employees
-WHERE BaseSalary > 0 AND BaseSalary IS NOT NULL
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+WHERE e.BaseSalary > 0 AND e.BaseSalary IS NOT NULL
 GROUP BY d.DepartmentName
 HAVING COUNT(*) >= 2  -- Only departments with multiple employees
 ORDER BY AVG(e.BaseSalary) DESC;
@@ -964,13 +971,13 @@ SELECT
     -- Financial overview (Module 8 + 9)
     FORMAT(SUM(e.BaseSalary), 'C0') AS TotalPayrollCost,
     FORMAT(AVG(e.BaseSalary), 'C0') AS AvgEmployeeSalary,
-    FORMAT(SUM(p.Budget), 'C0') AS TotalProjectBudgets,
-    FORMAT(AVG(p.Budget), 'C0') AS AvgProjectBudget,
+    FORMAT(SUM(p.d.Budget), 'C0') AS TotalProjectBudgets,
+    FORMAT(AVG(p.d.Budget), 'C0') AS AvgProjectBudget,
     
     -- Performance metrics (Module 6 + 8 + 9)
-    COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) AS CompletedProjects,
+    COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
     FORMAT(
-        COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) * 100.0 / 
+        COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) * 100.0 / 
         NULLIF(COUNT(p.ProjectID), 0), 'N1'
     ) + '%' AS ProjectSuccessRate,
     
@@ -985,7 +992,7 @@ SELECT
     ) + '%' AS DataCompleteness
     
 FROM Employees e                               -- Main table (Module 1)
-FULL OUTER JOIN Departments d ON e.DepartmentID = d.DepartmentID  -- Ensure all depts (Module 4)
+FULL OUTER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID  -- Ensure all depts (Module 4)
 LEFT JOIN Projects p ON e.EmployeeID = p.AssignedEmployeeID       -- Include unassigned (Module 4)
 CROSS JOIN Clients c                           -- Cross join for totals (Module 4)
 WHERE e.HireDate IS NOT NULL                   -- Data quality filter (Module 5)
@@ -998,7 +1005,7 @@ SELECT
     d.DepartmentName AS TotalEmployees,
     CAST(COUNT(e.EmployeeID) AS VARCHAR(10)) AS TotalDepartments,
     CAST(COUNT(p.ProjectID) AS VARCHAR(10)) AS TotalProjects,
-    FORMAT(SUM(p.Budget), 'C0') AS TotalClients,
+    FORMAT(SUM(p.d.Budget), 'C0') AS TotalClients,
     
     FORMAT(SUM(e.BaseSalary), 'C0') AS TotalPayrollCost,
     FORMAT(AVG(e.BaseSalary), 'C0') AS AvgEmployeeSalary,
@@ -1010,7 +1017,7 @@ SELECT
     END AS AvgProjectBudget,
     
     FORMAT(
-        COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) * 100.0 / 
+        COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) * 100.0 / 
         NULLIF(COUNT(p.ProjectID), 0), 'N1'
     ) + '%' AS CompletedProjects,
     
@@ -1024,7 +1031,7 @@ SELECT
     '---' AS DataCompleteness
     
 FROM Departments d
-LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID
+LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
 LEFT JOIN Projects p ON e.EmployeeID = p.AssignedEmployeeID
 GROUP BY d.DepartmentName
 ORDER BY d.DepartmentName;
@@ -1052,7 +1059,7 @@ WITH YearlyMetrics AS (
         FORMAT(SUM(p.Budget), 'C0') AS YearlyProjectBudget,
         
         -- Success metrics
-        COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) AS CompletedProjects
+        COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects
         
     FROM Employees e
     FULL OUTER JOIN Projects p ON YEAR(e.HireDate) = YEAR(p.StartDate)
@@ -1112,9 +1119,9 @@ SELECT
     
     -- Project portfolio analysis (Module 9)
     COUNT(p.ProjectID) AS TotalProjects,
-    COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) AS CompletedProjects,
-    COUNT(CASE WHEN p.Status = 'In Progress' THEN 1 END) AS ActiveProjects,
-    COUNT(CASE WHEN p.Status = 'On Hold' THEN 1 END) AS PausedProjects,
+    COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
+    COUNT(CASE WHEN p.IsActive = 'In Progress' THEN 1 END) AS ActiveProjects,
+    COUNT(CASE WHEN p.IsActive = 'On Hold' THEN 1 END) AS PausedProjects,
     
     -- Financial analysis (Module 8 + 9)
     FORMAT(SUM(p.Budget), 'C0') AS TotalContractValue,
@@ -1124,7 +1131,7 @@ SELECT
     
     -- Performance metrics (Module 5 + 8 + 9)
     FORMAT(
-        COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) * 100.0 / 
+        COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) * 100.0 / 
         NULLIF(COUNT(p.ProjectID), 0), 'N1'
     ) + '%' AS SuccessRate,
     
@@ -1138,10 +1145,10 @@ SELECT
     -- Client value scoring (Module 8 + 9)
     CASE 
         WHEN SUM(p.Budget) > 500000 AND 
-             COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) * 100.0 / NULLIF(COUNT(p.ProjectID), 0) > 80
+             COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) * 100.0 / NULLIF(COUNT(p.ProjectID), 0) > 80
         THEN 'Platinum Client'
         WHEN SUM(p.Budget) > 200000 AND
-             COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) * 100.0 / NULLIF(COUNT(p.ProjectID), 0) > 70
+             COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) * 100.0 / NULLIF(COUNT(p.ProjectID), 0) > 70
         THEN 'Gold Client'
         WHEN SUM(p.Budget) > 50000 
         THEN 'Silver Client'
@@ -1162,9 +1169,9 @@ SELECT
     
     -- Risk assessment (Module 5 + 8 + 9)
     CASE 
-        WHEN COUNT(CASE WHEN p.Status = 'On Hold' THEN 1 END) > 0 THEN 'High Risk'
+        WHEN COUNT(CASE WHEN p.IsActive = 'On Hold' THEN 1 END) > 0 THEN 'High Risk'
         WHEN MAX(p.StartDate) < DATEADD(MONTH, -6, GETDATE()) THEN 'Inactive'
-        WHEN COUNT(CASE WHEN p.Status = 'In Progress' THEN 1 END) > 3 THEN 'Overcommitted'
+        WHEN COUNT(CASE WHEN p.IsActive = 'In Progress' THEN 1 END) > 3 THEN 'Overcommitted'
         ELSE 'Healthy'
     END AS ClientRisk
     
@@ -1177,7 +1184,7 @@ WHERE p.StartDate IS NOT NULL                                    -- Module 5: Da
 GROUP BY c.ClientName, c.Industry, c.ClientSize                 -- Module 9: Group for aggregation
 HAVING COUNT(p.ProjectID) >= 1                                  -- Module 9: Filter groups
 ORDER BY SUM(p.Budget) DESC,                                    -- Module 5: Sort by value
-         COUNT(CASE WHEN p.Status = 'Completed' THEN 1 END) DESC;  -- Then by success
+         COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) DESC;  -- Then by success
 ```
 
 ---

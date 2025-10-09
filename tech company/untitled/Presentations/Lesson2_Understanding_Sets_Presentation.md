@@ -49,7 +49,7 @@
 -- Employee IDs (as a set)
 {101, 102, 103, 104, 105}
 
--- BaseSalary Ranges (as a set)
+-- e.BaseSalary Ranges (as a set)
 {50000, 60000, 70000, 80000, 90000}
 ```
 
@@ -67,10 +67,10 @@
 ```sql
 -- Employees table as a set of employee records
 CREATE TABLE Employees (
-    EmployeeID INT PRIMARY KEY,    -- Ensures uniqueness
-    FirstName NVARCHAR(50),
-    LastName NVARCHAR(50),
-    d.d.DepartmentName NVARCHAR(50)
+    e.EmployeeID INT PRIMARY KEY,    -- Ensures uniqueness
+    e.FirstName NVARCHAR(50),
+    e.LastName NVARCHAR(50),
+    d.DepartmentName NVARCHAR(50)
 );
 
 -- Each row is an element in the Employees set
@@ -100,24 +100,27 @@ INSERT INTO Employees VALUES
 
 **T-SQL Membership Examples**:
 ```sql
--- Check if employee belongs to IT d.d.DepartmentName set
+-- Check if employee belongs to IT d.DepartmentName set
 SELECT 
-    EmployeeID,
-    FirstName,
-    LastName,
+    e.EmployeeID,
+    e.FirstName,
+    e.LastName,
     CASE 
         WHEN d.DepartmentName = 'Engineering' THEN 'Member of IT Set'
         ELSE 'Not Member of IT Set'
     END AS SetMembership
-FROM Employees e;
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
 -- Using WHERE clause for set membership
-SELECT * FROM Employees 
-WHERE d.d.DepartmentName IN ('IT', 'Finance');  -- Members of specified set
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE d.DepartmentName IN ('IT', 'Finance');  -- Members of specified set
 
--- BaseSalary range membership
-SELECT * FROM Employees
-WHERE BaseSalary BETWEEN 60000 AND 80000;   -- Members of BaseSalary range set
+-- e.BaseSalary range membership
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+WHERE e.BaseSalary BETWEEN 60000 AND 80000;   -- Members of e.BaseSalary range set
 ```
 
 ---
@@ -128,12 +131,14 @@ WHERE BaseSalary BETWEEN 60000 AND 80000;   -- Members of BaseSalary range set
 **Empty Set (∅)**:
 ```sql
 -- Query returning no results = Empty Set
-SELECT * FROM Employees 
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
 WHERE d.DepartmentName = 'NonExistentDept';   -- Returns empty set
 
 -- Checking for empty results
-IF NOT EXISTS (SELECT * FROM Employees WHERE BaseSalary > 200000)
-    PRINT 'No employees with BaseSalary > 200000 (Empty Set)';
+IF NOT EXISTS (SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE e.BaseSalary > 200000)
+    PRINT 'No employees with e.BaseSalary > 200000 (Empty Set)';
 ```
 
 **Universal Set**:
@@ -142,7 +147,7 @@ IF NOT EXISTS (SELECT * FROM Employees WHERE BaseSalary > 200000)
 SELECT * FROM Employees e;  -- Universal set of all employees
 
 -- All records in database context
-SELECT * FROM Employees 
+SELECT * FROM Employees e 
 WHERE 1 = 1;  -- Always true condition = Universal set
 ```
 
@@ -166,31 +171,33 @@ WHERE 1 = 1;  -- Always true condition = Universal set
 **T-SQL UNION Examples**:
 ```sql
 -- Combine IT and HR employees
-SELECT EmployeeID, FirstName, LastName, 'IT' AS Source
+SELECT e.EmployeeID, e.FirstName, e.LastName, 'IT' AS Source
 FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Engineering'
 
 UNION
 
-SELECT EmployeeID, FirstName, LastName, 'HR' AS Source  
+SELECT e.EmployeeID, e.FirstName, e.LastName, 'HR' AS Source  
 FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Human Resources';
 
--- Union of BaseSalary ranges
-SELECT DISTINCT BaseSalary FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.d.DepartmentName = 'Engineering'
+-- Union of e.BaseSalary ranges
+SELECT DISTINCT e.BaseSalary FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Engineering'
 UNION
-SELECT DISTINCT BaseSalary FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.d.DepartmentName = 'Finance';
+SELECT DISTINCT e.BaseSalary FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Finance';
 ```
 
 **UNION vs UNION ALL**:
 ```sql
 -- UNION (removes duplicates - true set operation)
-SELECT d.d.DepartmentName FROM Employees
+SELECT d.DepartmentName FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 UNION
-SELECT d.d.DepartmentName FROM Departments;
+SELECT d.DepartmentName FROM Departments;
 
 -- UNION ALL (keeps duplicates - bag operation)
-SELECT d.d.DepartmentName FROM Employees
+SELECT d.DepartmentName FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 UNION ALL
-SELECT d.d.DepartmentName FROM Departments;
+SELECT d.DepartmentName FROM Departments;
 ```
 
 ---
@@ -207,22 +214,22 @@ SELECT d.d.DepartmentName FROM Departments;
 **T-SQL Intersection Examples**:
 ```sql
 -- Employees who are both in IT and have high salaries
-SELECT EmployeeID, FirstName, LastName
-FROM Employees 
+SELECT e.EmployeeID, e.FirstName, e.LastName
+FROM Employees e 
 WHERE d.DepartmentName = 'Engineering'
 
 INTERSECT
 
-SELECT EmployeeID, FirstName, LastName
-FROM Employees 
-WHERE BaseSalary > 70000;
+SELECT e.EmployeeID, e.FirstName, e.LastName
+FROM Employees e 
+WHERE e.BaseSalary > 70000;
 
 -- Alternative using JOIN (common approach)
-SELECT DISTINCT e1.EmployeeID, e1.FirstName, e1.LastName
-FROM Employees e1
+SELECT DISTINCT e1.e.EmployeeID, e1.e.FirstName, e1.e.LastName
+FROM Employees e e1
 INNER JOIN (
-    SELECT EmployeeID FROM Employees WHERE BaseSalary > 70000
-) e2 ON e1.EmployeeID = e2.EmployeeID
+    SELECT e.EmployeeID FROM Employees e WHERE e.BaseSalary > 70000
+) e2 ON e1.e.EmployeeID = e2.e.EmployeeID
 WHERE d.DepartmentName = 'Engineering';
 ```
 
@@ -245,24 +252,28 @@ WHERE d.DepartmentName = 'Engineering';
 **T-SQL Difference Examples**:
 ```sql
 -- Employees in IT but not earning high salaries
-SELECT EmployeeID, FirstName, LastName
-FROM Employees 
+SELECT e.EmployeeID, e.FirstName, e.LastName
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
 WHERE d.DepartmentName = 'Engineering'
 
 EXCEPT
 
-SELECT EmployeeID, FirstName, LastName
-FROM Employees 
-WHERE BaseSalary > 80000;
+SELECT e.EmployeeID, e.FirstName, e.LastName
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE e.BaseSalary > 80000;
 
 -- Alternative using NOT EXISTS
-SELECT EmployeeID, FirstName, LastName
-FROM Employees e1
+SELECT e.EmployeeID, e.FirstName, e.LastName
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID e1
 WHERE d.DepartmentName = 'Engineering'
   AND NOT EXISTS (
-    SELECT 1 FROM Employees e2 
-    WHERE e2.EmployeeID = e1.EmployeeID 
-      AND e2.BaseSalary > 80000
+    SELECT 1 FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID e2 
+    WHERE e2.e.EmployeeID = e1.e.EmployeeID 
+      AND e2.e.BaseSalary > 80000
   );
 ```
 
@@ -287,17 +298,17 @@ WHERE d.DepartmentName = 'Engineering'
 -- Cartesian product (usually unintentional)
 SELECT 
     e.FirstName + ' ' + e.LastName AS Employee,
-    d.d.DepartmentName
+    d.DepartmentName
 FROM Employees e, Departments d;  -- Missing JOIN condition
 
 -- More explicit syntax
 SELECT 
     e.FirstName + ' ' + e.LastName AS Employee,
-    d.d.DepartmentName
+    d.DepartmentName
 FROM Employees e
 CROSS JOIN Departments d;
 
--- Result: Every employee paired with every d.d.DepartmentName
+-- Result: Every employee paired with every d.DepartmentName
 -- If 10 employees and 4 departments = 40 result rows
 ```
 
@@ -316,25 +327,29 @@ CROSS JOIN Departments d;
 **True Sets (No Duplicates)**:
 ```sql
 -- DISTINCT enforces set behavior
-SELECT DISTINCT d.d.d.DepartmentName FROM Employees e;
+SELECT DISTINCT d.DepartmentName FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 -- Result: {'IT', 'HR', 'Finance', 'Marketing'}
 
 -- UNION removes duplicates (set operation)
-SELECT d.d.DepartmentName FROM Employees
+SELECT d.DepartmentName FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 UNION
-SELECT d.d.DepartmentName FROM NewEmployees;
+SELECT d.DepartmentName FROM NewEmployees;
 ```
 
 **Multisets/Bags (Allow Duplicates)**:
 ```sql
 -- Default SQL behavior allows duplicates
-SELECT d.d.DepartmentName FROM Employees e;
+SELECT d.DepartmentName FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 -- Result: {'IT', 'IT', 'HR', 'Finance', 'IT', 'Marketing'}
 
 -- UNION ALL preserves duplicates (multiset operation)
-SELECT d.d.DepartmentName FROM Employees
+SELECT d.DepartmentName FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 UNION ALL
-SELECT d.d.DepartmentName FROM NewEmployees;
+SELECT d.DepartmentName FROM NewEmployees;
 ```
 
 **When to Use Each**:
@@ -349,12 +364,12 @@ SELECT d.d.DepartmentName FROM NewEmployees;
 **Set Membership Operations**:
 ```sql
 -- IN operator (element of set)
-SELECT * FROM Employees 
-WHERE d.d.DepartmentName IN ('IT', 'Finance', 'HR');
+SELECT * FROM Employees e 
+WHERE d.DepartmentName IN ('IT', 'Finance', 'HR');
 
 -- NOT IN operator (not element of set)
-SELECT * FROM Employees 
-WHERE d.d.DepartmentName NOT IN ('Marketing', 'Sales');
+SELECT * FROM Employees e 
+WHERE d.DepartmentName NOT IN ('Marketing', 'Sales');
 
 -- EXISTS (non-empty set test)
 SELECT * FROM Employees e
@@ -365,8 +380,8 @@ WHERE EXISTS (
 );
 
 -- Range membership (continuous set)
-SELECT * FROM Employees
-WHERE BaseSalary BETWEEN 50000 AND 80000;  -- [50000, 80000] set
+SELECT * FROM Employees e
+WHERE e.BaseSalary BETWEEN 50000 AND 80000;  -- [50000, 80000] set
 ```
 
 **Set-Based Thinking Benefits**:
@@ -383,23 +398,27 @@ WHERE BaseSalary BETWEEN 50000 AND 80000;  -- [50000, 80000] set
 **NULL Challenges in Set Operations**:
 ```sql
 -- NULL values in set membership
-SELECT * FROM Employees 
-WHERE d.d.DepartmentName IN ('IT', NULL, 'HR');  -- NULL doesn't match anything
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE d.DepartmentName IN ('IT', NULL, 'HR');  -- NULL doesn't match anything
 
 -- NULL-safe comparisons
-SELECT * FROM Employees 
-WHERE d.d.DepartmentName IS NULL;  -- Correct way to check for NULL
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE d.DepartmentName IS NULL;  -- Correct way to check for NULL
 
 -- NULL in set operations
-SELECT d.d.DepartmentName FROM Employees e    -- NULLs included
+SELECT d.DepartmentName FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID    -- NULLs included
 UNION
-SELECT d.d.DepartmentName FROM Contractors;  -- NULLs consolidated to one
+SELECT d.DepartmentName FROM Contractors;  -- NULLs consolidated to one
 
 -- Handling NULLs in business logic
 SELECT 
-    EmployeeID,
+    e.EmployeeID,
     ISNULL(Department, 'Unassigned') AS d.DepartmentName
-FROM Employees e;
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 ```
 
 **Best Practices for NULLs**:
@@ -416,24 +435,24 @@ FROM Employees e;
 **Performance Considerations**:
 ```sql
 -- Efficient set membership (indexed column)
-SELECT * FROM Employees 
+SELECT * FROM Employees e 
 WHERE DepartmentID IN (1, 2, 3);  -- Fast with index
 
 -- Less efficient with functions
-SELECT * FROM Employees 
+SELECT * FROM Employees e 
 WHERE UPPER(Department) IN ('IT', 'HR');  -- Slower, can't use index
 
 -- Set operations vs JOINs
 -- UNION (set operation)
-SELECT EmployeeID FROM ActiveEmployees
+SELECT e.EmployeeID FROM ActiveEmployees
 UNION
-SELECT EmployeeID FROM ProjectEmployees;
+SELECT e.EmployeeID FROM ProjectEmployees;
 
 -- JOIN alternative (often faster)
-SELECT DISTINCT e1.EmployeeID
+SELECT DISTINCT e1.e.EmployeeID
 FROM ActiveEmployees e1
 FULL OUTER JOIN ProjectEmployees e2 
-    ON e1.EmployeeID = e2.EmployeeID;
+    ON e1.e.EmployeeID = e2.e.EmployeeID;
 ```
 
 **Optimization Tips**:
@@ -449,14 +468,14 @@ FULL OUTER JOIN ProjectEmployees e2
 **Employee Management Sets**:
 ```sql
 -- Active employees with specific skills
-SELECT EmployeeID, FirstName, LastName
-FROM Employees 
+SELECT e.EmployeeID, e.FirstName, e.LastName
+FROM Employees e 
 WHERE IsActive = 1
 
 INTERSECT
 
-SELECT EmployeeID, FirstName, LastName
-FROM Employees ekills es
+SELECT e.EmployeeID, e.FirstName, e.LastName
+FROM Employees e ekills es
 INNER JOIN Skills s ON es.SkillID = s.SkillID
 WHERE s.SkillName IN ('C#', 'SQL Server', 'Azure');
 ```
@@ -464,24 +483,24 @@ WHERE s.SkillName IN ('C#', 'SQL Server', 'Azure');
 **Project Assignment Sets**:
 ```sql
 -- Employees available for new projects
-SELECT EmployeeID FROM Employees
+SELECT e.EmployeeID FROM Employees e
 WHERE IsActive = 1
 
 EXCEPT
 
-SELECT DISTINCT EmployeeID FROM ProjectAssignments
+SELECT DISTINCT e.EmployeeID FROM ProjectAssignments
 WHERE ProjectIsActive = 'Active'
   AND EndDate > GETDATE();
 ```
 
 **Reporting and Analytics**:
 ```sql
--- d.d.DepartmentName union for company-wide reports
+-- d.DepartmentName union for company-wide reports
 SELECT DepartmentID, COUNT(*) AS EmployeeCount
 FROM (
-    SELECT d.d.DepartmentName FROM FullTimeEmployees
+    SELECT d.DepartmentName FROM FullTimeEmployees
     UNION ALL
-    SELECT d.d.DepartmentName FROM ContractEmployees
+    SELECT d.DepartmentName FROM ContractEmployees
 ) AS AllEmployees
 GROUP BY DepartmentID;
 ```
@@ -501,13 +520,13 @@ GROUP BY DepartmentID;
 ```sql
 -- Good: Set-based approach
 UPDATE Employees 
-SET BaseSalary = BaseSalary * 1.10
+SET e.BaseSalary = e.BaseSalary * 1.10
 WHERE d.DepartmentName = 'Engineering' 
   AND PerformanceRating >= 4;
 
 -- Avoid: Row-by-row processing
 DECLARE employee_cursor CURSOR FOR 
-    SELECT EmployeeID FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.d.DepartmentName = 'Engineering';
+    SELECT e.EmployeeID FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Engineering';
 -- ... cursor processing logic
 ```
 
@@ -524,10 +543,12 @@ DECLARE employee_cursor CURSOR FOR
 **Duplicate Handling Errors**:
 ```sql
 -- Mistake: Expecting set behavior but getting multiset
-SELECT d.d.DepartmentName FROM Employees e;  -- May have duplicates
+SELECT d.DepartmentName FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;  -- May have duplicates
 
 -- Correct: Explicitly use DISTINCT for set behavior
-SELECT DISTINCT d.d.d.DepartmentName FROM Employees e;
+SELECT DISTINCT d.DepartmentName FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 ```
 
 **NULL Handling Mistakes**:
@@ -536,7 +557,7 @@ SELECT DISTINCT d.d.d.DepartmentName FROM Employees e;
 WHERE d.DepartmentName = NULL;  -- Always false
 
 -- Correct: IS NULL comparison
-WHERE d.d.DepartmentName IS NULL;
+WHERE d.DepartmentName IS NULL;
 ```
 
 **Set Operation Confusion**:
@@ -563,8 +584,9 @@ SELECT * FROM A UNION ALL SELECT * FROM B; -- Keep all records
 SELECT 
     CASE 
         WHEN NOT EXISTS (
-            SELECT 1 FROM Employees 
-            WHERE d.DepartmentName = 'Engineering' AND BaseSalary < 70000
+            SELECT 1 FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+            WHERE d.DepartmentName = 'Engineering' AND e.BaseSalary < 70000
         )
         THEN 'All IT employees have high salaries'
         ELSE 'Some IT employees have lower salaries'
@@ -574,12 +596,13 @@ SELECT
 **Set Equivalence**:
 ```sql
 -- Compare two sets for equality
-WITH Set1 AS (SELECT DISTINCT d.d.d.DepartmentName FROM Employees e),
+WITH Set1 AS (SELECT DISTINCT d.DepartmentName FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID),
      Set2 AS (SELECT DISTINCT d.DepartmentName AS d.DepartmentName FROM Departments)
 SELECT 
     CASE 
-        WHEN NOT EXISTS (SELECT d.d.DepartmentName FROM Set1 EXCEPT SELECT d.d.DepartmentName FROM Set2)
-         AND NOT EXISTS (SELECT d.d.DepartmentName FROM Set2 EXCEPT SELECT d.d.DepartmentName FROM Set1)
+        WHEN NOT EXISTS (SELECT d.DepartmentName FROM Set1 EXCEPT SELECT d.DepartmentName FROM Set2)
+         AND NOT EXISTS (SELECT d.DepartmentName FROM Set2 EXCEPT SELECT d.DepartmentName FROM Set1)
         THEN 'Sets are equivalent'
         ELSE 'Sets are different'
     END AS SetComparison;

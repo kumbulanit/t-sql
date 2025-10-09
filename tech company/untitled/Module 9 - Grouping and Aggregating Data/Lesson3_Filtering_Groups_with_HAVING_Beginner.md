@@ -74,7 +74,7 @@ Sales       | 4
 SELECT 
     Status,
     COUNT(*) AS ProjectCount
-FROM Projects
+FROM Projects p
 GROUP BY Status  
 HAVING COUNT(*) >= 2
 ORDER BY ProjectCount DESC;
@@ -87,7 +87,7 @@ ORDER BY ProjectCount DESC;
 **Question**: "Which departments cost more than $150,000 in salaries?"
 
 ```sql
--- Departments with high BaseSalary costs
+-- Departments with high e.BaseSalary costs
 SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount
 FROM Employees e
@@ -109,7 +109,7 @@ SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount
 FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE BaseSalary > 40000           -- Filter employees first
+WHERE e.BaseSalary > 40000           -- Filter employees first
 GROUP BY d.DepartmentName  
 HAVING COUNT(*) > 1            -- Then filter departments
 ORDER BY HighEarnerCount DESC;
@@ -149,7 +149,7 @@ SELECT
     YEAR(StartDate) AS ProjectYear,
     MONTH(StartDate) AS ProjectMonth,
     COUNT(*) AS ProjectsStarted
-FROM Projects
+FROM Projects p
 WHERE StartDate IS NOT NULL
 GROUP BY YEAR(StartDate), MONTH(StartDate)
 HAVING COUNT(*) >= 3
@@ -181,7 +181,7 @@ HAVING COUNT(*) > 3;
 ```sql
 -- WRONG: HAVING before GROUP BY
 SELECT d.DepartmentName, COUNT(*)
-FROM Employees
+FROM Employees e
 HAVING COUNT(*) > 3
 GROUP BY d.DepartmentName;  -- Error! GROUP BY must come first
 
@@ -223,10 +223,10 @@ ORDER BY NumberOfClients DESC;
 ```sql  
 -- Which years had 3 or more employees hired?
 SELECT 
-    YEAR(HireDate) AS HireYear,
+    YEAR(e.HireDate) AS HireYear,
     COUNT(*) AS EmployeesHired
-FROM Employees
-GROUP BY YEAR(HireDate)
+FROM Employees e
+GROUP BY YEAR(e.HireDate)
 HAVING COUNT(*) >= 3
 ORDER BY HireYear;
 ```

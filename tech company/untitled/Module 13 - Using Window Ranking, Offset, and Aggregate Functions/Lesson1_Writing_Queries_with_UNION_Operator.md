@@ -17,12 +17,12 @@ The UNION operator is a fundamental set operation in T-SQL that combines the res
 
 **Core Tables for UNION Operations:**
 ```sql
-Employees: EmployeeID (3001+), FirstName, LastName, BaseSalary, DepartmentID, ManagerID, JobTitle, HireDate, WorkEmail, IsActive
-Departments: DepartmentID (2001+), DepartmentName, Budget, Location, IsActive
-Projects: ProjectID (4001+), ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
-Orders: OrderID (5001+), CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
+Employees: e.EmployeeID (3001+), e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID, ManagerID, e.JobTitle, e.HireDate, WorkEmail, IsActive
+Departments: d.DepartmentID (2001+), d.DepartmentName, d.Budget, Location, IsActive
+Projects: ProjectID (4001+), ProjectName, d.Budget, ProjectManagerID, StartDate, EndDate, IsActive
+Orders: OrderID (5001+), CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
 Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, WorkEmail, IsActive
-EmployeeArchive: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, TerminationDate, Reason, IsActive
+EmployeeArchive: e.EmployeeID, e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID, TerminationDate, Reason, IsActive
 ```
 
 ## Understanding UNION vs UNION ALL
@@ -80,7 +80,7 @@ SELECT
     e.JobTitle AS Position,
     'Active' AS Status
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND e.WorkEmail IS NOT NULL
   AND d.IsActive = 1
@@ -128,8 +128,8 @@ SELECT
     YEAR(p.StartDate) AS FiscalYear,
     MONTH(p.StartDate) AS FiscalMonth,
     COUNT(*) AS TransactionCount,
-    SUM(p.Budget) AS RevenueAmount,
-    AVG(p.Budget) AS AverageTransactionValue,
+    SUM(p.d.Budget) AS RevenueAmount,
+    AVG(p.d.Budget) AS AverageTransactionValue,
     'Project Management' AS BusinessUnit
 FROM Projects p
 WHERE p.IsActive = 1
@@ -161,34 +161,34 @@ SELECT
         ELSE 'Junior'
     END AS ExperienceLevel
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND d.IsActive = 1
 
 UNION ALL
 
 SELECT 
-    ea.EmployeeID,
-    ea.FirstName + ' ' + ea.LastName AS EmployeeName,
-    ea.JobTitle,
+    ea.e.EmployeeID,
+    ea.e.FirstName + ' ' + ea.e.LastName AS EmployeeName,
+    ea.e.JobTitle,
     d.DepartmentName,
-    ea.HireDate,
+    ea.e.HireDate,
     ea.TerminationDate,
     'Terminated' AS EmploymentStatus,
-    DATEDIFF(YEAR, ea.HireDate, ISNULL(ea.TerminationDate, GETDATE())) AS TenureYears,
-    FORMAT(ea.BaseSalary, 'C') AS CurrentSalary,
+    DATEDIFF(YEAR, ea.e.HireDate, ISNULL(ea.TerminationDate, GETDATE())) AS TenureYears,
+    FORMAT(ea.e.BaseSalary, 'C') AS CurrentSalary,
     CASE 
-        WHEN DATEDIFF(YEAR, ea.HireDate, ISNULL(ea.TerminationDate, GETDATE())) >= 10 THEN 'Senior'
-        WHEN DATEDIFF(YEAR, ea.HireDate, ISNULL(ea.TerminationDate, GETDATE())) >= 5 THEN 'Experienced'
-        WHEN DATEDIFF(YEAR, ea.HireDate, ISNULL(ea.TerminationDate, GETDATE())) >= 2 THEN 'Intermediate'
+        WHEN DATEDIFF(YEAR, ea.e.HireDate, ISNULL(ea.TerminationDate, GETDATE())) >= 10 THEN 'Senior'
+        WHEN DATEDIFF(YEAR, ea.e.HireDate, ISNULL(ea.TerminationDate, GETDATE())) >= 5 THEN 'Experienced'
+        WHEN DATEDIFF(YEAR, ea.e.HireDate, ISNULL(ea.TerminationDate, GETDATE())) >= 2 THEN 'Intermediate'
         ELSE 'Junior'
     END AS ExperienceLevel
 FROM EmployeeArchive ea
-INNER JOIN Departments d ON ea.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON ea.d.DepartmentID = d.DepartmentID
 WHERE ea.TerminationDate >= DATEADD(YEAR, -3, GETDATE())  -- Last 3 years only
   AND d.IsActive = 1
 
-ORDER BY EmploymentStatus, DepartmentName, TenureYears DESC;
+ORDER BY EmploymentStatus, d.DepartmentName, TenureYears DESC;
 ```
 
 ## Advanced UNION Applications
@@ -206,7 +206,7 @@ SELECT
     'Headcount' AS UnitOfMeasure,
     FORMAT(GETDATE(), 'yyyy-MM-dd') AS ReportDate,
     'Current' AS TimePeriod
-FROM Employees 
+FROM Employees e 
 WHERE IsActive = 1
 
 UNION ALL
@@ -214,12 +214,12 @@ UNION ALL
 SELECT 
     'Human Resources' AS BusinessDimension,
     'Compensation' AS MetricCategory,
-    'Average Base BaseSalary' AS MetricName,
+    'Average Base e.BaseSalary' AS MetricName,
     FORMAT(AVG(e.BaseSalary), 'C') AS MetricValue,
     'Currency' AS UnitOfMeasure,
     FORMAT(GETDATE(), 'yyyy-MM-dd') AS ReportDate,
     'Current' AS TimePeriod
-FROM Employees 
+FROM Employees e 
 WHERE IsActive = 1
 
 UNION ALL
@@ -232,7 +232,7 @@ SELECT
     'Count' AS UnitOfMeasure,
     FORMAT(GETDATE(), 'yyyy-MM-dd') AS ReportDate,
     'Current' AS TimePeriod
-FROM Projects 
+FROM Projects p 
 WHERE IsActive = 1
 
 UNION ALL
@@ -241,11 +241,11 @@ SELECT
     'Project Management' AS BusinessDimension,
     'Financial' AS MetricCategory,
     'Total Project Investment' AS MetricName,
-    FORMAT(SUM(Budget), 'C') AS MetricValue,
+    FORMAT(SUM(d.Budget), 'C') AS MetricValue,
     'Currency' AS UnitOfMeasure,
     FORMAT(GETDATE(), 'yyyy-MM-dd') AS ReportDate,
     'Current' AS TimePeriod
-FROM Projects 
+FROM Projects p 
 WHERE IsActive = 1
 
 UNION ALL
@@ -293,7 +293,7 @@ SELECT
     SUM(o.TotalAmount) AS TotalValue,
     AVG(o.TotalAmount) AS AverageValue,
     COUNT(DISTINCT o.CustomerID) AS UniqueCustomers,
-    COUNT(DISTINCT o.EmployeeID) AS ProcessingEmployees
+    COUNT(DISTINCT o.e.EmployeeID) AS ProcessingEmployees
 FROM Orders o
 WHERE o.OrderDate >= '2024-01-01' 
   AND o.OrderDate < '2024-04-01'
@@ -308,7 +308,7 @@ SELECT
     SUM(o.TotalAmount) AS TotalValue,
     AVG(o.TotalAmount) AS AverageValue,
     COUNT(DISTINCT o.CustomerID) AS UniqueCustomers,
-    COUNT(DISTINCT o.EmployeeID) AS ProcessingEmployees
+    COUNT(DISTINCT o.e.EmployeeID) AS ProcessingEmployees
 FROM Orders o
 WHERE o.OrderDate >= '2024-04-01' 
   AND o.OrderDate < '2024-07-01'
@@ -323,7 +323,7 @@ SELECT
     SUM(o.TotalAmount) AS TotalValue,
     AVG(o.TotalAmount) AS AverageValue,
     COUNT(DISTINCT o.CustomerID) AS UniqueCustomers,
-    COUNT(DISTINCT o.EmployeeID) AS ProcessingEmployees
+    COUNT(DISTINCT o.e.EmployeeID) AS ProcessingEmployees
 FROM Orders o
 WHERE o.OrderDate >= '2024-07-01' 
   AND o.OrderDate < '2024-10-01'
@@ -338,7 +338,7 @@ SELECT
     SUM(o.TotalAmount) AS TotalValue,
     AVG(o.TotalAmount) AS AverageValue,
     COUNT(DISTINCT o.CustomerID) AS UniqueCustomers,
-    COUNT(DISTINCT o.EmployeeID) AS ProcessingEmployees
+    COUNT(DISTINCT o.e.EmployeeID) AS ProcessingEmployees
 FROM Orders o
 WHERE o.OrderDate >= '2024-10-01' 
   AND o.OrderDate < '2025-01-01'
@@ -373,10 +373,10 @@ SELECT
     'Direct Reports Managed' AS MetricDescription,
     mgmt_metrics.DirectReports * 25 AS SkillScore
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 CROSS APPLY (
     SELECT COUNT(*) AS DirectReports
-    FROM Employees subordinate
+    FROM Employees e subordinate
     WHERE subordinate.ManagerID = e.EmployeeID
       AND subordinate.IsActive = 1
 ) mgmt_metrics
@@ -400,7 +400,7 @@ SELECT
     'Projects Successfully Managed' AS MetricDescription,
     proj_metrics.ProjectsManaged * 20 AS SkillScore
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 CROSS APPLY (
     SELECT COUNT(*) AS ProjectsManaged
     FROM Projects p
@@ -427,11 +427,11 @@ SELECT
     'Customer Orders Processed' AS MetricDescription,
     order_metrics.OrdersProcessed * 2 AS SkillScore
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 CROSS APPLY (
     SELECT COUNT(*) AS OrdersProcessed
     FROM Orders o
-    WHERE o.EmployeeID = e.EmployeeID
+    WHERE o.e.EmployeeID = e.EmployeeID
       AND o.IsActive = 1
 ) order_metrics
 WHERE e.IsActive = 1
@@ -454,7 +454,7 @@ SET STATISTICS TIME ON;
 -- UNION ALL approach (faster)
 SELECT 'UNION ALL Test' AS TestType, COUNT(*) AS ResultCount
 FROM (
-    SELECT EmployeeID, FirstName, LastName FROM Employees WHERE IsActive = 1
+    SELECT e.EmployeeID, e.FirstName, e.LastName FROM Employees e WHERE IsActive = 1
     UNION ALL
     SELECT CustomerID, ContactName, CompanyName FROM Customers WHERE IsActive = 1
 ) combined_data;
@@ -462,15 +462,15 @@ FROM (
 -- UNION approach (slower due to duplicate removal)
 SELECT 'UNION Test' AS TestType, COUNT(*) AS ResultCount
 FROM (
-    SELECT EmployeeID, FirstName, LastName FROM Employees WHERE IsActive = 1
+    SELECT e.EmployeeID, e.FirstName, e.LastName FROM Employees e WHERE IsActive = 1
     UNION
     SELECT CustomerID, ContactName, CompanyName FROM Customers WHERE IsActive = 1
 ) combined_data;
 
 -- Optimal approach: UNION ALL with explicit DISTINCT when needed
-SELECT DISTINCT 'Optimized Test' AS TestType, EmployeeID, FirstName, LastName
+SELECT DISTINCT 'Optimized Test' AS TestType, e.EmployeeID, e.FirstName, e.LastName
 FROM (
-    SELECT EmployeeID, FirstName, LastName FROM Employees WHERE IsActive = 1
+    SELECT e.EmployeeID, e.FirstName, e.LastName FROM Employees e WHERE IsActive = 1
     UNION ALL
     SELECT CustomerID, ContactName, CompanyName FROM Customers WHERE IsActive = 1
 ) combined_data;
@@ -486,7 +486,7 @@ SET STATISTICS TIME OFF;
 -- Optimized UNION query with proper indexing strategy
 -- Recommended indexes:
 -- CREATE INDEX IX_Orders_OrderDate_IsActive ON Orders(OrderDate, IsActive) INCLUDE (CustomerID, TotalAmount);
--- CREATE INDEX IX_Projects_StartDate_IsActive ON Projects(StartDate, IsActive) INCLUDE (ProjectManagerID, Budget);
+-- CREATE INDEX IX_Projects_StartDate_IsActive ON Projects(StartDate, IsActive) INCLUDE (ProjectManagerID, d.Budget);
 
 SELECT 
     'Revenue Transaction' AS TransactionType,
@@ -497,7 +497,7 @@ SELECT
     e.FirstName + ' ' + e.LastName AS ProcessedBy
 FROM Orders o
 INNER JOIN Customers c ON o.CustomerID = c.CustomerID
-INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
+INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
 WHERE o.OrderDate >= DATEADD(YEAR, -1, GETDATE())
   AND o.IsActive = 1
   AND c.IsActive = 1
@@ -508,12 +508,12 @@ UNION ALL
 SELECT 
     'Project Investment' AS TransactionType,
     FORMAT(p.StartDate, 'yyyy-MM-dd') AS TransactionDate,
-    p.Budget AS Amount,
+    p.d.Budget AS Amount,
     'Internal Project' AS Source,
     'TechCorp Internal' AS ClientName,
-    mgr.FirstName + ' ' + mgr.LastName AS ProcessedBy
+    mgr.e.FirstName + ' ' + mgr.e.LastName AS ProcessedBy
 FROM Projects p
-INNER JOIN Employees mgr ON p.ProjectManagerID = mgr.EmployeeID
+INNER JOIN Employees mgr ON p.ProjectManagerID = mgr.e.EmployeeID
 WHERE p.StartDate >= DATEADD(YEAR, -1, GETDATE())
   AND p.IsActive = 1
   AND mgr.IsActive = 1
@@ -530,7 +530,7 @@ ORDER BY TransactionDate DESC, Amount DESC;
 -- Complete audit trail for compliance reporting
 SELECT 
     'Employee Transaction' AS AuditCategory,
-    'BaseSalary Change' AS TransactionType,
+    'e.BaseSalary Change' AS TransactionType,
     e.EmployeeID AS EntityID,
     e.FirstName + ' ' + e.LastName AS EntityName,
     FORMAT(e.BaseSalary, 'C') AS TransactionAmount,
@@ -539,7 +539,7 @@ SELECT
     d.DepartmentName AS BusinessUnit,
     'System Generated' AS TransactionSource
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND d.IsActive = 1
 
@@ -565,10 +565,10 @@ UNION ALL
 
 SELECT 
     'Project Transaction' AS AuditCategory,
-    'Budget Allocation' AS TransactionType,
+    'd.Budget Allocation' AS TransactionType,
     CAST(p.ProjectID AS VARCHAR(20)) AS EntityID,
     p.ProjectName AS EntityName,
-    FORMAT(p.Budget, 'C') AS TransactionAmount,
+    FORMAT(p.d.Budget, 'C') AS TransactionAmount,
     'Active' AS TransactionStatus,
     FORMAT(p.StartDate, 'yyyy-MM-dd HH:mm:ss') AS TransactionTimestamp,
     'Project Management' AS BusinessUnit,
@@ -685,7 +685,7 @@ SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount,
     AVG(e.BaseSalary) AS AvgSalary
 FROM Departments d
-INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
 WHERE d.IsActive = 1
   AND e.IsActive = 1
   AND e.HireDate <= GETDATE()
@@ -696,9 +696,9 @@ UNION ALL
 SELECT d.DepartmentName,
     'Historical' AS Period,
     COUNT(*) AS EmployeeCount,
-    AVG(ea.BaseSalary) AS AvgSalary
+    AVG(ea.e.BaseSalary) AS AvgSalary
 FROM Departments d
-INNER JOIN EmployeeArchive ea ON d.DepartmentID = ea.DepartmentID
+INNER JOIN EmployeeArchive ea ON d.DepartmentID = ea.d.DepartmentID
 WHERE d.IsActive = 1
   AND ea.TerminationDate >= DATEADD(YEAR, -2, GETDATE())
 GROUP BY d.DepartmentID, d.DepartmentName
@@ -746,12 +746,12 @@ ORDER BY ContactClassification, OrganizationalUnit;
 #### Problem and Solution
 ```sql
 -- ❌ PROBLEM: Different number of columns
-SELECT FirstName, LastName FROM Employees WHERE IsActive = 1
+SELECT e.FirstName, e.LastName FROM Employees e WHERE IsActive = 1
 UNION
 SELECT CompanyName FROM Customers WHERE IsActive = 1;  -- Error: Column count mismatch
 
 -- ✅ SOLUTION: Ensure consistent column count
-SELECT FirstName, LastName, 'Employee' AS RecordType FROM Employees WHERE IsActive = 1
+SELECT e.FirstName, e.LastName, 'Employee' AS RecordType FROM Employees e WHERE IsActive = 1
 UNION
 SELECT ContactName, CompanyName, 'Customer' AS RecordType FROM Customers WHERE IsActive = 1;
 ```
@@ -761,15 +761,15 @@ SELECT ContactName, CompanyName, 'Customer' AS RecordType FROM Customers WHERE I
 #### Problem and Solution
 ```sql
 -- ❌ PROBLEM: Incompatible data types
-SELECT EmployeeID, BaseSalary FROM Employees e  -- INT, DECIMAL
+SELECT e.EmployeeID, e.BaseSalary FROM Employees e  -- INT, DECIMAL
 UNION
 SELECT CompanyName, ContactName FROM Customers;  -- VARCHAR, VARCHAR
 
 -- ✅ SOLUTION: Convert to compatible types
 SELECT 
-    CAST(EmployeeID AS VARCHAR(50)) AS RecordID, 
-    CAST(BaseSalary AS VARCHAR(50)) AS RecordValue 
-FROM Employees WHERE IsActive = 1
+    CAST(e.EmployeeID AS VARCHAR(50)) AS RecordID, 
+    CAST(e.BaseSalary AS VARCHAR(50)) AS RecordValue 
+FROM Employees e WHERE IsActive = 1
 UNION
 SELECT CompanyName, ContactName FROM Customers WHERE IsActive = 1;
 ```
@@ -779,15 +779,15 @@ SELECT CompanyName, ContactName FROM Customers WHERE IsActive = 1;
 #### Problem and Solution
 ```sql
 -- ❌ PROBLEM: ORDER BY in individual SELECT statements (ignored)
-SELECT FirstName, LastName FROM Employees WHERE IsActive = 1 ORDER BY LastName
+SELECT e.FirstName, e.LastName FROM Employees e WHERE IsActive = 1 ORDER BY e.LastName
 UNION
 SELECT ContactName, CompanyName FROM Customers WHERE IsActive = 1 ORDER BY CompanyName;
 
 -- ✅ SOLUTION: Single ORDER BY at the end
-SELECT FirstName, LastName FROM Employees WHERE IsActive = 1
+SELECT e.FirstName, e.LastName FROM Employees e WHERE IsActive = 1
 UNION
 SELECT ContactName, CompanyName FROM Customers WHERE IsActive = 1
-ORDER BY LastName;  -- Applies to entire result set
+ORDER BY e.LastName;  -- Applies to entire result set
 ```
 
 ## Summary

@@ -17,11 +17,11 @@ Grouping Sets is a powerful T-SQL feature that extends the capabilities of GROUP
 
 **Core Tables for Grouping Sets Operations:**
 ```sql
-Employees: EmployeeID (3001+), FirstName, LastName, BaseSalary, DepartmentID, ManagerID, JobTitle, HireDate, WorkEmail, IsActive
-Departments: DepartmentID (2001+), DepartmentName, Budget, Location, IsActive
-Projects: ProjectID (4001+), ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
-Orders: OrderID (5001+), CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
-EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
+Employees: e.EmployeeID (3001+), e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID, ManagerID, e.JobTitle, e.HireDate, WorkEmail, IsActive
+Departments: d.DepartmentID (2001+), d.DepartmentName, d.Budget, Location, IsActive
+Projects: ProjectID (4001+), ProjectName, d.Budget, ProjectManagerID, StartDate, EndDate, IsActive
+Orders: OrderID (5001+), CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
+EmployeeProjects: e.EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
 Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, WorkEmail, IsActive
 ```
 
@@ -36,19 +36,19 @@ Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, WorkEmai
 │                                                                             │
 │  Traditional GROUP BY (Single Level):                                      │
 │  ┌─────────────────────────────────────┐                                   │
-│  │ SELECT DepartmentName, SUM(e.BaseSalary)      │  →  d.DepartmentName │ Total BaseSalary    │ │
-│  │ FROM Employees                      │     ─────────────────────────────  │ │
+│  │ SELECT d.DepartmentName, SUM(e.BaseSalary)      │  →  d.DepartmentName │ Total e.BaseSalary    │ │
+│  │ FROM Employees e                      │     ─────────────────────────────  │ │
 │  │ GROUP BY d.DepartmentName                 │     IT         │ $450,000       │ │
 │  └─────────────────────────────────────┘     HR         │ $280,000       │ │
 │                                               Sales      │ $520,000       │ │
 │                                                                             │
 │  GROUPING SETS (Multiple Levels):                                          │
 │  ┌─────────────────────────────────────┐                                   │
-│  │ SELECT DepartmentName, JobTitle,        │  →  d.DepartmentName │ JobTitle │ Total │ │
+│  │ SELECT d.DepartmentName, e.JobTitle,        │  →  d.DepartmentName │ e.JobTitle │ Total │ │
 │  │        SUM(e.BaseSalary)                  │     ─────────────────────────────  │ │
-│  │ FROM Employees                      │     IT         │ Developer│$200K  │ │
+│  │ FROM Employees e                      │     IT         │ Developer│$200K  │ │
 │  │ GROUP BY GROUPING SETS (            │     IT         │ Manager  │$250K  │ │
-│  │   (Department, JobTitle),           │     IT         │ NULL     │$450K  │ │
+│  │   (Department, e.JobTitle),           │     IT         │ NULL     │$450K  │ │
 │  │   (Department),                     │     HR         │ Manager  │$180K  │ │
 │  │   ()                                │     HR         │ NULL     │$280K  │ │
 │  │ )                                   │     NULL       │ NULL     │$1.25M │ │
@@ -92,7 +92,7 @@ GROUP BY GROUPING SETS (
 
 ### 1. Hierarchical Financial Reporting
 
-#### TechCorp Example: d.DepartmentName Budget Analysis with Subtotals
+#### TechCorp Example: d.DepartmentName d.Budget Analysis with Subtotals
 ```sql
 -- Create comprehensive budget analysis with hierarchical subtotals
 SELECT 
@@ -130,7 +130,7 @@ SELECT
         WHEN GROUPING(d.DepartmentName) = 0 THEN  -- d.DepartmentName level only
             CASE 
                 WHEN SUM(e.BaseSalary) * 100.0 / NULLIF(SUM(d.Budget), 0) > 90 
-                THEN '⚠️ Over Budget Risk'
+                THEN '⚠️ Over d.Budget Risk'
                 WHEN SUM(e.BaseSalary) * 100.0 / NULLIF(SUM(d.Budget), 0) > 75 
                 THEN '✅ Well Utilized'
                 WHEN SUM(e.BaseSalary) * 100.0 / NULLIF(SUM(d.Budget), 0) > 50 
@@ -140,7 +140,7 @@ SELECT
         ELSE ''
     END AS Budget_Status
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND d.IsActive = 1
 GROUP BY ROLLUP(d.Location, d.DepartmentName)
@@ -342,29 +342,29 @@ WITH EmployeePerformanceData AS (
         ISNULL(order_metrics.OrderCount, 0) AS CustomerOrderCount,
         ISNULL(order_metrics.TotalRevenue, 0) AS CustomerRevenue
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
     LEFT JOIN (
         -- Project involvement metrics
         SELECT 
-            ep.EmployeeID,
+            ep.e.EmployeeID,
             COUNT(DISTINCT ep.ProjectID) AS ProjectCount,
             SUM(ep.HoursWorked) AS TotalHours
         FROM EmployeeProjects ep
         WHERE ep.IsActive = 1
           AND ep.StartDate >= DATEADD(YEAR, -1, GETDATE())
-        GROUP BY ep.EmployeeID
-    ) project_metrics ON e.EmployeeID = project_metrics.EmployeeID
+        GROUP BY ep.e.EmployeeID
+    ) project_metrics ON e.EmployeeID = project_metrics.e.EmployeeID
     LEFT JOIN (
         -- Customer interaction metrics
         SELECT 
-            o.EmployeeID,
+            o.e.EmployeeID,
             COUNT(o.OrderID) AS OrderCount,
             SUM(o.TotalAmount) AS TotalRevenue
         FROM Orders o
         WHERE o.IsActive = 1
           AND o.OrderDate >= DATEADD(YEAR, -1, GETDATE())
-        GROUP BY o.EmployeeID
-    ) order_metrics ON e.EmployeeID = order_metrics.EmployeeID
+        GROUP BY o.e.EmployeeID
+    ) order_metrics ON e.EmployeeID = order_metrics.e.EmployeeID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
 )
@@ -385,7 +385,7 @@ SELECT
     CASE WHEN GROUPING(Location) = 1 THEN 'All Locations' ELSE Location END AS Location_Display,
     CASE WHEN GROUPING(d.DepartmentName) = 1 THEN 'All Departments' ELSE d.DepartmentName END AS Department_Display,
     CASE WHEN GROUPING(ExperienceLevel) = 1 THEN 'All Levels' ELSE ExperienceLevel END AS Experience_Display,
-    COUNT(EmployeeID) AS Employee_Count,
+    COUNT(e.EmployeeID) AS Employee_Count,
     FORMAT(SUM(e.BaseSalary), 'C') AS Total_Compensation,
     FORMAT(AVG(e.BaseSalary), 'C') AS Average_Salary,
     SUM(ProjectCount) AS Total_Project_Involvement,
@@ -394,13 +394,13 @@ SELECT
     FORMAT(SUM(CustomerRevenue), 'C') AS Total_Customer_Revenue,
     -- Productivity metrics
     CASE 
-        WHEN COUNT(EmployeeID) > 0 
-        THEN CAST(SUM(TotalProjectHours) * 1.0 / COUNT(EmployeeID) AS DECIMAL(8,2))
+        WHEN COUNT(e.EmployeeID) > 0 
+        THEN CAST(SUM(TotalProjectHours) * 1.0 / COUNT(e.EmployeeID) AS DECIMAL(8,2))
         ELSE 0
     END AS Avg_Hours_Per_Employee,
     CASE 
-        WHEN COUNT(EmployeeID) > 0 
-        THEN FORMAT(SUM(CustomerRevenue) / COUNT(EmployeeID), 'C')
+        WHEN COUNT(e.EmployeeID) > 0 
+        THEN FORMAT(SUM(CustomerRevenue) / COUNT(e.EmployeeID), 'C')
         ELSE '$0'
     END AS Avg_Revenue_Per_Employee,
     -- Efficiency ratios
@@ -421,22 +421,22 @@ SELECT
     END AS Analysis_Category,
     -- Strategic insights
     CASE 
-        WHEN COUNT(EmployeeID) > 0 AND GROUPING(Location) = 0 AND GROUPING(d.DepartmentName) = 0 AND GROUPING(ExperienceLevel) = 0
+        WHEN COUNT(e.EmployeeID) > 0 AND GROUPING(Location) = 0 AND GROUPING(d.DepartmentName) = 0 AND GROUPING(ExperienceLevel) = 0
         THEN
             CASE 
                 WHEN SUM(CustomerRevenue) / NULLIF(SUM(e.BaseSalary), 0) > 3 
                 THEN '🌟 High ROI Segment - Scale Up'
-                WHEN SUM(TotalProjectHours) / COUNT(EmployeeID) > 150 
+                WHEN SUM(TotalProjectHours) / COUNT(e.EmployeeID) > 150 
                 THEN '⚡ High Utilization - Monitor Burnout'
-                WHEN AVG(e.BaseSalary) > 80000 AND SUM(CustomerRevenue) / COUNT(EmployeeID) < 50000
+                WHEN AVG(e.BaseSalary) > 80000 AND SUM(CustomerRevenue) / COUNT(e.EmployeeID) < 50000
                 THEN '💡 High Cost, Low Revenue - Optimize'
                 ELSE '📊 Standard Performance Segment'
             END
         ELSE NULL
     END AS Strategic_Insight
 FROM EmployeePerformanceData
-GROUP BY CUBE(Location, DepartmentName, ExperienceLevel)
-HAVING COUNT(EmployeeID) > 0
+GROUP BY CUBE(Location, d.DepartmentName, ExperienceLevel)
+HAVING COUNT(e.EmployeeID) > 0
 ORDER BY 
     GROUPING(Location),
     GROUPING(d.DepartmentName),
@@ -466,27 +466,27 @@ WITH ExecutiveMetrics AS (
         ISNULL(project_data.ProjectBudget, 0) AS ProjectBudget,
         ISNULL(order_data.OrderRevenue, 0) AS OrderRevenue
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
     LEFT JOIN (
         -- Project budget by employee
         SELECT 
-            p.ProjectManagerID AS EmployeeID,
-            SUM(p.Budget) AS ProjectBudget
+            p.ProjectManagerID AS e.EmployeeID,
+            SUM(p.d.Budget) AS ProjectBudget
         FROM Projects p
         WHERE p.IsActive = 1
           AND p.StartDate >= DATEADD(QUARTER, -1, GETDATE())
         GROUP BY p.ProjectManagerID
-    ) project_data ON e.EmployeeID = project_data.EmployeeID
+    ) project_data ON e.EmployeeID = project_data.e.EmployeeID
     LEFT JOIN (
         -- Order revenue by employee
         SELECT 
-            o.EmployeeID,
+            o.e.EmployeeID,
             SUM(o.TotalAmount) AS OrderRevenue
         FROM Orders o
         WHERE o.IsActive = 1
           AND o.OrderDate >= DATEADD(QUARTER, -1, GETDATE())
-        GROUP BY o.EmployeeID
-    ) order_data ON e.EmployeeID = order_data.EmployeeID
+        GROUP BY o.e.EmployeeID
+    ) order_data ON e.EmployeeID = order_data.e.EmployeeID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
 )
@@ -504,12 +504,12 @@ SELECT
         WHEN GROUPING(d.DepartmentName) = 0 AND GROUPING(Location) = 1 AND GROUPING(SalaryTier) = 1
         THEN '🏢 d.DepartmentName Summary: ' + d.DepartmentName
         WHEN GROUPING(SalaryTier) = 0 AND GROUPING(Location) = 1 AND GROUPING(d.DepartmentName) = 1
-        THEN '💰 BaseSalary Tier Summary: ' + SalaryTier + ' Level'
+        THEN '💰 e.BaseSalary Tier Summary: ' + SalaryTier + ' Level'
         ELSE '🏆 COMPANY TOTAL'
     END AS Executive_Summary_Level,
     -- Display columns
     CASE WHEN GROUPING(Location) = 1 THEN 'All Locations' ELSE Location END AS Location,
-    CASE WHEN GROUPING(d.DepartmentName) = 1 THEN 'All Departments' ELSE d.DepartmentName END AS DepartmentName,
+    CASE WHEN GROUPING(d.DepartmentName) = 1 THEN 'All Departments' ELSE d.DepartmentName END AS d.DepartmentName,
     CASE WHEN GROUPING(SalaryTier) = 1 THEN 'All Tiers' ELSE SalaryTier END AS Salary_Tier,
     -- Core metrics
     COUNT(*) AS Employee_Count,
@@ -553,12 +553,12 @@ SELECT
 FROM ExecutiveMetrics
 GROUP BY GROUPING SETS (
     -- Executive-focused grouping combinations
-    (Location, DepartmentName, SalaryTier),  -- Detailed analysis
+    (Location, d.DepartmentName, SalaryTier),  -- Detailed analysis
     (Location, SalaryTier),                  -- Location + tier focus
-    (DepartmentName, SalaryTier),           -- d.DepartmentName + tier focus
+    (d.DepartmentName, SalaryTier),           -- d.DepartmentName + tier focus
     (Location),                              -- Location summary
     (d.DepartmentName),                        -- d.DepartmentName summary
-    (SalaryTier),                           -- BaseSalary tier summary
+    (SalaryTier),                           -- e.BaseSalary tier summary
     ()                                       -- Grand total
 )
 ORDER BY 
@@ -570,7 +570,7 @@ ORDER BY
 
 ### 2. Financial Analysis with Custom Groupings
 
-#### TechCorp Example: Budget vs Actual Analysis
+#### TechCorp Example: d.Budget vs Actual Analysis
 ```sql
 -- Comprehensive budget vs actual analysis with custom groupings
 WITH BudgetActualData AS (
@@ -579,38 +579,38 @@ WITH BudgetActualData AS (
         d.DepartmentName,
         YEAR(GETDATE()) AS FiscalYear,
         DATEPART(QUARTER, GETDATE()) AS FiscalQuarter,
-        -- Budget data
+        -- d.Budget data
         d.Budget AS DepartmentBudget,
-        -- Actual BaseSalary costs
+        -- Actual e.BaseSalary costs
         SUM(e.BaseSalary) AS ActualSalaryCost,
         -- Actual project spending
         ISNULL(project_spending.ProjectSpending, 0) AS ActualProjectSpending,
         -- Revenue generation
         ISNULL(revenue_data.GeneratedRevenue, 0) AS GeneratedRevenue
     FROM Departments d
-    INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+    INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
     LEFT JOIN (
         -- Project spending by d.DepartmentName
         SELECT 
-            e.DepartmentID,
-            SUM(p.Budget) AS ProjectSpending
+            e.d.DepartmentID,
+            SUM(p.d.Budget) AS ProjectSpending
         FROM Projects p
         INNER JOIN Employees e ON p.ProjectManagerID = e.EmployeeID
         WHERE p.IsActive = 1
           AND p.StartDate >= DATEADD(YEAR, 0, DATEADD(YEAR, DATEDIFF(YEAR, 0, GETDATE()), 0))
-        GROUP BY e.DepartmentID
-    ) project_spending ON d.DepartmentID = project_spending.DepartmentID
+        GROUP BY e.d.DepartmentID
+    ) project_spending ON d.DepartmentID = project_spending.d.DepartmentID
     LEFT JOIN (
         -- Revenue by d.DepartmentName
         SELECT 
-            e.DepartmentID,
+            e.d.DepartmentID,
             SUM(o.TotalAmount) AS GeneratedRevenue
         FROM Orders o
-        INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
+        INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
         WHERE o.IsActive = 1
           AND o.OrderDate >= DATEADD(YEAR, 0, DATEADD(YEAR, DATEDIFF(YEAR, 0, GETDATE()), 0))
-        GROUP BY e.DepartmentID
-    ) revenue_data ON d.DepartmentID = revenue_data.DepartmentID
+        GROUP BY e.d.DepartmentID
+    ) revenue_data ON d.DepartmentID = revenue_data.d.DepartmentID
     WHERE d.IsActive = 1
       AND e.IsActive = 1
     GROUP BY 
@@ -629,8 +629,8 @@ SELECT
         ELSE '🏆 Company-Wide Financial Summary'
     END AS Financial_Analysis_Level,
     CASE WHEN GROUPING(Location) = 1 THEN 'All Locations' ELSE Location END AS Location,
-    CASE WHEN GROUPING(d.DepartmentName) = 1 THEN 'All Departments' ELSE d.DepartmentName END AS DepartmentName,
-    -- Budget metrics
+    CASE WHEN GROUPING(d.DepartmentName) = 1 THEN 'All Departments' ELSE d.DepartmentName END AS d.DepartmentName,
+    -- d.Budget metrics
     FORMAT(SUM(DepartmentBudget), 'C') AS Allocated_Budget,
     FORMAT(SUM(ActualSalaryCost), 'C') AS Actual_Salary_Cost,
     FORMAT(SUM(ActualProjectSpending), 'C') AS Actual_Project_Spending,
@@ -652,7 +652,7 @@ SELECT
     -- Performance indicators
     CASE 
         WHEN ((SUM(ActualSalaryCost) + SUM(ActualProjectSpending)) * 100.0 / NULLIF(SUM(DepartmentBudget), 0)) > 95
-        THEN '🔴 Over Budget Risk'
+        THEN '🔴 Over d.Budget Risk'
         WHEN ((SUM(ActualSalaryCost) + SUM(ActualProjectSpending)) * 100.0 / NULLIF(SUM(DepartmentBudget), 0)) > 85
         THEN '🟡 High Utilization'
         WHEN ((SUM(ActualSalaryCost) + SUM(ActualProjectSpending)) * 100.0 / NULLIF(SUM(DepartmentBudget), 0)) > 70
@@ -708,17 +708,17 @@ ORDER BY
 SELECT 
     Location,
     DepartmentName,
-    JobTitle,
+    e.JobTitle,
     COUNT(*) AS Employee_Count,
     FORMAT(AVG(e.BaseSalary), 'C') AS Average_Salary,
     -- GROUPING function for individual columns (returns 0 or 1)
     GROUPING(Location) AS Location_Grouped,
     GROUPING(d.DepartmentName) AS Department_Grouped,
-    GROUPING(JobTitle) AS JobTitle_Grouped,
+    GROUPING(e.JobTitle) AS JobTitle_Grouped,
     -- GROUPING_ID for combination identification (returns bitmask)
-    GROUPING_ID(Location, DepartmentName, JobTitle) AS Grouping_Level_ID,
+    GROUPING_ID(Location, DepartmentName, e.JobTitle) AS Grouping_Level_ID,
     -- Custom level identification using GROUPING_ID
-    CASE GROUPING_ID(Location, DepartmentName, JobTitle)
+    CASE GROUPING_ID(Location, DepartmentName, e.JobTitle)
         WHEN 0 THEN 'L4: Detailed (Location + d.DepartmentName + Job Title)'
         WHEN 1 THEN 'L3: Location + d.DepartmentName Summary'
         WHEN 2 THEN 'L3: Location + Job Title Summary'
@@ -730,7 +730,7 @@ SELECT
         ELSE 'Unknown Level'
     END AS Analysis_Level,
     -- Business intelligence based on grouping level
-    CASE GROUPING_ID(Location, DepartmentName, JobTitle)
+    CASE GROUPING_ID(Location, DepartmentName, e.JobTitle)
         WHEN 0 THEN 'Operational Detail Analysis'
         WHEN 1 THEN 'Department Management Analysis'
         WHEN 2 THEN 'Location Role Analysis'
@@ -743,12 +743,12 @@ SELECT
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1 AND d.IsActive = 1
-GROUP BY CUBE(Location, DepartmentName, JobTitle)
+GROUP BY CUBE(Location, DepartmentName, e.JobTitle)
 ORDER BY 
-    GROUPING_ID(Location, DepartmentName, JobTitle),
+    GROUPING_ID(Location, DepartmentName, e.JobTitle),
     Location,
     DepartmentName,
-    JobTitle;
+    e.JobTitle;
 ```
 
 ## Performance Optimization for Grouping Sets
@@ -757,9 +757,9 @@ ORDER BY
 
 ```sql
 -- Recommended indexes for optimal Grouping Sets performance
--- CREATE INDEX IX_Employees_Dept_Location_Salary ON Employees(DepartmentID, IsActive) INCLUDE (BaseSalary, JobTitle, HireDate);
+-- CREATE INDEX IX_Employees_Dept_Location_Salary ON Employees(DepartmentID, IsActive) INCLUDE (e.BaseSalary, e.JobTitle, e.HireDate);
 -- CREATE INDEX IX_Departments_Location_Budget ON Departments(Location, IsActive) INCLUDE (DepartmentName, Budget);
--- CREATE INDEX IX_Orders_Employee_Date_Amount ON Orders(EmployeeID, OrderDate, IsActive) INCLUDE (TotalAmount, CustomerID);
+-- CREATE INDEX IX_Orders_Employee_Date_Amount ON Orders(e.EmployeeID, OrderDate, IsActive) INCLUDE (TotalAmount, CustomerID);
 
 -- Optimized Grouping Sets query with proper indexing
 SELECT 
@@ -797,7 +797,7 @@ WITH FilteredEmployeeData AS (
     WHERE e.IsActive = 1
       AND d.IsActive = 1
       AND e.HireDate >= DATEADD(YEAR, -5, GETDATE())  -- Recent hires only
-      AND e.BaseSalary > 0  -- Valid BaseSalary data only
+      AND e.BaseSalary > 0  -- Valid e.BaseSalary data only
 )
 SELECT 
     ISNULL(Location, 'All Locations') AS Location,

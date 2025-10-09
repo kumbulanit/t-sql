@@ -64,7 +64,7 @@ WITH ExecutiveMetrics AS (
             ELSE COALESCE(e.Phone, 'Phone Not Available')
         END AS FormattedPhone,
         
-        -- CONVERSION FUNCTIONS: Professional BaseSalary and data formatting
+        -- CONVERSION FUNCTIONS: Professional e.BaseSalary and data formatting
         FORMAT(ISNULL(e.BaseSalary, 0), 'C') AS FormattedSalary,
         CAST(ISNULL(e.Commission, 0) AS DECIMAL(5,2)) AS CommissionDecimal,
         
@@ -89,7 +89,7 @@ WITH ExecutiveMetrics AS (
         -- MATHEMATICAL FUNCTIONS: Advanced compensation analysis
         ISNULL(e.BaseSalary, 0) * (1 + ISNULL(e.Commission, 0) / 100.0) AS EstimatedTotalComp,
         
-        -- Calculate compound annual BaseSalary growth (assuming 3% average)
+        -- Calculate compound annual e.BaseSalary growth (assuming 3% average)
         ISNULL(e.BaseSalary, 0) * POWER(1.03, DATEDIFF(YEAR, ISNULL(e.HireDate, GETDATE()), GETDATE())) AS ProjectedCurrentValue,
         
         -- Statistical ranking within d.DepartmentName
@@ -731,7 +731,7 @@ WITH DataQualityAssessment AS (
         COALESCE(
             CASE 
                 WHEN e.FirstName IS NULL OR TRIM(e.FirstName) = '' 
-                THEN 'FirstName: Set to employee ID or request from HR; '
+                THEN 'e.FirstName: Set to employee ID or request from HR; '
                 ELSE ''
             END +
             CASE 
@@ -741,12 +741,12 @@ WITH DataQualityAssessment AS (
             END +
             CASE 
                 WHEN e.BaseSalary IS NULL OR e.BaseSalary <= 0 
-                THEN 'BaseSalary: Review with compensation team; '
+                THEN 'e.BaseSalary: Review with compensation team; '
                 ELSE ''
             END +
             CASE 
                 WHEN e.HireDate IS NULL 
-                THEN 'HireDate: Check HR records for employment start date; '
+                THEN 'e.HireDate: Check HR records for employment start date; '
                 ELSE ''
             END,
             'No cleaning needed'

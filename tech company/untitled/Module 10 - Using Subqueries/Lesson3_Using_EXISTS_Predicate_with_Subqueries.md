@@ -17,11 +17,11 @@ The EXISTS predicate is a powerful tool for testing whether a subquery returns a
 
 **Key Tables for EXISTS Examples:**
 ```sql
-Employees: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, ManagerID, IsActive
-Departments: DepartmentID, DepartmentName, Budget, Location, IsActive
-Projects: ProjectID, ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
-Orders: OrderID, CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
-EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
+Employees: e.EmployeeID, e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID, ManagerID, IsActive
+Departments: d.DepartmentID, d.DepartmentName, d.Budget, Location, IsActive
+Projects: ProjectID, ProjectName, d.Budget, ProjectManagerID, StartDate, EndDate, IsActive
+Orders: OrderID, CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
+EmployeeProjects: e.EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
 Customers: CustomerID, CompanyName, ContactName, City, Country, IsActive
 ```
 
@@ -48,7 +48,7 @@ EXISTS is a logical operator that:
 │  │ SELECT * FROM Employees e           │                                   │
 │  │ WHERE EXISTS (                      │  →  Returns: TRUE/FALSE           │
 │  │     SELECT 1 FROM Orders o          │      Stops at first match         │
-│  │     WHERE o.EmployeeID = e.EmpID    │      Optimized performance        │
+│  │     WHERE o.e.EmployeeID = e.EmpID    │      Optimized performance        │
 │  │ )                                   │                                   │
 │  └─────────────────────────────────────┘                                   │
 │                                                                             │
@@ -56,7 +56,7 @@ EXISTS is a logical operator that:
 │  ┌─────────────────────────────────────┐                                   │
 │  │ SELECT * FROM Employees e           │                                   │
 │  │ WHERE e.EmployeeID IN (             │  →  Returns: List of values       │
-│  │     SELECT o.EmployeeID             │      Must process all matches     │
+│  │     SELECT o.e.EmployeeID             │      Must process all matches     │
 │  │     FROM Orders o                   │      Can have performance issues  │
 │  │ )                                   │                                   │
 │  └─────────────────────────────────────┘                                   │
@@ -79,11 +79,11 @@ SELECT
     e.JobTitle,
     d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE EXISTS (
     SELECT 1                    -- Common pattern: SELECT 1 (any constant works)
     FROM Orders o
-    WHERE o.EmployeeID = e.EmployeeID
+    WHERE o.e.EmployeeID = e.EmployeeID
       AND o.IsActive = 1
 )
   AND e.IsActive = 1
@@ -101,7 +101,7 @@ WHERE EXISTS (
     SELECT 1
     FROM Projects p
     INNER JOIN Employees e ON p.ProjectManagerID = e.EmployeeID
-    WHERE e.DepartmentID = d.DepartmentID
+    WHERE e.d.DepartmentID = d.DepartmentID
       AND p.IsActive = 1
       AND e.IsActive = 1
 )
@@ -121,11 +121,11 @@ SELECT
     d.DepartmentName,
     e.HireDate
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE NOT EXISTS (
     SELECT 1
     FROM Orders o
-    WHERE o.EmployeeID = e.EmployeeID
+    WHERE o.e.EmployeeID = e.EmployeeID
       AND o.IsActive = 1
 )
   AND e.IsActive = 1
@@ -170,11 +170,11 @@ SELECT
     d.DepartmentName,
     e.BaseSalary
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE EXISTS (
     -- Check if employee is a manager
     SELECT 1
-    FROM Employees subordinate
+    FROM Employees e subordinate
     WHERE subordinate.ManagerID = e.EmployeeID
       AND subordinate.IsActive = 1
 )
@@ -182,14 +182,14 @@ WHERE EXISTS (
     -- Check if employee has worked on projects
     SELECT 1
     FROM EmployeeProjects ep
-    WHERE ep.EmployeeID = e.EmployeeID
+    WHERE ep.e.EmployeeID = e.EmployeeID
       AND ep.IsActive = 1
 )
   AND EXISTS (
     -- Check if employee has processed orders
     SELECT 1
     FROM Orders o
-    WHERE o.EmployeeID = e.EmployeeID
+    WHERE o.e.EmployeeID = e.EmployeeID
       AND o.IsActive = 1
 )
   AND e.IsActive = 1
@@ -242,42 +242,42 @@ ORDER BY HighestOrderValue DESC;
 ```sql
 -- Find all managers at different levels with their span of control
 SELECT 
-    mgr.FirstName + ' ' + mgr.LastName AS ManagerName,
-    mgr.JobTitle,
+    mgr.e.FirstName + ' ' + mgr.e.LastName AS ManagerName,
+    mgr.e.JobTitle,
     d.DepartmentName,
     -- Direct reports count
     (SELECT COUNT(*)
-     FROM Employees direct
-     WHERE direct.ManagerID = mgr.EmployeeID 
+     FROM Employees e direct
+     WHERE direct.ManagerID = mgr.e.EmployeeID 
        AND direct.IsActive = 1) AS DirectReports,
     -- Check if this manager has other managers reporting to them
     CASE 
         WHEN EXISTS (
             SELECT 1
-            FROM Employees sub_mgr
-            WHERE sub_mgr.ManagerID = mgr.EmployeeID
+            FROM Employees e sub_mgr
+            WHERE sub_mgr.ManagerID = mgr.e.EmployeeID
               AND EXISTS (
                   SELECT 1
-                  FROM Employees sub_emp
-                  WHERE sub_emp.ManagerID = sub_mgr.EmployeeID
+                  FROM Employees e sub_emp
+                  WHERE sub_emp.ManagerID = sub_mgr.e.EmployeeID
                     AND sub_emp.IsActive = 1
               )
               AND sub_mgr.IsActive = 1
         ) THEN 'Senior Manager'
         WHEN EXISTS (
             SELECT 1
-            FROM Employees direct
-            WHERE direct.ManagerID = mgr.EmployeeID
+            FROM Employees e direct
+            WHERE direct.ManagerID = mgr.e.EmployeeID
               AND direct.IsActive = 1
         ) THEN 'Manager'
         ELSE 'Individual Contributor'
     END AS ManagementLevel
-FROM Employees mgr
-INNER JOIN Departments d ON mgr.DepartmentID = d.DepartmentID
+FROM Employees e mgr
+INNER JOIN Departments d ON mgr.d.DepartmentID = d.DepartmentID
 WHERE EXISTS (
     SELECT 1
-    FROM Employees subordinate
-    WHERE subordinate.ManagerID = mgr.EmployeeID
+    FROM Employees e subordinate
+    WHERE subordinate.ManagerID = mgr.e.EmployeeID
       AND subordinate.IsActive = 1
 )
   AND mgr.IsActive = 1
@@ -302,7 +302,7 @@ FROM Employees e
 WHERE EXISTS (
     SELECT 1
     FROM Orders o
-    WHERE o.EmployeeID = e.EmployeeID
+    WHERE o.e.EmployeeID = e.EmployeeID
       AND o.IsActive = 1
 );
 
@@ -310,7 +310,7 @@ WHERE EXISTS (
 SELECT e.FirstName, e.LastName  
 FROM Employees e
 WHERE e.EmployeeID IN (
-    SELECT o.EmployeeID
+    SELECT o.e.EmployeeID
     FROM Orders o
     WHERE o.IsActive = 1
 );
@@ -318,7 +318,7 @@ WHERE e.EmployeeID IN (
 -- ✅ ALTERNATIVE: JOIN approach (often fastest for simple cases)
 SELECT DISTINCT e.FirstName, e.LastName
 FROM Employees e
-INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
+INNER JOIN Orders o ON e.EmployeeID = o.e.EmployeeID
 WHERE e.IsActive = 1 
   AND o.IsActive = 1;
 ```
@@ -334,14 +334,14 @@ FROM Employees e
 WHERE EXISTS (
     SELECT 1
     FROM Orders o
-    WHERE o.EmployeeID = e.EmployeeID  -- Index on Orders(EmployeeID)
+    WHERE o.e.EmployeeID = e.EmployeeID  -- Index on Orders(e.EmployeeID)
       AND o.IsActive = 1               -- Index on Orders(IsActive)
       AND o.OrderDate >= '2024-01-01'  -- Index on Orders(OrderDate)
 );
 
 -- Recommended composite index:
 -- CREATE INDEX IX_Orders_EmployeeID_IsActive_OrderDate 
--- ON Orders(EmployeeID, IsActive, OrderDate);
+-- ON Orders(e.EmployeeID, IsActive, OrderDate);
 ```
 
 ### 3. EXISTS with Selective Filters
@@ -354,13 +354,13 @@ SELECT
     e.LastName,
     d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE d.DepartmentName IN ('Sales', 'Marketing', 'Customer Service')  -- Filter first
   AND e.IsActive = 1
   AND EXISTS (
     SELECT 1
     FROM Orders o
-    WHERE o.EmployeeID = e.EmployeeID
+    WHERE o.e.EmployeeID = e.EmployeeID
       AND o.TotalAmount > 5000                    -- High-value filter
       AND o.OrderDate >= DATEADD(MONTH, -3, GETDATE())  -- Recent filter
       AND o.IsActive = 1
@@ -378,12 +378,12 @@ SELECT
     e.EmployeeID,
     e.FirstName,
     e.LastName,
-    e.DepartmentID
+    e.d.DepartmentID
 FROM Employees e
 WHERE NOT EXISTS (
     SELECT 1
     FROM Departments d
-    WHERE d.DepartmentID = e.DepartmentID
+    WHERE d.DepartmentID = e.d.DepartmentID
       AND d.IsActive = 1
 )
   AND e.IsActive = 1;
@@ -397,8 +397,8 @@ FROM Departments d
 WHERE NOT EXISTS (
     SELECT 1
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    WHERE e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    WHERE e.d.DepartmentID = d.DepartmentID
       AND e.IsActive = 1
 )
   AND d.IsActive = 1;
@@ -454,31 +454,31 @@ SELECT d.DepartmentName,
     -- Active employees count
     (SELECT COUNT(*)
      FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-     WHERE e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+     WHERE e.d.DepartmentID = d.DepartmentID
        AND e.IsActive = 1) AS ActiveEmployees,
     -- Employees with recent orders
     (SELECT COUNT(*)
      FROM Employees e
-     WHERE e.DepartmentID = d.DepartmentID
+     WHERE e.d.DepartmentID = d.DepartmentID
        AND e.IsActive = 1
        AND EXISTS (
            SELECT 1
            FROM Orders o
-           WHERE o.EmployeeID = e.EmployeeID
+           WHERE o.e.EmployeeID = e.EmployeeID
              AND o.OrderDate >= DATEADD(MONTH, -1, GETDATE())
              AND o.IsActive = 1
        )) AS EmployeesWithRecentOrders,
     -- Employees on active projects
     (SELECT COUNT(*)
      FROM Employees e
-     WHERE e.DepartmentID = d.DepartmentID
+     WHERE e.d.DepartmentID = d.DepartmentID
        AND e.IsActive = 1
        AND EXISTS (
            SELECT 1
            FROM EmployeeProjects ep
            INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-           WHERE ep.EmployeeID = e.EmployeeID
+           WHERE ep.e.EmployeeID = e.EmployeeID
              AND p.IsActive = 1
              AND ep.IsActive = 1
        )) AS EmployeesOnProjects,
@@ -487,8 +487,8 @@ SELECT d.DepartmentName,
         WHEN EXISTS (
             SELECT 1
             FROM Employees e
-            INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
-            WHERE e.DepartmentID = d.DepartmentID
+            INNER JOIN Orders o ON e.EmployeeID = o.e.EmployeeID
+            WHERE e.d.DepartmentID = d.DepartmentID
               AND o.OrderDate >= DATEADD(WEEK, -1, GETDATE())
               AND e.IsActive = 1
               AND o.IsActive = 1
@@ -496,8 +496,8 @@ SELECT d.DepartmentName,
         WHEN EXISTS (
             SELECT 1
             FROM Employees e
-            INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
-            WHERE e.DepartmentID = d.DepartmentID
+            INNER JOIN Orders o ON e.EmployeeID = o.e.EmployeeID
+            WHERE e.d.DepartmentID = d.DepartmentID
               AND o.OrderDate >= DATEADD(MONTH, -1, GETDATE())
               AND e.IsActive = 1
               AND o.IsActive = 1
@@ -519,21 +519,21 @@ ORDER BY ActiveEmployees DESC;
 WHERE EXISTS (
     SELECT 1                    -- Or SELECT NULL, SELECT 'X' - all equivalent
     FROM Orders o
-    WHERE o.EmployeeID = e.EmployeeID
+    WHERE o.e.EmployeeID = e.EmployeeID
 );
 
 -- ❌ AVOID: Selecting actual columns (unnecessary overhead)
 WHERE EXISTS (
     SELECT o.OrderID, o.OrderDate, o.TotalAmount  -- Waste of resources
     FROM Orders o
-    WHERE o.EmployeeID = e.EmployeeID
+    WHERE o.e.EmployeeID = e.EmployeeID
 );
 
 -- ✅ GOOD: Proper correlation and filtering
 WHERE EXISTS (
     SELECT 1
     FROM Orders o
-    WHERE o.EmployeeID = e.EmployeeID    -- Clear correlation
+    WHERE o.e.EmployeeID = e.EmployeeID    -- Clear correlation
       AND o.IsActive = 1                 -- Relevant filters
       AND o.OrderDate >= @StartDate      -- Business logic
 );
@@ -549,7 +549,7 @@ FROM Employees e
 WHERE EXISTS (
     SELECT 1
     FROM Orders o
-    WHERE o.EmployeeID = e.EmployeeID  -- Even if EmployeeID is NULL,
+    WHERE o.e.EmployeeID = e.EmployeeID  -- Even if e.EmployeeID is NULL,
       AND o.IsActive = 1               -- EXISTS handles it properly
 );
 
@@ -567,7 +567,7 @@ FROM Employees e
 WHERE EXISTS (
     SELECT 1
     FROM Orders o
-    WHERE o.EmployeeID = e.EmployeeID
+    WHERE o.e.EmployeeID = e.EmployeeID
       AND o.IsActive = 1
 )
   AND e.IsActive = 1;
@@ -575,7 +575,7 @@ WHERE EXISTS (
 -- Validation query using JOIN
 SELECT COUNT(DISTINCT e.EmployeeID) as EmployeesWithOrders_Validation
 FROM Employees e
-INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
+INNER JOIN Orders o ON e.EmployeeID = o.e.EmployeeID
 WHERE e.IsActive = 1
   AND o.IsActive = 1;
 
@@ -593,7 +593,7 @@ WHERE EXISTS (
     SELECT 1
     FROM Orders o
     WHERE YEAR(o.OrderDate) = 2024        -- Function prevents index use
-      AND o.EmployeeID = e.EmployeeID
+      AND o.e.EmployeeID = e.EmployeeID
 );
 
 -- ✅ SOLUTION: Use range conditions instead
@@ -602,7 +602,7 @@ WHERE EXISTS (
     FROM Orders o
     WHERE o.OrderDate >= '2024-01-01'     -- Index-friendly
       AND o.OrderDate < '2025-01-01'
-      AND o.EmployeeID = e.EmployeeID
+      AND o.e.EmployeeID = e.EmployeeID
 );
 ```
 
@@ -617,7 +617,7 @@ WHERE EXISTS (
     SELECT 1
     FROM Orders o
     WHERE o.TotalAmount > 1000  -- This checks if ANY order > 1000 exists
-    -- Missing: AND o.EmployeeID = e.EmployeeID
+    -- Missing: AND o.e.EmployeeID = e.EmployeeID
 );
 
 -- ✅ SOLUTION: Proper correlation
@@ -626,7 +626,7 @@ FROM Employees e
 WHERE EXISTS (
     SELECT 1
     FROM Orders o
-    WHERE o.EmployeeID = e.EmployeeID  -- Proper correlation
+    WHERE o.e.EmployeeID = e.EmployeeID  -- Proper correlation
       AND o.TotalAmount > 1000         -- Now checks per employee
       AND o.IsActive = 1
 );
@@ -642,12 +642,12 @@ SELECT
     e.LastName,
     (SELECT COUNT(*)
      FROM Orders o
-     WHERE o.EmployeeID = e.EmployeeID
+     WHERE o.e.EmployeeID = e.EmployeeID
        AND o.IsActive = 1) as OrderCount
 FROM Employees e
 WHERE (SELECT COUNT(*)
        FROM Orders o
-       WHERE o.EmployeeID = e.EmployeeID
+       WHERE o.e.EmployeeID = e.EmployeeID
          AND o.IsActive = 1) > 0;
 
 -- Method 2: Add EXISTS result as column for verification
@@ -658,7 +658,7 @@ SELECT
         WHEN EXISTS (
             SELECT 1
             FROM Orders o
-            WHERE o.EmployeeID = e.EmployeeID
+            WHERE o.e.EmployeeID = e.EmployeeID
               AND o.IsActive = 1
         ) THEN 'Has Orders'
         ELSE 'No Orders'

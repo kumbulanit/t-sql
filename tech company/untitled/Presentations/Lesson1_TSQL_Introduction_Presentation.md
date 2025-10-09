@@ -63,9 +63,9 @@
 ```sql
 -- Create database objects
 CREATE TABLE Employees (
-    EmployeeID INT PRIMARY KEY,
-    FirstName NVARCHAR(50),
-    LastName NVARCHAR(50)
+    e.EmployeeID INT PRIMARY KEY,
+    e.FirstName NVARCHAR(50),
+    e.LastName NVARCHAR(50)
 );
 
 -- Modify structure
@@ -84,7 +84,7 @@ INSERT INTO Employees VALUES (1, 'John', 'Smith');
 UPDATE Employees SET WorkEmail = 'john@techcorp.com' WHERE ID = 1;
 
 -- Delete records
-DELETE FROM Employees WHERE EmployeeID = 1;
+DELETE FROM Employees e WHERE e.EmployeeID = 1;
 ```
 
 ---
@@ -136,8 +136,8 @@ END;
 ```sql
 -- Valid identifier examples
 SELECT 
-    EmployeeID,
-    FirstName,
+    e.EmployeeID,
+    e.FirstName,
     [Last Name],           -- Brackets for spaces
     Department_Name,       -- Underscore allowed
     "Quoted Identifier"    -- Double quotes allowed
@@ -157,22 +157,22 @@ FROM Employees e;
 
 **Numeric Types**:
 ```sql
-DECLARE @EmployeeID INT = 100;
-DECLARE @BaseSalary DECIMAL(10,2) = 75000.50;
+DECLARE @e.EmployeeID INT = 100;
+DECLARE @e.BaseSalary DECIMAL(10,2) = 75000.50;
 DECLARE @BonusRate FLOAT = 0.15;
 DECLARE @IsActive BIT = 1;
 ```
 
 **String Types**:
 ```sql
-DECLARE @FirstName NVARCHAR(50) = 'John';
+DECLARE @e.FirstName NVARCHAR(50) = 'John';
 DECLARE @Description VARCHAR(MAX) = 'Long text content';
 DECLARE @Code CHAR(5) = 'EMP01';
 ```
 
 **Date/Time Types**:
 ```sql
-DECLARE @HireDate DATE = '2023-01-15';
+DECLARE @e.HireDate DATE = '2023-01-15';
 DECLARE @LastLogin DATETIME = GETDATE();
 DECLARE @ProcessTime TIME = '14:30:00';
 ```
@@ -199,14 +199,15 @@ ORDER BY column1;
 ```sql
 -- Retrieve employee information
 SELECT 
-    EmployeeID,
-    FirstName,
-    LastName,
+    e.EmployeeID,
+    e.FirstName,
+    e.LastName,
     d.DepartmentName,
-    BaseSalary
-FROM Employees
+    e.BaseSalary
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE d.DepartmentName = 'Information Technology'
-ORDER BY LastName;
+ORDER BY e.LastName;
 ```
 
 **Result Set Concepts**:
@@ -228,14 +229,17 @@ DECLARE @d.DepartmentName NVARCHAR(50) = 'IT';
 DECLARE @AverageSalary MONEY;
 
 -- Variable assignment
-SET @EmployeeCount = (SELECT COUNT(*) FROM Employees e);
-SELECT @AverageSalary = AVG(e.BaseSalary) FROM Employees e;
+SET @EmployeeCount = (SELECT COUNT(*) FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID);
+SELECT @AverageSalary = AVG(e.BaseSalary) FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
 -- Variable usage
 SELECT *
-FROM Employees
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE d.DepartmentName = @d.DepartmentName
-  AND BaseSalary > @AverageSalary;
+  AND e.BaseSalary > @AverageSalary;
 ```
 
 **Parameter Usage in Procedures**:
@@ -244,7 +248,7 @@ CREATE PROCEDURE GetEmployeesByDept
     @DeptName NVARCHAR(50)
 AS
 BEGIN
-    SELECT * FROM Employees WHERE DepartmentID = @DeptID;
+    SELECT * FROM Employees e WHERE DepartmentID = @DeptID;
 END;
 ```
 
@@ -256,21 +260,21 @@ END;
 **Arithmetic Operators**:
 ```sql
 SELECT 
-    BaseSalary,
-    BaseSalary * 1.10 AS SalaryWithRaise,      -- Multiplication
-    BaseSalary + 5000 AS SalaryPlusBonus,      -- Addition
-    BaseSalary / 12 AS MonthlySalary,          -- Division
-    BaseSalary % 1000 AS SalaryRemainder       -- Modulo
+    e.BaseSalary,
+    e.BaseSalary * 1.10 AS SalaryWithRaise,      -- Multiplication
+    e.BaseSalary + 5000 AS SalaryPlusBonus,      -- Addition
+    e.BaseSalary / 12 AS MonthlySalary,          -- Division
+    e.BaseSalary % 1000 AS SalaryRemainder       -- Modulo
 FROM Employees e;
 ```
 
 **Comparison Operators**:
 ```sql
-WHERE BaseSalary > 50000              -- Greater than
-  AND HireDate <= '2023-01-01'    -- Less than or equal
-  AND d.d.DepartmentName <> 'HR'          -- Not equal
-  AND EmployeeID BETWEEN 100 AND 200  -- Range
-  AND LastName LIKE 'Sm%'         -- Pattern matching
+WHERE e.BaseSalary > 50000              -- Greater than
+  AND e.HireDate <= '2023-01-01'    -- Less than or equal
+  AND d.DepartmentName <> 'HR'          -- Not equal
+  AND e.EmployeeID BETWEEN 100 AND 200  -- Range
+  AND e.LastName LIKE 'Sm%'         -- Pattern matching
 ```
 
 **Logical Operators**:
@@ -286,10 +290,10 @@ WHERE BaseSalary > 50000              -- Greater than
 **String Functions**:
 ```sql
 SELECT 
-    UPPER(FirstName) AS UpperFirst,
-    LEN(LastName) AS LastNameLength,
+    UPPER(e.FirstName) AS UpperFirst,
+    LEN(e.LastName) AS LastNameLength,
     SUBSTRING(WorkEmail, 1, CHARINDEX('@', WorkEmail) - 1) AS Username,
-    CONCAT(FirstName, ' ', LastName) AS FullName
+    CONCAT(e.FirstName, ' ', e.LastName) AS FullName
 FROM Employees e;
 ```
 
@@ -297,9 +301,9 @@ FROM Employees e;
 ```sql
 SELECT 
     GETDATE() AS CurrentDateTime,
-    YEAR(HireDate) AS HireYear,
-    DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsEmployed,
-    DATEADD(YEAR, 1, HireDate) AS OneYearAnniversary
+    YEAR(e.HireDate) AS HireYear,
+    DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsEmployed,
+    DATEADD(YEAR, 1, e.HireDate) AS OneYearAnniversary
 FROM Employees e;
 ```
 
@@ -308,7 +312,7 @@ FROM Employees e;
 SELECT 
     COUNT(*) AS TotalEmployees,
     AVG(e.BaseSalary) AS AverageBaseSalary,
-    MIN(HireDate) AS EarliestHire,
+    MIN(e.HireDate) AS EarliestHire,
     MAX(e.BaseSalary) AS HighestBaseSalary
 FROM Employees e;
 ```
@@ -326,17 +330,18 @@ FROM Employees e;
    and documentation */
    
 -- TechCorp Employee Query
--- Purpose: Retrieve IT d.d.DepartmentName employees with high salaries
+-- Purpose: Retrieve IT d.DepartmentName employees with high salaries
 -- Author: Database Team
 -- Date: 2024-01-15
 SELECT 
-    EmployeeID,          -- Unique employee identifier
-    FirstName,           -- Employee first name
-    LastName,            -- Employee last name
-    BaseSalary               -- Annual BaseSalary in USD
-FROM Employees
-WHERE d.DepartmentName = 'Engineering'  -- Filter for IT d.d.DepartmentName only
-  AND BaseSalary > 70000;    -- High BaseSalary threshold
+    e.EmployeeID,          -- Unique employee identifier
+    e.FirstName,           -- Employee first name
+    e.LastName,            -- Employee last name
+    e.BaseSalary               -- Annual e.BaseSalary in USD
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+WHERE d.DepartmentName = 'Engineering'  -- Filter for IT d.DepartmentName only
+  AND e.BaseSalary > 70000;    -- High e.BaseSalary threshold
 ```
 
 **Documentation Standards**:
@@ -355,10 +360,10 @@ WHERE d.DepartmentName = 'Engineering'  -- Filter for IT d.d.DepartmentName only
 BEGIN TRY
     -- Potentially error-prone code
     UPDATE Employees 
-    SET BaseSalary = BaseSalary * 1.10
+    SET e.BaseSalary = e.BaseSalary * 1.10
     WHERE d.DepartmentName = 'Engineering';
     
-    PRINT 'BaseSalary update completed successfully';
+    PRINT 'e.BaseSalary update completed successfully';
 END TRY
 BEGIN CATCH
     -- Error handling code
@@ -409,19 +414,19 @@ END CATCH;
 ```sql
 -- Efficient query structure
 SELECT 
-    EmployeeID,
-    FirstName,
-    LastName
-FROM Employees
-WHERE EmployeeID = 100;  -- Use indexed columns in WHERE
+    e.EmployeeID,
+    e.FirstName,
+    e.LastName
+FROM Employees e
+WHERE e.EmployeeID = 100;  -- Use indexed columns in WHERE
 
 -- Avoid SELECT *
 -- Specify only needed columns
-SELECT FirstName, LastName  -- Not SELECT *
+SELECT e.FirstName, e.LastName  -- Not SELECT *
 FROM Employees e;
 
 -- Use appropriate JOINs instead of subqueries when possible
-SELECT e.FirstName, d.d.d.DepartmentName
+SELECT e.FirstName, d.DepartmentName
 FROM Employees e
 JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 ```
@@ -445,7 +450,7 @@ SELECT
     emp.FirstName,
     emp.LastName,
     dept.d.DepartmentName
-FROM Employees emp
+FROM Employees e emp
     INNER JOIN Departments dept 
         ON emp.DepartmentID = dept.DepartmentID
 WHERE emp.IsActive = 1
@@ -484,18 +489,20 @@ SELECT
         WHEN emp.BaseSalary > 60000 THEN 'Medium'
         ELSE 'Entry Level'
     END AS SalaryGrade
-FROM Employees emp
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID emp
 WHERE emp.IsActive = 1;
 ```
 
 **Financial Analysis**:
 ```sql
--- d.d.DepartmentName BaseSalary analysis
+-- d.DepartmentName e.BaseSalary analysis
 SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount,
     AVG(e.BaseSalary) AS AverageBaseSalary,
     SUM(e.BaseSalary) AS TotalPayroll
-FROM Employees
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 GROUP BY DepartmentID
 ORDER BY TotalPayroll DESC;
 ```
@@ -508,18 +515,18 @@ ORDER BY TotalPayroll DESC;
 **Syntax Errors**:
 ```sql
 -- Incorrect (missing FROM)
-SELECT FirstName, LastName;
+SELECT e.FirstName, e.LastName;
 
 -- Correct
-SELECT FirstName, LastName FROM Employees e;
+SELECT e.FirstName, e.LastName FROM Employees e;
 
 -- Incorrect (mixing aggregate and non-aggregate)
-SELECT DepartmentID, FirstName, COUNT(*)
-FROM Employees GROUP BY DepartmentID;
+SELECT DepartmentID, e.FirstName, COUNT(*)
+FROM Employees e GROUP BY DepartmentID;
 
 -- Correct
 SELECT DepartmentID, COUNT(*) AS EmployeeCount
-FROM Employees GROUP BY DepartmentID;
+FROM Employees e GROUP BY DepartmentID;
 ```
 
 **Logic Errors**:

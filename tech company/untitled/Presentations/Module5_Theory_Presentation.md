@@ -21,9 +21,9 @@
 - **NULL Handling**: NULLs first or last depending on sort direction
 
 ```sql
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
-ORDER BY BaseSalary DESC, LastName ASC;
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+ORDER BY e.BaseSalary DESC, e.LastName ASC;
 ```
 
 ---
@@ -33,20 +33,20 @@ ORDER BY BaseSalary DESC, LastName ASC;
 
 ```sql
 -- Basic sorting
-ORDER BY LastName
+ORDER BY e.LastName
 
 -- Multiple columns with different directions
-ORDER BY DepartmentID ASC, BaseSalary DESC, HireDate ASC
+ORDER BY d.DepartmentID ASC, e.BaseSalary DESC, e.HireDate ASC
 
 -- Sort by column position (not recommended)
 ORDER BY 2, 3
 
 -- Sort by expression
-ORDER BY LEN(FirstName) DESC
+ORDER BY LEN(e.FirstName) DESC
 
 -- Sort by alias
-SELECT FirstName + ' ' + LastName AS FullName
-FROM Employees
+SELECT e.FirstName + ' ' + e.LastName AS FullName
+FROM Employees e
 ORDER BY FullName
 ```
 
@@ -57,13 +57,13 @@ ORDER BY FullName
 
 ```sql
 -- Default NULL behavior
-SELECT FirstName, MiddleName, LastName
-FROM Employees
+SELECT e.FirstName, MiddleName, e.LastName
+FROM Employees e
 ORDER BY MiddleName;  -- NULLs appear first in ASC
 
 -- Explicit NULL handling
-SELECT FirstName, MiddleName, LastName
-FROM Employees
+SELECT e.FirstName, MiddleName, e.LastName
+FROM Employees e
 ORDER BY 
     CASE WHEN MiddleName IS NULL THEN 1 ELSE 0 END,
     MiddleName;
@@ -82,10 +82,11 @@ ORDER BY
 - **Performance**: Indexed columns filter faster
 
 ```sql
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE d.DepartmentName = 'Engineering' 
-    AND BaseSalary > 50000 
+    AND e.BaseSalary > 50000 
     AND IsActive = 1;
 ```
 
@@ -96,18 +97,18 @@ WHERE d.DepartmentName = 'Engineering'
 
 ```sql
 -- Equality and inequality
-WHERE BaseSalary = 50000
+WHERE e.BaseSalary = 50000
 WHERE d.DepartmentName <> 'Engineering'
-WHERE HireDate != '2020-01-01'
+WHERE e.HireDate != '2020-01-01'
 
 -- Relational operators
-WHERE BaseSalary > 50000
-WHERE BaseSalary >= 50000
-WHERE HireDate < '2020-01-01'
-WHERE HireDate <= GETDATE()
+WHERE e.BaseSalary > 50000
+WHERE e.BaseSalary >= 50000
+WHERE e.HireDate < '2020-01-01'
+WHERE e.HireDate <= GETDATE()
 
 -- Combining conditions
-WHERE BaseSalary BETWEEN 40000 AND 80000
+WHERE e.BaseSalary BETWEEN 40000 AND 80000
 WHERE d.DepartmentName IN ('IT', 'HR', 'Finance')
 ```
 
@@ -118,16 +119,16 @@ WHERE d.DepartmentName IN ('IT', 'HR', 'Finance')
 
 ```sql
 -- Wildcard patterns
-WHERE LastName LIKE 'Sm%'        -- Starts with 'Sm'
-WHERE LastName LIKE '%son'       -- Ends with 'son'
-WHERE LastName LIKE '%mit%'      -- Contains 'mit'
-WHERE FirstName LIKE 'J_n'       -- 'J', any char, 'n'
+WHERE e.LastName LIKE 'Sm%'        -- Starts with 'Sm'
+WHERE e.LastName LIKE '%son'       -- Ends with 'son'
+WHERE e.LastName LIKE '%mit%'      -- Contains 'mit'
+WHERE e.FirstName LIKE 'J_n'       -- 'J', any char, 'n'
 
 -- Escape characters
 WHERE ProductName LIKE '50\% Off' ESCAPE '\'
 
 -- Case sensitivity (depends on collation)
-WHERE LastName LIKE 'smith'      -- May match 'Smith'
+WHERE e.LastName LIKE 'smith'      -- May match 'Smith'
 ```
 
 **Wildcards**: % (zero or more), _ (exactly one character)
@@ -139,15 +140,16 @@ WHERE LastName LIKE 'smith'      -- May match 'Smith'
 
 ```sql
 -- BETWEEN (inclusive range)
-WHERE BaseSalary BETWEEN 40000 AND 60000
-WHERE HireDate BETWEEN '2020-01-01' AND '2020-12-31'
+WHERE e.BaseSalary BETWEEN 40000 AND 60000
+WHERE e.HireDate BETWEEN '2020-01-01' AND '2020-12-31'
 
 -- IN (set membership)
 WHERE d.DepartmentName IN ('IT', 'HR', 'Finance')
-WHERE EmployeeID IN (SELECT ManagerID FROM Employees e)
+WHERE e.EmployeeID IN (SELECT ManagerID FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID)
 
 -- NOT versions
-WHERE BaseSalary NOT BETWEEN 40000 AND 60000
+WHERE e.BaseSalary NOT BETWEEN 40000 AND 60000
 WHERE d.DepartmentName NOT IN ('IT', 'HR')
 ```
 
@@ -166,11 +168,11 @@ WHERE MiddleName = NULL     -- WRONG
 WHERE MiddleName <> NULL    -- WRONG
 
 -- NULL in calculations
-WHERE BaseSalary + Bonus > 50000  -- NULL if Bonus is NULL
+WHERE e.BaseSalary + Bonus > 50000  -- NULL if Bonus is NULL
 
 -- Handling NULLs
-WHERE ISNULL(Bonus, 0) + BaseSalary > 50000
-WHERE COALESCE(Bonus, 0) + BaseSalary > 50000
+WHERE ISNULL(Bonus, 0) + e.BaseSalary > 50000
+WHERE COALESCE(Bonus, 0) + e.BaseSalary > 50000
 ```
 
 ---
@@ -180,7 +182,7 @@ WHERE COALESCE(Bonus, 0) + BaseSalary > 50000
 
 ```sql
 -- AND (both conditions must be TRUE)
-WHERE d.DepartmentName = 'Engineering' AND BaseSalary > 50000
+WHERE d.DepartmentName = 'Engineering' AND e.BaseSalary > 50000
 
 -- OR (either condition can be TRUE)
 WHERE d.DepartmentName = 'Engineering' OR d.DepartmentName = 'HR'
@@ -191,7 +193,7 @@ WHERE NOT d.DepartmentName IN ('IT', 'HR')
 
 -- Precedence (use parentheses for clarity)
 WHERE (Department = 'IT' OR d.DepartmentName = 'HR') 
-    AND BaseSalary > 50000
+    AND e.BaseSalary > 50000
 ```
 
 ---
@@ -201,19 +203,19 @@ WHERE (Department = 'IT' OR d.DepartmentName = 'HR')
 
 ```sql
 -- Fixed number of rows
-SELECT TOP 10 FirstName, LastName, BaseSalary
-FROM Employees
-ORDER BY BaseSalary DESC;
+SELECT TOP 10 e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+ORDER BY e.BaseSalary DESC;
 
 -- Percentage of rows
-SELECT TOP 25 PERCENT FirstName, LastName, BaseSalary
-FROM Employees
-ORDER BY HireDate DESC;
+SELECT TOP 25 PERCENT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+ORDER BY e.HireDate DESC;
 
 -- WITH TIES (include ties)
-SELECT TOP 5 WITH TIES FirstName, LastName, BaseSalary
-FROM Employees
-ORDER BY BaseSalary DESC;
+SELECT TOP 5 WITH TIES e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+ORDER BY e.BaseSalary DESC;
 ```
 
 **Important**: TOP without ORDER BY returns arbitrary rows
@@ -225,9 +227,9 @@ ORDER BY BaseSalary DESC;
 
 ```sql
 -- Skip first 10 rows, get next 5
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
-ORDER BY BaseSalary DESC
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+ORDER BY e.BaseSalary DESC
 OFFSET 10 ROWS
 FETCH NEXT 5 ROWS ONLY;
 
@@ -235,9 +237,9 @@ FETCH NEXT 5 ROWS ONLY;
 DECLARE @PageSize INT = 10;
 DECLARE @PageNumber INT = 3;
 
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
-ORDER BY EmployeeID
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+ORDER BY e.EmployeeID
 OFFSET (@PageNumber - 1) * @PageSize ROWS
 FETCH NEXT @PageSize ROWS ONLY;
 ```
@@ -249,18 +251,18 @@ FETCH NEXT @PageSize ROWS ONLY;
 
 ```sql
 -- Date range filtering
-WHERE HireDate >= DATEADD(YEAR, -2, GETDATE())
-WHERE YEAR(HireDate) = 2020
-WHERE HireDate >= '2020-01-01' AND HireDate < '2021-01-01'
+WHERE e.HireDate >= DATEADD(YEAR, -2, GETDATE())
+WHERE YEAR(e.HireDate) = 2020
+WHERE e.HireDate >= '2020-01-01' AND e.HireDate < '2021-01-01'
 
 -- String manipulation
-WHERE LEN(FirstName) > 5
-WHERE UPPER(LastName) = 'SMITH'
+WHERE LEN(e.FirstName) > 5
+WHERE UPPER(e.LastName) = 'SMITH'
 WHERE CHARINDEX('@company.com', WorkEmail) > 0
 
 -- Mathematical conditions
-WHERE BaseSalary % 1000 = 0  -- BaseSalary is multiple of 1000
-WHERE ABS(BaseSalary - 50000) < 5000  -- Within $5K of $50K
+WHERE e.BaseSalary % 1000 = 0  -- e.BaseSalary is multiple of 1000
+WHERE ABS(e.BaseSalary - 50000) < 5000  -- Within $5K of $50K
 ```
 
 ---
@@ -270,24 +272,24 @@ WHERE ABS(BaseSalary - 50000) < 5000  -- Within $5K of $50K
 
 ```sql
 -- Scalar subquery
-WHERE BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees e)
+WHERE e.BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees e)
 
 -- EXISTS subquery
 WHERE EXISTS (
     SELECT 1 FROM EmployeeProjects ep 
-    WHERE ep.EmployeeID = Employees.EmployeeID
+    WHERE ep.e.EmployeeID = Employees.e.EmployeeID
 )
 
 -- IN subquery
-WHERE DepartmentID IN (
-    SELECT DepartmentID FROM Departments 
+WHERE d.DepartmentID IN (
+    SELECT d.DepartmentID FROM Departments d 
     WHERE Location = 'New York'
 )
 
 -- Correlated subquery
-WHERE BaseSalary > (
-    SELECT AVG(e.BaseSalary) FROM Employees e2 
-    WHERE e2.DepartmentID = Employees.DepartmentID
+WHERE e.BaseSalary > (
+    SELECT AVG(e.BaseSalary) FROM Employees e e2 
+    WHERE e2.d.DepartmentID = Employees.d.DepartmentID
 )
 ```
 
@@ -300,14 +302,14 @@ WHERE BaseSalary > (
 -- Dynamic filtering based on parameter
 DECLARE @FilterType NVARCHAR(20) = 'HighSalary';
 
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
 WHERE 
     CASE @FilterType
         WHEN 'HighSalary' THEN 
-            CASE WHEN BaseSalary > 75000 THEN 1 ELSE 0 END
+            CASE WHEN e.BaseSalary > 75000 THEN 1 ELSE 0 END
         WHEN 'RecentHire' THEN 
-            CASE WHEN HireDate > DATEADD(YEAR, -1, GETDATE()) THEN 1 ELSE 0 END
+            CASE WHEN e.HireDate > DATEADD(YEAR, -1, GETDATE()) THEN 1 ELSE 0 END
         ELSE 1
     END = 1;
 ```
@@ -330,10 +332,10 @@ WHERE
 
 ```sql
 -- SARGable (good)
-WHERE HireDate >= '2020-01-01'
+WHERE e.HireDate >= '2020-01-01'
 
 -- Non-SARGable (poor performance)
-WHERE YEAR(HireDate) = 2020
+WHERE YEAR(e.HireDate) = 2020
 ```
 
 ---
@@ -343,20 +345,20 @@ WHERE YEAR(HireDate) = 2020
 
 ```sql
 -- Function on indexed column (non-SARGable)
-WHERE UPPER(LastName) = 'SMITH'
--- Better: WHERE LastName = 'smith' (with appropriate collation)
+WHERE UPPER(e.LastName) = 'SMITH'
+-- Better: WHERE e.LastName = 'smith' (with appropriate collation)
 
 -- Leading wildcards prevent index usage
-WHERE LastName LIKE '%smith'
--- Better: WHERE LastName LIKE 'smith%'
+WHERE e.LastName LIKE '%smith'
+-- Better: WHERE e.LastName LIKE 'smith%'
 
 -- OR conditions may prevent index usage
-WHERE FirstName = 'John' OR LastName = 'Smith'
+WHERE e.FirstName = 'John' OR e.LastName = 'Smith'
 -- Consider: UNION of separate queries
 
 -- Unnecessary data type conversions
-WHERE EmployeeID = '123'  -- EmployeeID is INT
--- Better: WHERE EmployeeID = 123
+WHERE e.EmployeeID = '123'  -- e.EmployeeID is INT
+-- Better: WHERE e.EmployeeID = 123
 ```
 
 ---
@@ -368,8 +370,8 @@ WHERE EmployeeID = '123'  -- EmployeeID is INT
 -- Filtering before JOIN (usually better)
 SELECT e.FirstName, e.LastName, d.DepartmentName
 FROM (
-    SELECT * FROM Employees 
-    WHERE IsActive = 1 AND BaseSalary > 50000
+    SELECT * FROM Employees e 
+    WHERE IsActive = 1 AND e.BaseSalary > 50000
 ) e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
@@ -388,24 +390,26 @@ WHERE e.IsActive = 1 AND e.BaseSalary > 50000;
 ```sql
 -- Row numbering with custom sort
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
-    ROW_NUMBER() OVER (ORDER BY BaseSalary DESC) AS SalaryRank,
-    RANK() OVER (ORDER BY BaseSalary DESC) AS SalaryRankWithTies
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
+    ROW_NUMBER() OVER (ORDER BY e.BaseSalary DESC) AS SalaryRank,
+    RANK() OVER (ORDER BY e.BaseSalary DESC) AS SalaryRankWithTies
 FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 
 -- Partition and sort
 SELECT 
-    FirstName,
-    LastName,
+    e.FirstName,
+    e.LastName,
     d.DepartmentName,
-    BaseSalary,
+    e.BaseSalary,
     ROW_NUMBER() OVER (
         PARTITION BY DepartmentID 
-        ORDER BY BaseSalary DESC
+        ORDER BY e.BaseSalary DESC
     ) AS DeptSalaryRank
 FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 ```
 
 ---
@@ -417,14 +421,14 @@ FROM Employees e
 -- Efficient pagination
 WITH EmployeePage AS (
     SELECT 
-        FirstName,
-        LastName,
-        BaseSalary,
-        ROW_NUMBER() OVER (ORDER BY EmployeeID) AS RowNum
-    FROM Employees
+        e.FirstName,
+        e.LastName,
+        e.BaseSalary,
+        ROW_NUMBER() OVER (ORDER BY e.EmployeeID) AS RowNum
+    FROM Employees e
     WHERE IsActive = 1
 )
-SELECT FirstName, LastName, BaseSalary
+SELECT e.FirstName, e.LastName, e.BaseSalary
 FROM EmployeePage
 WHERE RowNum BETWEEN 21 AND 30;  -- Page 3, 10 rows per page
 ```
@@ -441,11 +445,11 @@ WHERE CAST(CreatedDate AS DATE) = CAST(GETDATE() AS DATE)
 --         AND CreatedDate < DATEADD(DAY, 1, CAST(GETDATE() AS DATE))
 
 -- This month's records
-WHERE YEAR(HireDate) = YEAR(GETDATE()) 
-    AND MONTH(HireDate) = MONTH(GETDATE())
+WHERE YEAR(e.HireDate) = YEAR(GETDATE()) 
+    AND MONTH(e.HireDate) = MONTH(GETDATE())
 
 -- Last 30 days
-WHERE HireDate >= DATEADD(DAY, -30, GETDATE())
+WHERE e.HireDate >= DATEADD(DAY, -30, GETDATE())
 
 -- Business hours
 WHERE DATEPART(HOUR, LoginTime) BETWEEN 9 AND 17
@@ -462,11 +466,11 @@ WHERE CONTAINS(Description, 'database OR query')
 WHERE FREETEXT(Description, 'database management system')
 
 -- Regular LIKE optimization
-WHERE LastName >= 'S' AND LastName < 'T'  -- Range scan
--- Instead of: WHERE LastName LIKE 'S%'
+WHERE e.LastName >= 'S' AND e.LastName < 'T'  -- Range scan
+-- Instead of: WHERE e.LastName LIKE 'S%'
 
 -- Case-insensitive search with collation
-WHERE LastName COLLATE SQL_Latin1_General_CP1_CI_AS = 'smith'
+WHERE e.LastName COLLATE SQL_Latin1_General_CP1_CI_AS = 'smith'
 ```
 
 ---
@@ -479,10 +483,11 @@ WHERE LastName COLLATE SQL_Latin1_General_CP1_CI_AS = 'smith'
 DECLARE @Department NVARCHAR(50) = NULL;
 DECLARE @MinSalary MONEY = NULL;
 
-SELECT FirstName, LastName, d.DepartmentName, BaseSalary
-FROM Employees
+SELECT e.FirstName, e.LastName, d.DepartmentName, e.BaseSalary
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE (@Department IS NULL OR d.DepartmentName = @Department)
-    AND (@MinSalary IS NULL OR BaseSalary >= @MinSalary)
+    AND (@MinSalary IS NULL OR e.BaseSalary >= @MinSalary)
     AND IsActive = 1;
 
 -- Note: This pattern may not optimize well

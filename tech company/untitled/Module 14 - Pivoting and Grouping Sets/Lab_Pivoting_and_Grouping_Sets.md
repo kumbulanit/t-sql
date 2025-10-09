@@ -12,11 +12,11 @@ This comprehensive lab provides hands-on experience with advanced T-SQL data tra
 
 **Core Tables for Lab Exercises:**
 ```sql
-Employees: EmployeeID (3001+), FirstName, LastName, BaseSalary, DepartmentID, ManagerID, JobTitle, HireDate, WorkEmail, IsActive
+Employees: e.EmployeeID (3001+), e.FirstName, e.LastName, e.BaseSalary, DepartmentID, ManagerID, e.JobTitle, e.HireDate, WorkEmail, IsActive
 Departments: DepartmentID (2001+), DepartmentName, Budget, Location, IsActive
 Projects: ProjectID (4001+), ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
-Orders: OrderID (5001+), CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
-EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
+Orders: OrderID (5001+), CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
+EmployeeProjects: e.EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
 Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, WorkEmail, IsActive
 ```
 
@@ -56,7 +56,7 @@ WITH QuarterlyFinancialData AS (
         END AS Quarter,
         o.TotalAmount
     FROM Orders o
-    INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
+    INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE o.IsActive = 1
       AND e.IsActive = 1
@@ -126,7 +126,7 @@ WITH PerformanceMatrix AS (
         SUM(CASE WHEN ep.Role = 'Support' THEN ep.HoursWorked ELSE 0 END) AS Support_Hours
     FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
       AND ep.IsActive = 1
@@ -200,7 +200,7 @@ SELECT
     -- Add your hierarchy display columns
     CASE WHEN GROUPING(d.Location) = 1 THEN 'All Locations' ELSE d.Location END AS Location,
     -- Add aggregation columns:
-    -- Employee counts, BaseSalary totals, project involvement
+    -- Employee counts, e.BaseSalary totals, project involvement
     -- Performance metrics, productivity indicators
     -- Add your calculations here
     ...

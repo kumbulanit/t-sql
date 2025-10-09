@@ -17,12 +17,12 @@ The UNION operator is a powerful set operation that combines the results of two 
 
 **Key Tables for UNION Examples:**
 ```sql
-Employees: EmployeeID (3001+), FirstName, LastName, BaseSalary, DepartmentID, ManagerID, JobTitle, HireDate, IsActive
+Employees: e.EmployeeID (3001+), e.FirstName, e.LastName, e.BaseSalary, DepartmentID, ManagerID, e.JobTitle, e.HireDate, IsActive
 Departments: DepartmentID (2001+), DepartmentName, Budget, Location, IsActive
 Projects: ProjectID (4001+), ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
-Orders: OrderID (5001+), CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
+Orders: OrderID (5001+), CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
 Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, IsActive
-EmployeeArchive: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, TerminationDate, Reason
+EmployeeArchive: e.EmployeeID, e.FirstName, e.LastName, e.BaseSalary, DepartmentID, TerminationDate, Reason
 ```
 
 ## Understanding UNION Operations
@@ -69,7 +69,7 @@ EmployeeArchive: EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, Term
 
 #### TechCorp Example: All Contact Information
 ```sql
--- Consolidate all contact information from employees and customers
+-- Consolidate all contact information FROM Employees e and customers
 SELECT 
     'Employee' AS ContactType,
     e.FirstName + ' ' + e.LastName AS ContactName,
@@ -151,20 +151,20 @@ WHERE e.IsActive = 1
 UNION ALL
 
 SELECT 
-    ea.EmployeeID,
-    ea.FirstName,
-    ea.LastName,
-    ea.JobTitle,
+    ea.e.EmployeeID,
+    ea.e.FirstName,
+    ea.e.LastName,
+    ea.e.JobTitle,
     d.DepartmentName,
-    ea.HireDate,
+    ea.e.HireDate,
     ea.TerminationDate,
     'Terminated' AS EmployeeStatus,
-    FORMAT(ea.BaseSalary, 'C') AS LastKnownSalary,
-    DATEDIFF(YEAR, ea.HireDate, ISNULL(ea.TerminationDate, GETDATE())) AS YearsWithCompany
+    FORMAT(ea.e.BaseSalary, 'C') AS LastKnownSalary,
+    DATEDIFF(YEAR, ea.e.HireDate, ISNULL(ea.TerminationDate, GETDATE())) AS YearsWithCompany
 FROM EmployeeArchive ea
 INNER JOIN Departments d ON ea.DepartmentID = d.DepartmentID
 
-ORDER BY EmployeeStatus, LastName, FirstName;
+ORDER BY EmployeeStatus, e.LastName, e.FirstName;
 ```
 
 ## Advanced UNION Patterns
@@ -177,7 +177,7 @@ ORDER BY EmployeeStatus, LastName, FirstName;
 SELECT 
     'Employee Performance' AS MetricCategory,
     d.DepartmentName AS BusinessUnit,
-    'BaseSalary Analysis' AS MetricType,
+    'e.BaseSalary Analysis' AS MetricType,
     COUNT(*) AS RecordCount,
     AVG(e.BaseSalary) AS AverageValue,
     MAX(e.BaseSalary) AS MaxValue,
@@ -218,7 +218,7 @@ SELECT
     MIN(o.TotalAmount) AS MinValue,
     GETDATE() AS ReportDate
 FROM Orders o
-INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
+INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE o.IsActive = 1
   AND e.IsActive = 1
@@ -239,7 +239,7 @@ SELECT
     COUNT(*) AS TransactionCount,
     SUM(o.TotalAmount) AS TotalValue,
     COUNT(DISTINCT o.CustomerID) AS UniqueCustomers,
-    COUNT(DISTINCT o.EmployeeID) AS ActiveEmployees
+    COUNT(DISTINCT o.e.EmployeeID) AS ActiveEmployees
 FROM Orders o
 WHERE o.OrderDate >= '2024-01-01' 
   AND o.OrderDate < '2024-04-01'
@@ -253,7 +253,7 @@ SELECT
     COUNT(*) AS TransactionCount,
     SUM(o.TotalAmount) AS TotalValue,
     COUNT(DISTINCT o.CustomerID) AS UniqueCustomers,
-    COUNT(DISTINCT o.EmployeeID) AS ActiveEmployees
+    COUNT(DISTINCT o.e.EmployeeID) AS ActiveEmployees
 FROM Orders o
 WHERE o.OrderDate >= '2024-04-01' 
   AND o.OrderDate < '2024-07-01'
@@ -267,7 +267,7 @@ SELECT
     COUNT(*) AS TransactionCount,
     SUM(o.TotalAmount) AS TotalValue,
     COUNT(DISTINCT o.CustomerID) AS UniqueCustomers,
-    COUNT(DISTINCT o.EmployeeID) AS ActiveEmployees
+    COUNT(DISTINCT o.e.EmployeeID) AS ActiveEmployees
 FROM Orders o
 WHERE o.OrderDate >= '2024-07-01' 
   AND o.OrderDate < '2024-10-01'
@@ -281,7 +281,7 @@ SELECT
     COUNT(*) AS TransactionCount,
     SUM(o.TotalAmount) AS TotalValue,
     COUNT(DISTINCT o.CustomerID) AS UniqueCustomers,
-    COUNT(DISTINCT o.EmployeeID) AS ActiveEmployees
+    COUNT(DISTINCT o.e.EmployeeID) AS ActiveEmployees
 FROM Orders o
 WHERE o.OrderDate >= '2024-10-01' 
   AND o.OrderDate < '2025-01-01'
@@ -306,11 +306,11 @@ SELECT
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     'Management' AS SkillCategory,
     CASE 
-        WHEN EXISTS (SELECT 1 FROM Employees sub WHERE sub.ManagerID = e.EmployeeID AND sub.IsActive = 1)
+        WHEN EXISTS (SELECT 1 FROM Employees e sub WHERE sub.ManagerID = e.EmployeeID AND sub.IsActive = 1)
         THEN 'Expert'
         ELSE 'None'
     END AS SkillLevel,
-    (SELECT COUNT(*) FROM Employees sub WHERE sub.ManagerID = e.EmployeeID AND sub.IsActive = 1) AS SkillMetric,
+    (SELECT COUNT(*) FROM Employees e sub WHERE sub.ManagerID = e.EmployeeID AND sub.IsActive = 1) AS SkillMetric,
     'Direct Reports Count' AS MetricDescription
 FROM Employees e
 WHERE e.IsActive = 1
@@ -340,13 +340,13 @@ SELECT
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     'Sales' AS SkillCategory,
     CASE 
-        WHEN (SELECT COUNT(*) FROM Orders o WHERE o.EmployeeID = e.EmployeeID AND o.IsActive = 1) >= 10
+        WHEN (SELECT COUNT(*) FROM Orders o WHERE o.e.EmployeeID = e.EmployeeID AND o.IsActive = 1) >= 10
         THEN 'Expert'
-        WHEN (SELECT COUNT(*) FROM Orders o WHERE o.EmployeeID = e.EmployeeID AND o.IsActive = 1) >= 1
+        WHEN (SELECT COUNT(*) FROM Orders o WHERE o.e.EmployeeID = e.EmployeeID AND o.IsActive = 1) >= 1
         THEN 'Intermediate'
         ELSE 'None'
     END AS SkillLevel,
-    (SELECT COUNT(*) FROM Orders o WHERE o.EmployeeID = e.EmployeeID AND o.IsActive = 1) AS SkillMetric,
+    (SELECT COUNT(*) FROM Orders o WHERE o.e.EmployeeID = e.EmployeeID AND o.IsActive = 1) AS SkillMetric,
     'Orders Processed' AS MetricDescription
 FROM Employees e
 WHERE e.IsActive = 1
@@ -425,7 +425,7 @@ SELECT
     'Total Active Employees' AS Metric,
     CAST(COUNT(*) AS VARCHAR(50)) AS Value,
     'Headcount' AS Unit
-FROM Employees 
+FROM Employees e 
 WHERE IsActive = 1
 
 UNION ALL
@@ -433,10 +433,10 @@ UNION ALL
 SELECT 
     FORMAT(GETDATE(), 'MMMM yyyy') AS ReportPeriod,
     'Employee Metrics' AS Category,
-    'Average BaseSalary' AS Metric,
+    'Average e.BaseSalary' AS Metric,
     FORMAT(AVG(e.BaseSalary), 'C') AS Value,
     'Currency' AS Unit
-FROM Employees 
+FROM Employees e 
 WHERE IsActive = 1
 
 UNION ALL
@@ -447,7 +447,7 @@ SELECT
     'Active Projects' AS Metric,
     CAST(COUNT(*) AS VARCHAR(50)) AS Value,
     'Count' AS Unit
-FROM Projects 
+FROM Projects p 
 WHERE IsActive = 1
 
 UNION ALL
@@ -458,7 +458,7 @@ SELECT
     'Total Project Budget' AS Metric,
     FORMAT(SUM(Budget), 'C') AS Value,
     'Currency' AS Unit
-FROM Projects 
+FROM Projects p 
 WHERE IsActive = 1
 
 UNION ALL
@@ -524,7 +524,7 @@ SELECT
     CAST(COUNT(*) AS VARCHAR(50)) AS Count,
     'High' AS Severity
 FROM Orders o
-LEFT JOIN Employees e ON o.EmployeeID = e.EmployeeID
+LEFT JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
 WHERE e.EmployeeID IS NULL
   AND o.IsActive = 1
 
@@ -578,8 +578,8 @@ WHERE c.IsActive = 1
 ORDER BY RecordType, FullName;
 
 -- ❌ AVOID: Inconsistent formatting and unclear column purposes
-SELECT EmployeeID, FirstName + ' ' + LastName, 'Employee'
-FROM Employees WHERE IsActive = 1
+SELECT e.EmployeeID, e.FirstName + ' ' + e.LastName, 'Employee'
+FROM Employees e WHERE IsActive = 1
 UNION ALL
 SELECT CustomerID, ContactName, 'Customer' FROM Customers WHERE IsActive = 1;
 ```
@@ -614,29 +614,29 @@ WHERE o.IsActive = 1;
 #### Optimization Strategies
 ```sql
 -- ✅ GOOD: Filter before UNION, use appropriate indexes
-SELECT EmployeeID, FirstName, LastName
-FROM Employees 
+SELECT e.EmployeeID, e.FirstName, e.LastName
+FROM Employees e 
 WHERE IsActive = 1 
   AND DepartmentID = 2001  -- Filter early
 
 UNION ALL
 
-SELECT EmployeeID, FirstName, LastName
+SELECT e.EmployeeID, e.FirstName, e.LastName
 FROM EmployeeArchive 
 WHERE TerminationDate >= '2024-01-01'  -- Filter early
   AND DepartmentID = 2001
 
-ORDER BY LastName, FirstName;
+ORDER BY e.LastName, e.FirstName;
 
 -- ❌ AVOID: Filtering after UNION (less efficient)
-SELECT EmployeeID, FirstName, LastName, DepartmentID
+SELECT e.EmployeeID, e.FirstName, e.LastName, DepartmentID
 FROM (
-    SELECT EmployeeID, FirstName, LastName, DepartmentID FROM Employees WHERE IsActive = 1
+    SELECT e.EmployeeID, e.FirstName, e.LastName, DepartmentID FROM Employees e WHERE IsActive = 1
     UNION ALL
-    SELECT EmployeeID, FirstName, LastName, DepartmentID FROM EmployeeArchive
+    SELECT e.EmployeeID, e.FirstName, e.LastName, DepartmentID FROM EmployeeArchive
 ) combined
 WHERE DepartmentID = 2001  -- Late filtering is less efficient
-ORDER BY LastName, FirstName;
+ORDER BY e.LastName, e.FirstName;
 ```
 
 ## Common Pitfalls and Solutions
@@ -646,12 +646,12 @@ ORDER BY LastName, FirstName;
 #### Problem and Solution
 ```sql
 -- ❌ PROBLEM: Different number of columns
-SELECT FirstName, LastName FROM Employees
+SELECT e.FirstName, e.LastName FROM Employees e
 UNION
 SELECT CompanyName FROM Customers;  -- ERROR: Column count mismatch
 
 -- ✅ SOLUTION: Ensure same column count
-SELECT FirstName, LastName, 'Employee' AS Type FROM Employees
+SELECT e.FirstName, e.LastName, 'Employee' AS Type FROM Employees e
 UNION
 SELECT ContactName, CompanyName, 'Customer' AS Type FROM Customers;
 ```
@@ -661,12 +661,12 @@ SELECT ContactName, CompanyName, 'Customer' AS Type FROM Customers;
 #### Problem and Solution
 ```sql
 -- ❌ PROBLEM: Incompatible data types
-SELECT EmployeeID, BaseSalary FROM Employees e  -- INT, DECIMAL
+SELECT e.EmployeeID, e.BaseSalary FROM Employees e  -- INT, DECIMAL
 UNION
 SELECT CompanyName, ContactName FROM Customers;  -- VARCHAR, VARCHAR
 
 -- ✅ SOLUTION: Convert to compatible types
-SELECT CAST(EmployeeID AS VARCHAR(50)), CAST(BaseSalary AS VARCHAR(50)) FROM Employees
+SELECT CAST(e.EmployeeID AS VARCHAR(50)), CAST(e.BaseSalary AS VARCHAR(50)) FROM Employees e
 UNION
 SELECT CompanyName, ContactName FROM Customers;
 ```
@@ -676,15 +676,15 @@ SELECT CompanyName, ContactName FROM Customers;
 #### Problem and Solution
 ```sql
 -- ❌ PROBLEM: ORDER BY in individual SELECT statements
-SELECT FirstName, LastName FROM Employees ORDER BY LastName  -- This ORDER BY is ignored
+SELECT e.FirstName, e.LastName FROM Employees e ORDER BY e.LastName  -- This ORDER BY is ignored
 UNION
 SELECT ContactName, CompanyName FROM Customers ORDER BY CompanyName;  -- This ORDER BY is ignored
 
 -- ✅ SOLUTION: ORDER BY only at the end
-SELECT FirstName, LastName FROM Employees
+SELECT e.FirstName, e.LastName FROM Employees e
 UNION
 SELECT ContactName, CompanyName FROM Customers
-ORDER BY LastName;  -- This ORDER BY applies to the entire result
+ORDER BY e.LastName;  -- This ORDER BY applies to the entire result
 ```
 
 ## Summary

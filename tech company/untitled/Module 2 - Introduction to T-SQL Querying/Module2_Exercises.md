@@ -92,7 +92,7 @@ Use appropriate set operations to create these categories.
 ```sql
 SELECT d.DepartmentName, AVG(e.BaseSalary) as AvgSal, TeamSize
 FROM Departments d
-JOIN Employees e ON d.DepartmentID = e.DepartmentID
+JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
 WHERE TeamSize > 2
 GROUP BY d.DepartmentName
 HAVING AVG(e.BaseSalary) > 60000
@@ -103,16 +103,16 @@ What's wrong with this query and how would you fix it?
 **Question 3.1.2**: Analyze this query and explain why it fails, then provide the correct version:
 ```sql
 SELECT 
-    EmployeeID,
-    FirstName + ' ' + LastName AS FullName,
+    e.EmployeeID,
+    e.FirstName + ' ' + e.LastName AS FullName,
     ProjectCount,
     CASE WHEN ProjectCount > 1 THEN 'Multi-Project' ELSE 'Single-Project' END AS Category
 FROM Employees e
 LEFT JOIN (
-    SELECT EmployeeID, COUNT(*) AS ProjectCount
+    SELECT e.EmployeeID, COUNT(*) AS ProjectCount
     FROM EmployeeProjects 
-    GROUP BY EmployeeID
-) p ON e.EmployeeID = p.EmployeeID
+    GROUP BY e.EmployeeID
+) p ON e.EmployeeID = p.e.EmployeeID
 WHERE Category = 'Multi-Project'
 ORDER BY ProjectCount DESC;
 ```

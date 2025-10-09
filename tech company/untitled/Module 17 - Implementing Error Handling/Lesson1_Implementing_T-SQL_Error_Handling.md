@@ -19,12 +19,12 @@ Error handling is a critical aspect of robust T-SQL programming that ensures app
 **Core Tables for Error Handling Examples:**
 
 ```sql
-Employees: EmployeeID (3001+), FirstName, LastName, BaseSalary, DepartmentID, ManagerID, HireDate, IsActive
-Departments: DepartmentID (2001+), DepartmentName, Budget, Location, IsActive
-Projects: ProjectID (4001+), ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
-Orders: OrderID (5001+), CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
+Employees: e.EmployeeID (3001+), e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID, ManagerID, e.HireDate, IsActive
+Departments: d.DepartmentID (2001+), d.DepartmentName, d.Budget, Location, IsActive
+Projects: ProjectID (4001+), ProjectName, d.Budget, ProjectManagerID, StartDate, EndDate, IsActive
+Orders: OrderID (5001+), CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
 Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, IsActive
-EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
+EmployeeProjects: e.EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
 ErrorLog: ErrorLogID, ErrorNumber, ErrorMessage, ErrorProcedure, ErrorLine, ErrorSeverity, ErrorState, UserName, ErrorTime
 ```
 
@@ -112,7 +112,7 @@ SELECT
 -- Example of error information in action (this will generate an error)
 BEGIN TRY
     -- Attempt to insert duplicate primary key
-    INSERT INTO Employees (EmployeeID, FirstName, LastName, BaseSalary, DepartmentID, HireDate, IsActive)
+    INSERT INTO Employees (e.EmployeeID, e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID, e.HireDate, IsActive)
     VALUES (3001, 'Test', 'Employee', 50000, 2001, GETDATE(), 1);
 END TRY
 BEGIN CATCH
@@ -140,25 +140,25 @@ The TRY...CATCH construct is the foundation of T-SQL error handling:
 BEGIN TRY
     -- Code that might cause an error
     DECLARE @NewEmployeeID INT = 3050;
-    DECLARE @DepartmentID INT = 2001;
-    DECLARE @BaseSalary MONEY = 75000;
+    DECLARE @d.DepartmentID INT = 2001;
+    DECLARE @e.BaseSalary MONEY = 75000;
     
     -- Attempt to insert new employee
     INSERT INTO Employees (
-        EmployeeID, 
-        FirstName, 
-        LastName, 
-        BaseSalary, 
-        DepartmentID, 
-        HireDate, 
+        e.EmployeeID, 
+        e.FirstName, 
+        e.LastName, 
+        e.BaseSalary, 
+        d.DepartmentID, 
+        e.HireDate, 
         IsActive
     )
     VALUES (
         @NewEmployeeID,
         'Sarah',
         'Johnson',
-        @BaseSalary,
-        @DepartmentID,
+        @e.BaseSalary,
+        @d.DepartmentID,
         GETDATE(),
         1
     );
@@ -202,12 +202,12 @@ BEGIN CATCH
 END CATCH;
 ```
 
-### TechCorp Business Scenario: Employee BaseSalary Update
+### TechCorp Business Scenario: Employee e.BaseSalary Update
 
 ```sql
--- Comprehensive employee BaseSalary update with error handling
+-- Comprehensive employee e.BaseSalary update with error handling
 CREATE OR ALTER PROCEDURE UpdateEmployeeSalary
-    @EmployeeID INT,
+    @e.EmployeeID INT,
     @NewSalary MONEY,
     @UpdatedBy NVARCHAR(100)
 AS
@@ -216,55 +216,56 @@ BEGIN
     
     DECLARE @CurrentSalary MONEY;
     DECLARE @DepartmentBudget MONEY;
-    DECLARE @DepartmentID INT;
+    DECLARE @d.DepartmentID INT;
     DECLARE @EmployeeName NVARCHAR(100);
     
     BEGIN TRY
         -- Validate employee exists and is active
         SELECT 
-            @CurrentSalary = BaseSalary,
-            @DepartmentID = DepartmentID,
-            @EmployeeName = FirstName + ' ' + LastName
-        FROM Employees 
-        WHERE EmployeeID = @EmployeeID AND IsActive = 1;
+            @CurrentSalary = e.BaseSalary,
+            @d.DepartmentID = d.DepartmentID,
+            @EmployeeName = e.FirstName + ' ' + e.LastName
+        FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+        WHERE e.EmployeeID = @e.EmployeeID AND IsActive = 1;
         
         IF @CurrentSalary IS NULL
         BEGIN
-            RAISERROR('Employee ID %d not found or is inactive', 16, 1, @EmployeeID);
+            RAISERROR('Employee ID %d not found or is inactive', 16, 1, @e.EmployeeID);
             RETURN;
         END
         
-        -- Validate BaseSalary amount
+        -- Validate e.BaseSalary amount
         IF @NewSalary <= 0
         BEGIN
-            RAISERROR('BaseSalary amount must be greater than zero', 16, 1);
+            RAISERROR('e.BaseSalary amount must be greater than zero', 16, 1);
             RETURN;
         END
         
         -- Check d.DepartmentName budget constraints
-        SELECT @DepartmentBudget = Budget
-        FROM Departments 
-        WHERE DepartmentID = @DepartmentID AND IsActive = 1;
+        SELECT @DepartmentBudget = d.Budget
+        FROM Departments d 
+        WHERE d.DepartmentID = @d.DepartmentID AND IsActive = 1;
         
-        IF @NewSalary > @DepartmentBudget * 0.3  -- No single BaseSalary > 30% of dept budget
+        IF @NewSalary > @DepartmentBudget * 0.3  -- No single e.BaseSalary > 30% of dept budget
         BEGIN
-            RAISERROR('Proposed BaseSalary exceeds d.DepartmentName budget constraints (max 30%% of budget)', 16, 1);
+            RAISERROR('Proposed e.BaseSalary exceeds d.DepartmentName budget constraints (max 30%% of budget)', 16, 1);
             RETURN;
         END
         
         -- Begin transaction for atomic update
         BEGIN TRANSACTION UpdateSalary;
         
-        -- Update employee BaseSalary
+        -- Update employee e.BaseSalary
         UPDATE Employees 
-        SET BaseSalary = @NewSalary,
+        SET e.BaseSalary = @NewSalary,
             LastModified = GETDATE(),
             LastModifiedBy = @UpdatedBy
-        WHERE EmployeeID = @EmployeeID;
+        WHERE e.EmployeeID = @e.EmployeeID;
         
-        -- Log the BaseSalary change for audit
+        -- Log the e.BaseSalary change for audit
         INSERT INTO SalaryHistory (
-            EmployeeID,
+            e.EmployeeID,
             PreviousSalary,
             NewSalary,
             ChangeReason,
@@ -272,7 +273,7 @@ BEGIN
             ChangeDate
         )
         VALUES (
-            @EmployeeID,
+            @e.EmployeeID,
             @CurrentSalary,
             @NewSalary,
             'Manual Update',
@@ -282,9 +283,9 @@ BEGIN
         
         COMMIT TRANSACTION UpdateSalary;
         
-        PRINT 'BaseSalary successfully updated for ' + @EmployeeName;
-        PRINT 'Previous BaseSalary: $' + FORMAT(@CurrentSalary, 'N2');
-        PRINT 'New BaseSalary: $' + FORMAT(@NewSalary, 'N2');
+        PRINT 'e.BaseSalary successfully updated for ' + @EmployeeName;
+        PRINT 'Previous e.BaseSalary: $' + FORMAT(@CurrentSalary, 'N2');
+        PRINT 'New e.BaseSalary: $' + FORMAT(@NewSalary, 'N2');
         PRINT 'Change Amount: $' + FORMAT(@NewSalary - @CurrentSalary, 'N2');
         
     END TRY
@@ -322,7 +323,7 @@ BEGIN
             @ErrorState,
             @UpdatedBy,
             GETDATE(),
-            'Employee ID: ' + CAST(@EmployeeID AS VARCHAR(10)) + ', Proposed BaseSalary: $' + FORMAT(@NewSalary, 'N2')
+            'Employee ID: ' + CAST(@e.EmployeeID AS VARCHAR(10)) + ', Proposed e.BaseSalary: $' + FORMAT(@NewSalary, 'N2')
         );
         
         -- Return user-friendly error message
@@ -343,9 +344,9 @@ BEGIN
 END;
 
 -- Test the procedure with various scenarios
-EXEC UpdateEmployeeSalary @EmployeeID = 3001, @NewSalary = 85000, @UpdatedBy = 'HR Manager';
-EXEC UpdateEmployeeSalary @EmployeeID = 9999, @NewSalary = 75000, @UpdatedBy = 'HR Manager'; -- Non-existent employee
-EXEC UpdateEmployeeSalary @EmployeeID = 3001, @NewSalary = -1000, @UpdatedBy = 'HR Manager'; -- Invalid BaseSalary
+EXEC UpdateEmployeeSalary @e.EmployeeID = 3001, @NewSalary = 85000, @UpdatedBy = 'HR Manager';
+EXEC UpdateEmployeeSalary @e.EmployeeID = 9999, @NewSalary = 75000, @UpdatedBy = 'HR Manager'; -- Non-existent employee
+EXEC UpdateEmployeeSalary @e.EmployeeID = 3001, @NewSalary = -1000, @UpdatedBy = 'HR Manager'; -- Invalid e.BaseSalary
 ```
 
 ---
@@ -357,7 +358,7 @@ EXEC UpdateEmployeeSalary @EmployeeID = 3001, @NewSalary = -1000, @UpdatedBy = '
 ```sql
 -- TechCorp Example: Complex project assignment with full error handling
 CREATE OR ALTER PROCEDURE AssignEmployeeToProject
-    @EmployeeID INT,
+    @e.EmployeeID INT,
     @ProjectID INT,
     @Role NVARCHAR(50),
     @StartDate DATE,
@@ -378,21 +379,21 @@ BEGIN
         
         -- Validate employee
         SELECT 
-            @EmployeeName = FirstName + ' ' + LastName,
+            @EmployeeName = e.FirstName + ' ' + e.LastName,
             @DepartmentID = DepartmentID
-        FROM Employees 
-        WHERE EmployeeID = @EmployeeID AND IsActive = 1;
+        FROM Employees e 
+        WHERE e.EmployeeID = @e.EmployeeID AND IsActive = 1;
         
         IF @EmployeeName IS NULL
         BEGIN
-            RAISERROR('Employee ID %d not found or inactive', 16, 1, @EmployeeID);
+            RAISERROR('Employee ID %d not found or inactive', 16, 1, @e.EmployeeID);
         END
         
         -- Validate project
         SELECT 
             @ProjectName = ProjectName,
             @ProjectManagerID = ProjectManagerID
-        FROM Projects 
+        FROM Projects p 
         WHERE ProjectID = @ProjectID AND IsActive = 1;
         
         IF @ProjectName IS NULL
@@ -403,7 +404,7 @@ BEGIN
         -- Check for existing assignment
         IF EXISTS (
             SELECT 1 FROM EmployeeProjects 
-            WHERE EmployeeID = @EmployeeID 
+            WHERE e.EmployeeID = @e.EmployeeID 
             AND ProjectID = @ProjectID 
             AND IsActive = 1
         )
@@ -421,7 +422,7 @@ BEGIN
         DECLARE @ActiveProjectCount INT;
         SELECT @ActiveProjectCount = COUNT(*)
         FROM EmployeeProjects 
-        WHERE EmployeeID = @EmployeeID 
+        WHERE e.EmployeeID = @e.EmployeeID 
         AND IsActive = 1
         AND (EndDate IS NULL OR EndDate > GETDATE());
         
@@ -432,7 +433,7 @@ BEGIN
         
         -- Insert the assignment
         INSERT INTO EmployeeProjects (
-            EmployeeID,
+            e.EmployeeID,
             ProjectID,
             Role,
             StartDate,
@@ -443,7 +444,7 @@ BEGIN
             CreatedDate
         )
         VALUES (
-            @EmployeeID,
+            @e.EmployeeID,
             @ProjectID,
             @Role,
             @StartDate,
@@ -467,7 +468,7 @@ BEGIN
         
         -- Log the assignment for audit
         INSERT INTO ProjectAssignmentLog (
-            EmployeeID,
+            e.EmployeeID,
             ProjectID,
             Action,
             ActionBy,
@@ -475,7 +476,7 @@ BEGIN
             Details
         )
         VALUES (
-            @EmployeeID,
+            @e.EmployeeID,
             @ProjectID,
             'ASSIGNED',
             @AssignedBy,
@@ -516,7 +517,7 @@ BEGIN
             ERROR_STATE(),
             @AssignedBy,
             GETDATE(),
-            'EmployeeID: ' + CAST(@EmployeeID AS VARCHAR(10)) + 
+            'e.EmployeeID: ' + CAST(@e.EmployeeID AS VARCHAR(10)) + 
             ', ProjectID: ' + CAST(@ProjectID AS VARCHAR(10)) + 
             ', Role: ' + ISNULL(@Role, 'NULL')
         );
@@ -539,7 +540,7 @@ END;
 
 -- Test the procedure
 EXEC AssignEmployeeToProject 
-    @EmployeeID = 3001, 
+    @e.EmployeeID = 3001, 
     @ProjectID = 4001, 
     @Role = 'Senior Developer', 
     @StartDate = '2024-02-01',
@@ -557,7 +558,7 @@ EXEC AssignEmployeeToProject
 -- TechCorp Example: Custom error messages for business rules
 CREATE OR ALTER PROCEDURE ProcessCustomerOrder
     @CustomerID INT,
-    @EmployeeID INT,
+    @e.EmployeeID INT,
     @OrderItems NVARCHAR(MAX), -- JSON format: [{"ItemID":1,"Quantity":2,"Price":100}]
     @OrderDate DATE = NULL
 AS
@@ -587,13 +588,13 @@ BEGIN
         END
         
         -- Validate employee
-        SELECT @EmployeeName = FirstName + ' ' + LastName
-        FROM Employees 
-        WHERE EmployeeID = @EmployeeID AND IsActive = 1;
+        SELECT @EmployeeName = e.FirstName + ' ' + e.LastName
+        FROM Employees e 
+        WHERE e.EmployeeID = @e.EmployeeID AND IsActive = 1;
         
         IF @EmployeeName IS NULL
         BEGIN
-            RAISERROR('Employee ID %d is not found or inactive. Please assign a valid sales representative.', 16, 1, @EmployeeID);
+            RAISERROR('Employee ID %d is not found or inactive. Please assign a valid sales representative.', 16, 1, @e.EmployeeID);
         END
         
         -- Validate order date
@@ -659,7 +660,7 @@ BEGIN
         -- Generate new order ID
         INSERT INTO Orders (
             CustomerID,
-            EmployeeID,
+            e.EmployeeID,
             OrderDate,
             TotalAmount,
             IsActive,
@@ -668,7 +669,7 @@ BEGIN
         )
         VALUES (
             @CustomerID,
-            @EmployeeID,
+            @e.EmployeeID,
             @OrderDate,
             @TotalAmount,
             1,
@@ -682,7 +683,7 @@ BEGIN
         INSERT INTO OrderAudit (
             OrderID,
             CustomerID,
-            EmployeeID,
+            e.EmployeeID,
             TotalAmount,
             OrderItems,
             CreatedDate
@@ -690,7 +691,7 @@ BEGIN
         VALUES (
             @OrderID,
             @CustomerID,
-            @EmployeeID,
+            @e.EmployeeID,
             @TotalAmount,
             @OrderItems,
             GETDATE()
@@ -714,7 +715,7 @@ BEGIN
         -- Enhanced error logging
         DECLARE @ErrorContext NVARCHAR(MAX) = 
             'CustomerID: ' + CAST(@CustomerID AS VARCHAR(10)) + 
-            ', EmployeeID: ' + CAST(@EmployeeID AS VARCHAR(10)) + 
+            ', e.EmployeeID: ' + CAST(@e.EmployeeID AS VARCHAR(10)) + 
             ', OrderDate: ' + CAST(@OrderDate AS VARCHAR(20)) + 
             ', TotalAmount: $' + FORMAT(@TotalAmount, 'N2') +
             ', OrderItems: ' + ISNULL(@OrderItems, 'NULL');
@@ -750,20 +751,20 @@ END;
 -- Test various error scenarios
 EXEC ProcessCustomerOrder 
     @CustomerID = 6001, 
-    @EmployeeID = 3001, 
+    @e.EmployeeID = 3001, 
     @OrderItems = '[{"ItemID":1,"Quantity":2,"Price":150}]',
     @OrderDate = '2024-01-15';
 
 -- Test with invalid customer
 EXEC ProcessCustomerOrder 
     @CustomerID = 9999, 
-    @EmployeeID = 3001, 
+    @e.EmployeeID = 3001, 
     @OrderItems = '[{"ItemID":1,"Quantity":1,"Price":50}]';
 
 -- Test with amount below minimum
 EXEC ProcessCustomerOrder 
     @CustomerID = 6001, 
-    @EmployeeID = 3001, 
+    @e.EmployeeID = 3001, 
     @OrderItems = '[{"ItemID":1,"Quantity":1,"Price":50}]';
 ```
 

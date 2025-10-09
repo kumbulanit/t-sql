@@ -17,11 +17,11 @@ The APPLY operator is a unique T-SQL feature that allows you to invoke a table-v
 
 **Key Tables for APPLY Examples:**
 ```sql
-Employees: EmployeeID (3001+), FirstName, LastName, BaseSalary, DepartmentID, ManagerID, JobTitle, HireDate, IsActive
-Departments: DepartmentID (2001+), DepartmentName, Budget, Location, IsActive
-Projects: ProjectID (4001+), ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
-Orders: OrderID (5001+), CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
-EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
+Employees: e.EmployeeID (3001+), e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID, ManagerID, e.JobTitle, e.HireDate, IsActive
+Departments: d.DepartmentID (2001+), d.DepartmentName, d.Budget, Location, IsActive
+Projects: ProjectID (4001+), ProjectName, d.Budget, ProjectManagerID, StartDate, EndDate, IsActive
+Orders: OrderID (5001+), CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
+EmployeeProjects: e.EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
 Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, IsActive
 ```
 
@@ -39,9 +39,9 @@ Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, IsActive
 │  │ SELECT d.DepartmentName, emp.*      │                                   │
 │  │ FROM Departments d                  │  →  Returns rows only when       │
 │  │ CROSS APPLY (                       │      the applied expression      │
-│  │   SELECT TOP 3 * FROM Employees    │      returns data                 │
-│  │   WHERE DepartmentID = d.DeptID     │                                   │
-│  │   ORDER BY BaseSalary DESC          │                                   │
+│  │   SELECT TOP 3 * FROM Employees e    │      returns data                 │
+│  │   WHERE d.DepartmentID = d.DeptID     │                                   │
+│  │   ORDER BY e.BaseSalary DESC          │                                   │
 │  │ ) emp                               │                                   │
 │  └─────────────────────────────────────┘                                   │
 │                                                                             │
@@ -50,9 +50,9 @@ Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, IsActive
 │  │ SELECT d.DepartmentName, emp.*      │                                   │
 │  │ FROM Departments d                  │  →  Returns all departments,     │
 │  │ OUTER APPLY (                       │      with NULL values when       │
-│  │   SELECT TOP 3 * FROM Employees    │      no matching data            │
-│  │   WHERE DepartmentID = d.DeptID     │                                   │
-│  │   ORDER BY BaseSalary DESC          │                                   │
+│  │   SELECT TOP 3 * FROM Employees e    │      no matching data            │
+│  │   WHERE d.DepartmentID = d.DeptID     │                                   │
+│  │   ORDER BY e.BaseSalary DESC          │                                   │
 │  │ ) emp                               │                                   │
 │  └─────────────────────────────────────┘                                   │
 │                                                                             │
@@ -81,10 +81,10 @@ Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, IsActive
 -- Find the top 3 highest-paid employees in each d.DepartmentName
 SELECT d.DepartmentName,
     d.Budget,
-    top_earners.FirstName,
-    top_earners.LastName,
-    top_earners.JobTitle,
-    FORMAT(top_earners.BaseSalary, 'C') AS BaseSalary,
+    top_earners.e.FirstName,
+    top_earners.e.LastName,
+    top_earners.e.JobTitle,
+    FORMAT(top_earners.e.BaseSalary, 'C') AS e.BaseSalary,
     top_earners.SalaryRank
 FROM Departments d
 CROSS APPLY (
@@ -95,13 +95,13 @@ CROSS APPLY (
         e.BaseSalary,
         ROW_NUMBER() OVER (ORDER BY e.BaseSalary DESC) AS SalaryRank
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    WHERE e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    WHERE e.d.DepartmentID = d.DepartmentID
       AND e.IsActive = 1
     ORDER BY e.BaseSalary DESC
 ) top_earners
 WHERE d.IsActive = 1
-ORDER BY d.DepartmentName, top_earners.BaseSalary DESC;
+ORDER BY d.DepartmentName, top_earners.e.BaseSalary DESC;
 ```
 
 #### TechCorp Example: Recent Orders per Customer
@@ -123,7 +123,7 @@ CROSS APPLY (
         ROW_NUMBER() OVER (ORDER BY o.OrderDate DESC) AS OrderRank,
         e.FirstName + ' ' + e.LastName AS EmployeeName
     FROM Orders o
-    INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
+    INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
     WHERE o.CustomerID = c.CustomerID
       AND o.IsActive = 1
       AND e.IsActive = 1
@@ -142,14 +142,14 @@ SELECT
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     e.JobTitle,
     d.DepartmentName,
-    FORMAT(e.BaseSalary, 'C') AS BaseSalary,
+    FORMAT(e.BaseSalary, 'C') AS e.BaseSalary,
     perf_metrics.ProjectCount,
     perf_metrics.TotalProjectHours,
     perf_metrics.OrderCount,
     FORMAT(perf_metrics.TotalOrderValue, 'C') AS TotalOrderValue,
     perf_metrics.PerformanceScore
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 CROSS APPLY (
     SELECT 
         -- Project metrics
@@ -167,7 +167,7 @@ CROSS APPLY (
             COUNT(DISTINCT ep.ProjectID) AS ProjectCount,
             SUM(ep.HoursWorked) AS TotalHours
         FROM EmployeeProjects ep
-        WHERE ep.EmployeeID = e.EmployeeID
+        WHERE ep.e.EmployeeID = e.EmployeeID
           AND ep.IsActive = 1
     ) project_stats
     CROSS JOIN (
@@ -175,7 +175,7 @@ CROSS APPLY (
             COUNT(o.OrderID) AS OrderCount,
             SUM(o.TotalAmount) AS TotalValue
         FROM Orders o
-        WHERE o.EmployeeID = e.EmployeeID
+        WHERE o.e.EmployeeID = e.EmployeeID
           AND o.IsActive = 1
     ) order_stats
 ) perf_metrics
@@ -207,23 +207,23 @@ OUTER APPLY (
         (SELECT COUNT(DISTINCT p.ProjectID)
          FROM Projects p
          INNER JOIN Employees e ON p.ProjectManagerID = e.EmployeeID
-         WHERE e.DepartmentID = d.DepartmentID
+         WHERE e.d.DepartmentID = d.DepartmentID
            AND p.StartDate >= DATEADD(DAY, -90, GETDATE())
            AND p.IsActive = 1
            AND e.IsActive = 1) AS RecentProjectCount,
         -- Recent order activity (last 30 days)
         (SELECT COUNT(o.OrderID)
          FROM Orders o
-         INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
-         WHERE e.DepartmentID = d.DepartmentID
+         INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+         WHERE e.d.DepartmentID = d.DepartmentID
            AND o.OrderDate >= DATEADD(DAY, -30, GETDATE())
            AND o.IsActive = 1
            AND e.IsActive = 1) AS RecentOrderCount,
         -- Recent order value
         (SELECT SUM(o.TotalAmount)
          FROM Orders o
-         INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
-         WHERE e.DepartmentID = d.DepartmentID
+         INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+         WHERE e.d.DepartmentID = d.DepartmentID
            AND o.OrderDate >= DATEADD(DAY, -30, GETDATE())
            AND o.IsActive = 1
            AND e.IsActive = 1) AS RecentOrderValue
@@ -242,37 +242,37 @@ ORDER BY
 ```sql
 -- Analyze management structure with subordinate details
 SELECT 
-    mgr.FirstName + ' ' + mgr.LastName AS ManagerName,
-    mgr.JobTitle AS ManagerTitle,
+    mgr.e.FirstName + ' ' + mgr.e.LastName AS ManagerName,
+    mgr.e.JobTitle AS ManagerTitle,
     d.DepartmentName,
-    FORMAT(mgr.BaseSalary, 'C') AS ManagerSalary,
+    FORMAT(mgr.e.BaseSalary, 'C') AS ManagerSalary,
     subordinate_info.SubordinateCount,
     FORMAT(subordinate_info.AvgSubordinateSalary, 'C') AS AvgSubordinateSalary,
     FORMAT(subordinate_info.TotalTeamSalary, 'C') AS TotalTeamSalary,
     subordinate_info.TopPerformer,
     FORMAT(subordinate_info.TopPerformerSalary, 'C') AS TopPerformerSalary
-FROM Employees mgr
-INNER JOIN Departments d ON mgr.DepartmentID = d.DepartmentID
+FROM Employees e mgr
+INNER JOIN Departments d ON mgr.d.DepartmentID = d.DepartmentID
 CROSS APPLY (
     SELECT 
         COUNT(*) AS SubordinateCount,
-        AVG(sub.BaseSalary) AS AvgSubordinateSalary,
-        SUM(sub.BaseSalary) + mgr.BaseSalary AS TotalTeamSalary,
-        MAX(sub.FirstName + ' ' + sub.LastName) AS TopPerformer,
-        MAX(sub.BaseSalary) AS TopPerformerSalary
-    FROM Employees sub
-    WHERE sub.ManagerID = mgr.EmployeeID
+        AVG(sub.e.BaseSalary) AS AvgSubordinateSalary,
+        SUM(sub.e.BaseSalary) + mgr.e.BaseSalary AS TotalTeamSalary,
+        MAX(sub.e.FirstName + ' ' + sub.e.LastName) AS TopPerformer,
+        MAX(sub.e.BaseSalary) AS TopPerformerSalary
+    FROM Employees e sub
+    WHERE sub.ManagerID = mgr.e.EmployeeID
       AND sub.IsActive = 1
 ) subordinate_info
 WHERE mgr.IsActive = 1
   AND d.IsActive = 1
   AND EXISTS (
       SELECT 1 
-      FROM Employees sub 
-      WHERE sub.ManagerID = mgr.EmployeeID 
+      FROM Employees e sub 
+      WHERE sub.ManagerID = mgr.e.EmployeeID 
         AND sub.IsActive = 1
   )
-ORDER BY subordinate_info.SubordinateCount DESC, mgr.LastName;
+ORDER BY subordinate_info.SubordinateCount DESC, mgr.e.LastName;
 ```
 
 ### 2. Time-Series Analysis with APPLY
@@ -327,40 +327,40 @@ ORDER BY trend_analysis.TotalSpent DESC;
 -- Analyze project resource allocation and identify optimization opportunities
 SELECT 
     p.ProjectName,
-    p.Budget,
-    mgr.FirstName + ' ' + mgr.LastName AS ProjectManager,
+    p.d.Budget,
+    mgr.e.FirstName + ' ' + mgr.e.LastName AS ProjectManager,
     p.StartDate,
     p.EndDate,
     resource_analysis.TeamSize,
     resource_analysis.TotalHours,
     FORMAT(resource_analysis.TotalLaborCost, 'C') AS TotalLaborCost,
-    FORMAT(p.Budget - resource_analysis.TotalLaborCost, 'C') AS RemainingBudget,
-    CAST((resource_analysis.TotalLaborCost * 100.0 / p.Budget) AS DECIMAL(5,1)) AS BudgetUtilizationPercent,
+    FORMAT(p.d.Budget - resource_analysis.TotalLaborCost, 'C') AS RemainingBudget,
+    CAST((resource_analysis.TotalLaborCost * 100.0 / p.d.Budget) AS DECIMAL(5,1)) AS BudgetUtilizationPercent,
     resource_analysis.TopContributor,
     resource_analysis.TopContributorHours,
     CASE 
-        WHEN resource_analysis.TotalLaborCost > p.Budget * 0.9 THEN 'Over Budget Risk'
-        WHEN resource_analysis.TotalLaborCost > p.Budget * 0.75 THEN 'High Utilization'
-        WHEN resource_analysis.TotalLaborCost < p.Budget * 0.25 THEN 'Under Utilized'
+        WHEN resource_analysis.TotalLaborCost > p.d.Budget * 0.9 THEN 'Over d.Budget Risk'
+        WHEN resource_analysis.TotalLaborCost > p.d.Budget * 0.75 THEN 'High Utilization'
+        WHEN resource_analysis.TotalLaborCost < p.d.Budget * 0.25 THEN 'Under Utilized'
         ELSE 'Normal'
     END AS BudgetStatus
 FROM Projects p
-INNER JOIN Employees mgr ON p.ProjectManagerID = mgr.EmployeeID
+INNER JOIN Employees mgr ON p.ProjectManagerID = mgr.e.EmployeeID
 CROSS APPLY (
     SELECT 
-        COUNT(DISTINCT ep.EmployeeID) AS TeamSize,
+        COUNT(DISTINCT ep.e.EmployeeID) AS TeamSize,
         SUM(ep.HoursWorked) AS TotalHours,
         SUM(ep.HoursWorked * e.BaseSalary / 2080) AS TotalLaborCost,  -- Assuming 2080 working hours per year
         TOP_CONTRIBUTOR.EmployeeName AS TopContributor,
         TOP_CONTRIBUTOR.HoursWorked AS TopContributorHours
     FROM EmployeeProjects ep
-    INNER JOIN Employees e ON ep.EmployeeID = e.EmployeeID
+    INNER JOIN Employees e ON ep.e.EmployeeID = e.EmployeeID
     CROSS APPLY (
         SELECT TOP 1
-            e2.FirstName + ' ' + e2.LastName AS EmployeeName,
+            e2.e.FirstName + ' ' + e2.e.LastName AS EmployeeName,
             ep2.HoursWorked
         FROM EmployeeProjects ep2
-        INNER JOIN Employees e2 ON ep2.EmployeeID = e2.EmployeeID
+        INNER JOIN Employees e2 ON ep2.e.EmployeeID = e2.e.EmployeeID
         WHERE ep2.ProjectID = p.ProjectID
           AND ep2.IsActive = 1
           AND e2.IsActive = 1
@@ -374,7 +374,7 @@ WHERE p.IsActive = 1
   AND mgr.IsActive = 1
 ORDER BY 
     CASE BudgetStatus 
-        WHEN 'Over Budget Risk' THEN 1 
+        WHEN 'Over d.Budget Risk' THEN 1 
         WHEN 'High Utilization' THEN 2 
         WHEN 'Under Utilized' THEN 3 
         ELSE 4 
@@ -389,21 +389,21 @@ ORDER BY
 #### Indexing for APPLY Operations
 ```sql
 -- Recommended indexes for optimal APPLY performance:
--- CREATE INDEX IX_Employees_DepartmentID_Salary ON Employees(DepartmentID, BaseSalary DESC, IsActive);
+-- CREATE INDEX IX_Employees_DepartmentID_Salary ON Employees(d.DepartmentID, e.BaseSalary DESC, IsActive);
 -- CREATE INDEX IX_Orders_CustomerID_OrderDate ON Orders(CustomerID, OrderDate DESC, IsActive);
--- CREATE INDEX IX_EmployeeProjects_EmployeeID_Hours ON EmployeeProjects(EmployeeID, HoursWorked DESC, IsActive);
+-- CREATE INDEX IX_EmployeeProjects_EmployeeID_Hours ON EmployeeProjects(e.EmployeeID, HoursWorked DESC, IsActive);
 
 -- Optimized query using proper indexes
 SELECT d.DepartmentName,
-    top_performers.FirstName,
-    top_performers.LastName,
-    top_performers.BaseSalary
+    top_performers.e.FirstName,
+    top_performers.e.LastName,
+    top_performers.e.BaseSalary
 FROM Departments d
 CROSS APPLY (
-    SELECT TOP 2 FirstName, LastName, BaseSalary
+    SELECT TOP 2 e.FirstName, e.LastName, e.BaseSalary
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    WHERE e.DepartmentID = d.DepartmentID  -- Uses index efficiently
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    WHERE e.d.DepartmentID = d.DepartmentID  -- Uses index efficiently
       AND e.IsActive = 1
     ORDER BY e.BaseSalary DESC
 ) top_performers
@@ -418,16 +418,16 @@ WHERE d.IsActive = 1;
 SELECT d.DepartmentName, top_emp.FirstName, top_emp.LastName, top_emp.BaseSalary
 FROM Departments d
 CROSS APPLY (
-    SELECT TOP 1 FirstName, LastName, BaseSalary
+    SELECT TOP 1 e.FirstName, e.LastName, e.BaseSalary
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    WHERE e.DepartmentID = d.DepartmentID AND e.IsActive = 1
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    WHERE e.d.DepartmentID = d.DepartmentID AND e.IsActive = 1
     ORDER BY e.BaseSalary DESC
 ) top_emp
 WHERE d.IsActive = 1;
 
 -- ⚠️ Window function alternative (may be less efficient for small Top-N)
-SELECT d.DepartmentName, FirstName, LastName, BaseSalary
+SELECT d.DepartmentName, e.FirstName, e.LastName, e.BaseSalary
 FROM (
     SELECT d.DepartmentName,
         e.FirstName,
@@ -435,7 +435,7 @@ FROM (
         e.BaseSalary,
         ROW_NUMBER() OVER (PARTITION BY d.DepartmentID ORDER BY e.BaseSalary DESC) as rn
     FROM Departments d
-    INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+    INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
     WHERE d.IsActive = 1 AND e.IsActive = 1
 ) ranked
 WHERE rn = 1;
@@ -443,9 +443,9 @@ WHERE rn = 1;
 -- ✅ Correlated subquery alternative (sometimes simpler)
 SELECT d.DepartmentName,
     (SELECT TOP 1 e.FirstName FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE e.DepartmentID = d.DepartmentID AND e.IsActive = 1 ORDER BY e.BaseSalary DESC) AS FirstName,
-    (SELECT TOP 1 e.LastName FROM Employees e WHERE e.DepartmentID = d.DepartmentID AND e.IsActive = 1 ORDER BY e.BaseSalary DESC) AS LastName,
-    (SELECT TOP 1 e.BaseSalary FROM Employees e WHERE e.DepartmentID = d.DepartmentID AND e.IsActive = 1 ORDER BY e.BaseSalary DESC) AS BaseSalary
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID WHERE e.d.DepartmentID = d.DepartmentID AND e.IsActive = 1 ORDER BY e.BaseSalary DESC) AS e.FirstName,
+    (SELECT TOP 1 e.LastName FROM Employees e WHERE e.d.DepartmentID = d.DepartmentID AND e.IsActive = 1 ORDER BY e.BaseSalary DESC) AS e.LastName,
+    (SELECT TOP 1 e.BaseSalary FROM Employees e WHERE e.d.DepartmentID = d.DepartmentID AND e.IsActive = 1 ORDER BY e.BaseSalary DESC) AS e.BaseSalary
 FROM Departments d
 WHERE d.IsActive = 1;
 ```
@@ -464,7 +464,7 @@ SELECT
     recent_activity.RecentProjectName,
     recent_activity.LastProjectDate
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 OUTER APPLY (
     -- Get recent project activity for each employee
     SELECT 
@@ -476,14 +476,14 @@ OUTER APPLY (
     CROSS APPLY (
         -- Get the most recent project
         SELECT TOP 1 proj.ProjectName, proj.StartDate
-        FROM Projects proj
+        FROM Projects p proj
         INNER JOIN EmployeeProjects ep2 ON proj.ProjectID = ep2.ProjectID
-        WHERE ep2.EmployeeID = e.EmployeeID
+        WHERE ep2.e.EmployeeID = e.EmployeeID
           AND proj.IsActive = 1
           AND ep2.IsActive = 1
         ORDER BY proj.StartDate DESC
     ) TOP_PROJECT
-    WHERE ep.EmployeeID = e.EmployeeID
+    WHERE ep.e.EmployeeID = e.EmployeeID
       AND p.IsActive = 1
       AND ep.IsActive = 1
 ) recent_activity
@@ -508,8 +508,8 @@ OUTER APPLY (
         AVG(e.BaseSalary) AS AvgSalary,
         MAX(e.FirstName + ' ' + e.LastName) AS TopEmployee
     FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    WHERE e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    WHERE e.d.DepartmentID = d.DepartmentID
       AND e.IsActive = 1
     HAVING COUNT(*) > 0  -- Only return results if employees exist
 ) emp_stats
@@ -553,7 +553,7 @@ SELECT
     'Department Performance' AS ReportSection,
     d.DepartmentName AS Category,
     dept_metrics.EmployeeCount,
-    FORMAT(dept_metrics.TotalSalaryBudget, 'C') AS Budget,
+    FORMAT(dept_metrics.TotalSalaryBudget, 'C') AS d.Budget,
     dept_metrics.ProjectCount,
     dept_metrics.RecentOrderCount,
     dept_metrics.PerformanceRating
@@ -575,22 +575,22 @@ CROSS APPLY (
             COUNT(*) AS EmployeeCount,
             SUM(e.BaseSalary) AS TotalSalaryBudget
         FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-        WHERE e.DepartmentID = d.DepartmentID AND e.IsActive = 1
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+        WHERE e.d.DepartmentID = d.DepartmentID AND e.IsActive = 1
     ) emp_metrics
     CROSS JOIN (
         SELECT COUNT(DISTINCT p.ProjectID) AS ProjectCount
         FROM Projects p
         INNER JOIN Employees e ON p.ProjectManagerID = e.EmployeeID
-        WHERE e.DepartmentID = d.DepartmentID 
+        WHERE e.d.DepartmentID = d.DepartmentID 
           AND p.IsActive = 1 
           AND e.IsActive = 1
     ) proj_metrics
     CROSS JOIN (
         SELECT COUNT(o.OrderID) AS RecentOrderCount
         FROM Orders o
-        INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
-        WHERE e.DepartmentID = d.DepartmentID
+        INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+        WHERE e.d.DepartmentID = d.DepartmentID
           AND o.OrderDate >= DATEADD(MONTH, -3, GETDATE())
           AND o.IsActive = 1 
           AND e.IsActive = 1
@@ -642,20 +642,20 @@ WHERE c.IsActive = 1;
 SELECT d.DepartmentName, emp.FirstName
 FROM Departments d
 CROSS APPLY (
-    SELECT TOP 1 FirstName FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    WHERE e.DepartmentID = d.DepartmentID AND e.IsActive = 1
-    ORDER BY BaseSalary DESC
+    SELECT TOP 1 e.FirstName FROM Employees e
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    WHERE e.d.DepartmentID = d.DepartmentID AND e.IsActive = 1
+    ORDER BY e.BaseSalary DESC
 ) emp;  -- This excludes departments with no employees
 
 -- ✅ SOLUTION: Use OUTER APPLY to include all departments
 SELECT d.DepartmentName, ISNULL(emp.FirstName, 'No Employees') AS TopEmployee
 FROM Departments d
 OUTER APPLY (
-    SELECT TOP 1 FirstName FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    WHERE e.DepartmentID = d.DepartmentID AND e.IsActive = 1
-    ORDER BY BaseSalary DESC
+    SELECT TOP 1 e.FirstName FROM Employees e
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    WHERE e.d.DepartmentID = d.DepartmentID AND e.IsActive = 1
+    ORDER BY e.BaseSalary DESC
 ) emp
 WHERE d.IsActive = 1;
 ```
@@ -670,9 +670,9 @@ FROM Departments d
 CROSS APPLY (
     SELECT data1.* FROM (
         SELECT data2.* FROM (
-            SELECT TOP 1 * FROM Employees e1
-            CROSS APPLY (SELECT TOP 1 * FROM Orders o1 WHERE o1.EmployeeID = e1.EmployeeID) nested1
-            WHERE e1.DepartmentID = d.DepartmentID
+            SELECT TOP 1 * FROM Employees e e1
+            CROSS APPLY (SELECT TOP 1 * FROM Orders o1 WHERE o1.e.EmployeeID = e1.e.EmployeeID) nested1
+            WHERE e1.d.DepartmentID = d.DepartmentID
         ) data2
     ) data1
 ) complex_data;
@@ -687,11 +687,11 @@ WITH DepartmentTopEmployee AS (
         e.LastName
     FROM Departments d
     CROSS APPLY (
-        SELECT TOP 1 EmployeeID, FirstName, LastName
+        SELECT TOP 1 e.EmployeeID, e.FirstName, e.LastName
         FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-        WHERE e.DepartmentID = d.DepartmentID AND e.IsActive = 1
-        ORDER BY BaseSalary DESC
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+        WHERE e.d.DepartmentID = d.DepartmentID AND e.IsActive = 1
+        ORDER BY e.BaseSalary DESC
     ) e
     WHERE d.IsActive = 1
 )
@@ -704,7 +704,7 @@ FROM DepartmentTopEmployee dte
 OUTER APPLY (
     SELECT TOP 1 OrderDate, TotalAmount
     FROM Orders o
-    WHERE o.EmployeeID = dte.EmployeeID AND o.IsActive = 1
+    WHERE o.e.EmployeeID = dte.EmployeeID AND o.IsActive = 1
     ORDER BY OrderDate DESC
 ) recent_order;
 ```

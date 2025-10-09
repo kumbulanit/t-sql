@@ -38,7 +38,7 @@ FROM Employees e;
 
 -- Try this: Count all projects  
 SELECT COUNT(*) AS 'Total Projects'
-FROM Projects;
+FROM Projects p;
 
 -- Your turn: Count all clients
 SELECT COUNT(*) AS 'Total Clients'  
@@ -57,18 +57,18 @@ FROM Clients;
 ```sql
 -- Example: Count high-paid employees (Module 5 WHERE + Module 9 COUNT)
 SELECT COUNT(*) AS 'High Paid Employees'
-FROM Employees  
-WHERE BaseSalary > 50000;
+FROM Employees e  
+WHERE e.BaseSalary > 50000;
 
 -- Try this: Count large projects
 SELECT COUNT(*) AS 'Large Projects'
-FROM Projects
-WHERE Budget > 40000;
+FROM Projects p
+WHERE d.Budget > 40000;
 
 -- Your turn: Count recent employees (hired after 2022)
 SELECT COUNT(*) AS 'Recent Hires'
-FROM Employees
-WHERE HireDate > '2022-01-01';
+FROM Employees e
+WHERE e.HireDate > '2022-01-01';
 ```
 
 **Modify and practice:**
@@ -86,19 +86,19 @@ WHERE HireDate > '2022-01-01';
 **What you'll learn:** Add up numbers and make them look nice
 
 ```sql
--- Example: Total BaseSalary cost with nice formatting
+-- Example: Total e.BaseSalary cost with nice formatting
 SELECT 
     FORMAT(SUM(e.BaseSalary), 'C0') AS 'Total Payroll Cost'
 FROM Employees e;
 
 -- Try this: Total project budgets
 SELECT 
-    FORMAT(SUM(Budget), 'C0') AS 'Total Project Value'
-FROM Projects;
+    FORMAT(SUM(d.Budget), 'C0') AS 'Total Project Value'
+FROM Projects p;
 
--- Your turn: Average employee BaseSalary
+-- Your turn: Average employee e.BaseSalary
 SELECT 
-    FORMAT(AVG(e.BaseSalary), 'C0') AS 'Average Employee BaseSalary'
+    FORMAT(AVG(e.BaseSalary), 'C0') AS 'Average Employee e.BaseSalary'
 FROM Employees e;
 ```
 
@@ -111,23 +111,23 @@ FROM Employees e;
 **What you'll learn:** Get several answers in one query
 
 ```sql
--- Example: Complete BaseSalary overview
+-- Example: Complete e.BaseSalary overview
 SELECT 
     COUNT(*) AS 'Number of Employees',
     FORMAT(SUM(e.BaseSalary), 'C0') AS 'Total Cost',
-    FORMAT(AVG(e.BaseSalary), 'C0') AS 'Average BaseSalary',
-    FORMAT(MIN(e.BaseSalary), 'C0') AS 'Lowest BaseSalary',
-    FORMAT(MAX(e.BaseSalary), 'C0') AS 'Highest BaseSalary'
+    FORMAT(AVG(e.BaseSalary), 'C0') AS 'Average e.BaseSalary',
+    FORMAT(MIN(e.BaseSalary), 'C0') AS 'Lowest e.BaseSalary',
+    FORMAT(MAX(e.BaseSalary), 'C0') AS 'Highest e.BaseSalary'
 FROM Employees e;
 
 -- Your turn: Complete project overview
 SELECT 
     COUNT(*) AS 'Number of Projects',
-    FORMAT(SUM(Budget), 'C0') AS 'Total Budget',
-    FORMAT(AVG(Budget), 'C0') AS 'Average Project Size',
-    FORMAT(MIN(Budget), 'C0') AS 'Smallest Project',
-    FORMAT(MAX(Budget), 'C0') AS 'Largest Project'  
-FROM Projects;
+    FORMAT(SUM(d.Budget), 'C0') AS 'Total d.Budget',
+    FORMAT(AVG(d.Budget), 'C0') AS 'Average Project Size',
+    FORMAT(MIN(d.Budget), 'C0') AS 'Smallest Project',
+    FORMAT(MAX(d.Budget), 'C0') AS 'Largest Project'  
+FROM Projects p;
 ```
 
 **Check your understanding:**
@@ -148,7 +148,7 @@ FROM Projects;
 SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount
 FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 GROUP BY d.DepartmentName
 ORDER BY COUNT(e.EmployeeID) DESC;
 
@@ -163,8 +163,8 @@ ORDER BY COUNT(p.ProjectID) DESC;
 ```
 
 **Why join tables?**
-- The Employees table has DepartmentID (just a number)
-- The Departments table has DepartmentName (the actual name)
+- The Employees table has d.DepartmentID (just a number)
+- The Departments table has d.DepartmentName (the actual name)
 - JOIN connects them so we can show the real d.DepartmentName names
 
 ### Practice 4.2: More Complex Joining (🟢 INTERMEDIATE)
@@ -175,12 +175,12 @@ ORDER BY COUNT(p.ProjectID) DESC;
 -- Example: Which departments manage the most project money?
 SELECT d.DepartmentName,
     COUNT(p.ProjectID) AS 'Projects Managed',
-    FORMAT(SUM(p.Budget), 'C0') AS 'Total Budget Managed'
+    FORMAT(SUM(p.d.Budget), 'C0') AS 'Total d.Budget Managed'
 FROM Departments d
-INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID  
+INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID  
 INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
 GROUP BY d.DepartmentName
-ORDER BY SUM(p.Budget) DESC;
+ORDER BY SUM(p.d.Budget) DESC;
 ```
 
 **What's happening?**
@@ -211,18 +211,18 @@ ORDER BY COUNT(*) DESC;
 SELECT 
     'Tenure Analysis' AS 'Report Section',
     CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 1 THEN 'New (< 1 year)'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 3 THEN 'Experienced (1-3 years)'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 1 THEN 'New (< 1 year)'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 3 THEN 'Experienced (1-3 years)'
         ELSE 'Veteran (3+ years)'
     END AS 'Category',
     COUNT(*) AS 'Employee Count',
-    FORMAT(AVG(e.BaseSalary), 'C0') AS 'Average BaseSalary'
-FROM Employees
-WHERE HireDate IS NOT NULL
+    FORMAT(AVG(e.BaseSalary), 'C0') AS 'Average e.BaseSalary'
+FROM Employees e
+WHERE e.HireDate IS NOT NULL
 GROUP BY 
     CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 1 THEN 'New (< 1 year)'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) < 3 THEN 'Experienced (1-3 years)'  
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 1 THEN 'New (< 1 year)'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) < 3 THEN 'Experienced (1-3 years)'  
         ELSE 'Veteran (3+ years)'
     END
 ORDER BY AVG(e.BaseSalary) DESC;

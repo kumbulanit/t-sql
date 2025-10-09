@@ -17,9 +17,9 @@ GO
 -- Verify TechCorp data is available and show data complexity progression
 SELECT 'Companies' as TableName, COUNT(*) AS RecordCount FROM Companies
 UNION ALL
-SELECT 'Employees', COUNT(*) FROM Employees  
+SELECT 'Employees', COUNT(*) FROM Employees e  
 UNION ALL
-SELECT 'Projects', COUNT(*) FROM Projects
+SELECT 'Projects', COUNT(*) FROM Projects p
 UNION ALL
 SELECT 'Skills', COUNT(*) FROM Skills
 UNION ALL
@@ -30,8 +30,8 @@ SELECT
     'Sample data types for filtering' as Info,
     MIN(e.BaseSalary) as MinSalary,
     MAX(e.BaseSalary) as MaxSalary,
-    MIN(HireDate) as EarliestHire,
-    MAX(HireDate) as LatestHire,
+    MIN(e.HireDate) as EarliestHire,
+    MAX(e.HireDate) as LatestHire,
     COUNT(CASE WHEN TerminationDate IS NULL THEN 1 END) as ActiveEmployees,
     COUNT(CASE WHEN TerminationDate IS NOT NULL THEN 1 END) as FormerEmployees
 FROM Employees e;
@@ -46,24 +46,24 @@ Write queries to sort TechCorp employee data using ORDER BY clause.
 ```sql
 -- TODO: Sort all employees by last name alphabetically
 -- Expected: Employees listed A to Z by last name
-SELECT EmployeeID, FirstName, LastName, JobTitle, BaseSalary
-FROM Employees
+SELECT e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.BaseSalary
+FROM Employees e
 WHERE IsActive = 1
-ORDER BY LastName;
+ORDER BY e.LastName;
 
--- TODO: Sort all employees by BaseSalary from highest to lowest  
+-- TODO: Sort all employees by e.BaseSalary from highest to lowest  
 -- Expected: Highest paid employees first
-SELECT EmployeeID, FirstName, LastName, JobTitle, BaseSalary
-FROM Employees  
+SELECT e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.BaseSalary
+FROM Employees e  
 WHERE IsActive = 1
-ORDER BY BaseSalary DESC;
+ORDER BY e.BaseSalary DESC;
 
 -- TODO: Sort employees by hire date, newest first
 -- Expected: Most recently hired employees at the top
-SELECT EmployeeID, FirstName, LastName, HireDate, JobTitle
-FROM Employees
+SELECT e.EmployeeID, e.FirstName, e.LastName, e.HireDate, e.JobTitle
+FROM Employees e
 WHERE IsActive = 1
-ORDER BY HireDate DESC;
+ORDER BY e.HireDate DESC;
 ```
 
 ### Task 1.2: Multi-Level Sorting (Moderate Complexity)
@@ -85,7 +85,7 @@ FROM Employees e
 WHERE e.IsActive = 1
 ORDER BY c.CompanyName, d.DepartmentName;
 
--- TODO: Sort employees by job level, then by BaseSalary (highest first) within each level
+-- TODO: Sort employees by job level, then by e.BaseSalary (highest first) within each level
 -- Expected: Job levels in hierarchy order, high salaries first in each level
 SELECT 
     jl.LevelName,

@@ -60,7 +60,7 @@ ORDER BY TABLE_NAME, ORDINAL_POSITION;
 - Employee records (50+ employees)
 - d.DepartmentName information (5 departments)
 - Project assignments and history
-- BaseSalary and performance data
+- e.BaseSalary and performance data
 
 ---
 
@@ -76,19 +76,23 @@ ORDER BY TABLE_NAME, ORDINAL_POSITION;
 
 **Basic SELECT Examples**:
 ```sql
--- Select all columns from Employees table
-SELECT * FROM Employees e;
+-- Select all columns FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID table
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
 -- Select specific columns
-SELECT FirstName, LastName, d.d.d.DepartmentName FROM Employees e;
+SELECT e.FirstName, e.LastName, d.DepartmentName FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
 -- Select with calculated columns
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
-    BaseSalary * 12 AS AnnualSalary
-FROM Employees e;
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
+    e.BaseSalary * 12 AS AnnualSalary
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
 -- Select literal values
 SELECT 
@@ -113,24 +117,27 @@ SELECT
 -- Avoid SELECT * in production queries
 -- Instead, specify needed columns explicitly
 SELECT 
-    EmployeeID,
-    FirstName,
-    LastName,
+    e.EmployeeID,
+    e.FirstName,
+    e.LastName,
     WorkEmail,
-    HireDate
-FROM Employees e;
+    e.HireDate
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
 -- Column ordering affects result presentation
 SELECT 
-    LastName,          -- Last name first
-    FirstName,         -- Then first name
-    d.DepartmentName,        -- d.d.DepartmentName context
-    BaseSalary            -- Financial information last
-FROM Employees e;
+    e.LastName,          -- Last name first
+    e.FirstName,         -- Then first name
+    d.DepartmentName,        -- d.DepartmentName context
+    e.BaseSalary            -- Financial information last
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
 -- Include only necessary columns for performance
-SELECT EmployeeID, FirstName, LastName  -- Minimal set
-FROM Employees e;
+SELECT e.EmployeeID, e.FirstName, e.LastName  -- Minimal set
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 ```
 
 **Performance Considerations**:
@@ -167,9 +174,9 @@ WHERE e.DepartmentID = d.DepartmentID;
 -- Meaningful alias names
 SELECT 
     emp.FirstName AS EmployeeFirstName,
-    mgr.FirstName AS ManagerFirstName
-FROM Employees emp, Employees mgr
-WHERE emp.ManagerID = mgr.EmployeeID;
+    mgr.e.FirstName AS ManagerFirstName
+FROM Employees e emp, Employees mgr
+WHERE emp.ManagerID = mgr.e.EmployeeID;
 ```
 
 **Alias Benefits**:
@@ -187,28 +194,31 @@ WHERE emp.ManagerID = mgr.EmployeeID;
 ```sql
 -- Descriptive column aliases
 SELECT 
-    EmployeeID AS [Employee ID],
-    FirstName AS [First Name],
-    LastName AS [Last Name],
-    BaseSalary AS [Annual BaseSalary],
+    e.EmployeeID AS [Employee ID],
+    e.FirstName AS [First Name],
+    e.LastName AS [Last Name],
+    e.BaseSalary AS [Annual e.BaseSalary],
     d.DepartmentName AS [Department Name]
-FROM Employees e;
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
 -- Calculated columns with aliases
 SELECT 
-    FirstName + ' ' + LastName AS [Full Name],
-    BaseSalary / 12 AS [Monthly BaseSalary],
-    YEAR(HireDate) AS [Hire Year],
-    DATEDIFF(YEAR, HireDate, GETDATE()) AS [Years of Service]
-FROM Employees e;
+    e.FirstName + ' ' + e.LastName AS [Full Name],
+    e.BaseSalary / 12 AS [Monthly e.BaseSalary],
+    YEAR(e.HireDate) AS [Hire Year],
+    DATEDIFF(YEAR, e.HireDate, GETDATE()) AS [Years of Service]
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
 -- Business-friendly column names
 SELECT 
-    EmployeeID AS ID,
-    FirstName + ' ' + LastName AS Name,
+    e.EmployeeID AS ID,
+    e.FirstName + ' ' + e.LastName AS Name,
     d.DepartmentName AS Dept,
-    FORMAT(BaseSalary, 'C') AS Compensation
-FROM Employees e;
+    FORMAT(e.BaseSalary, 'C') AS Compensation
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 ```
 
 **Formatting Techniques**:
@@ -225,39 +235,46 @@ FROM Employees e;
 **Basic WHERE Conditions**:
 ```sql
 -- Simple equality condition
-SELECT * FROM Employees 
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
 WHERE d.DepartmentName = 'Information Technology';
 
 -- Numeric comparisons
-SELECT FirstName, LastName, BaseSalary
-FROM Employees 
-WHERE BaseSalary > 70000;
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE e.BaseSalary > 70000;
 
 -- Date comparisons
-SELECT FirstName, LastName, HireDate
-FROM Employees 
-WHERE HireDate >= '2020-01-01';
+SELECT e.FirstName, e.LastName, e.HireDate
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE e.HireDate >= '2020-01-01';
 
 -- String pattern matching
-SELECT FirstName, LastName, WorkEmail
-FROM Employees 
-WHERE LastName LIKE 'Smith%';
+SELECT e.FirstName, e.LastName, WorkEmail
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE e.LastName LIKE 'Smith%';
 ```
 
 **Multiple Conditions**:
 ```sql
 -- AND operator
-SELECT * FROM Employees 
-WHERE d.DepartmentName = 'Engineering' AND BaseSalary > 75000;
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE d.DepartmentName = 'Engineering' AND e.BaseSalary > 75000;
 
 -- OR operator
-SELECT * FROM Employees 
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
 WHERE d.DepartmentName = 'Engineering' OR d.DepartmentName = 'Finance';
 
 -- Complex conditions with parentheses
-SELECT * FROM Employees 
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
 WHERE (Department = 'IT' OR d.DepartmentName = 'Finance') 
-  AND BaseSalary > 60000;
+  AND e.BaseSalary > 60000;
 ```
 
 ---
@@ -268,30 +285,39 @@ WHERE (Department = 'IT' OR d.DepartmentName = 'Finance')
 **Comparison Operator Examples**:
 ```sql
 -- Equality and inequality
-SELECT * FROM Employees WHERE BaseSalary = 75000;      -- Equal
-SELECT * FROM Employees WHERE BaseSalary <> 75000;     -- Not equal
-SELECT * FROM Employees WHERE BaseSalary != 75000;     -- Not equal (alternative)
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE e.BaseSalary = 75000;      -- Equal
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE e.BaseSalary <> 75000;     -- Not equal
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE e.BaseSalary != 75000;     -- Not equal (alternative)
 
 -- Range comparisons
-SELECT * FROM Employees WHERE BaseSalary > 60000;      -- Greater than
-SELECT * FROM Employees WHERE BaseSalary >= 60000;     -- Greater than or equal
-SELECT * FROM Employees WHERE BaseSalary < 80000;      -- Less than
-SELECT * FROM Employees WHERE BaseSalary <= 80000;     -- Less than or equal
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE e.BaseSalary > 60000;      -- Greater than
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE e.BaseSalary >= 60000;     -- Greater than or equal
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE e.BaseSalary < 80000;      -- Less than
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE e.BaseSalary <= 80000;     -- Less than or equal
 
 -- Range operations
-SELECT * FROM Employees 
-WHERE BaseSalary BETWEEN 60000 AND 80000;              -- Inclusive range
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE e.BaseSalary BETWEEN 60000 AND 80000;              -- Inclusive range
 
 -- Set membership
-SELECT * FROM Employees 
-WHERE d.d.DepartmentName IN ('IT', 'Finance', 'HR');       -- List membership
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE d.DepartmentName IN ('IT', 'Finance', 'HR');       -- List membership
 ```
 
 **NULL Handling**:
 ```sql
 -- NULL comparisons (special operators required)
-SELECT * FROM Employees WHERE MiddleName IS NULL;
-SELECT * FROM Employees WHERE MiddleName IS NOT NULL;
+SELECT * FROM Employees e WHERE MiddleName IS NULL;
+SELECT * FROM Employees e WHERE MiddleName IS NOT NULL;
 ```
 
 ---
@@ -302,19 +328,19 @@ SELECT * FROM Employees WHERE MiddleName IS NOT NULL;
 **LIKE Operator Patterns**:
 ```sql
 -- Wildcard patterns
-SELECT * FROM Employees WHERE LastName LIKE 'Sm%';     -- Starts with 'Sm'
-SELECT * FROM Employees WHERE FirstName LIKE '%ohn';   -- Ends with 'ohn'
-SELECT * FROM Employees WHERE WorkEmail LIKE '%@techcorp%'; -- Contains '@techcorp'
+SELECT * FROM Employees e WHERE e.LastName LIKE 'Sm%';     -- Starts with 'Sm'
+SELECT * FROM Employees e WHERE e.FirstName LIKE '%ohn';   -- Ends with 'ohn'
+SELECT * FROM Employees e WHERE WorkEmail LIKE '%@techcorp%'; -- Contains '@techcorp'
 
 -- Single character wildcard
-SELECT * FROM Employees WHERE FirstName LIKE 'J_n';    -- 3 letters: J_n (Jon, Jan, etc.)
+SELECT * FROM Employees e WHERE e.FirstName LIKE 'J_n';    -- 3 letters: J_n (Jon, Jan, etc.)
 
 -- Character ranges and sets
-SELECT * FROM Employees WHERE LastName LIKE '[A-D]%';  -- Starts with A, B, C, or D
-SELECT * FROM Employees WHERE EmployeeID LIKE '[0-9][0-9][0-9]'; -- 3 digits
+SELECT * FROM Employees e WHERE e.LastName LIKE '[A-D]%';  -- Starts with A, B, C, or D
+SELECT * FROM Employees e WHERE e.EmployeeID LIKE '[0-9][0-9][0-9]'; -- 3 digits
 
 -- Negation in character sets
-SELECT * FROM Employees WHERE LastName LIKE '[^S]%';   -- Doesn't start with S
+SELECT * FROM Employees e WHERE e.LastName LIKE '[^S]%';   -- Doesn't start with S
 ```
 
 **LIKE Performance Considerations**:
@@ -330,40 +356,44 @@ SELECT * FROM Employees WHERE LastName LIKE '[^S]%';   -- Doesn't start with S
 **Basic Sorting**:
 ```sql
 -- Single column sorting
-SELECT FirstName, LastName, BaseSalary 
-FROM Employees 
-ORDER BY LastName;                    -- Ascending (default)
+SELECT e.FirstName, e.LastName, e.BaseSalary 
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+ORDER BY e.LastName;                    -- Ascending (default)
 
-SELECT FirstName, LastName, BaseSalary 
-FROM Employees 
-ORDER BY BaseSalary DESC;                 -- Descending
+SELECT e.FirstName, e.LastName, e.BaseSalary 
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+ORDER BY e.BaseSalary DESC;                 -- Descending
 
 -- Multiple column sorting
-SELECT FirstName, LastName, d.d.DepartmentName, BaseSalary 
-FROM Employees 
-ORDER BY DepartmentID, LastName, FirstName;  -- Multiple levels
+SELECT e.FirstName, e.LastName, d.DepartmentName, e.BaseSalary 
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+ORDER BY DepartmentID, e.LastName, e.FirstName;  -- Multiple levels
 
 -- Mixed sorting directions
-SELECT FirstName, LastName, d.d.DepartmentName, BaseSalary 
-FROM Employees 
-ORDER BY DepartmentID ASC, BaseSalary DESC;      -- d.d.DepartmentName A-Z, BaseSalary high-low
+SELECT e.FirstName, e.LastName, d.DepartmentName, e.BaseSalary 
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+ORDER BY DepartmentID ASC, e.BaseSalary DESC;      -- d.DepartmentName A-Z, e.BaseSalary high-low
 ```
 
 **Advanced Sorting**:
 ```sql
 -- Sort by calculated columns
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
-    BaseSalary * 12 AS AnnualSalary
-FROM Employees 
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
+    e.BaseSalary * 12 AS AnnualSalary
+FROM Employees e 
 ORDER BY AnnualSalary DESC;
 
 -- Sort by column position (not recommended)
-SELECT FirstName, LastName, BaseSalary 
-FROM Employees 
-ORDER BY 3 DESC;                      -- Sort by 3rd column (BaseSalary)
+SELECT e.FirstName, e.LastName, e.BaseSalary 
+FROM Employees e 
+ORDER BY 3 DESC;                      -- Sort by 3rd column (e.BaseSalary)
 ```
 
 ---
@@ -375,22 +405,22 @@ ORDER BY 3 DESC;                      -- Sort by 3rd column (BaseSalary)
 ```sql
 -- Basic arithmetic
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
-    BaseSalary * 1.10 AS SalaryWithRaise,      -- 10% increase
-    BaseSalary / 12 AS MonthlySalary,          -- Monthly amount
-    BaseSalary * 0.15 AS EstimatedTax          -- 15% tax estimate
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
+    e.BaseSalary * 1.10 AS SalaryWithRaise,      -- 10% increase
+    e.BaseSalary / 12 AS MonthlySalary,          -- Monthly amount
+    e.BaseSalary * 0.15 AS EstimatedTax          -- 15% tax estimate
 FROM Employees e;
 
 -- Date calculations
 SELECT 
-    FirstName,
-    LastName,
-    HireDate,
-    DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsEmployed,
-    DATEDIFF(DAY, HireDate, GETDATE()) AS DaysEmployed,
-    DATEADD(YEAR, 1, HireDate) AS FirstAnniversary
+    e.FirstName,
+    e.LastName,
+    e.HireDate,
+    DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsEmployed,
+    DATEDIFF(DAY, e.HireDate, GETDATE()) AS DaysEmployed,
+    DATEADD(YEAR, 1, e.HireDate) AS FirstAnniversary
 FROM Employees e;
 ```
 
@@ -398,9 +428,9 @@ FROM Employees e;
 ```sql
 -- String concatenation and functions
 SELECT 
-    FirstName + ' ' + LastName AS FullName,
-    UPPER(FirstName) AS UpperFirstName,
-    LEN(LastName) AS LastNameLength,
+    e.FirstName + ' ' + e.LastName AS FullName,
+    UPPER(e.FirstName) AS UpperFirstName,
+    LEN(e.LastName) AS LastNameLength,
     LEFT(WorkEmail, CHARINDEX('@', WorkEmail) - 1) AS Username
 FROM Employees e;
 ```
@@ -414,16 +444,16 @@ FROM Employees e;
 ```sql
 -- Integer operations
 SELECT 
-    EmployeeID,
-    EmployeeID * 100 AS ExpandedID,
-    EmployeeID % 10 AS LastDigit
+    e.EmployeeID,
+    e.EmployeeID * 100 AS ExpandedID,
+    e.EmployeeID % 10 AS LastDigit
 FROM Employees e;
 
 -- Decimal operations
 SELECT 
-    BaseSalary,
-    CAST(BaseSalary AS INT) AS SalaryRounded,
-    ROUND(BaseSalary / 12, 2) AS MonthlySalary
+    e.BaseSalary,
+    CAST(e.BaseSalary AS INT) AS SalaryRounded,
+    ROUND(e.BaseSalary / 12, 2) AS MonthlySalary
 FROM Employees e;
 ```
 
@@ -431,12 +461,12 @@ FROM Employees e;
 ```sql
 -- Date formatting and extraction
 SELECT 
-    HireDate,
-    YEAR(HireDate) AS HireYear,
-    MONTH(HireDate) AS HireMonth,
-    DAY(HireDate) AS HireDay,
-    DATENAME(WEEKDAY, HireDate) AS HireDayOfWeek,
-    FORMAT(HireDate, 'MMMM dd, yyyy') AS FormattedHireDate
+    e.HireDate,
+    YEAR(e.HireDate) AS HireYear,
+    MONTH(e.HireDate) AS HireMonth,
+    DAY(e.HireDate) AS HireDay,
+    DATENAME(WEEKDAY, e.HireDate) AS HireDayOfWeek,
+    FORMAT(e.HireDate, 'MMMM dd, yyyy') AS FormattedHireDate
 FROM Employees e;
 ```
 
@@ -444,11 +474,11 @@ FROM Employees e;
 ```sql
 -- String functions
 SELECT 
-    FirstName,
-    UPPER(FirstName) AS UpperCase,
-    LOWER(FirstName) AS LowerCase,
-    REVERSE(FirstName) AS Reversed,
-    REPLICATE(FirstName, 2) AS Doubled
+    e.FirstName,
+    UPPER(e.FirstName) AS UpperCase,
+    LOWER(e.FirstName) AS LowerCase,
+    REVERSE(e.FirstName) AS Reversed,
+    REPLICATE(e.FirstName, 2) AS Doubled
 FROM Employees e;
 ```
 
@@ -460,25 +490,29 @@ FROM Employees e;
 **Complex WHERE Clauses**:
 ```sql
 -- Multiple AND conditions
-SELECT * FROM Employees 
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
 WHERE d.DepartmentName = 'Engineering' 
-  AND BaseSalary > 70000 
-  AND YEAR(HireDate) >= 2020;
+  AND e.BaseSalary > 70000 
+  AND YEAR(e.HireDate) >= 2020;
 
 -- OR conditions with precedence
-SELECT * FROM Employees 
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
 WHERE (Department = 'IT' OR d.DepartmentName = 'Finance') 
-  AND BaseSalary > 65000;
+  AND e.BaseSalary > 65000;
 
 -- NOT operator usage
-SELECT * FROM Employees 
-WHERE NOT (Department = 'HR' OR BaseSalary < 50000);
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE NOT (Department = 'HR' OR e.BaseSalary < 50000);
 
 -- Complex business logic
-SELECT * FROM Employees 
-WHERE (Department = 'IT' AND BaseSalary > 75000)
-   OR (Department = 'Finance' AND BaseSalary > 70000)
-   OR (Department = 'HR' AND YEAR(HireDate) < 2020);
+SELECT * FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE (Department = 'IT' AND e.BaseSalary > 75000)
+   OR (Department = 'Finance' AND e.BaseSalary > 70000)
+   OR (Department = 'HR' AND YEAR(e.HireDate) < 2020);
 ```
 
 **Readability Best Practices**:
@@ -496,42 +530,45 @@ WHERE (Department = 'IT' AND BaseSalary > 75000)
 ```sql
 -- Basic CASE for categorization
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
     CASE 
-        WHEN BaseSalary > 80000 THEN 'High'
-        WHEN BaseSalary > 60000 THEN 'Medium'
+        WHEN e.BaseSalary > 80000 THEN 'High'
+        WHEN e.BaseSalary > 60000 THEN 'Medium'
         ELSE 'Entry Level'
     END AS SalaryCategory
-FROM Employees e;
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
 -- CASE for data transformation
 SELECT 
-    FirstName,
-    LastName,
+    e.FirstName,
+    e.LastName,
     d.DepartmentName,
-    CASE d.d.DepartmentName
+    CASE d.DepartmentName
         WHEN 'IT' THEN 'Information Technology'
         WHEN 'HR' THEN 'Human Resources'
         WHEN 'FIN' THEN 'Finance'
-        ELSE d.d.DepartmentName
+        ELSE d.DepartmentName
     END AS FullDepartmentName
-FROM Employees e;
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 ```
 
 **Advanced CASE Usage**:
 ```sql
 -- Multiple conditions in CASE
 SELECT 
-    FirstName + ' ' + LastName AS FullName,
+    e.FirstName + ' ' + e.LastName AS FullName,
     CASE 
-        WHEN d.DepartmentName = 'Engineering' AND BaseSalary > 75000 THEN 'Senior IT Professional'
+        WHEN d.DepartmentName = 'Engineering' AND e.BaseSalary > 75000 THEN 'Senior IT Professional'
         WHEN d.DepartmentName = 'Engineering' THEN 'IT Professional'
-        WHEN BaseSalary > 80000 THEN 'Senior Professional'
+        WHEN e.BaseSalary > 80000 THEN 'Senior Professional'
         ELSE 'Professional'
     END AS JobLevel
-FROM Employees e;
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 ```
 
 ---
@@ -543,19 +580,19 @@ FROM Employees e;
 ```sql
 -- Efficient column selection
 -- Good: Select only needed columns
-SELECT EmployeeID, FirstName, LastName 
-FROM Employees 
+SELECT e.EmployeeID, e.FirstName, e.LastName 
+FROM Employees e 
 WHERE d.DepartmentName = 'Engineering';
 
 -- Avoid: SELECT * unless needed
--- SELECT * FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.d.DepartmentName = 'Engineering';
+-- SELECT * FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Engineering';
 
 -- Efficient WHERE conditions
 -- Good: Use indexed columns in WHERE
-SELECT * FROM Employees WHERE EmployeeID = 101;
+SELECT * FROM Employees e WHERE e.EmployeeID = 101;
 
 -- Less efficient: Functions in WHERE prevent index usage
--- SELECT * FROM Employees WHERE UPPER(FirstName) = 'JOHN';
+-- SELECT * FROM Employees e WHERE UPPER(e.FirstName) = 'JOHN';
 ```
 
 **Indexing Considerations**:
@@ -580,7 +617,7 @@ WHERE i.object_id = OBJECT_ID('Employees');
 ```sql
 -- Count records to verify results
 SELECT COUNT(*) AS TotalEmployees FROM Employees e;
-SELECT COUNT(*) AS ITEmployees FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.d.DepartmentName = 'Engineering';
+SELECT COUNT(*) AS ITEmployees FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Engineering';
 
 -- Statistical analysis
 SELECT 
@@ -589,13 +626,13 @@ SELECT
     MIN(e.BaseSalary) AS MinimumSalary,
     MAX(e.BaseSalary) AS MaximumSalary,
     SUM(e.BaseSalary) AS TotalPayroll
-FROM Employees
+FROM Employees e
 WHERE d.DepartmentName = 'Engineering';
 
 -- Data quality checks
 SELECT 
     COUNT(*) AS TotalRecords,
-    COUNT(FirstName) AS NonNullFirstNames,
+    COUNT(e.FirstName) AS NonNullFirstNames,
     COUNT(DISTINCT Department) AS UniqueDepartments
 FROM Employees e;
 ```
@@ -616,27 +653,27 @@ FROM Employees e;
 -- Common mistakes and corrections
 
 -- Mistake: Missing FROM clause
--- SELECT FirstName, LastName;
+-- SELECT e.FirstName, e.LastName;
 -- Correct:
-SELECT FirstName, LastName FROM Employees e;
+SELECT e.FirstName, e.LastName FROM Employees e;
 
 -- Mistake: Missing quotes around strings
--- SELECT * FROM Employees WHERE d.d.DepartmentName = IT;
+-- SELECT * FROM Employees e WHERE d.DepartmentName = IT;
 -- Correct:
-SELECT * FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.d.DepartmentName = 'Engineering';
+SELECT * FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Engineering';
 
 -- Mistake: Using = with NULL
--- SELECT * FROM Employees WHERE MiddleName = NULL;
+-- SELECT * FROM Employees e WHERE MiddleName = NULL;
 -- Correct:
-SELECT * FROM Employees WHERE MiddleName IS NULL;
+SELECT * FROM Employees e WHERE MiddleName IS NULL;
 ```
 
 **Logic Errors**:
 ```sql
 -- Mistake: Incorrect operator precedence
--- SELECT * FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.d.DepartmentName = 'Engineering' OR 'Finance' AND BaseSalary > 70000;
+-- SELECT * FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE d.DepartmentName = 'Engineering' OR 'Finance' AND e.BaseSalary > 70000;
 -- Correct:
-SELECT * FROM Employees WHERE (Department = 'IT' OR d.d.DepartmentName = 'Finance') AND BaseSalary > 70000;
+SELECT * FROM Employees e WHERE (Department = 'IT' OR d.DepartmentName = 'Finance') AND e.BaseSalary > 70000;
 ```
 
 **Debugging Techniques**:
@@ -654,37 +691,40 @@ SELECT * FROM Employees WHERE (Department = 'IT' OR d.d.DepartmentName = 'Financ
 ```sql
 -- New hire report
 SELECT 
-    FirstName + ' ' + LastName AS NewHire,
+    e.FirstName + ' ' + e.LastName AS NewHire,
     d.DepartmentName,
-    HireDate,
-    BaseSalary
-FROM Employees 
-WHERE YEAR(HireDate) = YEAR(GETDATE())
-ORDER BY HireDate DESC;
+    e.HireDate,
+    e.BaseSalary
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE YEAR(e.HireDate) = YEAR(GETDATE())
+ORDER BY e.HireDate DESC;
 
 -- High performer identification
 SELECT 
-    FirstName + ' ' + LastName AS Employee,
+    e.FirstName + ' ' + e.LastName AS Employee,
     d.DepartmentName,
-    BaseSalary,
+    e.BaseSalary,
     CASE 
-        WHEN BaseSalary > 80000 THEN 'Retention Priority'
+        WHEN e.BaseSalary > 80000 THEN 'Retention Priority'
         ELSE 'Standard'
     END AS RetentionCategory
-FROM Employees 
-WHERE d.d.DepartmentName IN ('IT', 'Finance')
-ORDER BY BaseSalary DESC;
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE d.DepartmentName IN ('IT', 'Finance')
+ORDER BY e.BaseSalary DESC;
 ```
 
 **Financial Analysis**:
 ```sql
--- d.d.DepartmentName cost analysis
+-- d.DepartmentName cost analysis
 SELECT d.DepartmentName,
     COUNT(*) AS HeadCount,
     AVG(e.BaseSalary) AS AvgSalary,
     SUM(e.BaseSalary) AS TotalCost,
     FORMAT(SUM(e.BaseSalary), 'C') AS FormattedCost
-FROM Employees 
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
 GROUP BY DepartmentID
 ORDER BY SUM(e.BaseSalary) DESC;
 ```
@@ -711,7 +751,7 @@ SELECT
     e.EmployeeID AS ID,
     e.FirstName + ' ' + e.LastName AS [Full Name],
     e.DepartmentName,
-    FORMAT(e.BaseSalary, 'C') AS [Formatted BaseSalary],
+    FORMAT(e.BaseSalary, 'C') AS [Formatted e.BaseSalary],
     DATEDIFF(YEAR, e.HireDate, GETDATE()) AS [Years of Service],
     CASE 
         WHEN e.BaseSalary > 80000 THEN 'Senior Level'

@@ -111,6 +111,7 @@ Authentication: Windows Authentication
 -- IntelliSense example
 SELECT e.FirstName, e.LastName
 FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE d.DepartmentName = 'Engineering';
 ```
 
@@ -183,10 +184,10 @@ SELECT COUNT(*) FROM Employees e;
 -- Script generation example
 -- Right-click table → Script Table as → CREATE To → New Query Editor Window
 CREATE TABLE [dbo].[Employees](
-    [EmployeeID] [int] IDENTITY(1,1) NOT NULL,
-    [FirstName] [nvarchar](50) NOT NULL,
-    [LastName] [nvarchar](50) NOT NULL,
-    CONSTRAINT [PK_Employees] PRIMARY KEY CLUSTERED ([EmployeeID])
+    [e.EmployeeID] [int] IDENTITY(1,1) NOT NULL,
+    [e.FirstName] [nvarchar](50) NOT NULL,
+    [e.LastName] [nvarchar](50) NOT NULL,
+    CONSTRAINT [PK_Employees] PRIMARY KEY CLUSTERED ([e.EmployeeID])
 );
 ```
 
@@ -249,7 +250,7 @@ CREATE TABLE [dbo].[Employees](
 ```sql
 -- Display execution plan
 SET SHOWPLAN_ALL ON;
-SELECT * FROM Employees WHERE DepartmentID = 1;
+SELECT * FROM Employees e WHERE DepartmentID = 1;
 SET SHOWPLAN_ALL OFF;
 ```
 

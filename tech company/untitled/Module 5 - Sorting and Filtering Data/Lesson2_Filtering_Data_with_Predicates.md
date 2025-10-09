@@ -48,107 +48,107 @@ A predicate is a logical expression that returns TRUE, FALSE, or UNKNOWN (due to
 ### Comparison Operators
 ```sql
 -- Equal to
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
-WHERE BaseSalary = 75000;
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+WHERE e.BaseSalary = 75000;
 
 -- Not equal to (two forms)
-SELECT FirstName, LastName, DepartmentID
-FROM Employees
-WHERE DepartmentID != 3;  -- or <> 3
+SELECT e.FirstName, e.LastName, d.DepartmentID
+FROM Employees e
+WHERE d.DepartmentID != 3;  -- or <> 3
 
 -- Greater than / Less than
-SELECT FirstName, LastName, HireDate
-FROM Employees
-WHERE HireDate > '2020-01-01'
-  AND BaseSalary < 100000;
+SELECT e.FirstName, e.LastName, e.HireDate
+FROM Employees e
+WHERE e.HireDate > '2020-01-01'
+  AND e.BaseSalary < 100000;
 
 -- Greater/Less than or equal to
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
-WHERE BaseSalary >= 50000
-  AND BaseSalary <= 80000;
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+WHERE e.BaseSalary >= 50000
+  AND e.BaseSalary <= 80000;
 ```
 
 ### BETWEEN Predicate
 ```sql
 -- Range filtering with BETWEEN (inclusive)
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
-WHERE BaseSalary BETWEEN 50000 AND 80000;
--- Equivalent to: BaseSalary >= 50000 AND BaseSalary <= 80000
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+WHERE e.BaseSalary BETWEEN 50000 AND 80000;
+-- Equivalent to: e.BaseSalary >= 50000 AND e.BaseSalary <= 80000
 
 -- Date ranges
-SELECT FirstName, LastName, HireDate
-FROM Employees
-WHERE HireDate BETWEEN '2020-01-01' AND '2022-12-31';
+SELECT e.FirstName, e.LastName, e.HireDate
+FROM Employees e
+WHERE e.HireDate BETWEEN '2020-01-01' AND '2022-12-31';
 
 -- NOT BETWEEN
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
-WHERE BaseSalary NOT BETWEEN 40000 AND 60000;
--- Equivalent to: BaseSalary < 40000 OR BaseSalary > 60000
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+WHERE e.BaseSalary NOT BETWEEN 40000 AND 60000;
+-- Equivalent to: e.BaseSalary < 40000 OR e.BaseSalary > 60000
 ```
 
 ### IN Predicate
 ```sql
 -- List membership
-SELECT FirstName, LastName, DepartmentID
-FROM Employees
-WHERE DepartmentID IN (1, 3, 5);
--- Equivalent to: DepartmentID = 1 OR DepartmentID = 3 OR DepartmentID = 5
+SELECT e.FirstName, e.LastName, d.DepartmentID
+FROM Employees e
+WHERE d.DepartmentID IN (1, 3, 5);
+-- Equivalent to: d.DepartmentID = 1 OR d.DepartmentID = 3 OR d.DepartmentID = 5
 
 -- String lists
-SELECT FirstName, LastName, JobTitle
-FROM Employees
-WHERE JobTitle IN ('Manager', 'Director', 'VP');
+SELECT e.FirstName, e.LastName, e.JobTitle
+FROM Employees e
+WHERE e.JobTitle IN ('Manager', 'Director', 'VP');
 
 -- NOT IN
-SELECT FirstName, LastName, DepartmentID
-FROM Employees
-WHERE DepartmentID NOT IN (2, 4);
+SELECT e.FirstName, e.LastName, d.DepartmentID
+FROM Employees e
+WHERE d.DepartmentID NOT IN (2, 4);
 
 -- Subquery with IN
-SELECT FirstName, LastName
-FROM Employees
-WHERE DepartmentID IN (
-    SELECT DepartmentID 
-    FROM Departments 
-    WHERE Budget > 500000
+SELECT e.FirstName, e.LastName
+FROM Employees e
+WHERE d.DepartmentID IN (
+    SELECT d.DepartmentID 
+    FROM Departments d 
+    WHERE d.Budget > 500000
 );
 ```
 
 ### LIKE Predicate (Pattern Matching)
 ```sql
 -- Wildcard patterns
-SELECT FirstName, LastName, WorkEmail
-FROM Employees
-WHERE FirstName LIKE 'J%';        -- Starts with 'J'
+SELECT e.FirstName, e.LastName, WorkEmail
+FROM Employees e
+WHERE e.FirstName LIKE 'J%';        -- Starts with 'J'
 
-SELECT FirstName, LastName, WorkEmail
-FROM Employees
-WHERE LastName LIKE '%son';       -- Ends with 'son'
+SELECT e.FirstName, e.LastName, WorkEmail
+FROM Employees e
+WHERE e.LastName LIKE '%son';       -- Ends with 'son'
 
-SELECT FirstName, LastName, WorkEmail
-FROM Employees
-WHERE FirstName LIKE '%an%';      -- Contains 'an'
+SELECT e.FirstName, e.LastName, WorkEmail
+FROM Employees e
+WHERE e.FirstName LIKE '%an%';      -- Contains 'an'
 
-SELECT FirstName, LastName, WorkEmail
-FROM Employees
-WHERE FirstName LIKE 'J_hn';      -- J + any char + hn
+SELECT e.FirstName, e.LastName, WorkEmail
+FROM Employees e
+WHERE e.FirstName LIKE 'J_hn';      -- J + any char + hn
 
 -- Character sets
-SELECT FirstName, LastName
-FROM Employees
-WHERE FirstName LIKE '[ABC]%';    -- Starts with A, B, or C
+SELECT e.FirstName, e.LastName
+FROM Employees e
+WHERE e.FirstName LIKE '[ABC]%';    -- Starts with A, B, or C
 
-SELECT FirstName, LastName
-FROM Employees
-WHERE FirstName LIKE '[A-M]%';    -- Starts with A through M
+SELECT e.FirstName, e.LastName
+FROM Employees e
+WHERE e.FirstName LIKE '[A-M]%';    -- Starts with A through M
 
-SELECT FirstName, LastName
-FROM Employees
-WHERE FirstName LIKE '[^A-M]%';   -- Does NOT start with A through M
+SELECT e.FirstName, e.LastName
+FROM Employees e
+WHERE e.FirstName LIKE '[^A-M]%';   -- Does NOT start with A through M
 ```
 
 ## Intermediate Filtering Techniques
@@ -156,43 +156,43 @@ WHERE FirstName LIKE '[^A-M]%';   -- Does NOT start with A through M
 ### Combining Predicates with Logical Operators
 ```sql
 -- AND operator (all conditions must be true)
-SELECT FirstName, LastName, BaseSalary, DepartmentID
-FROM Employees
-WHERE BaseSalary > 70000
+SELECT e.FirstName, e.LastName, e.BaseSalary, DepartmentID
+FROM Employees e
+WHERE e.BaseSalary > 70000
   AND DepartmentID = 1
-  AND HireDate >= '2020-01-01';
+  AND e.HireDate >= '2020-01-01';
 
 -- OR operator (any condition can be true)
-SELECT FirstName, LastName, JobTitle
-FROM Employees
-WHERE JobTitle LIKE '%Manager%'
-   OR JobTitle LIKE '%Director%'
-   OR BaseSalary > 90000;
+SELECT e.FirstName, e.LastName, e.JobTitle
+FROM Employees e
+WHERE e.JobTitle LIKE '%Manager%'
+   OR e.JobTitle LIKE '%Director%'
+   OR e.BaseSalary > 90000;
 
 -- Complex combinations with parentheses
-SELECT FirstName, LastName, BaseSalary, DepartmentID
-FROM Employees
-WHERE (BaseSalary > 80000 OR Title LIKE '%Senior%')
+SELECT e.FirstName, e.LastName, e.BaseSalary, DepartmentID
+FROM Employees e
+WHERE (e.BaseSalary > 80000 OR Title LIKE '%Senior%')
   AND DepartmentID IN (1, 2, 3)
-  AND HireDate >= '2019-01-01';
+  AND e.HireDate >= '2019-01-01';
 ```
 
 ### NULL Handling Predicates
 ```sql
 -- IS NULL / IS NOT NULL
-SELECT FirstName, LastName, MiddleName
-FROM Employees
+SELECT e.FirstName, e.LastName, MiddleName
+FROM Employees e
 WHERE MiddleName IS NULL;
 
-SELECT FirstName, LastName, ManagerID
-FROM Employees
+SELECT e.FirstName, e.LastName, ManagerID
+FROM Employees e
 WHERE ManagerID IS NOT NULL;
 
 -- Combining NULL checks with other conditions
-SELECT FirstName, LastName, BaseSalary, MiddleName
-FROM Employees
-WHERE BaseSalary > 60000
-  AND (MiddleName IS NOT NULL OR FirstName LIKE 'J%');
+SELECT e.FirstName, e.LastName, e.BaseSalary, MiddleName
+FROM Employees e
+WHERE e.BaseSalary > 60000
+  AND (MiddleName IS NOT NULL OR e.FirstName LIKE 'J%');
 ```
 
 ### EXISTS Predicate
@@ -203,7 +203,7 @@ FROM Employees e
 WHERE EXISTS (
     SELECT 1 
     FROM EmployeeProjects ep 
-    WHERE ep.EmployeeID = e.EmployeeID
+    WHERE ep.e.EmployeeID = e.EmployeeID
 );
 
 -- NOT EXISTS
@@ -212,7 +212,7 @@ FROM Employees e
 WHERE NOT EXISTS (
     SELECT 1 
     FROM EmployeeProjects ep 
-    WHERE ep.EmployeeID = e.EmployeeID
+    WHERE ep.e.EmployeeID = e.EmployeeID
 );
 
 -- Complex EXISTS with multiple conditions
@@ -222,7 +222,7 @@ WHERE EXISTS (
     SELECT 1 
     FROM EmployeeProjects ep
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-    WHERE ep.EmployeeID = e.EmployeeID
+    WHERE ep.e.EmployeeID = e.EmployeeID
       AND p.IsActive = 'Active'
       AND ep.HoursAllocated > 100
 );
@@ -309,21 +309,21 @@ WHERE
 ```sql
 -- Filter by calculated values
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
-    DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsOfService,
-    BaseSalary / DATEDIFF(YEAR, HireDate, GETDATE()) AS SalaryPerYear
-FROM Employees
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
+    DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
+    e.BaseSalary / DATEDIFF(YEAR, e.HireDate, GETDATE()) AS SalaryPerYear
+FROM Employees e
 WHERE 
     -- Filter by calculated tenure
-    DATEDIFF(YEAR, HireDate, GETDATE()) BETWEEN 3 AND 10
+    DATEDIFF(YEAR, e.HireDate, GETDATE()) BETWEEN 3 AND 10
     
-    -- Filter by calculated BaseSalary efficiency
-    AND BaseSalary / DATEDIFF(YEAR, HireDate, GETDATE()) > 15000
+    -- Filter by calculated e.BaseSalary efficiency
+    AND e.BaseSalary / DATEDIFF(YEAR, e.HireDate, GETDATE()) > 15000
     
     -- Filter by name length
-    AND LEN(FirstName + LastName) <= 20
+    AND LEN(e.FirstName + e.LastName) <= 20
     
     -- Filter by email domain
     AND RIGHT(WorkEmail, LEN(WorkEmail) - CHARINDEX('@', WorkEmail)) = 'company.com';
@@ -340,10 +340,10 @@ SELECT
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE 
-    -- Above average BaseSalary in their d.DepartmentName
+    -- Above average e.BaseSalary in their d.DepartmentName
     e.BaseSalary > (
-        SELECT AVG(e2.BaseSalary)
-        FROM Employees e2
+        SELECT AVG(e2.e.BaseSalary)
+        FROM Employees e e2
         WHERE e2.DepartmentID = e.DepartmentID
           AND e2.IsActive = 1
     )
@@ -351,17 +351,17 @@ WHERE
     -- Has skills in high-demand categories
     AND EXISTS (
         SELECT 1
-        FROM Employees ekills es
+        FROM Employees e ekills es
         INNER JOIN Skills s ON es.SkillID = s.SkillID
-        WHERE es.EmployeeID = e.EmployeeID
+        WHERE es.e.EmployeeID = e.EmployeeID
           AND s.MarketDemand = 'High'
           AND es.ProficiencyLevel IN ('Advanced', 'Expert')
     )
     
     -- Not the highest paid in d.DepartmentName (leave room for growth)
     AND e.BaseSalary < (
-        SELECT MAX(e3.BaseSalary)
-        FROM Employees e3
+        SELECT MAX(e3.e.BaseSalary)
+        FROM Employees e e3
         WHERE e3.DepartmentID = e.DepartmentID
           AND e3.IsActive = 1
     );
@@ -417,28 +417,28 @@ WHERE
 ```sql
 -- Create indexes to support common filtering patterns
 CREATE INDEX IX_Employees_Active_Salary 
-ON Employees (IsActive, BaseSalary) 
+ON Employees (IsActive, e.BaseSalary) 
 WHERE IsActive = 1;
 
 CREATE INDEX IX_Employees_Department_HireDate 
-ON Employees (DepartmentID, HireDate);
+ON Employees (DepartmentID, e.HireDate);
 
 CREATE INDEX IX_Employees_LastName_FirstName 
-ON Employees (LastName, FirstName);
+ON Employees (e.LastName, e.FirstName);
 
 -- These queries will use indexes efficiently
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
-WHERE IsActive = 1 AND BaseSalary > 70000;  -- Uses IX_Employees_Active_Salary
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+WHERE IsActive = 1 AND e.BaseSalary > 70000;  -- Uses IX_Employees_Active_Salary
 
-SELECT FirstName, LastName
-FROM Employees
+SELECT e.FirstName, e.LastName
+FROM Employees e
 WHERE DepartmentID = 1 
-  AND HireDate >= '2020-01-01';  -- Uses IX_Employees_Department_HireDate
+  AND e.HireDate >= '2020-01-01';  -- Uses IX_Employees_Department_HireDate
 
-SELECT FirstName, LastName, WorkEmail
-FROM Employees
-WHERE LastName LIKE 'Smith%';  -- Uses IX_Employees_LastName_FirstName
+SELECT e.FirstName, e.LastName, WorkEmail
+FROM Employees e
+WHERE e.LastName LIKE 'Smith%';  -- Uses IX_Employees_LastName_FirstName
 ```
 
 ## Filtering Best Practices
@@ -446,28 +446,28 @@ WHERE LastName LIKE 'Smith%';  -- Uses IX_Employees_LastName_FirstName
 ### Predicate Ordering for Performance
 ```sql
 -- Good: Most selective predicates first
-SELECT FirstName, LastName, Title
-FROM Employees
-WHERE EmployeeID = 12345        -- Most selective (unique)
+SELECT e.FirstName, e.LastName, Title
+FROM Employees e
+WHERE e.EmployeeID = 12345        -- Most selective (unique)
   AND IsActive = 1              -- Less selective
   AND DepartmentID IN (1, 2, 3) -- Least selective
-  AND FirstName LIKE 'J%';
+  AND e.FirstName LIKE 'J%';
 
 -- Good: Use EXISTS instead of IN for correlated conditions
 SELECT e.FirstName, e.LastName
 FROM Employees e
 WHERE EXISTS (
     SELECT 1 FROM EmployeeProjects ep
-    WHERE ep.EmployeeID = e.EmployeeID
-    AND ep.ProjectID IN (SELECT ProjectID FROM Projects WHERE IsActive = 'Active')
+    WHERE ep.e.EmployeeID = e.EmployeeID
+    AND ep.ProjectID IN (SELECT ProjectID FROM Projects p WHERE IsActive = 'Active')
 );
 ```
 
 ### NULL-Safe Filtering
 ```sql
 -- Handle NULLs explicitly
-SELECT FirstName, LastName, MiddleName
-FROM Employees
+SELECT e.FirstName, e.LastName, MiddleName
+FROM Employees e
 WHERE 
     -- Include employees with middle names starting with 'A'
     (MiddleName IS NOT NULL AND MiddleName LIKE 'A%')
@@ -476,8 +476,8 @@ WHERE
     OR MiddleName IS NULL;
 
 -- Use ISNULL/COALESCE for default values
-SELECT FirstName, LastName, Phone
-FROM Employees
+SELECT e.FirstName, e.LastName, Phone
+FROM Employees e
 WHERE ISNULL(Phone, '') LIKE '206%';  -- Treat NULL as empty string
 ```
 
@@ -502,8 +502,8 @@ WHERE
         (d.DepartmentName = 'IT' 
          AND e.JobTitle LIKE '%Senior%' 
          AND EXISTS (
-             SELECT 1 FROM Employees ekills es 
-             WHERE es.EmployeeID = e.EmployeeID 
+             SELECT 1 FROM Employees e ekills es 
+             WHERE es.e.EmployeeID = e.EmployeeID 
              AND es.ProficiencyLevel = 'Expert'
          ))
          
@@ -514,9 +514,9 @@ WHERE
         -- Finance: Certified professionals
         OR (d.DepartmentName = 'Finance' 
             AND EXISTS (
-                SELECT 1 FROM Employees ekills es
+                SELECT 1 FROM Employees e ekills es
                 INNER JOIN Skills s ON es.SkillID = s.SkillID
-                WHERE es.EmployeeID = e.EmployeeID 
+                WHERE es.e.EmployeeID = e.EmployeeID 
                 AND s.SkillCategory = 'Finance'
                 AND es.CertificationDate IS NOT NULL
             ))
@@ -533,18 +533,18 @@ WHERE
 ### Mistake 1: NULL Comparison Errors
 ```sql
 -- WRONG: NULL comparisons always return UNKNOWN
-SELECT * FROM Employees WHERE MiddleName = NULL;     -- Returns no rows
-SELECT * FROM Employees WHERE MiddleName != NULL;    -- Returns no rows
+SELECT * FROM Employees e WHERE MiddleName = NULL;     -- Returns no rows
+SELECT * FROM Employees e WHERE MiddleName != NULL;    -- Returns no rows
 
 -- CORRECT: Use IS NULL / IS NOT NULL
-SELECT * FROM Employees WHERE MiddleName IS NULL;
-SELECT * FROM Employees WHERE MiddleName IS NOT NULL;
+SELECT * FROM Employees e WHERE MiddleName IS NULL;
+SELECT * FROM Employees e WHERE MiddleName IS NOT NULL;
 ```
 
 ### Mistake 2: Inefficient NOT IN with NULLs
 ```sql
 -- PROBLEMATIC: NOT IN with potential NULLs
-SELECT * FROM Employees 
+SELECT * FROM Employees e 
 WHERE DepartmentID NOT IN (
     SELECT DepartmentID FROM SomeTable WHERE Condition = 'X'
 );
@@ -562,15 +562,15 @@ WHERE NOT EXISTS (
 ### Mistake 3: Function Usage Preventing Index Use
 ```sql
 -- INEFFICIENT: Function on filtered column
-SELECT * FROM Employees 
-WHERE UPPER(LastName) = 'SMITH';
+SELECT * FROM Employees e 
+WHERE UPPER(e.LastName) = 'SMITH';
 
 -- EFFICIENT: Use proper case or computed column
-SELECT * FROM Employees 
-WHERE LastName = 'Smith';
+SELECT * FROM Employees e 
+WHERE e.LastName = 'Smith';
 
 -- Or create computed column with index
-ALTER TABLE Employees ADD LastNameUpper AS UPPER(LastName);
+ALTER TABLE Employees ADD LastNameUpper AS UPPER(e.LastName);
 CREATE INDEX IX_Employees_LastNameUpper ON Employees(LastNameUpper);
 ```
 

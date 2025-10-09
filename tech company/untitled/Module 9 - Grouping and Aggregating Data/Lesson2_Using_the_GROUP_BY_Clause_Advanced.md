@@ -72,8 +72,8 @@ SELECT d.DepartmentName,
     
     -- PROJECT PERFORMANCE by d.DepartmentName
     COUNT(DISTINCT p.ProjectID) AS ProjectsManaged,
-    FORMAT(SUM(p.Budget), 'C0') AS TotalProjectValue,
-    FORMAT(AVG(p.Budget), 'C0') AS AvgProjectValue,
+    FORMAT(SUM(p.d.Budget), 'C0') AS TotalProjectValue,
+    FORMAT(AVG(p.d.Budget), 'C0') AS AvgProjectValue,
     
     -- SUCCESS METRICS by d.DepartmentName
     COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
@@ -89,20 +89,20 @@ SELECT d.DepartmentName,
     
     -- REVENUE PER EMPLOYEE calculation
     FORMAT(
-        SUM(p.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0), 
+        SUM(p.d.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0), 
         'C0'
     ) AS RevenuePerEmployee,
     
     -- PROFITABILITY by d.DepartmentName
     FORMAT(
-        SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)), 
+        SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)), 
         'C0'
     ) AS DepartmentProfit,
     
     FORMAT(
         CASE 
-            WHEN SUM(p.Budget) > 0 
-            THEN ((SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / SUM(p.Budget)
+            WHEN SUM(p.d.Budget) > 0 
+            THEN ((SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / SUM(p.d.Budget)
             ELSE 0 
         END, 
         'N1'
@@ -110,15 +110,15 @@ SELECT d.DepartmentName,
     
     -- d.DepartmentName PERFORMANCE RATING
     CASE 
-        WHEN SUM(p.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 2000000 
+        WHEN SUM(p.d.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 2000000 
              AND COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
                  NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 85
         THEN '🌟 STAR PERFORMER - Exceeds all targets'
-        WHEN SUM(p.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 1500000 
+        WHEN SUM(p.d.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 1500000 
              AND COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
                  NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 75
         THEN '🚀 HIGH PERFORMER - Above average results'
-        WHEN SUM(p.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 800000 
+        WHEN SUM(p.d.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 800000 
              AND COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
                  NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 65
         THEN '📈 SOLID PERFORMER - Meeting expectations'
@@ -129,24 +129,24 @@ SELECT d.DepartmentName,
     
     -- STRATEGIC RECOMMENDATIONS
     CASE 
-        WHEN SUM(p.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 2000000 
+        WHEN SUM(p.d.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 2000000 
         THEN 'EXPAND: Increase headcount and project capacity'
         WHEN COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
              NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) < 65
         THEN 'IMPROVE: Focus on project management and delivery'
-        WHEN AVG(e.BaseSalary) < 75000 AND SUM(p.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 1000000
+        WHEN AVG(e.BaseSalary) < 75000 AND SUM(p.d.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) >= 1000000
         THEN 'INVEST: Increase compensation to retain talent'
-        WHEN COUNT(DISTINCT e.EmployeeID) < 5 AND SUM(p.Budget) >= 5000000
+        WHEN COUNT(DISTINCT e.EmployeeID) < 5 AND SUM(p.d.Budget) >= 5000000
         THEN 'SCALE: d.DepartmentName is understaffed for workload'
         ELSE 'MAINTAIN: Continue current strategy with minor optimizations'
     END AS StrategicRecommendation
 
 FROM Departments d
-    LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID
+    LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
     LEFT JOIN Projects p ON e.EmployeeID = p.ProjectManagerID AND p.IsActive = 1
 WHERE d.IsActive = 1
 GROUP BY d.DepartmentID, d.DepartmentName
-ORDER BY SUM(p.Budget) DESC;
+ORDER BY SUM(p.d.Budget) DESC;
 
 -- Lab 9.2.2: Project Type Performance Analysis
 -- Business scenario: Service line optimization and capability development
@@ -162,11 +162,11 @@ SELECT
     COUNT(CASE WHEN p.StartDate >= DATEADD(YEAR, -1, GETDATE()) THEN 1 END) AS RecentProjects,
     
     -- FINANCIAL PERFORMANCE
-    FORMAT(SUM(p.Budget), 'C0') AS TotalRevenue,
-    FORMAT(AVG(p.Budget), 'C0') AS AvgProjectValue,
-    FORMAT(MIN(p.Budget), 'C0') AS SmallestProject,
-    FORMAT(MAX(p.Budget), 'C0') AS LargestProject,
-    FORMAT(STDEV(p.Budget), 'C0') AS RevenueVariability,
+    FORMAT(SUM(p.d.Budget), 'C0') AS TotalRevenue,
+    FORMAT(AVG(p.d.Budget), 'C0') AS AvgProjectValue,
+    FORMAT(MIN(p.d.Budget), 'C0') AS SmallestProject,
+    FORMAT(MAX(p.d.Budget), 'C0') AS LargestProject,
+    FORMAT(STDEV(p.d.Budget), 'C0') AS RevenueVariability,
     
     -- COST ANALYSIS
     FORMAT(SUM(ISNULL(p.ActualCost, 0)), 'C0') AS TotalCosts,
@@ -174,14 +174,14 @@ SELECT
     
     -- PROFITABILITY METRICS
     FORMAT(
-        SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)), 
+        SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)), 
         'C0'
     ) AS TotalProfit,
     
     FORMAT(
         CASE 
-            WHEN SUM(p.Budget) > 0 
-            THEN ((SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / SUM(p.Budget)
+            WHEN SUM(p.d.Budget) > 0 
+            THEN ((SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / SUM(p.d.Budget)
             ELSE 0 
         END, 
         'N1'
@@ -218,15 +218,15 @@ SELECT
     -- SERVICE LINE PERFORMANCE RATING
     CASE 
         WHEN COUNT(p.ProjectID) >= 10 
-             AND SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)) >= 1000000
+             AND SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)) >= 1000000
              AND COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
                  NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 80
         THEN '💎 PREMIUM SERVICE LINE - Market leader'
         WHEN COUNT(p.ProjectID) >= 5 
-             AND SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)) >= 500000
+             AND SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)) >= 500000
         THEN '🏆 STRONG SERVICE LINE - Competitive advantage'
         WHEN COUNT(p.ProjectID) >= 3 
-             AND SUM(p.Budget) >= 1000000
+             AND SUM(p.d.Budget) >= 1000000
         THEN '📈 GROWTH SERVICE LINE - Scaling opportunity'
         WHEN COUNT(p.ProjectID) > 0
         THEN '🔍 DEVELOPING SERVICE LINE - Monitor and improve'
@@ -236,16 +236,16 @@ SELECT
     -- STRATEGIC RECOMMENDATIONS
     CASE 
         WHEN pt.ComplexityLevel >= 4 
-             AND SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)) >= 1000000
+             AND SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)) >= 1000000
         THEN 'INVEST: Expand expertise in high-value complex services'
         WHEN COUNT(p.ProjectID) >= 10 
-             AND AVG(p.Budget) < 100000
+             AND AVG(p.d.Budget) < 100000
         THEN 'OPTIMIZE: Standardize delivery for volume efficiency'
         WHEN COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
              NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) < 60
         THEN 'IMPROVE: Focus on delivery methodology and project management'
         WHEN pt.ComplexityLevel <= 2 
-             AND SUM(p.Budget) >= 2000000
+             AND SUM(p.d.Budget) >= 2000000
         THEN 'SCALE: Develop repeatable processes and junior team capabilities'
         ELSE 'MAINTAIN: Continue current approach with continuous improvement'
     END AS ServiceLineStrategy
@@ -255,7 +255,7 @@ FROM ProjectTypes pt
 WHERE pt.IsActive = 1
 GROUP BY pt.ProjectTypeID, pt.TypeName, pt.ComplexityLevel
 HAVING COUNT(p.ProjectID) > 0  -- Only include project types with actual projects
-ORDER BY SUM(p.Budget) DESC;
+ORDER BY SUM(p.d.Budget) DESC;
 ```
 
 ### Exercise 1.2: Client Industry Analysis (🔴 ADVANCED)
@@ -292,15 +292,15 @@ SELECT
     COUNT(CASE WHEN p.IsActive = 'Active' THEN 1 END) AS ActiveProjects,
     
     -- FINANCIAL PERFORMANCE BY INDUSTRY
-    FORMAT(SUM(p.Budget), 'C0') AS TotalIndustryRevenue,
-    FORMAT(AVG(p.Budget), 'C0') AS AvgProjectValue,
-    FORMAT(SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)), 'C0') AS IndustryProfit,
+    FORMAT(SUM(p.d.Budget), 'C0') AS TotalIndustryRevenue,
+    FORMAT(AVG(p.d.Budget), 'C0') AS AvgProjectValue,
+    FORMAT(SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)), 'C0') AS IndustryProfit,
     
     -- INDUSTRY PROFIT MARGIN
     FORMAT(
         CASE 
-            WHEN SUM(p.Budget) > 0 
-            THEN ((SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / SUM(p.Budget)
+            WHEN SUM(p.d.Budget) > 0 
+            THEN ((SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / SUM(p.d.Budget)
             ELSE 0 
         END, 
         'N1'
@@ -314,14 +314,14 @@ SELECT
     ) + '%' AS IndustryOnTimeRate,
     
     -- PROJECT SIZE ANALYSIS BY INDUSTRY
-    COUNT(CASE WHEN p.Budget >= 1000000 THEN 1 END) AS LargeProjects,
-    COUNT(CASE WHEN p.Budget BETWEEN 250000 AND 999999 THEN 1 END) AS MediumProjects,
-    COUNT(CASE WHEN p.Budget < 250000 THEN 1 END) AS SmallProjects,
+    COUNT(CASE WHEN p.d.Budget >= 1000000 THEN 1 END) AS LargeProjects,
+    COUNT(CASE WHEN p.d.Budget BETWEEN 250000 AND 999999 THEN 1 END) AS MediumProjects,
+    COUNT(CASE WHEN p.d.Budget < 250000 THEN 1 END) AS SmallProjects,
     
     -- RELATIONSHIP DURATION ANALYSIS
     AVG(DATEDIFF(MONTH, 
-        (SELECT MIN(p2.StartDate) FROM Projects p2 WHERE p2.CompanyID = c.CompanyID AND p2.IsActive = 1),
-        (SELECT MAX(ISNULL(p2.ActualEndDate, GETDATE())) FROM Projects p2 WHERE p2.CompanyID = c.CompanyID AND p2.IsActive = 1)
+        (SELECT MIN(p2.StartDate) FROM Projects p p2 WHERE p2.CompanyID = c.CompanyID AND p2.IsActive = 1),
+        (SELECT MAX(ISNULL(p2.ActualEndDate, GETDATE())) FROM Projects p p2 WHERE p2.CompanyID = c.CompanyID AND p2.IsActive = 1)
     )) AS AvgClientRelationshipMonths,
     
     -- CREDIT RISK ANALYSIS BY INDUSTRY
@@ -331,16 +331,16 @@ SELECT
     
     -- INDUSTRY PERFORMANCE ASSESSMENT
     CASE 
-        WHEN SUM(p.Budget) >= 10000000 
+        WHEN SUM(p.d.Budget) >= 10000000 
              AND COUNT(DISTINCT c.CompanyID) >= 10
              AND COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
                  NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 80
         THEN '🌟 MARKET LEADER - Dominant position with excellent delivery'
-        WHEN SUM(p.Budget) >= 5000000 
+        WHEN SUM(p.d.Budget) >= 5000000 
              AND COUNT(DISTINCT c.CompanyID) >= 5
-             AND (SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(p.Budget), 0) >= 20
+             AND (SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(p.d.Budget), 0) >= 20
         THEN '🚀 STRONG POSITION - Significant market presence and profitability'
-        WHEN SUM(p.Budget) >= 2000000 
+        WHEN SUM(p.d.Budget) >= 2000000 
              AND COUNT(DISTINCT c.CompanyID) >= 3
         THEN '📈 GROWING MARKET - Emerging strength with expansion potential'
         WHEN COUNT(p.ProjectID) > 0
@@ -350,25 +350,25 @@ SELECT
     
     -- STRATEGIC RECOMMENDATIONS BY INDUSTRY
     CASE 
-        WHEN SUM(p.Budget) >= 10000000 AND COUNT(DISTINCT c.CompanyID) >= 10
+        WHEN SUM(p.d.Budget) >= 10000000 AND COUNT(DISTINCT c.CompanyID) >= 10
         THEN 'DOMINATE: Leverage market leadership for premium pricing and thought leadership'
-        WHEN AVG(p.Budget) >= 500000 AND COUNT(CASE WHEN c.CompanySize = 'Enterprise' THEN 1 END) >= 3
+        WHEN AVG(p.d.Budget) >= 500000 AND COUNT(CASE WHEN c.CompanySize = 'Enterprise' THEN 1 END) >= 3
         THEN 'ENTERPRISE FOCUS: Develop enterprise-specific capabilities and account management'
         WHEN COUNT(CASE WHEN c.CompanySize = 'Startup' THEN 1 END) * 100.0 / COUNT(DISTINCT c.CompanyID) >= 60
         THEN 'STARTUP SPECIALIZATION: Create startup-focused service packages and pricing'
-        WHEN (SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(p.Budget), 0) >= 30
+        WHEN (SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(p.d.Budget), 0) >= 30
         THEN 'PROFIT OPTIMIZATION: High-margin industry, increase market share'
         WHEN COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
              NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) < 60
         THEN 'DELIVERY IMPROVEMENT: Focus on industry-specific delivery methodology'
-        WHEN COUNT(DISTINCT c.CompanyID) < 3 AND SUM(p.Budget) < 1000000
+        WHEN COUNT(DISTINCT c.CompanyID) < 3 AND SUM(p.d.Budget) < 1000000
         THEN 'MARKET ENTRY: Evaluate industry potential and develop entry strategy'
         ELSE 'BALANCED GROWTH: Continue current approach with incremental improvements'
     END AS StrategicRecommendation,
     
     -- COMPETITIVE INTELLIGENCE
     CASE 
-        WHEN AVG(p.Budget) >= 750000 THEN 'HIGH-VALUE MARKET - Premium positioning opportunity'
+        WHEN AVG(p.d.Budget) >= 750000 THEN 'HIGH-VALUE MARKET - Premium positioning opportunity'
         WHEN COUNT(CASE WHEN c.CompanySize IN ('Large', 'Enterprise') THEN 1 END) * 100.0 / COUNT(DISTINCT c.CompanyID) >= 50
         THEN 'ENTERPRISE MARKET - Focus on enterprise sales capabilities'
         WHEN COUNT(CASE WHEN c.CompanySize = 'Startup' THEN 1 END) * 100.0 / COUNT(DISTINCT c.CompanyID) >= 50
@@ -381,7 +381,7 @@ FROM Companies c
 WHERE c.IsActive = 1
 GROUP BY c.Industry
 HAVING COUNT(p.ProjectID) > 0  -- Only industries with actual projects
-ORDER BY SUM(p.Budget) DESC;
+ORDER BY SUM(p.d.Budget) DESC;
 ```
 
 ## Part 2: Multi-Dimensional GROUP BY - Advanced Business Intelligence 🎲
@@ -415,10 +415,10 @@ SELECT d.DepartmentName,
     COUNT(CASE WHEN p.IsActive = 'Active' THEN 1 END) AS ActiveProjects,
     
     -- FINANCIAL METRICS by d.DepartmentName and time
-    FORMAT(SUM(p.Budget), 'C0') AS MonthlyRevenue,
-    FORMAT(AVG(p.Budget), 'C0') AS AvgProjectValue,
+    FORMAT(SUM(p.d.Budget), 'C0') AS MonthlyRevenue,
+    FORMAT(AVG(p.d.Budget), 'C0') AS AvgProjectValue,
     FORMAT(SUM(ISNULL(p.ActualCost, 0)), 'C0') AS MonthlyCosts,
-    FORMAT(SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)), 'C0') AS MonthlyProfit,
+    FORMAT(SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)), 'C0') AS MonthlyProfit,
     
     -- PERFORMANCE METRICS by d.DepartmentName and time
     FORMAT(
@@ -430,8 +430,8 @@ SELECT d.DepartmentName,
     -- PROFIT MARGIN by d.DepartmentName and time
     FORMAT(
         CASE 
-            WHEN SUM(p.Budget) > 0 
-            THEN ((SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / SUM(p.Budget)
+            WHEN SUM(p.d.Budget) > 0 
+            THEN ((SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / SUM(p.d.Budget)
             ELSE 0 
         END, 
         'N1'
@@ -439,7 +439,7 @@ SELECT d.DepartmentName,
     
     -- GROWTH ANALYSIS using LAG function with GROUP BY
     FORMAT(
-        SUM(p.Budget) - LAG(SUM(p.Budget), 1, 0) OVER (
+        SUM(p.d.Budget) - LAG(SUM(p.d.Budget), 1, 0) OVER (
             PARTITION BY d.DepartmentName 
             ORDER BY YEAR(p.StartDate), MONTH(p.StartDate)
         ), 
@@ -448,14 +448,14 @@ SELECT d.DepartmentName,
     
     FORMAT(
         CASE 
-            WHEN LAG(SUM(p.Budget), 1, 0) OVER (
+            WHEN LAG(SUM(p.d.Budget), 1, 0) OVER (
                 PARTITION BY d.DepartmentName 
                 ORDER BY YEAR(p.StartDate), MONTH(p.StartDate)
             ) > 0
-            THEN ((SUM(p.Budget) - LAG(SUM(p.Budget), 1, 0) OVER (
+            THEN ((SUM(p.d.Budget) - LAG(SUM(p.d.Budget), 1, 0) OVER (
                 PARTITION BY d.DepartmentName 
                 ORDER BY YEAR(p.StartDate), MONTH(p.StartDate)
-            )) * 100.0) / LAG(SUM(p.Budget), 1, 0) OVER (
+            )) * 100.0) / LAG(SUM(p.d.Budget), 1, 0) OVER (
                 PARTITION BY d.DepartmentName 
                 ORDER BY YEAR(p.StartDate), MONTH(p.StartDate)
             )
@@ -466,7 +466,7 @@ SELECT d.DepartmentName,
     
     -- YEAR-OVER-YEAR COMPARISON
     FORMAT(
-        SUM(p.Budget) - LAG(SUM(p.Budget), 12, 0) OVER (
+        SUM(p.d.Budget) - LAG(SUM(p.d.Budget), 12, 0) OVER (
             PARTITION BY d.DepartmentName 
             ORDER BY YEAR(p.StartDate), MONTH(p.StartDate)
         ), 
@@ -475,7 +475,7 @@ SELECT d.DepartmentName,
     
     -- RUNNING TOTALS for cumulative analysis
     FORMAT(
-        SUM(SUM(p.Budget)) OVER (
+        SUM(SUM(p.d.Budget)) OVER (
             PARTITION BY d.DepartmentName, YEAR(p.StartDate) 
             ORDER BY MONTH(p.StartDate) 
             ROWS UNBOUNDED PRECEDING
@@ -493,22 +493,22 @@ SELECT d.DepartmentName,
     
     -- PERFORMANCE TREND INDICATOR
     CASE 
-        WHEN SUM(p.Budget) > LAG(SUM(p.Budget), 1, 0) OVER (
+        WHEN SUM(p.d.Budget) > LAG(SUM(p.d.Budget), 1, 0) OVER (
             PARTITION BY d.DepartmentName 
             ORDER BY YEAR(p.StartDate), MONTH(p.StartDate)
         ) * 1.1
         THEN '📈 STRONG GROWTH (+10%+)'
-        WHEN SUM(p.Budget) > LAG(SUM(p.Budget), 1, 0) OVER (
+        WHEN SUM(p.d.Budget) > LAG(SUM(p.d.Budget), 1, 0) OVER (
             PARTITION BY d.DepartmentName 
             ORDER BY YEAR(p.StartDate), MONTH(p.StartDate)
         )
         THEN '📊 POSITIVE GROWTH'
-        WHEN SUM(p.Budget) < LAG(SUM(p.Budget), 1, 0) OVER (
+        WHEN SUM(p.d.Budget) < LAG(SUM(p.d.Budget), 1, 0) OVER (
             PARTITION BY d.DepartmentName 
             ORDER BY YEAR(p.StartDate), MONTH(p.StartDate)
         ) * 0.9
         THEN '📉 CONCERNING DECLINE (-10%+)'
-        WHEN LAG(SUM(p.Budget), 1, 0) OVER (
+        WHEN LAG(SUM(p.d.Budget), 1, 0) OVER (
             PARTITION BY d.DepartmentName 
             ORDER BY YEAR(p.StartDate), MONTH(p.StartDate)
         ) IS NOT NULL
@@ -519,12 +519,12 @@ SELECT d.DepartmentName,
     -- STRATEGIC INSIGHTS
     CASE 
         WHEN COUNT(p.ProjectID) >= 10 AND 
-             SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)) >= 500000 AND
+             SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)) >= 500000 AND
              COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
              NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) >= 80
         THEN '🌟 EXCEPTIONAL MONTH - All metrics exceed targets'
-        WHEN SUM(p.Budget) >= 2000000 AND 
-             (SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(p.Budget), 0) >= 20
+        WHEN SUM(p.d.Budget) >= 2000000 AND 
+             (SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(p.d.Budget), 0) >= 20
         THEN '💎 EXCELLENT MONTH - High revenue and profitability'
         WHEN COUNT(p.ProjectID) >= 5 AND 
              COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
@@ -536,7 +536,7 @@ SELECT d.DepartmentName,
     END AS MonthlyPerformanceAssessment
 
 FROM Departments d
-    INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+    INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
     INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
 WHERE d.IsActive = 1 
     AND p.IsActive = 1
@@ -611,8 +611,8 @@ SELECT
     
     -- CLIENT RELATIONSHIP METRICS
     AVG(DATEDIFF(MONTH, 
-        (SELECT MIN(p2.StartDate) FROM Projects p2 WHERE p2.CompanyID = c.CompanyID AND p2.IsActive = 1),
-        (SELECT MAX(ISNULL(p2.ActualEndDate, GETDATE())) FROM Projects p2 WHERE p2.CompanyID = c.CompanyID AND p2.IsActive = 1)
+        (SELECT MIN(p2.StartDate) FROM Projects p p2 WHERE p2.CompanyID = c.CompanyID AND p2.IsActive = 1),
+        (SELECT MAX(ISNULL(p2.ActualEndDate, GETDATE())) FROM Projects p p2 WHERE p2.CompanyID = c.CompanyID AND p2.IsActive = 1)
     )) AS AvgClientRelationshipMonths,
     
     -- COMPETITIVE POSITIONING

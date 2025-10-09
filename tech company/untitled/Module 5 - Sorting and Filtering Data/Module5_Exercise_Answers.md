@@ -18,17 +18,17 @@ ORDER BY CompanyName ASC;
 2. **Show all products sorted by unit price in descending order**:
 
 ```sql
-SELECT ProductName, BaseSalary, CategoryID
+SELECT ProductName, e.BaseSalary, CategoryID
 FROM Products
-ORDER BY BaseSalary DESC;
+ORDER BY e.BaseSalary DESC;
 ```
 
 3. **Display all employees sorted first by last name, then by first name**:
 
 ```sql
-SELECT EmployeeID, FirstName, LastName, Title
-FROM Employees
-ORDER BY LastName, FirstName;
+SELECT e.EmployeeID, e.FirstName, e.LastName, Title
+FROM Employees e
+ORDER BY e.LastName, e.FirstName;
 ```
 
 4. **Show orders sorted by order date (newest first), then by customer ID**:
@@ -58,7 +58,7 @@ ORDER BY OrderDate DESC, CustomerID;
 1. **Sort products by category name, show only product name and unit price**:
 
 ```sql
-SELECT p.ProductName, p.BaseSalary
+SELECT p.ProductName, p.e.BaseSalary
 FROM Products p
 INNER JOIN Categories c ON p.CategoryID = c.CategoryID
 ORDER BY c.CategoryName;
@@ -67,21 +67,21 @@ ORDER BY c.CategoryName;
 2. **Sort employees by hire date with NULL values last**:
 
 ```sql
-SELECT EmployeeID, FirstName, LastName, HireDate
-FROM Employees
+SELECT e.EmployeeID, e.FirstName, e.LastName, e.HireDate
+FROM Employees e
 ORDER BY 
-    CASE WHEN HireDate IS NULL THEN 1 ELSE 0 END,
-    HireDate;
+    CASE WHEN e.HireDate IS NULL THEN 1 ELSE 0 END,
+    e.HireDate;
 ```
 
 3. **Sort products: discontinued first, then active by price (highest first)**:
 
 ```sql
-SELECT ProductName, BaseSalary, Discontinued
+SELECT ProductName, e.BaseSalary, Discontinued
 FROM Products
 ORDER BY 
     CASE WHEN Discontinued = 1 THEN 0 ELSE 1 END,
-    CASE WHEN Discontinued = 0 THEN BaseSalary END DESC;
+    CASE WHEN Discontinued = 0 THEN e.BaseSalary END DESC;
 ```
 
 4. **Sort customers by country with 'USA' first, then alphabetically**:
@@ -188,10 +188,10 @@ WHERE OrderDate >= '1997-01-01' AND OrderDate < '1998-01-01';
 1. **Find all products with unit price greater than $20**:
 
 ```sql
-SELECT ProductID, ProductName, BaseSalary
+SELECT ProductID, ProductName, e.BaseSalary
 FROM Products
-WHERE BaseSalary > 20
-ORDER BY BaseSalary DESC;
+WHERE e.BaseSalary > 20
+ORDER BY e.BaseSalary DESC;
 ```
 
 2. **Find all customers from Germany or France**:
@@ -215,10 +215,10 @@ ORDER BY OrderDate;
 4. **Find all employees whose first name starts with 'A'**:
 
 ```sql
-SELECT EmployeeID, FirstName, LastName
-FROM Employees
-WHERE FirstName LIKE 'A%'
-ORDER BY FirstName;
+SELECT e.EmployeeID, e.FirstName, e.LastName
+FROM Employees e
+WHERE e.FirstName LIKE 'A%'
+ORDER BY e.FirstName;
 ```
 
 5. **Find products with 'chocolate' anywhere in their name (case-insensitive)**:
@@ -257,10 +257,10 @@ ORDER BY ProductName;
 1. **Products that are discontinued OR have unit price less than $10**:
 
 ```sql
-SELECT ProductID, ProductName, BaseSalary, Discontinued
+SELECT ProductID, ProductName, e.BaseSalary, Discontinued
 FROM Products
-WHERE Discontinued = 1 OR BaseSalary < 10
-ORDER BY Discontinued DESC, BaseSalary;
+WHERE Discontinued = 1 OR e.BaseSalary < 10
+ORDER BY Discontinued DESC, e.BaseSalary;
 ```
 
 2. **Customers with 'Restaurant' in company name AND from USA**:
@@ -291,12 +291,12 @@ ORDER BY OrderDate;
 4. **Products with prices between $10 and $50, excluding Beverages**:
 
 ```sql
-SELECT p.ProductID, p.ProductName, p.BaseSalary, c.CategoryName
+SELECT p.ProductID, p.ProductName, p.e.BaseSalary, c.CategoryName
 FROM Products p
 INNER JOIN Categories c ON p.CategoryID = c.CategoryID
-WHERE p.BaseSalary BETWEEN 10 AND 50 
+WHERE p.e.BaseSalary BETWEEN 10 AND 50 
   AND c.CategoryName != 'Beverages'
-ORDER BY p.BaseSalary;
+ORDER BY p.e.BaseSalary;
 ```
 
 5. **Customers NOT from Germany, France, or UK**:
@@ -358,7 +358,7 @@ ORDER BY c.CompanyName;
 3. **Products that have never been ordered using NOT EXISTS**:
 
 ```sql
-SELECT p.ProductID, p.ProductName, p.BaseSalary
+SELECT p.ProductID, p.ProductName, p.e.BaseSalary
 FROM Products p
 WHERE NOT EXISTS (
     SELECT 1 
@@ -372,14 +372,14 @@ ORDER BY p.ProductName;
 
 ```sql
 -- Using ROW_NUMBER() window function
-SELECT CategoryID, ProductName, BaseSalary
+SELECT CategoryID, ProductName, e.BaseSalary
 FROM (
-    SELECT p.CategoryID, p.ProductName, p.BaseSalary,
-           ROW_NUMBER() OVER (PARTITION BY p.CategoryID ORDER BY p.BaseSalary DESC) as rn
+    SELECT p.CategoryID, p.ProductName, p.e.BaseSalary,
+           ROW_NUMBER() OVER (PARTITION BY p.CategoryID ORDER BY p.e.BaseSalary DESC) as rn
     FROM Products p
 ) ranked
 WHERE rn <= 3
-ORDER BY CategoryID, BaseSalary DESC;
+ORDER BY CategoryID, e.BaseSalary DESC;
 ```
 
 **Questions Answers**:
@@ -411,16 +411,16 @@ ORDER BY CategoryID, BaseSalary DESC;
 1. **Find the 5 most expensive products**:
 
 ```sql
-SELECT TOP 5 ProductID, ProductName, BaseSalary
+SELECT TOP 5 ProductID, ProductName, e.BaseSalary
 FROM Products
-ORDER BY BaseSalary DESC;
+ORDER BY e.BaseSalary DESC;
 ```
 
 2. **Find the top 10% of customers by total order value**:
 
 ```sql
 SELECT TOP 10 PERCENT c.CustomerID, c.CompanyName, 
-       SUM(od.BaseSalary * od.Quantity * (1 - od.Discount)) as TotalOrderValue
+       SUM(od.e.BaseSalary * od.Quantity * (1 - od.Discount)) as TotalOrderValue
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
 INNER JOIN [Order Details] od ON o.OrderID = od.OrderID
@@ -431,9 +431,9 @@ ORDER BY TotalOrderValue DESC;
 3. **Find highest-priced products using TOP WITH TIES**:
 
 ```sql
-SELECT TOP 1 WITH TIES ProductID, ProductName, BaseSalary
+SELECT TOP 1 WITH TIES ProductID, ProductName, e.BaseSalary
 FROM Products
-ORDER BY BaseSalary DESC;
+ORDER BY e.BaseSalary DESC;
 ```
 
 4. **Find the 3 most recent orders for each customer**:
@@ -476,7 +476,7 @@ ORDER BY CustomerID, OrderDate DESC;
 1. **Implement pagination showing products 11-20 when ordered by product name**:
 
 ```sql
-SELECT ProductID, ProductName, BaseSalary
+SELECT ProductID, ProductName, e.BaseSalary
 FROM Products
 ORDER BY ProductName
 OFFSET 10 ROWS
@@ -502,9 +502,9 @@ FETCH NEXT @PageSize ROWS ONLY;
 DECLARE @PageNumber INT = 2;
 DECLARE @PageSize INT = 10;
 
-SELECT ProductID, ProductName, BaseSalary
+SELECT ProductID, ProductName, e.BaseSalary
 FROM Products
-WHERE BaseSalary > 10
+WHERE e.BaseSalary > 10
 ORDER BY ProductName
 OFFSET (@PageNumber - 1) * @PageSize ROWS
 FETCH NEXT @PageSize ROWS ONLY;
@@ -577,7 +577,7 @@ FETCH NEXT 1000 ROWS ONLY;
 
 ```sql
 SELECT o.OrderID, c.CompanyName, o.OrderDate, 
-       SUM(od.BaseSalary * od.Quantity) as OrderTotal
+       SUM(od.e.BaseSalary * od.Quantity) as OrderTotal
 FROM Orders o
 INNER JOIN Customers c ON o.CustomerID = c.CustomerID
 INNER JOIN [Order Details] od ON o.OrderID = od.OrderID
@@ -636,10 +636,10 @@ ORDER BY CompanyName;
 2. **Find employees where both City and Region are NOT NULL**:
 
 ```sql
-SELECT EmployeeID, FirstName, LastName, City, Region
-FROM Employees
+SELECT e.EmployeeID, e.FirstName, e.LastName, City, Region
+FROM Employees e
 WHERE City IS NOT NULL AND Region IS NOT NULL
-ORDER BY LastName, FirstName;
+ORDER BY e.LastName, e.FirstName;
 ```
 
 3. **Count customers with NULL values in the Fax field**:

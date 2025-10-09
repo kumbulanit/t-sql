@@ -15,15 +15,15 @@ Self-contained subqueries are independent queries nested within another SQL stat
 
 **Key Tables for Subquery Examples:**
 ```sql
-Employees: EmployeeID, FirstName, LastName, JobTitle, BaseSalary, DepartmentID, ManagerID, HireDate, IsActive
-Departments: DepartmentID, DepartmentName, Budget, IsActive
-Projects: ProjectID, ProjectName, Budget, ProjectManagerID, StartDate, EndDate, Status
+Employees: e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.BaseSalary, d.DepartmentID, ManagerID, e.HireDate, IsActive
+Departments: d.DepartmentID, d.DepartmentName, d.Budget, IsActive
+Projects: ProjectID, ProjectName, d.Budget, ProjectManagerID, StartDate, EndDate, Status
 Customers: CustomerID, CompanyName, IndustryID, IsActive
-Orders: OrderID, CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
+Orders: OrderID, CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
 ```
 
 **🎯 Beginner's Key:** 
-- **JobTitle** (not Title) - Employee's position in company
+- **e.JobTitle** (not Title) - Employee's position in company
 - **Status** (not IsActive) - Project status like 'Active', 'Completed', 'On Hold'
 - **IsActive** - Binary indicator (1/0) for employee/customer active status
 
@@ -45,15 +45,15 @@ A self-contained subquery is a nested query that:
 │  Step 1: Execute Inner Query (Subquery)                                    │
 │  ┌─────────────────────────────────────┐                                   │
 │  │ SELECT AVG(e.BaseSalary)              │  →  Returns: 75000                │
-│  │ FROM Employees                      │                                   │
+│  │ FROM Employees e                      │                                   │
 │  │ WHERE IsActive = 1                  │                                   │
 │  └─────────────────────────────────────┘                                   │
 │                                                                             │
 │  Step 2: Use Result in Outer Query                                         │
 │  ┌─────────────────────────────────────┐                                   │
-│  │ SELECT FirstName, LastName, BaseSalary │                               │
-│  │ FROM Employees                      │                                   │
-│  │ WHERE BaseSalary > 75000           │  ← Subquery result substituted    │
+│  │ SELECT e.FirstName, e.LastName, e.BaseSalary │                               │
+│  │ FROM Employees e                      │                                   │
+│  │ WHERE e.BaseSalary > 75000           │  ← Subquery result substituted    │
 │  │   AND IsActive = 1                 │                                   │
 │  └─────────────────────────────────────┘                                   │
 │                                                                             │
@@ -71,32 +71,32 @@ Return a single value (one row, one column)
 ```sql
 -- Find employees earning above company average
 SELECT 
-    EmployeeID,
-    FirstName,
-    LastName,
-    BaseSalary,
-    BaseSalary - (SELECT AVG(e.BaseSalary) FROM Employees WHERE IsActive = 1) AS SalaryDifferenceFromAvg
-FROM Employees
-WHERE BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees WHERE IsActive = 1)
+    e.EmployeeID,
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
+    e.BaseSalary - (SELECT AVG(e.BaseSalary) FROM Employees e WHERE IsActive = 1) AS SalaryDifferenceFromAvg
+FROM Employees e
+WHERE e.BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees e WHERE IsActive = 1)
   AND IsActive = 1
-ORDER BY BaseSalary DESC;
+ORDER BY e.BaseSalary DESC;
 ```
 
-#### TechCorp Example: d.DepartmentName Budget Analysis
+#### TechCorp Example: d.DepartmentName d.Budget Analysis
 ```sql
 -- Find departments with budgets above company average
 SELECT d.DepartmentName,
-    Budget,
-    FORMAT(Budget, 'C') AS FormattedBudget
-FROM Departments
-WHERE Budget > (
-    SELECT AVG(Budget) 
-    FROM Departments 
-    WHERE Budget IS NOT NULL 
+    d.Budget,
+    FORMAT(d.Budget, 'C') AS FormattedBudget
+FROM Departments d
+WHERE d.Budget > (
+    SELECT AVG(d.Budget) 
+    FROM Departments d 
+    WHERE d.Budget IS NOT NULL 
       AND IsActive = 1
 )
   AND IsActive = 1
-ORDER BY Budget DESC;
+ORDER BY d.Budget DESC;
 ```
 
 ### 2. Multi-Value Subqueries
@@ -112,11 +112,11 @@ SELECT
     d.DepartmentName,
     d.Budget
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE e.DepartmentID IN (
-    SELECT DepartmentID
-    FROM Departments
-    WHERE Budget > 500000
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+WHERE e.d.DepartmentID IN (
+    SELECT d.DepartmentID
+    FROM Departments d
+    WHERE d.Budget > 500000
       AND IsActive = 1
 )
   AND e.IsActive = 1
@@ -128,19 +128,19 @@ ORDER BY d.Budget DESC, e.LastName;
 -- Find projects managed by employees hired before 2020
 SELECT 
     p.ProjectName,
-    p.Budget,
+    p.d.Budget,
     e.FirstName + ' ' + e.LastName AS ProjectManager,
     e.HireDate
 FROM Projects p
 INNER JOIN Employees e ON p.ProjectManagerID = e.EmployeeID
 WHERE p.ProjectManagerID IN (
-    SELECT EmployeeID
-    FROM Employees
-    WHERE HireDate < '2020-01-01'
+    SELECT e.EmployeeID
+    FROM Employees e
+    WHERE e.HireDate < '2020-01-01'
       AND IsActive = 1
 )
   AND p.IsActive = 1
-ORDER BY p.Budget DESC;
+ORDER BY p.d.Budget DESC;
 ```
 
 ### 3. Table-Valued Subqueries
@@ -159,7 +159,7 @@ FROM (
         AVG(e.BaseSalary) AS AverageBaseSalary,
         SUM(e.BaseSalary) AS TotalSalaryBudget
     FROM Departments d
-    INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
+    INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
     WHERE d.IsActive = 1 AND e.IsActive = 1
     GROUP BY d.DepartmentID, d.DepartmentName
 ) ds
@@ -167,9 +167,9 @@ WHERE ds.EmployeeCount > (
     SELECT AVG(emp_count)
     FROM (
         SELECT COUNT(*) AS emp_count
-        FROM Employees
+        FROM Employees e
         WHERE IsActive = 1
-        GROUP BY DepartmentID
+        GROUP BY d.DepartmentID
     ) avg_calc
 )
 ORDER BY ds.AverageSalary DESC;
@@ -189,10 +189,10 @@ SELECT
     e.BaseSalary,
     d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.BaseSalary >= (
-    SELECT PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY BaseSalary)
-    FROM Employees
+    SELECT PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY e.BaseSalary)
+    FROM Employees e
     WHERE IsActive = 1
 )
   AND e.IsActive = 1
@@ -213,7 +213,7 @@ SELECT
     FORMAT(o.TotalAmount, 'C') AS FormattedAmount
 FROM Orders o
 INNER JOIN Customers c ON o.CustomerID = c.CustomerID
-INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
+INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
 WHERE o.TotalAmount > (
     SELECT AVG(TotalAmount)
     FROM Orders
@@ -229,26 +229,26 @@ ORDER BY o.TotalAmount DESC;
 ```sql
 -- Find managers who manage more people than average
 SELECT 
-    mgr.FirstName + ' ' + mgr.LastName AS ManagerName,
-    mgr.JobTitle,
+    mgr.e.FirstName + ' ' + mgr.e.LastName AS ManagerName,
+    mgr.e.JobTitle,
     d.DepartmentName,
     team_size.DirectReports
-FROM Employees mgr
-INNER JOIN Departments d ON mgr.DepartmentID = d.DepartmentID
+FROM Employees e mgr
+INNER JOIN Departments d ON mgr.d.DepartmentID = d.DepartmentID
 INNER JOIN (
     SELECT 
         ManagerID,
         COUNT(*) AS DirectReports
-    FROM Employees
+    FROM Employees e
     WHERE ManagerID IS NOT NULL
       AND IsActive = 1
     GROUP BY ManagerID
-) team_size ON mgr.EmployeeID = team_size.ManagerID
+) team_size ON mgr.e.EmployeeID = team_size.ManagerID
 WHERE team_size.DirectReports > (
     SELECT AVG(team_count)
     FROM (
         SELECT COUNT(*) AS team_count
-        FROM Employees
+        FROM Employees e
         WHERE ManagerID IS NOT NULL
           AND IsActive = 1
         GROUP BY ManagerID
@@ -271,24 +271,24 @@ SELECT
     e.BaseSalary,
     d.DepartmentName,
     CASE 
-        WHEN e.BaseSalary >= (SELECT MAX(e.BaseSalary) * 0.9 FROM Employees WHERE IsActive = 1) 
+        WHEN e.BaseSalary >= (SELECT MAX(e.BaseSalary) * 0.9 FROM Employees e WHERE IsActive = 1) 
             THEN 'Top Tier'
-        WHEN e.BaseSalary >= (SELECT AVG(e.BaseSalary) FROM Employees WHERE IsActive = 1)
+        WHEN e.BaseSalary >= (SELECT AVG(e.BaseSalary) FROM Employees e WHERE IsActive = 1)
             THEN 'Above Average'
-        WHEN e.BaseSalary >= (SELECT MIN(e.BaseSalary) FROM Employees WHERE IsActive = 1)
+        WHEN e.BaseSalary >= (SELECT MIN(e.BaseSalary) FROM Employees e WHERE IsActive = 1)
             THEN 'Below Average'
         ELSE 'Entry Level'
     END AS SalaryTier,
     CASE 
         WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= (
-            SELECT AVG(DATEDIFF(YEAR, HireDate, GETDATE()))
-            FROM Employees 
+            SELECT AVG(DATEDIFF(YEAR, e.HireDate, GETDATE()))
+            FROM Employees e 
             WHERE IsActive = 1
         ) THEN 'Veteran'
         ELSE 'Newer Employee'
     END AS TenureCategory
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 ORDER BY e.BaseSalary DESC, e.HireDate;
 ```
@@ -306,26 +306,26 @@ SELECT d.DepartmentName,
 FROM Departments d
 INNER JOIN (
     SELECT 
-        DepartmentID,
+        d.DepartmentID,
         COUNT(*) AS EmployeeCount,
-        AVG(DATEDIFF(YEAR, HireDate, GETDATE())) AS AvgTenure,
+        AVG(DATEDIFF(YEAR, e.HireDate, GETDATE())) AS AvgTenure,
         AVG(e.BaseSalary) AS AvgSalary
-    FROM Employees
+    FROM Employees e
     WHERE IsActive = 1
-    GROUP BY DepartmentID
-) dept_stats ON d.DepartmentID = dept_stats.DepartmentID
+    GROUP BY d.DepartmentID
+) dept_stats ON d.DepartmentID = dept_stats.d.DepartmentID
 WHERE d.Budget > (
-    SELECT AVG(Budget)
-    FROM Departments
-    WHERE Budget IS NOT NULL AND IsActive = 1
+    SELECT AVG(d.Budget)
+    FROM Departments d
+    WHERE d.Budget IS NOT NULL AND IsActive = 1
 )
   AND dept_stats.AvgTenure > (
     SELECT AVG(avg_tenure)
     FROM (
-        SELECT AVG(DATEDIFF(YEAR, HireDate, GETDATE())) AS avg_tenure
-        FROM Employees
+        SELECT AVG(DATEDIFF(YEAR, e.HireDate, GETDATE())) AS avg_tenure
+        FROM Employees e
         WHERE IsActive = 1
-        GROUP BY DepartmentID
+        GROUP BY d.DepartmentID
     ) tenure_calc
 )
   AND d.IsActive = 1
@@ -337,21 +337,21 @@ ORDER BY dept_stats.AvgSalary DESC;
 ### 1. Subquery Optimization Tips
 ```sql
 -- ✅ GOOD: Subquery with proper filtering
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
-WHERE BaseSalary > (
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+WHERE e.BaseSalary > (
     SELECT AVG(e.BaseSalary)
-    FROM Employees
+    FROM Employees e
     WHERE IsActive = 1  -- Filter in subquery
 )
   AND IsActive = 1;
 
 -- ❌ AVOID: Subquery without proper indexing support
-SELECT FirstName, LastName, BaseSalary
-FROM Employees
-WHERE BaseSalary > (
-    SELECT AVG(BaseSalary * 1.1)  -- Function prevents index usage
-    FROM Employees
+SELECT e.FirstName, e.LastName, e.BaseSalary
+FROM Employees e
+WHERE e.BaseSalary > (
+    SELECT AVG(e.BaseSalary * 1.1)  -- Function prevents index usage
+    FROM Employees e
     WHERE IsActive = 1
 );
 ```
@@ -361,21 +361,21 @@ WHERE BaseSalary > (
 -- Subquery approach
 SELECT e.FirstName, e.LastName, e.BaseSalary
 FROM Employees e
-WHERE e.BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees WHERE IsActive = 1)
+WHERE e.BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees e WHERE IsActive = 1)
   AND e.IsActive = 1;
 
 -- Window function alternative (often more efficient)
-SELECT FirstName, LastName, BaseSalary
+SELECT e.FirstName, e.LastName, e.BaseSalary
 FROM (
     SELECT 
-        FirstName, 
-        LastName, 
-        BaseSalary,
+        e.FirstName, 
+        e.LastName, 
+        e.BaseSalary,
         AVG(e.BaseSalary) OVER() AS AvgSalary
-    FROM Employees
+    FROM Employees e
     WHERE IsActive = 1
 ) ranked
-WHERE BaseSalary > AvgSalary;
+WHERE e.BaseSalary > AvgSalary;
 ```
 
 ## Best Practices
@@ -396,13 +396,13 @@ WHERE BaseSalary > AvgSalary;
 ```sql
 -- Always validate subquery results make business sense
 -- Test the subquery alone first:
-SELECT AVG(e.BaseSalary) FROM Employees WHERE IsActive = 1;
--- Result: Should be a reasonable BaseSalary figure
+SELECT AVG(e.BaseSalary) FROM Employees e WHERE IsActive = 1;
+-- Result: Should be a reasonable e.BaseSalary figure
 
 -- Then use in main query:
 SELECT COUNT(*) AS AboveAverageEmployees
-FROM Employees
-WHERE BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees WHERE IsActive = 1)
+FROM Employees e
+WHERE e.BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees e WHERE IsActive = 1)
   AND IsActive = 1;
 -- Result: Should be roughly half of total employees
 ```
@@ -412,17 +412,21 @@ WHERE BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees WHERE IsActive = 1)
 ### 1. NULL Value Handling
 ```sql
 -- ❌ PROBLEM: Subquery might return NULL
-SELECT FirstName, LastName
-FROM Employees
-WHERE BaseSalary > (SELECT MAX(e.BaseSalary) FROM Employees WHERE DepartmentID = 999);
+SELECT e.FirstName, e.LastName
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+WHERE e.BaseSalary > (SELECT MAX(e.BaseSalary) FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE DepartmentID = 999);
 -- Returns no rows if d.DepartmentName 999 doesn't exist
 
 -- ✅ SOLUTION: Handle NULLs explicitly
-SELECT FirstName, LastName
-FROM Employees
-WHERE BaseSalary > ISNULL((
+SELECT e.FirstName, e.LastName
+FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+WHERE e.BaseSalary > ISNULL((
     SELECT MAX(e.BaseSalary) 
-    FROM Employees 
+    FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID 
     WHERE DepartmentID = 999
 ), 0);
 ```
@@ -430,11 +434,11 @@ WHERE BaseSalary > ISNULL((
 ### 2. Data Type Mismatches
 ```sql
 -- ✅ GOOD: Ensure compatible data types
-SELECT FirstName, LastName
-FROM Employees
-WHERE CAST(BaseSalary AS DECIMAL(10,2)) > (
-    SELECT AVG(CAST(BaseSalary AS DECIMAL(10,2)))
-    FROM Employees
+SELECT e.FirstName, e.LastName
+FROM Employees e
+WHERE CAST(e.BaseSalary AS DECIMAL(10,2)) > (
+    SELECT AVG(CAST(e.BaseSalary AS DECIMAL(10,2)))
+    FROM Employees e
     WHERE IsActive = 1
 );
 ```

@@ -139,13 +139,13 @@ SELECT
     e.FirstName,
     e.LastName,
     e.JobTitle,
-    ISNULL(d.DepartmentName, 'No Department') AS DepartmentName,
+    ISNULL(d.DepartmentName, 'No Department') AS d.DepartmentName,
     ISNULL(d.Location, 'Unknown') AS Location
 FROM Employees e
-LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID
+LEFT JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 ORDER BY e.LastName;
 
--- Result: All employees, even those with NULL DepartmentID
+-- Result: All employees, even those with NULL d.DepartmentID
 ```
 
 ### Basic RIGHT JOIN
@@ -157,7 +157,7 @@ SELECT d.DepartmentName,
     ISNULL(e.FirstName + ' ' + e.LastName, 'No Employees') AS EmployeeName,
     ISNULL(e.JobTitle, 'Vacant') AS Title
 FROM Employees e
-RIGHT JOIN Departments d ON e.DepartmentID = d.DepartmentID
+RIGHT JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1 OR e.IsActive IS NULL  -- Include active employees or no employees
 ORDER BY d.DepartmentName, e.LastName;
 
@@ -170,7 +170,7 @@ ORDER BY d.DepartmentName, e.LastName;
 SELECT 
     ISNULL(e.FirstName + ' ' + e.LastName, 'No Employee') AS EmployeeName,
     ISNULL(e.JobTitle, 'N/A') AS Title,
-    ISNULL(d.DepartmentName, 'No Department') AS DepartmentName,
+    ISNULL(d.DepartmentName, 'No Department') AS d.DepartmentName,
     ISNULL(d.Location, 'Unknown') AS Location,
     CASE 
         WHEN e.EmployeeID IS NULL THEN 'Department with no employees'
@@ -178,7 +178,7 @@ SELECT
         ELSE 'Properly assigned'
     END AS AssignmentIsActive
 FROM Employees e
-FULL OUTER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+FULL OUTER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 ORDER BY AssignmentIsActive, d.DepartmentName, e.LastName;
 
 -- Result: All employees AND all departments, showing relationship gaps
@@ -197,10 +197,10 @@ SELECT
     DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
     'Available for project assignment' AS IsActive
 FROM Employees e
-LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID
-LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+LEFT JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 WHERE e.IsActive = 1
-  AND ep.EmployeeID IS NULL  -- No project assignments
+  AND ep.e.EmployeeID IS NULL  -- No project assignments
 ORDER BY d.DepartmentName, e.HireDate;
 ```
 
@@ -224,7 +224,7 @@ SELECT d.DepartmentName,
         ELSE 'N/A'
     END AS BudgetPerEmployee
 FROM Departments d
-LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID 
+LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID 
     AND e.IsActive = 1
 GROUP BY d.DepartmentID, d.DepartmentName, d.Location, d.Budget
 ORDER BY COUNT(e.EmployeeID) DESC, d.DepartmentName;
@@ -237,14 +237,14 @@ SELECT
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     e.JobTitle,
     e.WorkEmail,
-    FORMAT(e.BaseSalary, 'C0') AS BaseSalary,
+    FORMAT(e.BaseSalary, 'C0') AS e.BaseSalary,
     
     -- d.DepartmentName info (might be NULL)
-    ISNULL(d.DepartmentName, 'Unassigned') AS DepartmentName,
+    ISNULL(d.DepartmentName, 'Unassigned') AS d.DepartmentName,
     ISNULL(d.Location, 'Remote/Unknown') AS Location,
     
     -- Manager info (might be NULL)
-    ISNULL(mgr.FirstName + ' ' + mgr.LastName, 'No Manager') AS ManagerName,
+    ISNULL(mgr.e.FirstName + ' ' + mgr.e.LastName, 'No Manager') AS ManagerName,
     
     -- Project count (might be 0)
     COUNT(ep.ProjectID) AS ActiveProjects,
@@ -260,15 +260,15 @@ SELECT
         ELSE 'Fully Integrated'
     END AS IntegrationIsActive
 FROM Employees e
-LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID
-LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
-LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+LEFT JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+LEFT JOIN Employees mgr ON e.ManagerID = mgr.e.EmployeeID
+LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'In Progress'
-LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
+LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.e.EmployeeID
 WHERE e.IsActive = 1
 GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.WorkEmail, e.BaseSalary,
          d.DepartmentID, d.DepartmentName, d.Location,
-         mgr.FirstName, mgr.LastName
+         mgr.e.FirstName, mgr.e.LastName
 ORDER BY IntegrationIsActive, d.DepartmentName, e.LastName;
 ```
 
@@ -283,25 +283,25 @@ WITH ProjectResourceSummary AS (
         p.ProjectName,
         p.IsActive,
         p.Priority,
-        p.Budget,
+        p.d.Budget,
         p.StartDate,
         p.PlannedEndDate,
-        COUNT(ep.EmployeeID) AS AssignedEmployees,
+        COUNT(ep.e.EmployeeID) AS AssignedEmployees,
         SUM(ep.HoursAllocated) AS TotalHoursAllocated,
         SUM(ep.HoursWorked) AS TotalHoursWorked,
         AVG(ep.HourlyRate) AS AverageHourlyRate
     FROM Projects p
     LEFT JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
-    LEFT JOIN Employees e ON ep.EmployeeID = e.EmployeeID AND e.IsActive = 1
+    LEFT JOIN Employees e ON ep.e.EmployeeID = e.EmployeeID AND e.IsActive = 1
     WHERE p.IsActive IN ('Planning', 'In Progress', 'On Hold')
-    GROUP BY p.ProjectID, p.ProjectName, p.IsActive, p.Priority, p.Budget, 
+    GROUP BY p.ProjectID, p.ProjectName, p.IsActive, p.Priority, p.d.Budget, 
              p.StartDate, p.PlannedEndDate
 )
 SELECT 
     prs.ProjectName,
     prs.IsActive,
     prs.Priority,
-    FORMAT(prs.Budget, 'C0') AS Budget,
+    FORMAT(prs.d.Budget, 'C0') AS d.Budget,
     
     -- Resource allocation analysis
     prs.AssignedEmployees,
@@ -364,25 +364,25 @@ ORDER BY
 SELECT 
     'Employee Data Completeness' AS AnalysisType,
     COUNT(*) AS TotalRecords,
-    COUNT(e.DepartmentID) AS WithDepartment,
-    COUNT(*) - COUNT(e.DepartmentID) AS MissingDepartment,
+    COUNT(e.d.DepartmentID) AS WithDepartment,
+    COUNT(*) - COUNT(e.d.DepartmentID) AS MissingDepartment,
     COUNT(e.ManagerID) AS WithManager,
     COUNT(*) - COUNT(e.ManagerID) AS MissingManager,
-    COUNT(ep.EmployeeID) AS WithProjects,
-    COUNT(*) - COUNT(ep.EmployeeID) AS WithoutProjects,
-    COUNT(es.EmployeeID) AS WithSkills,
-    COUNT(*) - COUNT(es.EmployeeID) AS WithoutSkills,
+    COUNT(ep.e.EmployeeID) AS WithProjects,
+    COUNT(*) - COUNT(ep.e.EmployeeID) AS WithoutProjects,
+    COUNT(es.e.EmployeeID) AS WithSkills,
+    COUNT(*) - COUNT(es.e.EmployeeID) AS WithoutSkills,
     
     -- Completion percentages
-    CAST(COUNT(e.DepartmentID) * 100.0 / COUNT(*) AS DECIMAL(5,1)) AS DepartmentCompleteness,
+    CAST(COUNT(e.d.DepartmentID) * 100.0 / COUNT(*) AS DECIMAL(5,1)) AS DepartmentCompleteness,
     CAST(COUNT(e.ManagerID) * 100.0 / COUNT(*) AS DECIMAL(5,1)) AS ManagerCompleteness,
-    CAST(COUNT(ep.EmployeeID) * 100.0 / COUNT(*) AS DECIMAL(5,1)) AS ProjectAssignmentRate,
-    CAST(COUNT(es.EmployeeID) * 100.0 / COUNT(*) AS DECIMAL(5,1)) AS SkillsRegistrationRate
+    CAST(COUNT(ep.e.EmployeeID) * 100.0 / COUNT(*) AS DECIMAL(5,1)) AS ProjectAssignmentRate,
+    CAST(COUNT(es.e.EmployeeID) * 100.0 / COUNT(*) AS DECIMAL(5,1)) AS SkillsRegistrationRate
 FROM Employees e
-LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID
-LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
-LEFT JOIN (SELECT DISTINCT EmployeeID FROM EmployeeProjects) ep ON e.EmployeeID = ep.EmployeeID
-LEFT JOIN (SELECT DISTINCT EmployeeID FROM Employees ekills) es ON e.EmployeeID = es.EmployeeID
+LEFT JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+LEFT JOIN Employees mgr ON e.ManagerID = mgr.e.EmployeeID
+LEFT JOIN (SELECT DISTINCT e.EmployeeID FROM EmployeeProjects) ep ON e.EmployeeID = ep.e.EmployeeID
+LEFT JOIN (SELECT DISTINCT e.EmployeeID FROM Employees e ekills) es ON e.EmployeeID = es.e.EmployeeID
 WHERE e.IsActive = 1
 
 UNION ALL
@@ -391,24 +391,24 @@ UNION ALL
 SELECT 
     'Department Utilization' AS AnalysisType,
     COUNT(*) AS TotalDepartments,
-    COUNT(e.DepartmentID) AS WithEmployees,
-    COUNT(*) - COUNT(e.DepartmentID) AS EmptyDepartments,
-    COUNT(ep.DepartmentID) AS WithActiveProjects,
-    COUNT(*) - COUNT(ep.DepartmentID) AS WithoutActiveProjects,
+    COUNT(e.d.DepartmentID) AS WithEmployees,
+    COUNT(*) - COUNT(e.d.DepartmentID) AS EmptyDepartments,
+    COUNT(ep.d.DepartmentID) AS WithActiveProjects,
+    COUNT(*) - COUNT(ep.d.DepartmentID) AS WithoutActiveProjects,
     NULL, NULL, -- Placeholder for unused columns
     
-    CAST(COUNT(e.DepartmentID) * 100.0 / COUNT(*) AS DECIMAL(5,1)) AS EmployeeUtilization,
-    CAST(COUNT(ep.DepartmentID) * 100.0 / COUNT(*) AS DECIMAL(5,1)) AS ProjectUtilization,
+    CAST(COUNT(e.d.DepartmentID) * 100.0 / COUNT(*) AS DECIMAL(5,1)) AS EmployeeUtilization,
+    CAST(COUNT(ep.d.DepartmentID) * 100.0 / COUNT(*) AS DECIMAL(5,1)) AS ProjectUtilization,
     NULL, NULL -- Placeholder for unused columns
 FROM Departments d
-LEFT JOIN (SELECT DISTINCT DepartmentID FROM Employees WHERE IsActive = 1) e ON d.DepartmentID = e.DepartmentID
+LEFT JOIN (SELECT DISTINCT d.DepartmentID FROM Employees e WHERE IsActive = 1) e ON d.DepartmentID = e.d.DepartmentID
 LEFT JOIN (
-    SELECT DISTINCT emp.DepartmentID 
-    FROM Employees emp
-    INNER JOIN EmployeeProjects ep ON emp.EmployeeID = ep.EmployeeID
+    SELECT DISTINCT emp.d.DepartmentID 
+    FROM Employees e emp
+    INNER JOIN EmployeeProjects ep ON emp.EmployeeID = ep.e.EmployeeID
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
     WHERE emp.IsActive = 1 AND p.IsActive = 'In Progress'
-) ep ON d.DepartmentID = ep.DepartmentID;
+) ep ON d.DepartmentID = ep.d.DepartmentID;
 ```
 
 ### Advanced Reporting with Outer Joins
@@ -427,29 +427,29 @@ WITH DepartmentMetrics AS (
         SUM(ep.HoursAllocated) AS TotalHoursAllocated,
         SUM(ep.HoursWorked) AS TotalHoursWorked
     FROM Departments d
-    LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID AND e.IsActive = 1
-    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+    LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
+    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
     LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'In Progress'
     GROUP BY d.DepartmentID, d.DepartmentName, d.Budget, d.Location
 ),
 SkillsMetrics AS (
     SELECT 
-        e.DepartmentID,
+        e.d.DepartmentID,
         COUNT(DISTINCT es.SkillID) AS UniqueSkills,
         COUNT(CASE WHEN es.ProficiencyLevel = 'Expert' THEN 1 END) AS ExpertLevelSkills,
         AVG(es.YearsExperience) AS AvgSkillExperience
     FROM Employees e
-    LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
+    LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.e.EmployeeID
     WHERE e.IsActive = 1
-    GROUP BY e.DepartmentID
+    GROUP BY e.d.DepartmentID
 )
 SELECT dm.d.DepartmentName AS [Department],
     dm.Location AS [Location],
-    FORMAT(dm.Budget, 'C0') AS [Annual Budget],
+    FORMAT(dm.d.Budget, 'C0') AS [Annual d.Budget],
     
     -- Staffing metrics
     ISNULL(dm.EmployeeCount, 0) AS [Current Headcount],
-    FORMAT(ISNULL(dm.AvgSalary, 0), 'C0') AS [Average BaseSalary],
+    FORMAT(ISNULL(dm.AvgSalary, 0), 'C0') AS [Average e.BaseSalary],
     FORMAT(ISNULL(dm.TotalSalaries, 0), 'C0') AS [Total Payroll],
     
     -- Project engagement
@@ -468,18 +468,18 @@ SELECT dm.d.DepartmentName AS [Department],
         ELSE 0 
     END AS [Project Efficiency %],
     
-    -- Budget utilization
+    -- d.Budget utilization
     CASE 
-        WHEN dm.Budget > 0 AND dm.TotalSalaries > 0
-        THEN CAST(dm.TotalSalaries * 100.0 / dm.Budget AS DECIMAL(5,1))
+        WHEN dm.d.Budget > 0 AND dm.TotalSalaries > 0
+        THEN CAST(dm.TotalSalaries * 100.0 / dm.d.Budget AS DECIMAL(5,1))
         ELSE 0 
-    END AS [Budget Utilization %],
+    END AS [d.Budget Utilization %],
     
     -- d.DepartmentName health assessment
     CASE 
         WHEN dm.EmployeeCount = 0 THEN 'Inactive Department'
         WHEN dm.ActiveProjects = 0 THEN 'No Active Projects'
-        WHEN dm.TotalSalaries > dm.Budget THEN 'Over Budget'
+        WHEN dm.TotalSalaries > dm.d.Budget THEN 'Over d.Budget'
         WHEN dm.EmployeeCount > 0 AND sm.UniqueSkills < 3 THEN 'Limited Skill Diversity'
         WHEN dm.TotalHoursWorked > dm.TotalHoursAllocated * 1.2 THEN 'Overallocated Resources'
         ELSE 'Healthy Operation'
@@ -489,20 +489,20 @@ SELECT dm.d.DepartmentName AS [Department],
     CASE 
         WHEN dm.EmployeeCount = 0 THEN 'Consider d.DepartmentName consolidation or hiring'
         WHEN dm.ActiveProjects = 0 AND dm.EmployeeCount > 0 THEN 'Identify project opportunities'
-        WHEN dm.Budget > dm.TotalSalaries * 1.5 THEN 'Expansion opportunity - under-utilized budget'
+        WHEN dm.d.Budget > dm.TotalSalaries * 1.5 THEN 'Expansion opportunity - under-utilized budget'
         WHEN sm.UniqueSkills < dm.EmployeeCount THEN 'Invest in skills development'
         WHEN dm.TotalHoursWorked < dm.TotalHoursAllocated * 0.7 THEN 'Review project commitments'
         ELSE 'Maintain current strategy'
     END AS [Strategic Recommendation]
 FROM DepartmentMetrics dm
-LEFT JOIN SkillsMetrics sm ON dm.DepartmentID = sm.DepartmentID
+LEFT JOIN SkillsMetrics sm ON dm.d.DepartmentID = sm.d.DepartmentID
 ORDER BY 
     CASE 
         WHEN dm.EmployeeCount = 0 THEN 1
         WHEN dm.ActiveProjects = 0 THEN 2
         ELSE 3
     END,
-    dm.Budget DESC;
+    dm.d.Budget DESC;
 ```
 
 ## Outer Join Best Practices
@@ -513,11 +513,11 @@ ORDER BY
 SELECT 
     e.FirstName,
     e.LastName,
-    ISNULL(d.DepartmentName, 'Unassigned') AS DepartmentName,
+    ISNULL(d.DepartmentName, 'Unassigned') AS d.DepartmentName,
     ISNULL(d.Location, 'Remote') AS Location,
     COALESCE(e.Phone, e.AlternatePhone, 'No Phone') AS ContactNumber
 FROM Employees e
-LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID;
+LEFT JOIN Departments d ON e.d.DepartmentID = d.DepartmentID;
 ```
 
 ### 2. Use Meaningful Default Values
@@ -531,7 +531,7 @@ SELECT d.DepartmentName,
         ELSE CAST(COUNT(e.EmployeeID) AS VARCHAR) + ' Employees'
     END AS StaffingIsActive
 FROM Departments d
-LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID AND e.IsActive = 1
+LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
 GROUP BY d.DepartmentID, d.DepartmentName;
 ```
 
@@ -540,7 +540,7 @@ GROUP BY d.DepartmentID, d.DepartmentName;
 -- Use WHERE clauses carefully with outer joins
 SELECT e.FirstName, d.DepartmentName
 FROM Employees e
-LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID
+LEFT JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1  -- This is fine - filters left table
   AND (d.IsActive = 1 OR d.IsActive IS NULL);  -- Include NULLs from outer join
 ```
@@ -552,13 +552,13 @@ SELECT e.FirstName, e.LastName
 FROM Employees e
 WHERE EXISTS (
     SELECT 1 FROM EmployeeProjects ep 
-    WHERE ep.EmployeeID = e.EmployeeID
+    WHERE ep.e.EmployeeID = e.EmployeeID
 );
 
 -- Instead of:
 -- SELECT DISTINCT e.FirstName, e.LastName
 -- FROM Employees e
--- INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID;
+-- INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID;
 ```
 
 ## Common Outer Join Patterns
@@ -568,14 +568,14 @@ WHERE EXISTS (
 -- Find employees without projects
 SELECT e.FirstName, e.LastName, 'No Projects' AS IsActive
 FROM Employees e
-LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-WHERE ep.EmployeeID IS NULL;
+LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+WHERE ep.e.EmployeeID IS NULL;
 
 -- Find departments without employees
 SELECT d.DepartmentName, 'No Employees' AS IsActive
 FROM Departments d
-LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID
-WHERE e.DepartmentID IS NULL;
+LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+WHERE e.d.DepartmentID IS NULL;
 ```
 
 ### 2. Optional Detail Records
@@ -598,13 +598,13 @@ LEFT JOIN Shipping s ON o.OrderID = s.OrderID;
 SELECT 
     e.FirstName + ' ' + e.LastName AS Employee,
     e.JobTitle,
-    ISNULL(m.FirstName + ' ' + m.LastName, 'No Manager') AS Manager,
+    ISNULL(m.e.FirstName + ' ' + m.e.LastName, 'No Manager') AS Manager,
     CASE 
         WHEN e.ManagerID IS NULL THEN 'Executive Level'
-        ELSE 'Reports to ' + m.FirstName + ' ' + m.LastName
+        ELSE 'Reports to ' + m.e.FirstName + ' ' + m.e.LastName
     END AS ReportingStructure
 FROM Employees e
-LEFT JOIN Employees m ON e.ManagerID = m.EmployeeID;
+LEFT JOIN Employees m ON e.ManagerID = m.e.EmployeeID;
 ```
 
 ## Common Mistakes with Outer Joins
@@ -614,14 +614,14 @@ LEFT JOIN Employees m ON e.ManagerID = m.EmployeeID;
 -- PROBLEM: Using INNER JOIN when you want all records
 SELECT e.FirstName, p.ProjectName
 FROM Employees e
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID;
 -- This excludes employees without projects
 
 -- SOLUTION: Use LEFT JOIN for optional relationships
 SELECT e.FirstName, ISNULL(p.ProjectName, 'No Project') AS ProjectName
 FROM Employees e
-LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID;
 ```
 
@@ -630,13 +630,13 @@ LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID;
 -- PROBLEM: WHERE clause eliminates outer join benefits
 SELECT e.FirstName, d.DepartmentName
 FROM Employees e
-LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID
+LEFT JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE d.DepartmentName = 'IT';  -- This excludes employees without departments
 
 -- SOLUTION: Handle NULLs in WHERE clause
 SELECT e.FirstName, d.DepartmentName
 FROM Employees e
-LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID
+LEFT JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE d.DepartmentName = 'IT' OR d.DepartmentName IS NULL;
 ```
 
@@ -645,7 +645,7 @@ WHERE d.DepartmentName = 'IT' OR d.DepartmentName IS NULL;
 -- PROBLEM: Counting NULLs incorrectly
 SELECT d.DepartmentName, COUNT(e.EmployeeID) AS EmployeeCount
 FROM Departments d
-LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID
+LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
 GROUP BY d.DepartmentName;
 -- COUNT(e.EmployeeID) correctly handles NULLs
 

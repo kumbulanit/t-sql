@@ -27,23 +27,23 @@ FROM table_name alias_name     -- AS keyword is optional
 ```sql
 -- Using AS keyword (recommended)
 SELECT 
-    FirstName AS First,
-    LastName AS Last,
-    BaseSalary AS AnnualSalary
+    e.FirstName AS First,
+    e.LastName AS Last,
+    e.BaseSalary AS AnnualSalary
 FROM Employees e;
 
 -- Without AS keyword (also valid)
 SELECT 
-    FirstName First,
-    LastName Last,
-    BaseSalary AnnualSalary
+    e.FirstName First,
+    e.LastName Last,
+    e.BaseSalary AnnualSalary
 FROM Employees e;
 
 -- Aliases with spaces (requires brackets or quotes)
 SELECT 
-    FirstName AS [First Name],
-    LastName AS [Last Name],
-    BaseSalary AS [Annual BaseSalary]
+    e.FirstName AS [First Name],
+    e.LastName AS [Last Name],
+    e.BaseSalary AS [Annual e.BaseSalary]
 FROM Employees e;
 ```
 
@@ -51,19 +51,19 @@ FROM Employees e;
 ```sql
 -- Mathematical calculations with descriptive aliases
 SELECT 
-    FirstName,
-    LastName,
-    BaseSalary,
-    BaseSalary / 12 AS MonthlySalary,
-    BaseSalary * 0.15 AS EstimatedTax,
-    BaseSalary * 0.85 AS NetSalary
+    e.FirstName,
+    e.LastName,
+    e.BaseSalary,
+    e.BaseSalary / 12 AS MonthlySalary,
+    e.BaseSalary * 0.15 AS EstimatedTax,
+    e.BaseSalary * 0.85 AS NetSalary
 FROM Employees e;
 
 -- String operations with aliases
 SELECT 
-    FirstName + ' ' + LastName AS FullName,
-    UPPER(FirstName) AS UpperFirstName,
-    LEN(FirstName) AS FirstNameLength,
+    e.FirstName + ' ' + e.LastName AS FullName,
+    UPPER(e.FirstName) AS UpperFirstName,
+    LEN(e.FirstName) AS FirstNameLength,
     LEFT(WorkEmail, CHARINDEX('@', WorkEmail) - 1) AS Username
 FROM Employees e;
 ```
@@ -82,7 +82,7 @@ SELECT
     e.EmployeeID,
     e.FirstName,
     e.LastName,
-    e.DepartmentID
+    e.d.DepartmentID
 FROM Employees e
 WHERE e.BaseSalary > 60000;
 ```
@@ -98,17 +98,17 @@ SELECT
     d.DepartmentName,
     e.BaseSalary
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID;
 
 -- Multiple table aliases
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
-    d.DepartmentName AS DepartmentName,
-    m.FirstName + ' ' + m.LastName AS ManagerName,
-    e.BaseSalary AS [Employee BaseSalary]
+    d.DepartmentName AS d.DepartmentName,
+    m.e.FirstName + ' ' + m.e.LastName AS ManagerName,
+    e.BaseSalary AS [Employee e.BaseSalary]
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-LEFT JOIN Employees m ON e.ManagerID = m.EmployeeID;
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+LEFT JOIN Employees m ON e.ManagerID = m.e.EmployeeID;
 ```
 
 ### 2. Aliases in Self-Joins
@@ -116,21 +116,21 @@ LEFT JOIN Employees m ON e.ManagerID = m.EmployeeID;
 -- Self-join requires different aliases for the same table
 SELECT 
     emp.FirstName + ' ' + emp.LastName AS EmployeeName,
-    mgr.FirstName + ' ' + mgr.LastName AS ManagerName,
+    mgr.e.FirstName + ' ' + mgr.e.LastName AS ManagerName,
     emp.Title AS EmployeeTitle,
     mgr.Title AS ManagerTitle
-FROM Employees emp
-LEFT JOIN Employees mgr ON emp.ManagerID = mgr.EmployeeID
-ORDER BY mgr.LastName, emp.LastName;
+FROM Employees e emp
+LEFT JOIN Employees mgr ON emp.ManagerID = mgr.e.EmployeeID
+ORDER BY mgr.e.LastName, emp.LastName;
 
--- Find employees with the same BaseSalary
+-- Find employees with the same e.BaseSalary
 SELECT 
-    e1.FirstName + ' ' + e1.LastName AS Employee1,
-    e2.FirstName + ' ' + e2.LastName AS Employee2,
-    e1.BaseSalary AS SharedSalary
-FROM Employees e1
-INNER JOIN Employees e2 ON e1.BaseSalary = e2.BaseSalary
-    AND e1.EmployeeID < e2.EmployeeID;
+    e1.e.FirstName + ' ' + e1.e.LastName AS Employee1,
+    e2.e.FirstName + ' ' + e2.e.LastName AS Employee2,
+    e1.e.BaseSalary AS SharedSalary
+FROM Employees e e1
+INNER JOIN Employees e2 ON e1.e.BaseSalary = e2.e.BaseSalary
+    AND e1.e.EmployeeID < e2.e.EmployeeID;
 ```
 
 ### 3. Complex Column Aliases
@@ -138,7 +138,7 @@ INNER JOIN Employees e2 ON e1.BaseSalary = e2.BaseSalary
 -- Business logic with descriptive aliases
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
-    e.BaseSalary AS BaseSalary,
+    e.BaseSalary AS e.BaseSalary,
     CASE 
         WHEN e.BaseSalary > 80000 THEN e.BaseSalary * 0.15
         WHEN e.BaseSalary > 60000 THEN e.BaseSalary * 0.10
@@ -165,7 +165,7 @@ FROM (
         COUNT(e.EmployeeID) AS EmployeeCount,
         AVG(e.BaseSalary) AS AverageBaseSalary
     FROM Departments d
-    LEFT JOIN Employees e ON d.DepartmentID = e.DepartmentID
+    LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
     GROUP BY d.DepartmentName
 ) dept_stats
 WHERE dept_stats.EmployeeCount > 2;
@@ -180,7 +180,7 @@ SELECT
     emp.FirstName + ' ' + emp.LastName AS EmployeeName,
     dept.DepartmentName AS DepartmentName,
     proj.ProjectName AS CurrentProject,
-    emp.BaseSalary AS BaseSalary,
+    emp.BaseSalary AS e.BaseSalary,
     ep.HoursWorked AS ProjectHours,
     CASE 
         WHEN ep.HoursWorked > ep.HoursAllocated THEN 'Over Allocated'
@@ -188,12 +188,12 @@ SELECT
         ELSE 'Under Allocated'
     END AS ProjectIsActive,
     ROUND(ep.HoursWorked / ep.HoursAllocated * 100, 2) AS CompletionPercentage,
-    mgr.FirstName + ' ' + mgr.LastName AS DirectManager
-FROM Employees emp
+    mgr.e.FirstName + ' ' + mgr.e.LastName AS DirectManager
+FROM Employees e emp
 INNER JOIN Departments dept ON emp.DepartmentID = dept.DepartmentID
-LEFT JOIN EmployeeProjects ep ON emp.EmployeeID = ep.EmployeeID
+LEFT JOIN EmployeeProjects ep ON emp.EmployeeID = ep.e.EmployeeID
 LEFT JOIN Projects proj ON ep.ProjectID = proj.ProjectID
-LEFT JOIN Employees mgr ON emp.ManagerID = mgr.EmployeeID
+LEFT JOIN Employees mgr ON emp.ManagerID = mgr.e.EmployeeID
 WHERE emp.IsActive = 1;
 ```
 
@@ -210,7 +210,7 @@ SELECT
     LEAD(emp.BaseSalary) OVER (ORDER BY emp.HireDate) AS NextHireSalary,
     AVG(emp.BaseSalary) OVER (PARTITION BY emp.DepartmentID) AS DepartmentAverageSalary,
     emp.BaseSalary - AVG(emp.BaseSalary) OVER (PARTITION BY emp.DepartmentID) AS SalaryVarianceFromDeptAvg
-FROM Employees emp
+FROM Employees e emp
 INNER JOIN Departments dept ON emp.DepartmentID = dept.DepartmentID
 WHERE emp.IsActive = 1;
 ```
@@ -222,7 +222,7 @@ WITH EmployeePerformanceMetrics AS (
     SELECT 
         e.EmployeeID,
         e.FirstName + ' ' + e.LastName AS FullName,
-        e.BaseSalary AS BaseSalary,
+        e.BaseSalary AS e.BaseSalary,
         e.HireDate AS StartDate,
         d.DepartmentName AS DepartmentName,
         DATEDIFF(MONTH, e.HireDate, GETDATE()) AS TenureInMonths,
@@ -231,7 +231,7 @@ WITH EmployeePerformanceMetrics AS (
         ISNULL(AVG(ep.HoursWorked), 0) AS AverageProjectHours
     FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
     WHERE e.IsActive = 1
     GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.BaseSalary, 
              e.HireDate, d.DepartmentName
@@ -247,21 +247,21 @@ DepartmentBenchmarks AS (
 SELECT 
     epm.FullName AS EmployeeName,
     epm.DepartmentName AS DepartmentName,
-    epm.BaseSalary AS CurrentSalary,
-    FORMAT(epm.BaseSalary, 'C') AS FormattedSalary,
+    epm.e.BaseSalary AS CurrentSalary,
+    FORMAT(epm.e.BaseSalary, 'C') AS FormattedSalary,
     epm.TenureInMonths AS MonthsEmployed,
     epm.ActiveProjects AS ProjectCount,
     epm.TotalHoursWorked AS HoursWorked,
     db.DepartmentAverageSalary AS DeptAvgSalary,
-    epm.BaseSalary - db.DepartmentAverageSalary AS SalaryDifferenceFromAvg,
+    epm.e.BaseSalary - db.DepartmentAverageSalary AS SalaryDifferenceFromAvg,
     CASE 
-        WHEN epm.BaseSalary > db.DepartmentAverageSalary * 1.2 THEN 'Above Market'
-        WHEN epm.BaseSalary < db.DepartmentAverageSalary * 0.8 THEN 'Below Market'
+        WHEN epm.e.BaseSalary > db.DepartmentAverageSalary * 1.2 THEN 'Above Market'
+        WHEN epm.e.BaseSalary < db.DepartmentAverageSalary * 0.8 THEN 'Below Market'
         ELSE 'Market Rate'
     END AS SalaryPosition
 FROM EmployeePerformanceMetrics epm
 INNER JOIN DepartmentBenchmarks db ON epm.DepartmentName = db.d.DepartmentName
-ORDER BY epm.DepartmentName, epm.BaseSalary DESC;
+ORDER BY epm.DepartmentName, epm.e.BaseSalary DESC;
 ```
 
 ### 4. Dynamic Aliases with Pivot Operations
@@ -272,8 +272,8 @@ WITH MonthlySales AS (
         emp.FirstName + ' ' + emp.LastName AS SalesPersonName,
         DATENAME(MONTH, ord.OrderDate) AS SalesMonth,
         SUM(ord.OrderTotal) AS MonthlyTotal
-    FROM Employees emp
-    INNER JOIN Orders ord ON emp.EmployeeID = ord.EmployeeID
+    FROM Employees e emp
+    INNER JOIN Orders ord ON emp.EmployeeID = ord.e.EmployeeID
     WHERE YEAR(ord.OrderDate) = 2023
     GROUP BY emp.FirstName, emp.LastName, DATENAME(MONTH, ord.OrderDate)
 )
@@ -320,15 +320,15 @@ FROM Employees e;
 ```sql
 -- Good: Consistent naming pattern
 SELECT 
-    emp.EmployeeID AS EmployeeID,
+    emp.EmployeeID AS e.EmployeeID,
     emp.FirstName AS EmployeeFirstName,
     emp.LastName AS EmployeeLastName,
     dept.DepartmentName AS DepartmentName,
-    mgr.FirstName AS ManagerFirstName,
-    mgr.LastName AS ManagerLastName
-FROM Employees emp
+    mgr.e.FirstName AS ManagerFirstName,
+    mgr.e.LastName AS ManagerLastName
+FROM Employees e emp
 INNER JOIN Departments dept ON emp.DepartmentID = dept.DepartmentID
-LEFT JOIN Employees mgr ON emp.ManagerID = mgr.EmployeeID;
+LEFT JOIN Employees mgr ON emp.ManagerID = mgr.e.EmployeeID;
 ```
 
 ### 3. Use Table Aliases in Multi-Table Queries
@@ -341,13 +341,13 @@ SELECT
     p.ProjectName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID;
 
 -- Avoid: Ambiguous column references without aliases
 -- SELECT 
---     FirstName,        -- Which table's FirstName?
---     LastName,         -- Which table's LastName?
+--     e.FirstName,        -- Which table's e.FirstName?
+--     e.LastName,         -- Which table's e.LastName?
 --     DepartmentName,
 --     ProjectName
 -- FROM Employees e
@@ -361,13 +361,13 @@ SELECT
     emp.FirstName,
     dept.DepartmentName,
     proj.ProjectName
-FROM Employees emp
+FROM Employees e emp
 INNER JOIN Departments dept ON emp.DepartmentID = dept.DepartmentID
-LEFT JOIN EmployeeProjects ep ON emp.EmployeeID = ep.EmployeeID
+LEFT JOIN EmployeeProjects ep ON emp.EmployeeID = ep.e.EmployeeID
 LEFT JOIN Projects proj ON ep.ProjectID = proj.ProjectID;
 
 -- Avoid: Too long or unintuitive aliases
--- FROM Employees employee_table
+-- FROM Employees e employee_table
 -- INNER JOIN Departments department_table ON employee_table.DepartmentID = department_table.DepartmentID;
 ```
 
@@ -377,16 +377,16 @@ LEFT JOIN Projects proj ON ep.ProjectID = proj.ProjectID;
 ```sql
 -- Problematic: Using reserved words
 SELECT 
-    FirstName AS [Order],    -- 'Order' is reserved
-    LastName AS [Group],     -- 'Group' is reserved
-    BaseSalary AS [Select]       -- 'Select' is reserved
+    e.FirstName AS [Order],    -- 'Order' is reserved
+    e.LastName AS [Group],     -- 'Group' is reserved
+    e.BaseSalary AS [Select]       -- 'Select' is reserved
 FROM Employees e;
 
 -- Better: Use descriptive, non-reserved words
 SELECT 
-    FirstName AS EmployeeFirstName,
-    LastName AS EmployeeLastName,
-    BaseSalary AS EmployeeSalary
+    e.FirstName AS EmployeeFirstName,
+    e.LastName AS EmployeeLastName,
+    e.BaseSalary AS EmployeeSalary
 FROM Employees e;
 ```
 
@@ -394,23 +394,23 @@ FROM Employees e;
 ```sql
 -- Wrong: Trying to use column alias in WHERE clause
 SELECT 
-    FirstName + ' ' + LastName AS FullName,
-    BaseSalary
-FROM Employees
+    e.FirstName + ' ' + e.LastName AS FullName,
+    e.BaseSalary
+FROM Employees e
 WHERE FullName LIKE 'John%';  -- Error: FullName not available in WHERE
 
 -- Correct: Use original columns in WHERE
 SELECT 
-    FirstName + ' ' + LastName AS FullName,
-    BaseSalary
-FROM Employees
-WHERE FirstName + ' ' + LastName LIKE 'John%';
+    e.FirstName + ' ' + e.LastName AS FullName,
+    e.BaseSalary
+FROM Employees e
+WHERE e.FirstName + ' ' + e.LastName LIKE 'John%';
 
 -- Or use subquery/CTE
 WITH NamedEmployees AS (
     SELECT 
-        FirstName + ' ' + LastName AS FullName,
-        BaseSalary
+        e.FirstName + ' ' + e.LastName AS FullName,
+        e.BaseSalary
     FROM Employees e
 )
 SELECT *
@@ -423,7 +423,7 @@ WHERE FullName LIKE 'John%';
 -- Inconsistent: Sometimes using alias, sometimes not
 SELECT 
     e.FirstName,
-    LastName,           -- Should be e.LastName
+    e.LastName,           -- Should be e.LastName
     e.BaseSalary,
     d.DepartmentName      -- Should be d.DepartmentName
 FROM Employees e
@@ -462,12 +462,12 @@ FROM Employees e;
 ```sql
 -- Readable queries are easier to maintain and optimize
 SELECT 
-    emp.EmployeeID AS EmployeeID,
+    emp.EmployeeID AS e.EmployeeID,
     emp.FirstName + ' ' + emp.LastName AS EmployeeName,
     dept.DepartmentName AS DepartmentName,
     emp.BaseSalary AS CurrentSalary,
     AVG(emp.BaseSalary) OVER (PARTITION BY emp.DepartmentID) AS DepartmentAverage
-FROM Employees emp
+FROM Employees e emp
 INNER JOIN Departments dept ON emp.DepartmentID = dept.DepartmentID
 WHERE emp.IsActive = 1;
 ```
@@ -482,15 +482,15 @@ SELECT
     e.FirstName + ' ' + e.LastName AS [Employee Name],
     d.DepartmentName AS [Department],
     e.JobTitle AS [Job Title],
-    FORMAT(e.BaseSalary, 'C') AS [Annual BaseSalary],
+    FORMAT(e.BaseSalary, 'C') AS [Annual e.BaseSalary],
     DATEDIFF(YEAR, e.HireDate, GETDATE()) AS [Years of Service],
     CASE 
         WHEN e.ManagerID IS NULL THEN 'N/A'
-        ELSE m.FirstName + ' ' + m.LastName
+        ELSE m.e.FirstName + ' ' + m.e.LastName
     END AS [Direct Manager]
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-LEFT JOIN Employees m ON e.ManagerID = m.EmployeeID
+LEFT JOIN Employees m ON e.ManagerID = m.e.EmployeeID
 WHERE e.IsActive = 1
 ORDER BY d.DepartmentName, e.LastName;
 ```
@@ -500,8 +500,8 @@ ORDER BY d.DepartmentName, e.LastName;
 -- Prepare data for export with clean column names
 SELECT 
     e.EmployeeID AS employee_id,
-    e.FirstName AS FirstName,
-    e.LastName AS LastName,
+    e.FirstName AS e.FirstName,
+    e.LastName AS e.LastName,
     e.WorkEmail AS email_address,
     d.DepartmentName AS DepartmentName,
     e.JobTitle AS job_title,

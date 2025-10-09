@@ -193,10 +193,10 @@ ORDER BY t.CreateDate DESC;
    
    CREATE TABLE Employee (
        EmpID INT IDENTITY(1,1) PRIMARY KEY,
-       FirstName NVARCHAR(50) NOT NULL,
-       LastName NVARCHAR(50) NOT NULL,
+       e.FirstName NVARCHAR(50) NOT NULL,
+       e.LastName NVARCHAR(50) NOT NULL,
        DeptID INT NOT NULL,
-       BaseSalary DECIMAL(10,2),
+       e.BaseSalary DECIMAL(10,2),
        FOREIGN KEY (DeptID) REFERENCES Department(DeptID)
    );
    ```
@@ -325,7 +325,7 @@ INSERT INTO d.DepartmentName (DeptName, Budget) VALUES
 ('Research', 150000),
 ('Quality Assurance', 100000);
 
-INSERT INTO Employee (FirstName, LastName, DeptID, BaseSalary) VALUES 
+INSERT INTO Employee (e.FirstName, e.LastName, DeptID, e.BaseSalary) VALUES 
 ('John', 'Smith', 1, 65000),
 ('Jane', 'Doe', 2, 55000);
 
@@ -351,11 +351,11 @@ GO
 SELECT GETDATE() as BeforeDisasterTime;
 
 -- Create more data
-INSERT INTO Employee (FirstName, LastName, DeptID, BaseSalary) VALUES 
+INSERT INTO Employee (e.FirstName, e.LastName, DeptID, e.BaseSalary) VALUES 
 ('Mike', 'Johnson', 1, 70000);
 
 -- Simulate accidental data deletion (disaster)
-DELETE FROM Employee WHERE FirstName = 'Mike';
+DELETE FROM Employee WHERE e.FirstName = 'Mike';
 
 -- Record disaster time
 SELECT GETDATE() as DisasterTime;

@@ -27,7 +27,7 @@ SELECT
     LOWER(ContactName) AS ContactNameLower,
     -- Substring operations
     LEFT(CompanyName, 10) AS CompanyAbbrev,
-    RIGHT(ContactName, CHARINDEX(' ', REVERSE(ContactName)) - 1) AS LastName
+    RIGHT(ContactName, CHARINDEX(' ', REVERSE(ContactName)) - 1) AS e.LastName
 FROM Customers
 WHERE CompanyName IS NOT NULL AND ContactName IS NOT NULL
 ORDER BY CompanyNameLength DESC;
@@ -134,24 +134,24 @@ ORDER BY ProductType, ProductName;
 -- Answer 1: Price calculations with different precision
 SELECT 
     ProductName,
-    BaseSalary,
+    e.BaseSalary,
     -- Different precision calculations
-    BaseSalary * 1.15 AS PriceWith15PercentIncrease,
-    ROUND(BaseSalary * 1.15, 2) AS RoundedPrice,
-    CEILING(BaseSalary * 1.15) AS CeilingPrice,
-    FLOOR(BaseSalary * 1.15) AS FloorPrice,
+    e.BaseSalary * 1.15 AS PriceWith15PercentIncrease,
+    ROUND(e.BaseSalary * 1.15, 2) AS RoundedPrice,
+    CEILING(e.BaseSalary * 1.15) AS CeilingPrice,
+    FLOOR(e.BaseSalary * 1.15) AS FloorPrice,
     -- Discount calculations
-    BaseSalary * 0.90 AS DiscountedPrice,
-    BaseSalary - (BaseSalary * 0.10) AS AlternativeDiscount,
+    e.BaseSalary * 0.90 AS DiscountedPrice,
+    e.BaseSalary - (e.BaseSalary * 0.10) AS AlternativeDiscount,
     -- Precision demonstration
-    CAST(BaseSalary AS DECIMAL(10,4)) AS HighPrecisionPrice,
-    CAST(BaseSalary AS DECIMAL(6,1)) AS LowPrecisionPrice,
+    CAST(e.BaseSalary AS DECIMAL(10,4)) AS HighPrecisionPrice,
+    CAST(e.BaseSalary AS DECIMAL(6,1)) AS LowPrecisionPrice,
     -- Calculate tax (different rates)
-    BaseSalary * 1.08 AS PriceWithTax8Percent,
-    ROUND(BaseSalary * 1.08, 2) AS RoundedTaxPrice
+    e.BaseSalary * 1.08 AS PriceWithTax8Percent,
+    ROUND(e.BaseSalary * 1.08, 2) AS RoundedTaxPrice
 FROM Products
-WHERE BaseSalary IS NOT NULL
-ORDER BY BaseSalary DESC;
+WHERE e.BaseSalary IS NOT NULL
+ORDER BY e.BaseSalary DESC;
 ```
 
 #### Question 2: Inventory value analysis
@@ -161,26 +161,26 @@ ORDER BY BaseSalary DESC;
 -- Answer 2: Inventory value analysis
 SELECT 
     ProductName,
-    BaseSalary,
+    e.BaseSalary,
     UnitsInStock,
     -- Basic inventory calculations
-    COALESCE(BaseSalary * UnitsInStock, 0) AS InventoryValue,
+    COALESCE(e.BaseSalary * UnitsInStock, 0) AS InventoryValue,
     -- Handle NULL values properly
     CASE 
-        WHEN BaseSalary IS NULL OR UnitsInStock IS NULL THEN 0
-        ELSE BaseSalary * UnitsInStock
+        WHEN e.BaseSalary IS NULL OR UnitsInStock IS NULL THEN 0
+        ELSE e.BaseSalary * UnitsInStock
     END AS SafeInventoryValue,
     -- Different rounding strategies
-    ROUND(COALESCE(BaseSalary * UnitsInStock, 0), 0) AS RoundedValue,
-    CEILING(COALESCE(BaseSalary * UnitsInStock, 0)) AS CeilingValue,
+    ROUND(COALESCE(e.BaseSalary * UnitsInStock, 0), 0) AS RoundedValue,
+    CEILING(COALESCE(e.BaseSalary * UnitsInStock, 0)) AS CeilingValue,
     -- Percentage of total inventory
-    COALESCE(BaseSalary * UnitsInStock, 0) / 
-    NULLIF((SELECT SUM(BaseSalary * UnitsInStock) FROM Products WHERE BaseSalary IS NOT NULL AND UnitsInStock IS NOT NULL), 0) * 100 AS PercentOfTotal,
+    COALESCE(e.BaseSalary * UnitsInStock, 0) / 
+    NULLIF((SELECT SUM(e.BaseSalary * UnitsInStock) FROM Products WHERE e.BaseSalary IS NOT NULL AND UnitsInStock IS NOT NULL), 0) * 100 AS PercentOfTotal,
     -- Value categories
     CASE 
-        WHEN COALESCE(BaseSalary * UnitsInStock, 0) > 1000 THEN 'High Value'
-        WHEN COALESCE(BaseSalary * UnitsInStock, 0) > 500 THEN 'Medium Value'
-        WHEN COALESCE(BaseSalary * UnitsInStock, 0) > 0 THEN 'Low Value'
+        WHEN COALESCE(e.BaseSalary * UnitsInStock, 0) > 1000 THEN 'High Value'
+        WHEN COALESCE(e.BaseSalary * UnitsInStock, 0) > 500 THEN 'Medium Value'
+        WHEN COALESCE(e.BaseSalary * UnitsInStock, 0) > 0 THEN 'Low Value'
         ELSE 'No Value'
     END AS ValueCategory
 FROM Products
@@ -198,21 +198,21 @@ SELECT
     c.CategoryName,
     COUNT(p.ProductID) AS ProductCount,
     -- Basic statistics
-    MIN(p.BaseSalary) AS MinPrice,
-    MAX(p.BaseSalary) AS MaxPrice,
-    AVG(p.BaseSalary) AS AvgPrice,
+    MIN(p.e.BaseSalary) AS MinPrice,
+    MAX(p.e.BaseSalary) AS MaxPrice,
+    AVG(p.e.BaseSalary) AS AvgPrice,
     -- Advanced calculations
-    STDEV(p.BaseSalary) AS StandardDeviation,
-    VAR(p.BaseSalary) AS Variance,
+    STDEV(p.e.BaseSalary) AS StandardDeviation,
+    VAR(p.e.BaseSalary) AS Variance,
     -- Percentile approximations
-    AVG(p.BaseSalary) - STDEV(p.BaseSalary) AS LowerBound,
-    AVG(p.BaseSalary) + STDEV(p.BaseSalary) AS UpperBound,
+    AVG(p.e.BaseSalary) - STDEV(p.e.BaseSalary) AS LowerBound,
+    AVG(p.e.BaseSalary) + STDEV(p.e.BaseSalary) AS UpperBound,
     -- Range analysis
-    MAX(p.BaseSalary) - MIN(p.BaseSalary) AS PriceRange,
-    (MAX(p.BaseSalary) - MIN(p.BaseSalary)) / NULLIF(AVG(p.BaseSalary), 0) * 100 AS RangeAsPercentOfAvg
+    MAX(p.e.BaseSalary) - MIN(p.e.BaseSalary) AS PriceRange,
+    (MAX(p.e.BaseSalary) - MIN(p.e.BaseSalary)) / NULLIF(AVG(p.e.BaseSalary), 0) * 100 AS RangeAsPercentOfAvg
 FROM Products p
 INNER JOIN Categories c ON p.CategoryID = c.CategoryID
-WHERE p.BaseSalary IS NOT NULL
+WHERE p.e.BaseSalary IS NOT NULL
 GROUP BY c.CategoryID, c.CategoryName
 HAVING COUNT(p.ProductID) > 3
 ORDER BY AvgPrice DESC;
@@ -225,24 +225,24 @@ ORDER BY AvgPrice DESC;
 -- Answer 2: Financial calculations
 SELECT 
     ProductName,
-    BaseSalary AS CurrentPrice,
+    e.BaseSalary AS CurrentPrice,
     -- Simple interest calculations (assuming 5% annual growth)
-    BaseSalary * POWER(1.05, 1) AS PriceAfter1Year,
-    BaseSalary * POWER(1.05, 2) AS PriceAfter2Years,
-    BaseSalary * POWER(1.05, 5) AS PriceAfter5Years,
+    e.BaseSalary * POWER(1.05, 1) AS PriceAfter1Year,
+    e.BaseSalary * POWER(1.05, 2) AS PriceAfter2Years,
+    e.BaseSalary * POWER(1.05, 5) AS PriceAfter5Years,
     -- Compound monthly (5% annual, compounded monthly)
-    BaseSalary * POWER(1 + 0.05/12, 12) AS MonthlyCompound1Year,
+    e.BaseSalary * POWER(1 + 0.05/12, 12) AS MonthlyCompound1Year,
     -- Logarithmic calculations
-    LOG(BaseSalary) AS NaturalLog,
-    LOG10(BaseSalary) AS Log10,
+    LOG(e.BaseSalary) AS NaturalLog,
+    LOG10(e.BaseSalary) AS Log10,
     -- Growth rate needed to double price in 5 years
     POWER(2, 1.0/5) - 1 AS RequiredGrowthRate,
     -- Present value calculations (discount rate 8%)
-    BaseSalary / POWER(1.08, 1) AS PresentValue1Year,
-    BaseSalary / POWER(1.08, 5) AS PresentValue5Years
+    e.BaseSalary / POWER(1.08, 1) AS PresentValue1Year,
+    e.BaseSalary / POWER(1.08, 5) AS PresentValue5Years
 FROM Products
-WHERE BaseSalary > 10  -- Only meaningful prices
-ORDER BY BaseSalary DESC;
+WHERE e.BaseSalary > 10  -- Only meaningful prices
+ORDER BY e.BaseSalary DESC;
 ```
 
 ## Exercise 3: Date and Time Data Types - Answers
@@ -297,26 +297,26 @@ ORDER BY OrderDate DESC;
 ```sql
 -- Answer 2: Employee tenure and age analysis
 SELECT 
-    EmployeeID,
-    FirstName + ' ' + LastName AS EmployeeName,
+    e.EmployeeID,
+    e.FirstName + ' ' + e.LastName AS EmployeeName,
     BirthDate,
-    HireDate,
+    e.HireDate,
     -- Age calculations
     DATEDIFF(YEAR, BirthDate, GETDATE()) AS CurrentAge,
-    DATEDIFF(YEAR, BirthDate, HireDate) AS AgeWhenHired,
+    DATEDIFF(YEAR, BirthDate, e.HireDate) AS AgeWhenHired,
     -- Tenure calculations
-    DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsOfService,
-    DATEDIFF(MONTH, HireDate, GETDATE()) AS MonthsOfService,
-    DATEDIFF(DAY, HireDate, GETDATE()) AS DaysOfService,
+    DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
+    DATEDIFF(MONTH, e.HireDate, GETDATE()) AS MonthsOfService,
+    DATEDIFF(DAY, e.HireDate, GETDATE()) AS DaysOfService,
     -- Milestone calculations
-    DATEADD(YEAR, 5, HireDate) AS FiveYearAnniversary,
-    DATEADD(YEAR, 10, HireDate) AS TenYearAnniversary,
+    DATEADD(YEAR, 5, e.HireDate) AS FiveYearAnniversary,
+    DATEADD(YEAR, 10, e.HireDate) AS TenYearAnniversary,
     DATEADD(YEAR, 65 - DATEDIFF(YEAR, BirthDate, GETDATE()), GETDATE()) AS RetirementDate,
     -- Service categories
     CASE 
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 10 THEN 'Veteran (10+ years)'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 5 THEN 'Experienced (5-9 years)'
-        WHEN DATEDIFF(YEAR, HireDate, GETDATE()) >= 2 THEN 'Established (2-4 years)'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 10 THEN 'Veteran (10+ years)'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 5 THEN 'Experienced (5-9 years)'
+        WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 2 THEN 'Established (2-4 years)'
         ELSE 'New (0-1 years)'
     END AS ServiceCategory,
     -- Generation analysis
@@ -326,8 +326,8 @@ SELECT
         WHEN YEAR(BirthDate) >= 1946 THEN 'Baby Boomer'
         ELSE 'Silent Generation'
     END AS Generation
-FROM Employees
-WHERE BirthDate IS NOT NULL AND HireDate IS NOT NULL
+FROM Employees e
+WHERE BirthDate IS NOT NULL AND e.HireDate IS NOT NULL
 ORDER BY YearsOfService DESC;
 ```
 

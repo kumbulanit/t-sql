@@ -62,10 +62,10 @@ WHERE Region <> NULL;    -- Always returns no rows
 SELECT 
     ProductID,
     ProductName,
-    BaseSalary,
+    e.BaseSalary,
     UnitsInStock,
-    BaseSalary * UnitsInStock AS TotalValue,  -- NULL if either is NULL
-    BaseSalary + 10 AS AdjustedPrice          -- NULL if BaseSalary is NULL
+    e.BaseSalary * UnitsInStock AS TotalValue,  -- NULL if either is NULL
+    e.BaseSalary + 10 AS AdjustedPrice          -- NULL if e.BaseSalary is NULL
 FROM Products;
 ```
 
@@ -102,9 +102,9 @@ FROM Customers;
 SELECT 
     ProductID,
     ProductName,
-    BaseSalary,
+    e.BaseSalary,
     ISNULL(UnitsInStock, 0) AS Stock,
-    BaseSalary * ISNULL(UnitsInStock, 0) AS TotalValue
+    e.BaseSalary * ISNULL(UnitsInStock, 0) AS TotalValue
 FROM Products;
 ```
 
@@ -119,9 +119,9 @@ FROM Customers;
 
 -- COALESCE with multiple columns
 SELECT 
-    EmployeeID,
-    FirstName,
-    LastName,
+    e.EmployeeID,
+    e.FirstName,
+    e.LastName,
     COALESCE(HomePhone, Extension, 'No Phone') AS ContactNumber
 FROM Employees e;
 ```
@@ -215,7 +215,7 @@ ORDER BY CompanyName;
 SELECT 
     CategoryID,
     ProductName,
-    BaseSalary,
+    e.BaseSalary,
     ISNULL(UnitsInStock, 0) AS CurrentStock,
     ISNULL(UnitsOnOrder, 0) AS OnOrder,
     ISNULL(UnitsInStock, 0) + ISNULL(UnitsOnOrder, 0) AS TotalAvailable,
@@ -262,12 +262,12 @@ LEFT JOIN (
 SELECT 
     ProductID,
     ProductName,
-    BaseSalary,
+    e.BaseSalary,
     UnitsInStock,
     CASE 
-        WHEN BaseSalary IS NULL OR UnitsInStock IS NULL 
+        WHEN e.BaseSalary IS NULL OR UnitsInStock IS NULL 
             THEN NULL
-        ELSE BaseSalary * UnitsInStock
+        ELSE e.BaseSalary * UnitsInStock
     END AS InventoryValue
 FROM Products;
 ```
@@ -312,15 +312,15 @@ FROM Customers;
 ### 1. String Concatenation Issues
 ```sql
 -- Problem: NULL makes entire result NULL
-SELECT FirstName + ' ' + LastName AS FullName
+SELECT e.FirstName + ' ' + e.LastName AS FullName
 FROM Employees e;
 
 -- Solution: Use CONCAT or handle NULLs
-SELECT CONCAT(FirstName, ' ', LastName) AS FullName
+SELECT CONCAT(e.FirstName, ' ', e.LastName) AS FullName
 FROM Employees e;
 
 -- Alternative solution
-SELECT ISNULL(FirstName, '') + ' ' + ISNULL(LastName, '') AS FullName
+SELECT ISNULL(e.FirstName, '') + ' ' + ISNULL(e.LastName, '') AS FullName
 FROM Employees e;
 ```
 

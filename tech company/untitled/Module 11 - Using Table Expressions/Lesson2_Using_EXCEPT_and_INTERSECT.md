@@ -17,11 +17,11 @@ EXCEPT and INTERSECT are set operators that perform mathematical set operations 
 
 **Key Tables for Set Operations:**
 ```sql
-Employees: EmployeeID (3001+), FirstName, LastName, BaseSalary, DepartmentID, ManagerID, JobTitle, HireDate, IsActive
-Departments: DepartmentID (2001+), DepartmentName, Budget, Location, IsActive
-Projects: ProjectID (4001+), ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
-Orders: OrderID (5001+), CustomerID, EmployeeID, OrderDate, TotalAmount, IsActive
-EmployeeProjects: EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
+Employees: e.EmployeeID (3001+), e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID, ManagerID, e.JobTitle, e.HireDate, IsActive
+Departments: d.DepartmentID (2001+), d.DepartmentName, d.Budget, Location, IsActive
+Projects: ProjectID (4001+), ProjectName, d.Budget, ProjectManagerID, StartDate, EndDate, IsActive
+Orders: OrderID (5001+), CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
+EmployeeProjects: e.EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
 Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, IsActive
 ```
 
@@ -82,7 +82,7 @@ SELECT
     d.DepartmentName,
     e.HireDate
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 
 EXCEPT
@@ -95,8 +95,8 @@ SELECT
     d.DepartmentName,
     e.HireDate
 FROM Employees e
-INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
+INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Orders o ON e.EmployeeID = o.e.EmployeeID
 WHERE e.IsActive = 1
   AND o.IsActive = 1;
 ```
@@ -107,7 +107,7 @@ WHERE e.IsActive = 1
 SELECT 
     p.ProjectID,
     p.ProjectName,
-    p.Budget,
+    p.d.Budget,
     e.FirstName + ' ' + e.LastName AS ProjectManager,
     p.StartDate
 FROM Projects p
@@ -119,7 +119,7 @@ EXCEPT
 SELECT 
     p.ProjectID,
     p.ProjectName,
-    p.Budget,
+    p.d.Budget,
     e.FirstName + ' ' + e.LastName AS ProjectManager,
     p.StartDate
 FROM Projects p
@@ -131,7 +131,7 @@ WHERE p.IsActive = 1
 
 ### 2. Change Detection and Auditing
 
-#### TechCorp Example: d.DepartmentName Budget Changes
+#### TechCorp Example: d.DepartmentName d.Budget Changes
 ```sql
 -- Compare current d.DepartmentName budgets with previous month
 -- (Assuming we have a DepartmentHistory table)
@@ -146,9 +146,9 @@ WHERE d.IsActive = 1
 EXCEPT  
 
 SELECT 
-    dh.DepartmentID,
-    dh.DepartmentName,
-    dh.Budget,
+    dh.d.DepartmentID,
+    dh.d.DepartmentName,
+    dh.d.Budget,
     dh.Location
 FROM DepartmentHistory dh
 WHERE dh.RecordDate = DATEADD(MONTH, -1, GETDATE())
@@ -189,7 +189,7 @@ WHERE YEAR(o.OrderDate) = YEAR(GETDATE())
 
 #### TechCorp Example: Compliance Check
 ```sql
--- Find employees who should be managers based on BaseSalary but aren't
+-- Find employees who should be managers based on e.BaseSalary but aren't
 SELECT 
     e.EmployeeID,
     e.FirstName,
@@ -198,7 +198,7 @@ SELECT
     d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE e.BaseSalary > 80000  -- High BaseSalary employees
+WHERE e.BaseSalary > 80000  -- High e.BaseSalary employees
   AND e.IsActive = 1
 
 EXCEPT
@@ -214,7 +214,7 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND EXISTS (
       SELECT 1 
-      FROM Employees subordinate 
+      FROM Employees e subordinate 
       WHERE subordinate.ManagerID = e.EmployeeID 
         AND subordinate.IsActive = 1
   );
@@ -249,7 +249,7 @@ SELECT
     d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
+INNER JOIN Orders o ON e.EmployeeID = o.e.EmployeeID
 WHERE e.IsActive = 1
   AND o.IsActive = 1;
 ```
@@ -264,7 +264,7 @@ SELECT DISTINCT
     c.Country
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
-INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
+INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
 WHERE e.DepartmentID = 2001  -- Sales d.DepartmentName
   AND c.IsActive = 1
   AND o.IsActive = 1
@@ -278,7 +278,7 @@ SELECT DISTINCT
     c.Country
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
-INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
+INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
 WHERE e.DepartmentID = 2002  -- Marketing d.DepartmentName
   AND c.IsActive = 1
   AND o.IsActive = 1;
@@ -295,7 +295,7 @@ SELECT
     e.LastName,
     e.JobTitle
 FROM Employees e
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE p.Budget > 100000  -- High-budget projects
   AND e.IsActive = 1
@@ -310,7 +310,7 @@ SELECT
     e.LastName,
     e.JobTitle
 FROM Employees e
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE p.Budget <= 50000  -- Low-budget projects
   AND e.IsActive = 1
@@ -357,7 +357,7 @@ HAVING COUNT(o.OrderID) > 5;
 #### TechCorp Example: Elite Employee Identification
 ```sql
 -- Find employees who meet multiple performance criteria
--- High BaseSalary AND project management experience
+-- High e.BaseSalary AND project management experience
 SELECT 
     e.EmployeeID,
     e.FirstName,
@@ -366,7 +366,7 @@ SELECT
     d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE e.BaseSalary > (SELECT AVG(e.BaseSalary) * 1.5 FROM Employees WHERE IsActive = 1)
+WHERE e.BaseSalary > (SELECT AVG(e.BaseSalary) * 1.5 FROM Employees e WHERE IsActive = 1)
   AND e.IsActive = 1
 
 INTERSECT
@@ -407,7 +407,7 @@ FROM (
         e.BaseSalary
     FROM Employees e
     WHERE EXISTS (
-        SELECT 1 FROM Employees sub 
+        SELECT 1 FROM Employees e sub 
         WHERE sub.ManagerID = e.EmployeeID 
           AND sub.IsActive = 1
     ) AND e.IsActive = 1
@@ -449,7 +449,7 @@ WHERE e.HireDate > DATEADD(YEAR, -1, GETDATE())
 -- ✅ GOOD: Proper indexing for EXCEPT/INTERSECT
 -- Recommended indexes:
 -- CREATE INDEX IX_Employees_DepartmentID_IsActive ON Employees(DepartmentID, IsActive);
--- CREATE INDEX IX_Orders_EmployeeID_IsActive ON Orders(EmployeeID, IsActive);
+-- CREATE INDEX IX_Orders_EmployeeID_IsActive ON Orders(e.EmployeeID, IsActive);
 
 SELECT e.EmployeeID, e.FirstName, e.LastName
 FROM Employees e
@@ -459,7 +459,7 @@ EXCEPT
 
 SELECT e.EmployeeID, e.FirstName, e.LastName
 FROM Employees e
-INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
+INNER JOIN Orders o ON e.EmployeeID = o.e.EmployeeID
 WHERE e.DepartmentID = 2001 AND e.IsActive = 1 AND o.IsActive = 1;
 ```
 
@@ -477,7 +477,7 @@ WHERE e.IsActive = 1
   AND NOT EXISTS (
       SELECT 1 
       FROM Orders o 
-      WHERE o.EmployeeID = e.EmployeeID 
+      WHERE o.e.EmployeeID = e.EmployeeID 
         AND o.IsActive = 1
   );
 
@@ -497,7 +497,7 @@ WHERE e.IsActive = 1
   AND EXISTS (
       SELECT 1 
       FROM Orders o 
-      WHERE o.EmployeeID = e.EmployeeID 
+      WHERE o.e.EmployeeID = e.EmployeeID 
         AND o.IsActive = 1
   );
 ```
@@ -521,10 +521,10 @@ WHERE e.IsActive = 1
 EXCEPT
 
 SELECT 
-    p.EmployeeID,
-    p.FirstName,
-    p.LastName,
-    p.JobTitle
+    p.e.EmployeeID,
+    p.e.FirstName,
+    p.e.LastName,
+    p.e.JobTitle
 FROM PayrollRecords p
 WHERE p.IsActive = 1;
 ```
@@ -577,7 +577,7 @@ SELECT
     e.BaseSalary
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE e.BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees WHERE IsActive = 1)
+WHERE e.BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees e WHERE IsActive = 1)
   AND e.IsActive = 1
 
 EXCEPT
@@ -589,7 +589,7 @@ SELECT
     e.JobTitle,
     e.BaseSalary
 FROM Employees e
-INNER JOIN PromotionHistory ph ON e.EmployeeID = ph.EmployeeID
+INNER JOIN PromotionHistory ph ON e.EmployeeID = ph.e.EmployeeID
 WHERE ph.PromotionDate >= DATEADD(YEAR, -2, GETDATE())
   AND e.IsActive = 1;
 ```
@@ -599,18 +599,18 @@ WHERE ph.PromotionDate >= DATEADD(YEAR, -2, GETDATE())
 #### Efficient Filtering
 ```sql
 -- ✅ GOOD: Filter early and use appropriate indexes
-SELECT EmployeeID, FirstName, LastName
-FROM Employees 
+SELECT e.EmployeeID, e.FirstName, e.LastName
+FROM Employees e 
 WHERE IsActive = 1 
   AND DepartmentID IN (2001, 2002)  -- Filter early
 
 EXCEPT
 
-SELECT EmployeeID, FirstName, LastName
-FROM Employees 
+SELECT e.EmployeeID, e.FirstName, e.LastName
+FROM Employees e 
 WHERE IsActive = 1 
   AND DepartmentID IN (2001, 2002)  -- Same filters
-  AND HireDate > DATEADD(MONTH, -6, GETDATE());
+  AND e.HireDate > DATEADD(MONTH, -6, GETDATE());
 ```
 
 ### 3. Data Type Consistency
@@ -619,10 +619,10 @@ WHERE IsActive = 1
 ```sql
 -- ✅ GOOD: Ensure consistent data types
 SELECT 
-    CAST(EmployeeID AS VARCHAR(20)) AS ID,
-    FirstName + ' ' + LastName AS Name,
-    CAST(BaseSalary AS DECIMAL(18,2)) AS Amount
-FROM Employees
+    CAST(e.EmployeeID AS VARCHAR(20)) AS ID,
+    e.FirstName + ' ' + e.LastName AS Name,
+    CAST(e.BaseSalary AS DECIMAL(18,2)) AS Amount
+FROM Employees e
 WHERE IsActive = 1
 
 INTERSECT
@@ -655,18 +655,18 @@ SELECT CASE WHEN NULL = NULL THEN 'Equal' ELSE 'Not Equal' END;  -- Returns: Not
 #### Problem and Solution
 ```sql
 -- ❌ PROBLEM: Order matters with EXCEPT
-SELECT FirstName FROM Employees
+SELECT e.FirstName FROM Employees e
 EXCEPT
 SELECT ContactName FROM Customers;
 
 -- This is NOT the same as:
 SELECT ContactName FROM Customers
 EXCEPT
-SELECT FirstName FROM Employees e;
+SELECT e.FirstName FROM Employees e;
 
 -- ✅ SOLUTION: Be explicit about what you want
 -- Employees who are not also customer contacts
-SELECT FirstName FROM Employees
+SELECT e.FirstName FROM Employees e
 EXCEPT
 SELECT ContactName FROM Customers;
 ```
@@ -681,9 +681,9 @@ EXCEPT
 SELECT * FROM LargeTable2;
 
 -- ✅ SOLUTION: Filter first, then apply set operations
-SELECT ID, Name, Status FROM LargeTable1 WHERE Status = 'Active'
+SELECT ID, Name, Status FROM LargeTable1 WHERE IsActive = 'Active'
 EXCEPT
-SELECT ID, Name, Status FROM LargeTable2 WHERE Status = 'Active';
+SELECT ID, Name, Status FROM LargeTable2 WHERE IsActive = 'Active';
 ```
 
 ## Summary

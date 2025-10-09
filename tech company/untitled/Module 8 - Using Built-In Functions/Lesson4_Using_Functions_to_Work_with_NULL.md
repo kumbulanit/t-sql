@@ -67,9 +67,9 @@ SELECT
     ISNULL(e.Address, 'Address Not Provided') AS Address,
     
     -- Handle missing employment data
-    ISNULL(CAST(e.BaseSalary AS VARCHAR), 'BaseSalary Confidential') AS SalaryDisplay,
+    ISNULL(CAST(e.BaseSalary AS VARCHAR), 'e.BaseSalary Confidential') AS SalaryDisplay,
     ISNULL(e.Commission, 0) AS CommissionRate,
-    ISNULL(CONVERT(VARCHAR, e.HireDate, 101), 'Hire Date Unknown') AS HireDate,
+    ISNULL(CONVERT(VARCHAR, e.HireDate, 101), 'Hire Date Unknown') AS e.HireDate,
     
     -- Handle missing department/manager information
     ISNULL(d.DepartmentName, 'Department TBD') AS DepartmentName,
@@ -77,9 +77,9 @@ SELECT
     
     -- Manager information with NULL handling
     ISNULL(
-        (SELECT m.FirstName + ' ' + m.LastName 
-         FROM Employees m 
-         WHERE m.EmployeeID = e.DirectManagerID), 
+        (SELECT m.e.FirstName + ' ' + m.e.LastName 
+         FROM Employees e m 
+         WHERE m.e.EmployeeID = e.DirectManagerID), 
         'No Manager Assigned'
     ) AS DirectManager,
     
@@ -187,7 +187,7 @@ SELECT
     -- Professional project manager display
     ISNULL(
         (SELECT emp.FirstName + ' ' + emp.LastName 
-         FROM Employees emp 
+         FROM Employees e emp 
          WHERE emp.EmployeeID = p.ProjectManagerID), 
         'Manager Not Assigned'
     ) AS ProjectManager
@@ -219,7 +219,7 @@ WITH MonthlyMetrics AS (
         
         -- NULL-safe calculations for KPIs
         COUNT(CASE WHEN p.ActualEndDate IS NOT NULL THEN 1 END) AS CompletedProjects,
-        COUNT(CASE WHEN p.ActualEndDate IS NULL AND p.Status = 'Active' THEN 1 END) AS ActiveProjects,
+        COUNT(CASE WHEN p.ActualEndDate IS NULL AND p.IsActive = 'Active' THEN 1 END) AS ActiveProjects,
         COUNT(CASE WHEN ISNULL(p.ActualCost, 0) > ISNULL(p.Budget, 0) THEN 1 END) AS OverBudgetProjects
         
     FROM Projects p
@@ -277,7 +277,7 @@ ORDER BY ProjectYear DESC, ProjectMonth DESC;
 SELECT ISNULL(d.DepartmentName, 'Unassigned Department') AS DepartmentName,
     COUNT(e.EmployeeID) AS TotalEmployees,
     
-    -- BaseSalary analysis with NULL protection
+    -- e.BaseSalary analysis with NULL protection
     COUNT(CASE WHEN e.BaseSalary IS NOT NULL THEN 1 END) AS EmployeesWithSalaryData,
     FORMAT(AVG(ISNULL(e.BaseSalary, 0)), 'C') AS AvgSalary,
     FORMAT(MIN(ISNULL(e.BaseSalary, 0)), 'C') AS MinSalary,
@@ -509,13 +509,13 @@ SELECT
     
     -- Manager chain - find the first available manager up the hierarchy
     COALESCE(
-        (SELECT m1.FirstName + ' ' + m1.LastName FROM Employees m1 WHERE m1.EmployeeID = e.DirectManagerID),
-        (SELECT m2.FirstName + ' ' + m2.LastName FROM Employees m2 WHERE m2.EmployeeID = 
-            (SELECT m1.DirectManagerID FROM Employees m1 WHERE m1.EmployeeID = e.DirectManagerID)),
+        (SELECT m1.e.FirstName + ' ' + m1.e.LastName FROM Employees e m1 WHERE m1.e.EmployeeID = e.DirectManagerID),
+        (SELECT m2.e.FirstName + ' ' + m2.e.LastName FROM Employees e m2 WHERE m2.e.EmployeeID = 
+            (SELECT m1.DirectManagerID FROM Employees e m1 WHERE m1.e.EmployeeID = e.DirectManagerID)),
         'No Manager Found'
     ) AS ManagerInChain,
     
-    -- BaseSalary information with multiple sources
+    -- e.BaseSalary information with multiple sources
     COALESCE(
         NULLIF(e.BaseSalary, 0),
         e.ContractRate * 40 * 52,  -- Convert hourly rate to annual if available
@@ -712,33 +712,33 @@ SELECT
     COUNT(*) AS TotalRecords,
     
     -- Critical field completeness
-    COUNT(*) - COUNT(CASE WHEN FirstName IS NULL OR FirstName = '' THEN 1 END) AS ValidFirstName,
-    COUNT(*) - COUNT(CASE WHEN LastName IS NULL OR LastName = '' THEN 1 END) AS ValidLastName,
+    COUNT(*) - COUNT(CASE WHEN e.FirstName IS NULL OR e.FirstName = '' THEN 1 END) AS ValidFirstName,
+    COUNT(*) - COUNT(CASE WHEN e.LastName IS NULL OR e.LastName = '' THEN 1 END) AS ValidLastName,
     COUNT(*) - COUNT(CASE WHEN WorkEmail IS NULL OR WorkEmail = '' THEN 1 END) AS ValidEmail,
-    COUNT(*) - COUNT(CASE WHEN BaseSalary IS NULL OR BaseSalary = 0 THEN 1 END) AS ValidSalary,
-    COUNT(*) - COUNT(CASE WHEN HireDate IS NULL THEN 1 END) AS ValidHireDate,
+    COUNT(*) - COUNT(CASE WHEN e.BaseSalary IS NULL OR e.BaseSalary = 0 THEN 1 END) AS ValidSalary,
+    COUNT(*) - COUNT(CASE WHEN e.HireDate IS NULL THEN 1 END) AS ValidHireDate,
     COUNT(*) - COUNT(CASE WHEN DepartmentID IS NULL THEN 1 END) AS ValidDepartment,
     
     -- Calculate completeness percentages
-    FORMAT((COUNT(*) - COUNT(CASE WHEN FirstName IS NULL OR FirstName = '' THEN 1 END)) * 100.0 / COUNT(*), 'N1') + '%' AS FirstNameCompleteness,
-    FORMAT((COUNT(*) - COUNT(CASE WHEN LastName IS NULL OR LastName = '' THEN 1 END)) * 100.0 / COUNT(*), 'N1') + '%' AS LastNameCompleteness,
+    FORMAT((COUNT(*) - COUNT(CASE WHEN e.FirstName IS NULL OR e.FirstName = '' THEN 1 END)) * 100.0 / COUNT(*), 'N1') + '%' AS FirstNameCompleteness,
+    FORMAT((COUNT(*) - COUNT(CASE WHEN e.LastName IS NULL OR e.LastName = '' THEN 1 END)) * 100.0 / COUNT(*), 'N1') + '%' AS LastNameCompleteness,
     FORMAT((COUNT(*) - COUNT(CASE WHEN WorkEmail IS NULL OR WorkEmail = '' THEN 1 END)) * 100.0 / COUNT(*), 'N1') + '%' AS EmailCompleteness,
-    FORMAT((COUNT(*) - COUNT(CASE WHEN BaseSalary IS NULL OR BaseSalary = 0 THEN 1 END)) * 100.0 / COUNT(*), 'N1') + '%' AS SalaryCompleteness,
-    FORMAT((COUNT(*) - COUNT(CASE WHEN HireDate IS NULL THEN 1 END)) * 100.0 / COUNT(*), 'N1') + '%' AS HireDateCompleteness,
+    FORMAT((COUNT(*) - COUNT(CASE WHEN e.BaseSalary IS NULL OR e.BaseSalary = 0 THEN 1 END)) * 100.0 / COUNT(*), 'N1') + '%' AS SalaryCompleteness,
+    FORMAT((COUNT(*) - COUNT(CASE WHEN e.HireDate IS NULL THEN 1 END)) * 100.0 / COUNT(*), 'N1') + '%' AS HireDateCompleteness,
     
     -- Overall data quality score
     FORMAT(
-        (COUNT(*) - COUNT(CASE WHEN FirstName IS NULL OR FirstName = '' 
-                                  OR LastName IS NULL OR LastName = ''
+        (COUNT(*) - COUNT(CASE WHEN e.FirstName IS NULL OR e.FirstName = '' 
+                                  OR e.LastName IS NULL OR e.LastName = ''
                                   OR WorkEmail IS NULL OR WorkEmail = ''
-                                  OR BaseSalary IS NULL OR BaseSalary = 0
-                                  OR HireDate IS NULL
+                                  OR e.BaseSalary IS NULL OR e.BaseSalary = 0
+                                  OR e.HireDate IS NULL
                                   OR DepartmentID IS NULL 
                                THEN 1 END)) * 100.0 / COUNT(*), 
         'N1'
     ) + '%' AS OverallDataQuality
     
-FROM Employees
+FROM Employees e
 WHERE IsActive = 1
 
 UNION ALL
@@ -772,7 +772,7 @@ SELECT
         'N1'
     ) + '%' AS OverallDataQuality
     
-FROM Projects
+FROM Projects p
 WHERE IsActive = 1;
 
 -- Lab 8.4.10: Missing Data Detail Report
@@ -786,11 +786,11 @@ SELECT
     ISNULL(d.DepartmentName, 'No Department') AS DepartmentName,
     
     -- Flag each missing critical field
-    CASE WHEN e.FirstName IS NULL OR e.FirstName = '' THEN '❌ Missing' ELSE '✅ Present' END AS FirstName,
-    CASE WHEN e.LastName IS NULL OR e.LastName = '' THEN '❌ Missing' ELSE '✅ Present' END AS LastName,
+    CASE WHEN e.FirstName IS NULL OR e.FirstName = '' THEN '❌ Missing' ELSE '✅ Present' END AS e.FirstName,
+    CASE WHEN e.LastName IS NULL OR e.LastName = '' THEN '❌ Missing' ELSE '✅ Present' END AS e.LastName,
     CASE WHEN e.WorkEmail IS NULL OR e.WorkEmail = '' THEN '❌ Missing' ELSE '✅ Present' END AS WorkEmail,
-    CASE WHEN e.BaseSalary IS NULL OR e.BaseSalary = 0 THEN '❌ Missing' ELSE '✅ Present' END AS BaseSalary,
-    CASE WHEN e.HireDate IS NULL THEN '❌ Missing' ELSE '✅ Present' END AS HireDate,
+    CASE WHEN e.BaseSalary IS NULL OR e.BaseSalary = 0 THEN '❌ Missing' ELSE '✅ Present' END AS e.BaseSalary,
+    CASE WHEN e.HireDate IS NULL THEN '❌ Missing' ELSE '✅ Present' END AS e.HireDate,
     CASE WHEN e.DepartmentID IS NULL THEN '❌ Missing' ELSE '✅ Present' END AS Department_ID,
     CASE WHEN e.DirectManagerID IS NULL THEN '❌ Missing' ELSE '✅ Present' END AS Manager,
     

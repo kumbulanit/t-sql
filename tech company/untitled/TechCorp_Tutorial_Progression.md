@@ -68,8 +68,8 @@ SELECT * FROM Employees e;
 
 -- Early Intermediate: Calculate business metrics  
 SELECT 
-    FirstName + ' ' + LastName AS FullName,
-    BaseSalary / 12 AS MonthlySalary
+    e.FirstName + ' ' + e.LastName AS FullName,
+    e.BaseSalary / 12 AS MonthlySalary
 FROM Employees e;
 -- Explanation: "Now we're doing business math - calculating monthly pay"
 ```
@@ -96,19 +96,19 @@ FROM Employees e;
 -- Intermediate: Professional reporting
 SELECT 
     CASE 
-        WHEN BaseSalary > 100000 THEN 'Senior Level'
-        WHEN BaseSalary > 60000 THEN 'Mid Level'
+        WHEN e.BaseSalary > 100000 THEN 'Senior Level'
+        WHEN e.BaseSalary > 60000 THEN 'Mid Level'
         ELSE 'Junior Level'
     END AS SalaryBand,
     COUNT(*) AS EmployeeCount
-FROM Employees
+FROM Employees e
 GROUP BY 
     CASE 
-        WHEN BaseSalary > 100000 THEN 'Senior Level'
-        WHEN BaseSalary > 60000 THEN 'Mid Level'
+        WHEN e.BaseSalary > 100000 THEN 'Senior Level'
+        WHEN e.BaseSalary > 60000 THEN 'Mid Level'
         ELSE 'Junior Level'
     END;
--- Explanation: "This creates a management report showing BaseSalary distribution"
+-- Explanation: "This creates a management report showing e.BaseSalary distribution"
 ```
 
 ---
@@ -131,7 +131,7 @@ SELECT
     p.ProjectName,
     p.Budget,
     e.FirstName + ' ' + e.LastName as ProjectManager,
-    d.d.DepartmentName
+    d.DepartmentName
 FROM Companies c
     INNER JOIN Projects p ON c.CompanyID = p.CompanyID
     INNER JOIN Employees e ON p.ProjectManagerID = e.EmployeeID
@@ -162,8 +162,8 @@ SELECT TOP 10
     p.ProjectName,
     p.Budget
 FROM Employees e
-    INNER JOIN PerformanceMetrics pm ON e.EmployeeID = pm.EmployeeID
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+    INNER JOIN PerformanceMetrics pm ON e.EmployeeID = pm.e.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE pm.Achievement > 95.0
     AND p.IsActive = 'Completed'
