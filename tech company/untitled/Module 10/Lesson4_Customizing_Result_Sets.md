@@ -12,38 +12,53 @@
 
 Imagine you’re setting a table for dinner. You might use different plates for kids and adults, or add name cards for a party. Customizing results in SQL is just like that—you make your data look right for whoever is reading it!
 
-### Dynamic Column Selection
+---
+
+## 🟢 BEGINNER SECTION: Showing Different Things to Different People
+
+### What is "Dynamic Column Selection"? (Like Different Menus for Different People)
+
+Sometimes you want to show different information depending on who's asking. Like how a restaurant might have a kids menu and an adult menu, your SQL results can show different columns for different types of users!
+
+### 🎯 BEGINNER Example 1: Hiding Salary from Regular Employees
 
 ```sql
--- Dynamically customize columns based on user role
-DECLARE @UserRole VARCHAR(20) = 'Manager'; -- 'Executive', 'Manager', 'Employee'
+-- Let's pretend we're logged in as a Manager (not a regular employee)
+DECLARE @UserRole VARCHAR(20) = 'Manager'; -- This could be 'Executive', 'Manager', or 'Employee'
 
 SELECT 
     e.EmployeeID,
     e.FirstName + ' ' + e.LastName AS EmployeeName,
-    
-    -- Role-based conditional columns
-    CASE WHEN @UserRole IN ('Executive', 'Manager') 
-         THEN FORMAT(e.BaseSalary, 'C0') 
-         ELSE 'Confidential' 
-    END AS Salary,
-    
-    CASE WHEN @UserRole = 'Executive'
-         THEN FORMAT(e.BaseSalary * 0.15, 'C0')
-         ELSE NULL
-    END AS EstimatedBenefits,
-    
     d.DepartmentName,
     e.JobTitle,
     
-    -- Always visible columns
-    FORMAT(e.HireDate, 'MMM dd, yyyy') AS HireDate,
-    DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService
+    -- Only show salary if you're a Manager or Executive (not regular employees!)
+    CASE WHEN @UserRole IN ('Executive', 'Manager') 
+         THEN FORMAT(e.BaseSalary, 'C0')     -- Show: $75,000
+         ELSE 'Confidential'                 -- Show: Confidential
+    END AS Salary,
+    
+    -- Only Executives can see estimated benefits
+    CASE WHEN @UserRole = 'Executive'
+         THEN FORMAT(e.BaseSalary * 0.15, 'C0')  -- Show: $11,250 (15% of salary)
+         ELSE NULL                               -- Show: (nothing)
+    END AS EstimatedBenefits,
+    
+    FORMAT(e.HireDate, 'MMM dd, yyyy') AS HireDate,    -- Everyone can see hire date
+    DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService  -- Everyone can see years
     
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 ORDER BY d.DepartmentName, e.LastName;
 ```
+
+**How this works:**
+
+- If you're an **Employee**: See name, department, job, hire date (no salary info)
+- If you're a **Manager**: See everything above PLUS salary information  
+- If you're an **Executive**: See everything above PLUS estimated benefits
+
+**Think of it like:** Different security badges giving access to different information!
 
 ### Conditional Result Formatting
 

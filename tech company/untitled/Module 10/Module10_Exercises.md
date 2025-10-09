@@ -15,23 +15,53 @@ These are simple practice problems to help you get comfortable making your data 
 
 ---
 
-## Exercise 1: Advanced Result Formatting (25 points)
+---
 
-### 1.1 Professional Employee Summary (5 points each)
+## 🟢 Exercise 1: Making Pretty Employee Lists (25 points)
 
-**Question 1.1.1**: Create a professionally formatted employee summary with the following requirements:
-- Employee ID padded to 4 digits with leading zeros  
-- Full name in "Last, First M." format (handle middle name nulls)
-- Job title with department abbreviation in brackets
-- Hire date in "DD-MMM-YYYY" format
-- Tenure displayed as "X years, Y months"
+### Easy Practice: Making Employee Information Look Professional
 
-**Question 1.1.2**: Build a salary analysis report showing:
-- Employee name with performance tier indicator (★, ★★, ★★★)
-- Salary formatted as currency with appropriate commas
-- Percentage above/below department average
-- Salary range classification (Entry, Mid, Senior, Executive)
-- Visual salary bar using ASCII characters
+Think of this like making a nice business card or name tag for each employee!
+
+### 🎯 Question 1.1.1: Making a Professional Employee Directory (5 points)
+
+**Your Goal**: Make an employee list that looks like it belongs in a professional company directory.
+
+**What you need to do (step by step):**
+
+1. **Employee ID with leading zeros**: Turn "42" into "0042" (like making all ID badges the same length)
+2. **Full name format**: Turn "John" "Smith" into "Smith, John" (like how phone books list names)
+3. **Job title with department**: Turn "Developer" in "IT" into "Developer [IT]"
+4. **Pretty hire date**: Turn "2023-03-15" into "15-Mar-2023" (easier to read)
+5. **How long they've worked**: Turn hire date into "2 years, 3 months"
+
+**Hint**: Use FORMAT, CONCAT, and CASE like we learned in the lessons!
+
+**What your result should look like:**
+```
+EmployeeID: 0042
+FullName: Smith, John M.  
+JobInfo: Developer [IT]
+HireDate: 15-Mar-2021
+Tenure: 3 years, 6 months
+```
+
+### 🎯 Question 1.1.2: Making a Salary Report with Star Ratings (5 points)
+
+**Your Goal**: Create a fun report that shows who earns what, with star ratings like a video game!
+
+**What you need to do (in plain English):**
+
+1. **Add star ratings**: Give people stars based on salary (★ = Entry, ★★ = Good, ★★★ = Excellent)
+2. **Make money pretty**: Turn "75000" into "$75,000" (with commas and dollar sign)
+3. **Compare to average**: Show if someone earns more or less than others in their department
+4. **Give salary levels**: Entry Level, Mid Level, Senior Level, Executive Level
+5. **Make text bars**: Use characters like ████ to show salary size visually
+
+**What your result should look like:**
+```
+John Smith ★★ | $75,000 | 15% above average | Senior Level | ████████
+```
 
 **Question 1.1.3**: Design a contact directory format displaying:
 - Employee name with job title on separate lines
