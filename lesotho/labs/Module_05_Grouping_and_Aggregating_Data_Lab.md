@@ -25,6 +25,9 @@
 ### Exercise 5.1: Basic Aggregations
 
 **Task 1:** Count indicators by category
+**Topic:** MS20761 Module 9 Lesson 1 – Count indicators per category with active/inactive splits
+**Beginner Explanation:** This aggregation shows how many total, active, and inactive indicators sit under each category name.
+
 ```sql
 -- How many indicators in each category?
 SELECT 
@@ -38,9 +41,15 @@ GROUP BY ic.CategoryName
 ORDER BY COUNT(ei.IndicatorID) DESC;
 ```
 
+**Detailed Query Explanation:** Joining categories to indicators ensures each indicator contributes to its category totals. Conditional `COUNT` expressions separate active vs inactive counts, while `GROUP BY ic.CategoryName` yields one row per category.
+**Detailed Results Explanation:** Each row summarizes a category’s indicator inventory, making it easy to spot well-populated categories or those needing development.
+
 ---
 
 **Task 2:** Banking sector totals
+**Topic:** MS20761 Module 9 Lesson 1 – Summarize total sector size for a given reporting date
+**Beginner Explanation:** This query aggregates assets, loans, deposits, and the average NPL ratio for all banks that reported on 30 Sept 2024.
+
 ```sql
 -- Latest aggregate statistics for banking sector
 SELECT 
@@ -55,9 +64,15 @@ WHERE bs.ReportingDate = '2024-09-30'
 GROUP BY bs.ReportingDate;
 ```
 
+**Detailed Query Explanation:** Filtering to one date ensures a single snapshot. Aggregates compute sums and averages across all reporting banks, while `COUNT(DISTINCT BankID)` verifies how many banks submitted data for that date.
+**Detailed Results Explanation:** The output is a one-row sector dashboard showing totals and the mean NPL ratio, perfect for briefing notes or executive summaries.
+
 ---
 
 **Task 3:** Data frequency distribution
+**Topic:** MS20761 Module 9 Lesson 2 – Show how many indicators run at each reporting frequency
+**Beginner Explanation:** This aggregation counts indicators per frequency and expresses each as a percentage of all indicators.
+
 ```sql
 -- Count indicators by frequency
 SELECT 
@@ -74,28 +89,40 @@ GROUP BY df.FrequencyName, df.SortOrder
 ORDER BY df.SortOrder;
 ```
 
+**Detailed Query Explanation:** Joining frequencies to indicators ensures each indicator contributes to exactly one frequency bucket. The scalar subquery gets the overall indicator count, enabling a percentage for each row. Sorting uses `SortOrder` to respect logical frequency progression.
+**Detailed Results Explanation:** The result highlights the distribution of daily, monthly, quarterly, etc., indicators plus their share of the catalog, helping allocate resources to the busiest cadences.
+
 ---
 
 ### Exercise 5.2: MIN and MAX Functions
 
 **Task 4:** Find range of inflation rates
+**Topic:** MS20761 Module 9 Lesson 2 – Summarize inflation variation for the current year
+**Beginner Explanation:** This aggregation finds the min, max, average, and range of 2024 inflation readings, plus how many observations exist.
+
 ```sql
 -- Inflation statistics for 2024
 SELECT 
-    MIN(ts.DataValue) AS 'Minimum Inflation %',
-    MAX(ts.DataValue) AS 'Maximum Inflation %',
-    AVG(ts.DataValue) AS 'Average Inflation %',
-    MAX(ts.DataValue) - MIN(ts.DataValue) AS 'Range',
-    COUNT(*) AS 'Observations'
+        MIN(ts.DataValue) AS 'Minimum Inflation %',
+        MAX(ts.DataValue) AS 'Maximum Inflation %',
+        AVG(ts.DataValue) AS 'Average Inflation %',
+        MAX(ts.DataValue) - MIN(ts.DataValue) AS 'Range',
+        COUNT(*) AS 'Observations'
 FROM TimeSeriesData ts
 INNER JOIN EconomicIndicators ei ON ts.IndicatorID = ei.IndicatorID
 WHERE ei.IndicatorCode = 'INF_RATE'
-  AND YEAR(ts.PeriodDate) = 2024;
+    AND YEAR(ts.PeriodDate) = 2024;
 ```
+
+**Detailed Query Explanation:** Filtering by indicator code and year isolates the 2024 inflation series. Aggregate functions compute descriptive statistics directly over the filtered set without needing `GROUP BY`.
+**Detailed Results Explanation:** Expect a single row showing the extremes and average inflation, plus the number of data points used—ideal for briefing policymakers on volatility.
 
 ---
 
 **Task 5:** Exchange rate ranges by currency
+**Topic:** MS20761 Module 9 Lesson 2 – Compare minimum, maximum, and average FX rates for major currencies
+**Beginner Explanation:** This report summarizes how each tracked currency traded in 2024 by listing its lowest, highest, and average exchange rate plus the number of trading days recorded.
+
 ```sql
 -- FX rate statistics by currency
 SELECT 
@@ -111,11 +138,17 @@ WHERE ei.IndicatorCode IN ('FX_USD', 'FX_ZAR', 'FX_EUR')
 GROUP BY ei.IndicatorName;
 ```
 
+**Detailed Query Explanation:** Filtering to three FX indicator codes confines the dataset to USD, ZAR, and EUR series. Grouping by `IndicatorName` rolls each currency’s 2024 data into one row while aggregates compute the desired statistics and day counts.
+**Detailed Results Explanation:** The output shows volatility bands per currency, letting analysts quickly see which FX pair was most stable or volatile and how deep the sample size is for each.
+
 ---
 
 ### Exercise 5.3: GROUP BY with Multiple Columns
 
 **Task 6:** Data submissions by source and month
+**Topic:** MS20761 Module 9 Lesson 3 – Track how many data points each source delivers every month
+**Beginner Explanation:** This aggregation counts how many individual observations and unique indicators each data source supplied per month in 2024, splitting provisional versus final entries.
+
 ```sql
 -- Track data collection by source over time
 SELECT 
@@ -133,6 +166,9 @@ GROUP BY ds.SourceName, FORMAT(ts.PeriodDate, 'yyyy-MM')
 ORDER BY ds.SourceName, FORMAT(ts.PeriodDate, 'yyyy-MM');
 ```
 
+**Detailed Query Explanation:** Joining `TimeSeriesData` to sources via indicators links every observation to its origin. Grouping by both source and formatted month produces a grid of counts, while `COUNT(DISTINCT ts.IndicatorID)` measures breadth and the CASE expressions split provisional vs final.
+**Detailed Results Explanation:** Expect one row per source-month showing delivery volume and quality mix. Use it to spot contributors with declining submissions or high provisional proportions needing follow-up.
+
 ---
 
 ## INTERMEDIATE SECTION (Optional)
@@ -140,6 +176,9 @@ ORDER BY ds.SourceName, FORMAT(ts.PeriodDate, 'yyyy-MM');
 ### Exercise 5.4: HAVING Clause
 
 **Task 7:** Find categories with many indicators
+**Topic:** MS20761 Module 9 Lesson 4 – Highlight indicator categories that have rich coverage
+**Beginner Explanation:** This query finds every category that contains more than two indicators and lists their codes so you can focus on the most populated subject areas.
+
 ```sql
 -- Categories with more than 2 indicators
 SELECT 
@@ -153,9 +192,15 @@ HAVING COUNT(ei.IndicatorID) > 2
 ORDER BY COUNT(ei.IndicatorID) DESC;
 ```
 
+**Detailed Query Explanation:** Standard grouping accumulates indicators per category, while `HAVING COUNT(...) > 2` keeps only the categories exceeding the threshold. `STRING_AGG` concisely lists the indicator codes for reference.
+**Detailed Results Explanation:** Output rows show categories ranked by size with their constituent indicators, helping curriculum designers or economists focus on areas with ample data coverage.
+
 ---
 
 **Task 8:** Banks with high NPL ratios
+**Topic:** MS20761 Module 9 Lesson 4 – Flag banks whose average NPL ratio exceeds the sector benchmark
+**Beginner Explanation:** The CTE captures the sector-wide average NPL ratio, then each bank’s average across three quarters is compared to highlight those performing worse than the aggregate.
+
 ```sql
 -- Banks with average NPL above sector average
 WITH SectorAvg AS (
@@ -177,11 +222,17 @@ HAVING AVG(bs.NPLRatio) > (SELECT AvgNPL FROM SectorAvg)
 ORDER BY AVG(bs.NPLRatio) DESC;
 ```
 
+**Detailed Query Explanation:** The `SectorAvg` CTE calculates a baseline once. The main query aggregates each bank’s NPL ratio and uses `HAVING` to keep only those above the baseline. Additional columns show the difference to contextualize the deviation.
+**Detailed Results Explanation:** Each returned bank is underperforming relative to the sector, along with how many reports underpin the average, giving supervisors a targeted watchlist.
+
 ---
 
 ### Exercise 5.5: Statistical Calculations
 
 **Task 9:** Calculate GDP growth statistics
+**Topic:** MS20761 Module 9 Lesson 2 – Produce quarterly descriptive stats for real GDP
+**Beginner Explanation:** Grouping GDP observations by year and quarter lets you see average output, min/max values, dispersion, and how many data points inform each quarter.
+
 ```sql
 -- Quarterly GDP summary with growth rates
 SELECT 
@@ -200,11 +251,17 @@ GROUP BY DATEPART(QUARTER, ts.PeriodDate), DATEPART(YEAR, ts.PeriodDate)
 ORDER BY DATEPART(YEAR, ts.PeriodDate), DATEPART(QUARTER, ts.PeriodDate);
 ```
 
+**Detailed Query Explanation:** Filtering to real GDP records from 2023 onward, the query derives quarter and year via `DATEPART`, groups by both, and applies aggregate functions to describe the distribution within each quarter.
+**Detailed Results Explanation:** Expect one row per quarter containing average GDP levels, the spread of values, and sample counts—useful for tracking volatility or anomalies across reporting periods.
+
 ---
 
 ### Exercise 5.6: Multi-Level Grouping
 
 **Task 10:** Banking sector breakdown by quarter and bank
+**Topic:** MS20761 Module 9 Lesson 3 – Summarize banking metrics by quarter and bank type
+**Beginner Explanation:** This grouping aggregates assets, loans, deposits, and ratios for each bank type per quarter, giving a multi-level view of the sector’s structure.
+
 ```sql
 -- Detailed banking sector analysis
 SELECT 
@@ -229,11 +286,17 @@ ORDER BY
     cb.BankType;
 ```
 
+**Detailed Query Explanation:** The concatenated quarter label is derived from `DATEPART`. Grouping on quarter/year plus `BankType` creates a matrix of aggregates, while derived ratios like loan-to-asset use the already aggregated sums to avoid double counting.
+**Detailed Results Explanation:** Each row describes a bank type’s footprint within a quarter, helping analysts quickly compare commercial vs development banks on key KPIs.
+
 ---
 
 ### Exercise 5.7: Aggregates with Filtering
 
 **Task 11:** Monthly inflation above target
+**Topic:** MS20761 Module 9 Lesson 4 – Count how often inflation breaches the 5% target each year
+**Beginner Explanation:** Grouping inflation readings by year reveals how many months stay within or exceed the 5% target, along with averages and peaks for context.
+
 ```sql
 -- Count months where inflation exceeds 5% target
 SELECT 
@@ -251,6 +314,9 @@ GROUP BY YEAR(ts.PeriodDate)
 ORDER BY YEAR(ts.PeriodDate);
 ```
 
+**Detailed Query Explanation:** The query filters to the inflation series, derives the calendar year, and uses conditional `COUNT` expressions to split months above vs within target. Aggregates add mean and maximum inflation for each year.
+**Detailed Results Explanation:** Each row summarizes yearly inflation performance, making it easy to see troublesome years that frequently overshoot the target.
+
 ---
 
 ## ADVANCED SECTION (Optional Challenge)
@@ -258,6 +324,9 @@ ORDER BY YEAR(ts.PeriodDate);
 ### Exercise 5.8: Complex Summary Report
 
 **Task 12:** Comprehensive economic dashboard
+**Topic:** MS20761 Module 9 Lesson 5 – Build an executive summary table for each indicator category
+**Beginner Explanation:** This aggregation counts indicators, data points, coverage dates, data quality percentages, and source counts per category to form a wide-ranging dashboard.
+
 ```sql
 -- Executive summary by indicator category
 SELECT 
@@ -278,11 +347,17 @@ GROUP BY ic.CategoryName
 ORDER BY COUNT(DISTINCT ts.TimeSeriesID) DESC;
 ```
 
+**Detailed Query Explanation:** After joining categories to indicators and optional time series records, the query aggregates various metrics per category, including distinct counts, min/max dates, and calculated percentages derived from aggregated values.
+**Detailed Results Explanation:** Each row serves as a dashboard card showing how much data exists for a category, how current it is, and how much is final vs provisional—ideal for management briefings.
+
 ---
 
 ### Exercise 5.9: Banking Sector Trends
 
 **Task 13:** Quarterly banking trends with growth rates
+**Topic:** MS20761 Module 9 Lesson 5 & Module 13 Lesson 2 – Compare quarter-over-quarter banking aggregates and growth
+**Beginner Explanation:** The CTE produces totals per reporting date, then each quarter is compared to the prior one to calculate growth percentages for assets and loans.
+
 ```sql
 -- Banking sector performance tracking
 WITH QuarterlySummary AS (
@@ -322,11 +397,17 @@ LEFT JOIN QuarterlySummary previous ON
 ORDER BY current.ReportingDate;
 ```
 
+**Detailed Query Explanation:** The CTE pre-aggregates each quarter once, simplifying the main query. A self-join aligns each quarter with its predecessor so growth rates can be computed using prior totals, guarding with `CASE` to avoid division by zero.
+**Detailed Results Explanation:** The resulting timeline shows raw totals and growth metrics per quarter, providing an easy trend view for macro reports and stress tests.
+
 ---
 
 ### Exercise 5.10: Data Quality Metrics
 
 **Task 14:** Calculate data completeness scores
+**Topic:** MS20761 Module 9 Lesson 5 – Measure whether each active indicator delivered its expected 2024 observations
+**Beginner Explanation:** The query compares how many records each indicator should have (based on frequency) against how many it actually delivered, producing completeness and finalization percentages plus reporting lag.
+
 ```sql
 -- Data quality scorecard by indicator
 WITH ExpectedCounts AS (
@@ -376,11 +457,17 @@ LEFT JOIN ActualCounts ac ON ec.IndicatorID = ac.IndicatorID
 ORDER BY 'Completeness %' DESC;
 ```
 
+**Detailed Query Explanation:** `ExpectedCounts` maps each indicator to its annual expectation while `ActualCounts` tallies 2024 submissions. Joining them enables percentage calculations via aggregated values, and `ISNULL` keeps indicators with zero data visible.
+**Detailed Results Explanation:** Each row highlights whether an indicator met its data delivery quota, how much was finalized, and average reporting lag—key inputs for the data quality dashboard.
+
 ---
 
 ### Exercise 5.11: Report Generation Summary
 
 **Task 15:** Monthly Statistical Bulletin metrics
+**Topic:** MS20761 Module 9 Lesson 5 – Produce a monthly roll-up for the statistical bulletin
+**Beginner Explanation:** This query groups 2024 observations by calendar month to count how many indicators, categories, and sources appear, plus provisional/final splits and collection lag metrics.
+
 ```sql
 -- Generate summary for monthly bulletin publication
 SELECT 
@@ -403,6 +490,9 @@ GROUP BY FORMAT(ts.PeriodDate, 'MMMM yyyy'), YEAR(ts.PeriodDate), MONTH(ts.Perio
 HAVING COUNT(ts.TimeSeriesID) > 10
 ORDER BY YEAR(ts.PeriodDate), MONTH(ts.PeriodDate);
 ```
+
+**Detailed Query Explanation:** Formatting the period date into `MMMM yyyy` makes a readable label while grouping also includes year/month numbers for proper ordering. Aggregate counts and averages provide the bulletin KPIs, and `HAVING` ensures only substantial months are included.
+**Detailed Results Explanation:** Each row is a monthly briefing card showing breadth of coverage, provisional mix, timeliness, and last update date—ready to insert into the publication workflow.
 
 ---
 

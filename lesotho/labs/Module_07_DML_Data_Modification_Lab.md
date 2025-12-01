@@ -35,6 +35,9 @@ This module involves INSERT, UPDATE, and DELETE operations on economic time seri
 ### Exercise 7.1: INSERT - Single Row
 
 **Task 1:** Add a new data source
+**Topic:** MS20761 Module 7 Lesson 1 – Practice inserting a single row and verifying it
+**Beginner Explanation:** This example inserts a new entry into `DataSources` and immediately runs a `SELECT` to confirm the row landed correctly.
+
 ```sql
 -- Insert a new external data source
 INSERT INTO DataSources (
@@ -56,9 +59,15 @@ FROM DataSources
 WHERE SourceCode = 'SARB';
 ```
 
+**Detailed Query Explanation:** The INSERT statement specifies all required columns explicitly, preventing mismatched order. The follow-up `SELECT` uses the unique `SourceCode` to ensure only the intended row is reviewed.
+**Detailed Results Explanation:** After execution you’ll see one new row representing the South African Reserve Bank along with its metadata, confirming the addition succeeded.
+
 ---
 
 **Task 2:** Add a new economic indicator
+**Topic:** MS20761 Module 7 Lesson 1 – Insert an indicator and confirm its relationships
+**Beginner Explanation:** This script adds a tourism indicator with predefined foreign keys, then joins to related tables so you can verify category, source, and frequency details.
+
 ```sql
 -- Insert tourism indicator
 INSERT INTO EconomicIndicators (
@@ -96,11 +105,17 @@ INNER JOIN DataFrequencies df ON ei.FrequencyID = df.FrequencyID
 WHERE ei.IndicatorCode = 'TOUR_ARR';
 ```
 
+**Detailed Query Explanation:** The insert lists all relevant fields, keeping referential integrity intact. The verification query joins across categories, sources, and frequencies to make sure the IDs align with the intended metadata.
+**Detailed Results Explanation:** Expect a single row showing the new indicator with descriptive context—use this to confirm the setup before wider use.
+
 ---
 
 ### Exercise 7.2: INSERT - Multiple Rows
 
 **Task 3:** Add multiple time series data points
+**Topic:** MS20761 Module 7 Lesson 1 – Insert several rows in a single statement and audit them
+**Beginner Explanation:** This script batches three monthly inflation observations with one INSERT and then verifies the additions for the targeted indicator.
+
 ```sql
 -- Insert several months of inflation data
 INSERT INTO TimeSeriesData (
@@ -129,9 +144,15 @@ WHERE ei.IndicatorID = 6
 ORDER BY ts.PeriodDate;
 ```
 
+**Detailed Query Explanation:** Multiple value tuples follow one column list, ensuring consistent ordering. The verification select filters on the indicator ID and date range to check only the newly inserted observations.
+**Detailed Results Explanation:** You should see each inserted month with its value and provisional status, confirming the bulk addition worked as intended.
+
 ---
 
 **Task 4:** Insert data from SELECT query
+**Topic:** MS20761 Module 7 Lesson 1 – Duplicate existing rows into a backup table via INSERT...SELECT
+**Beginner Explanation:** This workflow creates an empty backup table from an existing structure, inserts Q3 2024 banking data using a SELECT statement, and verifies totals.
+
 ```sql
 -- Create backup of Q3 2024 banking statistics
 -- First, create a backup table structure
@@ -153,11 +174,17 @@ SELECT
 FROM BankingStatistics_Backup;
 ```
 
+**Detailed Query Explanation:** The `SELECT TOP 0 ... INTO` pattern clones the schema without rows. The subsequent INSERT copies qualifying records, and the final summary query confirms how many entries and totals moved over.
+**Detailed Results Explanation:** The verification output should show the number of records backed up, the reporting date covered, and aggregated assets—assurance that the archival step captured the right slice.
+
 ---
 
 ### Exercise 7.3: UPDATE - Single Column
 
 **Task 5:** Correct a data value
+**Topic:** MS20761 Module 7 Lesson 2 – Update a single observation after previewing it
+**Beginner Explanation:** This pattern selects the target CPI record, updates the value, then re-selects the row to confirm the change—reducing the risk of accidental edits.
+
 ```sql
 -- First, view current value
 SELECT 
@@ -188,9 +215,15 @@ WHERE IndicatorID = 4
   AND PeriodDate = '2024-09-01';
 ```
 
+**Detailed Query Explanation:** Using the same WHERE clause in both `SELECT` statements and the `UPDATE` ensures the exact row is inspected before and after modification.
+**Detailed Results Explanation:** The final query should show the new value of 108.5, letting you document the correction confidently.
+
 ---
 
 **Task 6:** Mark provisional data as final
+**Topic:** MS20761 Module 7 Lesson 2 – Flip provisional flags once data is validated
+**Beginner Explanation:** This script locates provisional records for a specific date, updates them to final with audit fields, and verifies the new status.
+
 ```sql
 -- View provisional data
 SELECT 
@@ -222,11 +255,17 @@ INNER JOIN EconomicIndicators ei ON ts.IndicatorID = ei.IndicatorID
 WHERE ts.PeriodDate = '2024-08-01';
 ```
 
+**Detailed Query Explanation:** The initial `SELECT` confirms which rows will change. The `UPDATE` sets both the flag and audit columns, and the final query checks that the status text now shows “Final.”
+**Detailed Results Explanation:** After running, you should see no remaining provisional records for 1 Aug 2024, validating that the finalization step succeeded.
+
 ---
 
 ### Exercise 7.4: DELETE - Selective Removal
 
 **Task 7:** Remove test data
+**Topic:** MS20761 Module 7 Lesson 3 – Safely delete training records after review
+**Beginner Explanation:** This example selects test entries inserted by a training account, deletes them, and then counts remaining rows to ensure cleanup is complete.
+
 ```sql
 -- View test records first
 SELECT *
@@ -246,6 +285,9 @@ WHERE EnteredBy = 'training_user'
   AND PeriodDate >= '2024-10-01';
 ```
 
+**Detailed Query Explanation:** The process enforces a read-before-delete habit using identical conditions for the preview, delete, and verification queries, reducing chances of over-deletion.
+**Detailed Results Explanation:** The final count should be zero, indicating all training_user records from October 2024 onward were removed successfully.
+
 ---
 
 ## INTERMEDIATE SECTION (Optional)
@@ -253,6 +295,9 @@ WHERE EnteredBy = 'training_user'
 ### Exercise 7.5: UPDATE with JOIN
 
 **Task 8:** Update based on related table data
+**Topic:** MS20761 Module 7 Lesson 2 – Use joins inside UPDATE to populate descriptions
+**Beginner Explanation:** This statement builds richer indicator descriptions by referencing category names and frequencies during the update.
+
 ```sql
 -- Update indicator descriptions based on category
 UPDATE ei
@@ -278,9 +323,15 @@ FROM EconomicIndicators
 WHERE Description LIKE '%indicator:%';
 ```
 
+**Detailed Query Explanation:** T-SQL’s joined `UPDATE` syntax lets you pull values from related tables, so the concatenated description can include category and frequency without subqueries.
+**Detailed Results Explanation:** The verification query surfaces indicators whose description now contains the injected text, letting you spot-check the new standardized phrasing.
+
 ---
 
 **Task 9:** Populate calculated fields
+**Topic:** MS20761 Module 7 Lesson 2 – Fill derived ratios directly in the table
+**Beginner Explanation:** This update computes loan-to-asset and deposit-to-asset ratios for rows that are still NULL, followed by a query to confirm the math.
+
 ```sql
 -- Add calculated ratios to banking statistics
 UPDATE bs
@@ -301,11 +352,17 @@ INNER JOIN CommercialBanks cb ON bs.BankID = cb.BankID
 WHERE bs.ReportingDate = '2024-09-30';
 ```
 
+**Detailed Query Explanation:** Restricting the update to rows where `LoanToAssetRatio` is NULL prevents overwriting existing calculations, and the verification join displays the new ratios alongside source totals.
+**Detailed Results Explanation:** The result set should show each bank’s September ratios filled in with two decimal places, providing quick validation.
+
 ---
 
 ### Exercise 7.6: Transactions - Basic
 
 **Task 10:** Safe multi-step data entry
+**Topic:** MS20761 Module 7 Lesson 1 & Module 18 Lesson 1 – Wrap related inserts in a transaction for consistency
+**Beginner Explanation:** This script creates a new indicator, captures its identity, inserts initial data points, and only commits if all steps succeed.
+
 ```sql
 -- Begin transaction for new indicator and its data
 BEGIN TRANSACTION;
@@ -366,11 +423,17 @@ COMMIT TRANSACTION;
 -- If there's an issue, use: ROLLBACK TRANSACTION;
 ```
 
+**Detailed Query Explanation:** After inserting the indicator, `SCOPE_IDENTITY()` captures the new ID, which feeds into the subsequent TimeSeriesData inserts. Running a verification `SELECT` before `COMMIT` lets you inspect the pending data.
+**Detailed Results Explanation:** Upon committing, both the indicator metadata and three time series rows become permanent; if any step failed, the transaction could be rolled back with no partial changes.
+
 ---
 
 ### Exercise 7.7: Conditional Updates
 
 **Task 11:** Update with CASE logic
+**Topic:** MS20761 Module 7 Lesson 2 & Module 13 Lesson 2 – Apply rule-based quality statuses using analytic functions
+**Beginner Explanation:** This update sets a quality flag based on null checks, negative values, and deviations from the average, then reports how many records fall into each status.
+
 ```sql
 -- Update data quality status based on rules
 UPDATE dq
@@ -397,6 +460,9 @@ WHERE CheckDate >= CAST(GETDATE() AS DATE)
 GROUP BY QualityStatus;
 ```
 
+**Detailed Query Explanation:** The `CASE` statement evaluates conditions in order, including z-score style comparisons via window functions. After the update, a grouped `SELECT` summarizes the distribution for today’s checks.
+**Detailed Results Explanation:** Expect counts per status (Validated, Flagged, Error) with percentages, helping teams gauge the day’s data quality posture.
+
 ---
 
 ## ADVANCED SECTION (Optional Challenge)
@@ -404,6 +470,9 @@ GROUP BY QualityStatus;
 ### Exercise 7.8: Complex Transaction with Error Handling
 
 **Task 12:** Robust data revision process
+**Topic:** MS20761 Module 18 Lesson 1 & Module 17 Lesson 1 – Perform a transactional revision with audit logging and error handling
+**Beginner Explanation:** This TRY/CATCH template backs up the old value, writes an audit row, updates the main data, and rolls back automatically if any step fails.
+
 ```sql
 -- Revise data with full audit trail
 BEGIN TRY
@@ -491,11 +560,17 @@ BEGIN CATCH
 END CATCH;
 ```
 
+**Detailed Query Explanation:** The script declares parameters, optionally creates an audit table, logs the change, updates the source row, and uses TRY/CATCH with explicit transaction control to guarantee atomic revisions.
+**Detailed Results Explanation:** On success you’ll see the verification select plus a printed confirmation; on failure the transaction rolls back and prints the error, protecting data integrity.
+
 ---
 
 ### Exercise 7.9: Bulk Data Operations
 
 **Task 13:** Efficient bulk insert from staging
+**Topic:** MS20761 Module 7 Lesson 1 & Module 16 Lesson 1 – Move staged records into production with validation and logging
+**Beginner Explanation:** This sequence builds a staging table, simulates a bulk load, runs a transactional insert that avoids duplicates, and summarizes the import outcome.
+
 ```sql
 -- Create staging table for bulk import
 IF OBJECT_ID('TimeSeriesData_Staging', 'U') IS NOT NULL
@@ -559,11 +634,17 @@ BEGIN TRANSACTION;
 COMMIT TRANSACTION;
 ```
 
+**Detailed Query Explanation:** After ensuring a clean staging table, rows are loaded and then inserted into `TimeSeriesData` via a join to resolve indicator IDs while guarding against duplicates. The summary select shows processed versus valid/invalid counts.
+**Detailed Results Explanation:** Successful runs leave production populated with new records tagged by source file, and the import summary reveals whether any IndicatorCodes failed validation.
+
 ---
 
 ### Exercise 7.10: Cascading Updates
 
 **Task 14:** Update related records consistently
+**Topic:** MS20761 Module 7 Lesson 2 & Module 18 Lesson 1 – Coordinate indicator frequency changes with archival deletes
+**Beginner Explanation:** This transaction updates an indicator’s frequency, archives incompatible time series rows, deletes them from the active table, and logs the action via `PRINT`.
+
 ```sql
 -- Change indicator frequency and update all related records
 BEGIN TRANSACTION;
@@ -596,11 +677,17 @@ BEGIN TRANSACTION;
 COMMIT TRANSACTION;
 ```
 
+**Detailed Query Explanation:** The script wraps frequency updates, archival `SELECT INTO`, and cleanup deletes in a single transaction to ensure the dataset stays consistent if anything fails midway.
+**Detailed Results Explanation:** After completion the target indicator reflects the new frequency, older non-quarter-end rows live in the archive table, and console messages confirm how many records moved.
+
 ---
 
 ### Exercise 7.11: Merge Operations (UPSERT)
 
 **Task 15:** Insert or update based on existence
+**Topic:** MS20761 Module 7 Lesson 4 – Use MERGE to upsert banking statistics
+**Beginner Explanation:** The MERGE statement compares incoming rows to existing ones, updating matches and inserting new combinations while reporting the action taken.
+
 ```sql
 -- Merge new banking statistics (insert if new, update if exists)
 MERGE INTO BankingStatistics AS target
@@ -632,6 +719,9 @@ OUTPUT
     inserted.ReportingDate,
     inserted.TotalAssets;
 ```
+
+**Detailed Query Explanation:** Source values are declared inline and matched on BankID plus ReportingDate. The `WHEN MATCHED` clause updates existing rows, while `WHEN NOT MATCHED` inserts new ones, and the `OUTPUT` clause logs what happened.
+**Detailed Results Explanation:** After execution you’ll see whether each bank/date combination was updated or inserted, giving immediate feedback on the merge outcome.
 
 ---
 
