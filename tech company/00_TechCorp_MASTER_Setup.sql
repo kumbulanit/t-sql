@@ -77,6 +77,18 @@ BEGIN
     PRINT '✓ Dropped PerformanceMetrics table';
 END
 
+IF EXISTS (SELECT * FROM sys.tables WHERE name = 'DepartmentHistory')
+BEGIN
+    DROP TABLE DepartmentHistory;
+    PRINT '✓ Dropped DepartmentHistory table';
+END
+
+IF EXISTS (SELECT * FROM sys.tables WHERE name = 'EmployeeArchive')
+BEGIN
+    DROP TABLE EmployeeArchive;
+    PRINT '✓ Dropped EmployeeArchive table';
+END
+
 IF EXISTS (SELECT * FROM sys.tables WHERE name = 'ProductSuppliers')
 BEGIN
     DROP TABLE ProductSuppliers;
@@ -270,6 +282,7 @@ CREATE TABLE Departments (
     DepartmentCode NVARCHAR(10) NOT NULL,
     ManagerEmployeeID INT NULL,
     Budget DECIMAL(12,2) NULL,
+    BudgetPeriod NVARCHAR(20) NULL CHECK (BudgetPeriod IN ('Annual', 'Quarterly', 'Monthly')),
     CostCenter NVARCHAR(20) NULL,
     Location NVARCHAR(100) NULL,
     IsActive BIT NOT NULL DEFAULT 1,
@@ -295,14 +308,18 @@ CREATE TABLE Employees (
     HireDate DATE NOT NULL,
     TerminationDate DATE NULL,
     BaseSalary DECIMAL(10,2) NOT NULL,
+    BonusTarget DECIMAL(10,2) NULL,
     CommissionRate DECIMAL(5,4) NULL,
     BonusEligible BIT NOT NULL DEFAULT 1,
+    EmploymentType NVARCHAR(20) NULL CHECK (EmploymentType IN ('Full-Time', 'Part-Time', 'Contract', 'Temporary', 'Intern')),
     WorkEmail NVARCHAR(100) NOT NULL UNIQUE,
     WorkPhone NVARCHAR(20) NULL,
+    Phone NVARCHAR(20) NULL, -- Alias for WorkPhone for training compatibility
     PersonalEmail NVARCHAR(100) NULL,
     PersonalPhone NVARCHAR(20) NULL,
     BirthDate DATE NULL,
     Gender CHAR(1) NULL CHECK (Gender IN ('M', 'F', 'N')),
+    Nationality NVARCHAR(50) NULL,
     MaritalStatus CHAR(1) NULL CHECK (MaritalStatus IN ('S', 'M', 'D', 'W')),
     EmergencyContact NVARCHAR(100) NULL,
     EmergencyPhone NVARCHAR(20) NULL,
@@ -336,6 +353,10 @@ IF EXISTS (SELECT * FROM sys.tables WHERE name = 'TimeTracking')
     TRUNCATE TABLE TimeTracking;
 IF EXISTS (SELECT * FROM sys.tables WHERE name = 'PerformanceMetrics')
     DELETE FROM PerformanceMetrics;
+IF EXISTS (SELECT * FROM sys.tables WHERE name = 'DepartmentHistory')
+    DELETE FROM DepartmentHistory;
+IF EXISTS (SELECT * FROM sys.tables WHERE name = 'EmployeeArchive')
+    DELETE FROM EmployeeArchive;
 IF EXISTS (SELECT * FROM sys.tables WHERE name = 'ProductSuppliers')
     TRUNCATE TABLE ProductSuppliers;
 IF EXISTS (SELECT * FROM sys.tables WHERE name = 'OrderDetails')
@@ -604,13 +625,14 @@ INSERT INTO Employees (CompanyID, DepartmentID, JobLevelID, EmployeeNumber, Firs
 PRINT 'Leadership employees populated successfully.';
 
 -- =============================================
--- STEP 8.5: SYNCHRONIZE MANAGERID WITH REPORTSTOID
+-- STEP 8.5: SYNCHRONIZE ALIAS FIELDS FOR TRAINING COMPATIBILITY
 -- =============================================
-PRINT 'Step 8.5: Synchronizing ManagerID fields for training compatibility...';
+PRINT 'Step 8.5: Synchronizing alias fields for training compatibility...';
 
 -- Update ManagerID to match ReportsToEmployeeID for all employees
 UPDATE Employees 
-SET ManagerID = ReportsToEmployeeID;
+SET ManagerID = ReportsToEmployeeID,
+    Phone = WorkPhone; -- Synchronize Phone alias
 
 -- Update department managers (some examples)
 UPDATE Departments SET ManagerEmployeeID = 3001 WHERE DepartmentID = 2001; -- Sarah Johnson manages Engineering
@@ -618,7 +640,7 @@ UPDATE Departments SET ManagerEmployeeID = 3003 WHERE DepartmentID = 2002; -- Je
 UPDATE Departments SET ManagerEmployeeID = 3004 WHERE DepartmentID = 2006; -- David Rodriguez manages Development
 UPDATE Departments SET ManagerEmployeeID = 3006 WHERE DepartmentID = 2014; -- Robert Thompson manages Investment Banking
 
-PRINT 'ManagerID fields synchronized successfully.';
+PRINT 'Alias fields synchronized successfully (ManagerID, Phone).';
 
 -- =============================================
 -- STEP 9: ADVANCED TABLES CREATION
@@ -774,8 +796,20 @@ CREATE TABLE Projects (
     ProjectTypeID INT NOT NULL,
     ProjectManagerID INT NULL, -- Project manager (references Employees)
     StartDate DATE NOT NULL,
-    EndDate DATE NULL,
+    PlannedEndDate DATE NULL,
+    EndDate DATE NULL, -- Alias for PlannedEndDate for backward compatibility
+    ActualEndDate DATE NULL,
     Budget DECIMAL(12,2) NULL,
+    ActualCost DECIMAL(12,2) NULL,
+    EstimatedHours DECIMAL(8,1) NULL,
+    ActualHours DECIMAL(8,1) NULL,
+    BillingType NVARCHAR(20) NULL CHECK (BillingType IN ('Fixed Price', 'Time & Materials', 'Retainer', 'Milestone')),
+    HourlyRate DECIMAL(8,2) NULL,
+    Currency NVARCHAR(3) NULL DEFAULT 'USD',
+    RiskLevel TINYINT NULL CHECK (RiskLevel BETWEEN 1 AND 5),
+    ClientName NVARCHAR(100) NULL,
+    ClientContactName NVARCHAR(100) NULL,
+    ClientContactEmail NVARCHAR(100) NULL,
     Status NVARCHAR(20) NOT NULL DEFAULT 'Active',
     Priority NVARCHAR(10) NOT NULL DEFAULT 'Medium',
     Description NVARCHAR(1000) NULL,
@@ -792,9 +826,14 @@ CREATE TABLE EmployeeSkills (
     EmployeeID INT NOT NULL,
     SkillID INT NOT NULL,
     ProficiencyLevel TINYINT NOT NULL CHECK (ProficiencyLevel BETWEEN 1 AND 5),
-    YearsExperience DECIMAL(3,1) NULL,
+    YearsExperience DECIMAL(4,1) NULL,
     LastAssessed DATE NULL,
+    LastUsedDate DATE NULL,
     CertificationDate DATE NULL,
+    IsPrimary BIT NOT NULL DEFAULT 0,
+    SelfAssessmentScore TINYINT NULL CHECK (SelfAssessmentScore BETWEEN 1 AND 10),
+    ManagerAssessmentScore TINYINT NULL CHECK (ManagerAssessmentScore BETWEEN 1 AND 10),
+    AssessmentDate DATE NULL,
     IsActive BIT NOT NULL DEFAULT 1,
     FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID),
     FOREIGN KEY (SkillID) REFERENCES Skills(SkillID),
@@ -812,36 +851,57 @@ CREATE TABLE EmployeeProjects (
     AllocationPercentage DECIMAL(5,2) NOT NULL DEFAULT 100.00,
     HoursWorked DECIMAL(8,2) NOT NULL DEFAULT 0,
     HoursAllocated DECIMAL(8,2) NOT NULL DEFAULT 0, -- Keep for backward compatibility
+    EstimatedHours DECIMAL(8,2) NULL,
+    BillableRate DECIMAL(8,2) NULL,
     HourlyRate DECIMAL(8,2) NULL,
+    PerformanceRating TINYINT NULL CHECK (PerformanceRating BETWEEN 1 AND 5),
+    IsLead BIT NOT NULL DEFAULT 0,
+    ResponsibilityArea NVARCHAR(200) NULL,
+    ClientFeedbackScore TINYINT NULL CHECK (ClientFeedbackScore BETWEEN 1 AND 5),
+    InternalFeedbackScore TINYINT NULL CHECK (InternalFeedbackScore BETWEEN 1 AND 5),
     IsActive BIT NOT NULL DEFAULT 1,
+    CreatedDate DATETIME2(3) NOT NULL DEFAULT SYSDATETIME(),
     FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID),
     FOREIGN KEY (ProjectID) REFERENCES Projects(ProjectID)
 );
 
 -- Performance Metrics table
 CREATE TABLE PerformanceMetrics (
-    MetricID INT PRIMARY KEY IDENTITY(1,1),
+    PerformanceMetricID INT PRIMARY KEY IDENTITY(1,1),
+    MetricID INT NULL, -- Alias for PerformanceMetricID for backward compatibility
     EmployeeID INT NOT NULL,
     MetricType NVARCHAR(50) NOT NULL,
-    MetricValue DECIMAL(10,2) NOT NULL,
-    Target DECIMAL(10,2) NULL,
+    MetricName NVARCHAR(100) NULL,
+    TargetValue DECIMAL(10,2) NULL,
+    Target DECIMAL(10,2) NULL, -- Alias for TargetValue for backward compatibility
+    ActualValue DECIMAL(10,2) NULL,
+    MetricValue DECIMAL(10,2) NULL, -- Alias for ActualValue for backward compatibility
+    MeasurementUnit NVARCHAR(50) NULL,
     Achievement DECIMAL(5,2) NULL, -- Percentage of target achieved
-    MeasurementDate DATE NOT NULL,
-    Quarter TINYINT NOT NULL,
-    Year SMALLINT NOT NULL,
+    PeriodStart DATE NULL,
+    PeriodEnd DATE NULL,
+    MeasurementDate DATE NULL,
+    ReviewDate DATE NULL,
+    Quarter TINYINT NULL,
+    Year SMALLINT NULL,
+    Weight DECIMAL(5,2) NULL,
     Comments NVARCHAR(500) NULL,
+    ReviewedBy NVARCHAR(100) NULL,
     IsActive BIT NOT NULL DEFAULT 1,
+    CreatedDate DATETIME2(3) NOT NULL DEFAULT SYSDATETIME(),
     FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID)
 );
 
 -- Time Tracking table
 CREATE TABLE TimeTracking (
-    TimeEntryID INT PRIMARY KEY IDENTITY(1,1),
+    TimeTrackingID INT PRIMARY KEY IDENTITY(1,1),
+    TimeEntryID INT NULL, -- Alias for TimeTrackingID for backward compatibility
     EmployeeID INT NOT NULL,
     ProjectID INT NULL,
     WorkDate DATE NOT NULL,
     HoursWorked DECIMAL(4,2) NOT NULL,
-    ActivityType NVARCHAR(50) NOT NULL,
+    WorkCategory NVARCHAR(50) NULL,
+    ActivityType NVARCHAR(50) NULL, -- Alias for WorkCategory for backward compatibility
     Description NVARCHAR(500) NULL,
     BillableHours DECIMAL(4,2) NOT NULL DEFAULT 0,
     HourlyRate DECIMAL(8,2) NULL,
@@ -851,7 +911,42 @@ CREATE TABLE TimeTracking (
     FOREIGN KEY (ProjectID) REFERENCES Projects(ProjectID)
 );
 
-PRINT 'Advanced tables created successfully.';
+-- Employee Archive table (for Module 11, 12, 13 - UNION, Set Operators, Window Functions)
+CREATE TABLE EmployeeArchive (
+    EmployeeArchiveID INT PRIMARY KEY IDENTITY(1,1),
+    EmployeeID INT NOT NULL,
+    FirstName NVARCHAR(50) NOT NULL,
+    LastName NVARCHAR(50) NOT NULL,
+    MiddleName NVARCHAR(50) NULL,
+    JobTitle NVARCHAR(100) NULL,
+    BaseSalary DECIMAL(10,2) NULL,
+    DepartmentID INT NULL,
+    DepartmentName NVARCHAR(100) NULL,
+    ArchiveDate DATE NOT NULL DEFAULT GETDATE(),
+    TerminationDate DATE NULL,
+    ReasonForLeaving NVARCHAR(200) NULL,
+    IsActive BIT NOT NULL DEFAULT 0,
+    ArchivedBy NVARCHAR(100) NOT NULL DEFAULT SYSTEM_USER,
+    CreatedDate DATETIME2(3) NOT NULL DEFAULT SYSDATETIME()
+);
+
+-- Department History table (for Module 11 - EXCEPT operations)
+CREATE TABLE DepartmentHistory (
+    DepartmentHistoryID INT PRIMARY KEY IDENTITY(1,1),
+    DepartmentID INT NOT NULL,
+    DepartmentName NVARCHAR(100) NOT NULL,
+    DepartmentCode NVARCHAR(10) NULL,
+    Budget DECIMAL(12,2) NULL,
+    Location NVARCHAR(100) NULL,
+    EffectiveDate DATE NOT NULL,
+    EndDate DATE NULL,
+    ChangeType NVARCHAR(50) NULL,
+    ChangedBy NVARCHAR(100) NOT NULL DEFAULT SYSTEM_USER,
+    CreatedDate DATETIME2(3) NOT NULL DEFAULT SYSDATETIME(),
+    FOREIGN KEY (DepartmentID) REFERENCES Departments(DepartmentID)
+);
+
+PRINT 'Advanced tables created successfully (including EmployeeArchive and DepartmentHistory).';
 
 -- =============================================
 -- STEP 9.5: ADD MISSING FOREIGN KEY CONSTRAINTS
@@ -1007,6 +1102,148 @@ INSERT INTO TimeTracking (EmployeeID, ProjectID, WorkDate, HoursWorked, Activity
 (3006, 5007, '2024-10-02', 6.00, 'Compliance Review', 'Regulatory requirements analysis', 6.00, 250.00, 1);
 
 PRINT 'Employee project assignments and time tracking data populated successfully.';
+
+-- Synchronize alias columns in TimeTracking
+UPDATE TimeTracking
+SET TimeEntryID = TimeTrackingID,
+    WorkCategory = ActivityType;
+
+-- Synchronize alias columns in Projects (PlannedEndDate = EndDate for backward compatibility)
+UPDATE Projects
+SET PlannedEndDate = EndDate;
+
+-- =============================================
+-- STEP 11.6: EMPLOYEE ARCHIVE AND DEPARTMENT HISTORY DATA
+-- =============================================
+PRINT 'Step 11.6: Populating employee archive and department history...';
+
+-- Insert archived employees (formerly employed)
+INSERT INTO EmployeeArchive (EmployeeID, FirstName, LastName, MiddleName, JobTitle, BaseSalary, DepartmentID, DepartmentName, ArchiveDate, TerminationDate, ReasonForLeaving)
+VALUES 
+(9001, 'James', 'Anderson', 'Michael', 'Senior Software Engineer', 95000.00, 2001, 'Engineering', '2023-12-31', '2023-12-15', 'Accepted position at competitor'),
+(9002, 'Mary', 'Williams', 'Elizabeth', 'Sales Manager', 105000.00, 2002, 'Sales', '2023-10-31', '2023-10-15', 'Career advancement opportunity'),
+(9003, 'Robert', 'Martinez', 'James', 'Software Developer', 78000.00, 2001, 'Engineering', '2023-08-31', '2023-08-15', 'Relocation to another state'),
+(9004, 'Patricia', 'Garcia', 'Ann', 'Marketing Specialist', 68000.00, 2003, 'Marketing', '2023-06-30', '2023-06-15', 'Personal/family reasons'),
+(9005, 'Michael', 'Rodriguez', 'David', 'HR Coordinator', 62000.00, 2004, 'Human Resources', '2023-03-31', '2023-03-15', 'Early retirement'),
+(9006, 'Linda', 'Wilson', 'Marie', 'Financial Analyst', 72000.00, 2005, 'Finance', '2023-01-31', '2023-01-15', 'Pursuing graduate education'),
+(9007, 'William', 'Davis', 'John', 'DevOps Engineer', 88000.00, 2006, 'Development', '2022-12-31', '2022-12-15', 'Contract completion'),
+(9008, 'Barbara', 'Lopez', 'Jean', 'Sales Representative', 58000.00, 2008, 'Sales', '2022-10-31', '2022-10-15', 'Performance issues'),
+(9009, 'Richard', 'Gonzalez', 'Paul', 'Junior Developer', 55000.00, 2001, 'Engineering', '2022-08-31', '2022-08-15', 'Career change to different field'),
+(9010, 'Susan', 'Hernandez', 'Kay', 'Marketing Coordinator', 52000.00, 2003, 'Marketing', '2022-06-30', '2022-06-15', 'Voluntary resignation');
+
+PRINT '✓ EmployeeArchive data populated (10 archived employees)';
+
+-- Insert department history (previous budget and location changes)
+INSERT INTO DepartmentHistory (DepartmentID, DepartmentName, DepartmentCode, Budget, Location, EffectiveDate, EndDate, ChangeType)
+SELECT 
+    DepartmentID, 
+    DepartmentName,
+    DepartmentCode,
+    Budget * 0.85, -- Historical budget was 15% lower
+    Location,
+    DATEADD(YEAR, -1, GETDATE()),
+    DATEADD(DAY, -1, GETDATE()),
+    'Annual Budget Increase'
+FROM Departments
+WHERE DepartmentID IN (2001, 2002, 2003, 2004, 2005);
+
+-- Add some location changes
+INSERT INTO DepartmentHistory (DepartmentID, DepartmentName, DepartmentCode, Budget, Location, EffectiveDate, EndDate, ChangeType)
+VALUES
+(2001, 'Engineering', 'ENG', 2125000.00, 'San Francisco HQ - Old Building', DATEADD(YEAR, -2, GETDATE()), DATEADD(YEAR, -1, GETDATE()), 'Office Relocation'),
+(2002, 'Sales', 'SALES', 1530000.00, 'San Francisco HQ - Floor 3', DATEADD(MONTH, -18, GETDATE()), DATEADD(MONTH, -6, GETDATE()), 'Departmental Reorganization');
+
+PRINT '✓ DepartmentHistory data populated (7 historical records)';
+PRINT 'Employee archive and department history data populated successfully.';
+
+-- =============================================
+-- STEP 11.7: EMPLOYEE SKILLS AND PERFORMANCE METRICS DATA
+-- =============================================
+PRINT 'Step 11.7: Populating employee skills and performance metrics...';
+
+-- Insert employee skills (linking employees to their competencies)
+INSERT INTO EmployeeSkills (EmployeeID, SkillID, ProficiencyLevel, YearsExperience, LastAssessed, CertificationDate)
+VALUES 
+-- Leadership skills
+(3001, 13, 5, 15.0, '2024-01-15', '2010-06-01'), -- CEO - Team Leadership (Expert)
+(3001, 14, 5, 18.0, '2024-01-15', '2008-03-15'), -- CEO - Strategic Planning (Expert)
+(3001, 31, 5, 20.0, '2024-01-15', NULL),         -- CEO - Financial Services Domain
+
+-- CTO skills
+(3002, 1, 5, 12.0, '2024-02-01', '2012-09-01'),  -- CTO - C# Programming (Expert)
+(3002, 2, 5, 15.0, '2024-02-01', '2010-04-15'),  -- CTO - SQL Server (Expert)
+(3002, 9, 4, 10.0, '2024-02-01', '2015-07-20'),  -- CTO - Azure Cloud (Advanced)
+(3002, 13, 4, 8.0, '2024-02-01', NULL),          -- CTO - Team Leadership (Advanced)
+
+-- VP Sales skills
+(3003, 17, 5, 12.0, '2024-02-15', NULL),         -- VP Sales - Client Communication (Expert)
+(3003, 13, 4, 10.0, '2024-02-15', NULL),         -- VP Sales - Team Leadership (Advanced)
+(3003, 14, 4, 8.0, '2024-02-15', NULL),          -- VP Sales - Strategic Planning (Advanced)
+
+-- CloudTech CEO
+(3004, 13, 5, 15.0, '2024-01-20', '2009-05-01'), -- CEO - Team Leadership (Expert)
+(3004, 14, 5, 18.0, '2024-01-20', '2007-08-10'), -- CEO - Strategic Planning (Expert)
+(3004, 9, 4, 12.0, '2024-01-20', '2015-03-15'),  -- CEO - Azure Cloud (Advanced)
+
+-- CloudTech VP Engineering
+(3005, 1, 5, 10.0, '2024-02-01', '2014-06-01'),  -- VP Eng - C# Programming (Expert)
+(3005, 3, 5, 12.0, '2024-02-01', '2012-04-15'),  -- VP Eng - JavaScript (Expert)
+(3005, 9, 5, 8.0, '2024-02-01', '2018-09-20'),   -- VP Eng - Azure Cloud (Expert)
+(3005, 12, 4, 6.0, '2024-02-01', '2019-11-10'),  -- VP Eng - Kubernetes (Advanced)
+
+-- Global Finance CEO
+(3006, 13, 5, 20.0, '2024-01-10', '2005-03-01'), -- CEO - Team Leadership (Expert)
+(3006, 14, 5, 22.0, '2024-01-10', '2003-01-15'), -- CEO - Strategic Planning (Expert)
+(3006, 22, 5, 25.0, '2024-01-10', NULL),         -- CEO - Financial Analysis (Expert)
+(3006, 31, 5, 20.0, '2024-01-10', NULL),         -- CEO - Financial Services Domain (Expert)
+
+-- Global Finance CRO
+(3007, 24, 5, 15.0, '2024-01-15', NULL),         -- CRO - Risk Management (Expert)
+(3007, 22, 5, 18.0, '2024-01-15', '2010-05-20'), -- CRO - Financial Analysis (Expert)
+(3007, 33, 5, 12.0, '2024-01-15', '2015-07-10'); -- CRO - Regulatory Compliance (Expert)
+
+PRINT '✓ EmployeeSkills data populated (20 skill assignments)';
+
+-- Insert performance metrics for employees
+INSERT INTO PerformanceMetrics (EmployeeID, MetricType, MetricValue, Target, Achievement, MeasurementDate, Quarter, Year, Comments)
+VALUES 
+-- Q1 2024 Leadership Performance
+(3001, 'Leadership Score', 95.00, 90.00, 105.56, '2024-03-31', 1, 2024, 'Excellent strategic direction'),
+(3001, 'Revenue Growth', 12.50, 10.00, 125.00, '2024-03-31', 1, 2024, 'Exceeded revenue targets'),
+(3002, 'Technical Delivery', 92.00, 90.00, 102.22, '2024-03-31', 1, 2024, 'Strong technical leadership'),
+(3002, 'Team Satisfaction', 88.00, 85.00, 103.53, '2024-03-31', 1, 2024, 'High team morale'),
+(3003, 'Sales Target', 88.00, 85.00, 103.53, '2024-03-31', 1, 2024, 'Beat quarterly sales goal'),
+(3003, 'Client Retention', 94.00, 90.00, 104.44, '2024-03-31', 1, 2024, 'Excellent client relationships'),
+
+-- Q1 2024 CloudTech Performance
+(3004, 'Leadership Score', 93.00, 90.00, 103.33, '2024-03-31', 1, 2024, 'Strong company growth'),
+(3005, 'Technical Delivery', 96.00, 90.00, 106.67, '2024-03-31', 1, 2024, 'Outstanding project delivery'),
+(3005, 'Innovation', 90.00, 85.00, 105.88, '2024-03-31', 1, 2024, 'Introduced new cloud solutions'),
+
+-- Q1 2024 Global Finance Performance
+(3006, 'Leadership Score', 98.00, 90.00, 108.89, '2024-03-31', 1, 2024, 'Exceptional leadership'),
+(3006, 'Financial Performance', 105.00, 100.00, 105.00, '2024-03-31', 1, 2024, 'Exceeded all financial targets'),
+(3007, 'Risk Management', 94.00, 90.00, 104.44, '2024-03-31', 1, 2024, 'Effective risk mitigation'),
+(3007, 'Compliance Score', 100.00, 95.00, 105.26, '2024-03-31', 1, 2024, 'Perfect compliance record'),
+
+-- Q2 2024 Performance
+(3001, 'Leadership Score', 93.00, 90.00, 103.33, '2024-06-30', 2, 2024, 'Consistent leadership'),
+(3002, 'Technical Delivery', 95.00, 90.00, 105.56, '2024-06-30', 2, 2024, 'Improved delivery metrics'),
+(3003, 'Sales Target', 92.00, 90.00, 102.22, '2024-06-30', 2, 2024, 'Strong Q2 performance'),
+(3004, 'Leadership Score', 91.00, 90.00, 101.11, '2024-06-30', 2, 2024, 'Solid quarter'),
+(3005, 'Technical Delivery', 94.00, 90.00, 104.44, '2024-06-30', 2, 2024, 'Continued excellence'),
+(3006, 'Financial Performance', 102.00, 100.00, 102.00, '2024-06-30', 2, 2024, 'Strong financial results'),
+(3007, 'Risk Management', 96.00, 90.00, 106.67, '2024-06-30', 2, 2024, 'Enhanced risk controls');
+
+PRINT '✓ PerformanceMetrics data populated (20 performance records)';
+
+-- Synchronize alias columns in PerformanceMetrics
+UPDATE PerformanceMetrics
+SET MetricID = PerformanceMetricID,
+    TargetValue = Target,
+    ActualValue = MetricValue;
+
+PRINT 'Employee skills and performance metrics data populated successfully.';
 
 -- =============================================
 -- STEP 12: CUSTOMERS DATA
@@ -1204,7 +1441,11 @@ PRINT '- 6 Recent orders with order details';
 PRINT '- 5 Suppliers with product relationships';
 PRINT '- 30+ Skills across 6 categories';
 PRINT '- 8+ Active projects with budgets and timelines';
-PRINT '- Complete business ecosystem for all SQL training modules';
+PRINT '- 10 Archived employees (for UNION operations - Module 11)';
+PRINT '- 7 Department history records (for EXCEPT operations - Module 11)';
+PRINT '- 20 Employee skill assignments (proficiency tracking)';
+PRINT '- 20 Performance metric records (KPI tracking)';
+PRINT '- Complete business ecosystem for ALL 18 SQL training modules';
 
 -- =============================================
 -- FINAL VERIFICATION
@@ -1235,6 +1476,8 @@ SELECT 'Departments', COUNT(*) FROM Departments
 UNION ALL
 SELECT 'Employees', COUNT(*) FROM Employees
 UNION ALL
+SELECT 'EmployeeArchive', COUNT(*) FROM EmployeeArchive
+UNION ALL
 SELECT 'Customers', COUNT(*) FROM Customers
 UNION ALL
 SELECT 'Products', COUNT(*) FROM Products
@@ -1247,7 +1490,17 @@ SELECT 'Suppliers', COUNT(*) FROM Suppliers
 UNION ALL
 SELECT 'Skills', COUNT(*) FROM Skills
 UNION ALL
-SELECT 'Projects', COUNT(*) FROM Projects;
+SELECT 'EmployeeSkills', COUNT(*) FROM EmployeeSkills
+UNION ALL
+SELECT 'Projects', COUNT(*) FROM Projects
+UNION ALL
+SELECT 'EmployeeProjects', COUNT(*) FROM EmployeeProjects
+UNION ALL
+SELECT 'TimeTracking', COUNT(*) FROM TimeTracking
+UNION ALL
+SELECT 'PerformanceMetrics', COUNT(*) FROM PerformanceMetrics
+UNION ALL
+SELECT 'DepartmentHistory', COUNT(*) FROM DepartmentHistory;
 
 PRINT '';
 PRINT 'Companies by Size:';
@@ -1326,4 +1579,21 @@ PRINT 'COMPLETE DATABASE SETUP FINISHED!';
 PRINT 'TechCorp database ready for ALL SQL training modules';
 PRINT 'Includes: Companies, Departments, Employees, Customers,';
 PRINT 'Products, Orders, Suppliers, Skills, Projects & More!';
+PRINT '';
+PRINT 'SCHEMA ENHANCEMENTS (November 25, 2025):';
+PRINT '✓ Added comprehensive column coverage for all modules';
+PRINT '✓ Training compatibility aliases:';
+PRINT '  - Employees: ManagerID = ReportsToEmployeeID';
+PRINT '  - Employees: Phone = WorkPhone';
+PRINT '  - Projects: PlannedEndDate = EndDate';
+PRINT '  - PerformanceMetrics: MetricID, TargetValue, ActualValue aliases';
+PRINT '  - TimeTracking: TimeEntryID, WorkCategory aliases';
+PRINT '✓ Enhanced columns:';
+PRINT '  - Employees: BonusTarget, EmploymentType, Nationality';
+PRINT '  - Departments: BudgetPeriod';
+PRINT '  - Projects: Extended tracking (Billing, Client, Risk, etc.)';
+PRINT '  - EmployeeSkills: Assessment scores (Self/Manager)';
+PRINT '  - EmployeeProjects: Performance tracking fields';
+PRINT '  - PerformanceMetrics: Comprehensive metric tracking';
+PRINT '✓ All 18 training modules fully supported';
 PRINT '==============================================';

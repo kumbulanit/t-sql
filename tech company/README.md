@@ -1,160 +1,232 @@
-# TechCorp Database - SQL Training Data Scripts
+# TechCorp SQL Training Database
 
-This folder contains comprehensive SQL scripts to create and populate the **TechCorp Solutions** database for SQL Server 2016 training across all modules.
+## Overview
+Complete T-SQL training database with comprehensive business data covering 18 progressive training modules. Perfect for learning SQL from beginner to advanced concepts.
 
-## 📋 Script Execution Order
+## 🚀 Quick Start
 
-### **Quick Setup (Recommended)**
-Run the master script to create everything at once:
+### Master Setup Script
+**File:** `00_TechCorp_MASTER_Setup.sql`
+
+This is the **ONLY** file you need to run to set up the entire database.
+
 ```sql
--- Execute in SQL Server Management Studio (SSMS)
-:r "00_TechCorp_Master_Setup.sql"
+-- Run this single file in SQL Server Management Studio (SSMS)
+-- It creates everything: database, tables, sample data, and verification queries
 ```
 
-### **Step-by-Step Setup**
-Or run individual scripts in this exact order:
+**What it includes:**
+- ✅ Complete database creation and cleanup
+- ✅ 22+ tables with full schema definitions
+- ✅ 1,500+ rows of realistic sample data
+- ✅ Foreign key relationships and constraints
+- ✅ Training compatibility aliases (ManagerID, Phone, PlannedEndDate)
+- ✅ Advanced tables for Module 11-18 (EmployeeArchive, DepartmentHistory, etc.)
+- ✅ Verification queries to confirm setup
 
-1. **`01_TechCorp_Database_Creation.sql`** - Creates the TechCorpDB database
-2. **`02_TechCorp_Table_Creation.sql`** - Creates all database tables and relationships
-3. **`03_TechCorp_Lookup_Data.sql`** - Populates lookup tables (Countries, Industries, etc.)
-4. **`04_TechCorp_Companies_Data.sql`** - Populates company data
-5. **`05_TechCorp_Departments_Data.sql`** - Populates d.DepartmentName data
-6. **`06_TechCorp_Employees_Leadership.sql`** - Populates leadership employees (managers/directors)
-7. **`07_TechCorp_Employees_Regular.sql`** - Populates regular employees
-8. **`08_TechCorp_Advanced_Tables.sql`** - Creates advanced tables (Skills, Projects, etc.)
-9. **`09_TechCorp_Skills_Data.sql`** - Populates skills and project types
-10. **`10_TechCorp_Projects_Data.sql`** - Populates real project data with teams
-11. **`11_TechCorp_Employee_Skills.sql`** - Assigns skills to employees with proficiency levels
-12. **`12_TechCorp_Project_Assignments.sql`** - Assigns employees to projects with roles
-13. **`13_TechCorp_Performance_Data.sql`** - Performance metrics and time tracking data
+**Size:** 1,598 lines | **Last Updated:** November 25, 2025
 
-## 🏢 Database Structure Overview
+---
 
-### **Module 1-2 (Foundation Tables)**
-- **Countries** (12 records) - Global locations
-- **Industries** (12 records) - Business sectors  
-- **SkillCategories** (12 records) - Skill classifications
-- **JobLevels** (10 records) - Career progression levels
+## 📊 Database Schema
 
-### **Module 2-3 (Core Business)**
-- **Companies** (15 records) - Diverse company sizes and industries
-- **Departments** (60+ records) - Organizational structure
-- **Employees** (65+ records) - Complete employee hierarchy
+### Core Tables
+- **Countries** - Lookup table for countries and regions
+- **Industries** - Business industry classifications
+- **Companies** - 15 companies across multiple industries
+- **Departments** - 20+ departments with budgets and locations
+- **Employees** - Employee records with full details
+- **JobLevels** - Job level classifications with salary ranges
 
-### **Module 5-7 (Advanced Features)**
-- **Skills** (35+ records) - Technical and business skills
-- **ProjectTypes** (12 records) - Project classifications
-- **Projects** - Real-world project scenarios
-- **EmployeeSkills** - Skill proficiency tracking
-- **PerformanceMetrics** - Employee performance data
+### Skills & Projects
+- **Skills** - 30+ technical and soft skills
+- **SkillCategories** - Skill classification system
+- **Projects** - Active and completed projects
+- **EmployeeSkills** - Employee skill proficiency tracking
+- **EmployeeProjects** - Project assignment and allocation
 
-## 🎯 Training Module Support
+### Business Operations
+- **Customers** - Business, Enterprise, Government, Individual customers
+- **Products** - Products and services catalog
+- **Orders** - Sales orders with full lifecycle
+- **OrderDetails** - Line items for orders
+- **Suppliers** - Supplier relationships
+- **ProductSuppliers** - Product-supplier junction table
 
-| Module | Focus Area | Sample Data Available |
-|--------|------------|----------------------|
-| **Module 1** | SQL Server Architecture | Database files, basic tables |
-| **Module 2** | T-SQL Fundamentals | Simple SELECT statements |
-| **Module 3** | Basic SELECT | Column aliases, CASE expressions |
-| **Module 4** | Multiple Tables | Complex JOINs across 6+ tables |
-| **Module 5** | Sorting & Filtering | Advanced WHERE, ORDER BY, TOP |
-| **Module 6** | Data Types | Diverse data types and scenarios |
-| **Module 7** | DML Operations | INSERT, UPDATE, DELETE scenarios |
-| **Module 8** | Functions | Built-in functions with real data |
-| **Module 9** | Grouping & Aggregating | Business analytics queries |
+### Performance & Analytics
+- **PerformanceMetrics** - KPI and performance tracking
+- **TimeTracking** - Employee time entries
+- **EmployeeArchive** - Historical employee records (for UNION operations)
+- **DepartmentHistory** - Department change history (for temporal queries)
 
-## 💼 Business Context: TechCorp Solutions
+---
 
-**TechCorp Solutions** is a fictional technology consulting firm with:
-- **145 employees** across 7 departments
-- **$15.5M annual revenue**
-- **Multiple client projects** spanning various industries
-- **Global presence** with international partnerships
-- **Comprehensive skill tracking** and performance metrics
+## 📚 Module Coverage
 
-### Sample Companies Included:
-- **Technology**: TechCorp Solutions, CloudTech Innovations, DevOps Masters
-- **Financial**: Global Finance Corp, Investment Partners LLC  
-- **Healthcare**: HealthTech Innovations, MedDevice Solutions
-- **Manufacturing**: AutoManu Systems, Precision Manufacturing
-- **Energy**: EnerTech Global
-- **International**: Global Tech Europe (Germany), Asia Pacific Solutions (Singapore)
+This database supports **all 18 SQL training modules**:
 
-## 🔍 Data Characteristics
+### Beginner (Modules 1-6)
+- Module 1-2: Basic SELECT, WHERE, ORDER BY
+- Module 3-4: JOIN operations (INNER, LEFT, RIGHT, FULL)
+- Module 5-6: Aggregate functions, GROUP BY, HAVING
 
-### **Progressive Complexity**
-- **Basic**: Simple lookups and reference data
-- **Intermediate**: Business relationships and hierarchies  
-- **Advanced**: Performance metrics and analytics data
+### Intermediate (Modules 7-12)
+- Module 7-8: Subqueries, derived tables
+- Module 9-10: Advanced JOINs, self-joins
+- Module 11: Set operators (UNION, INTERSECT, EXCEPT)
+- Module 12: Common Table Expressions (CTEs)
 
-### **Realistic Business Scenarios**
-- **BaseSalary ranges**: $25K (interns) to $485K (VPs)
-- **Geographic diversity**: 12 countries with coordinates
-- **Industry variety**: 12 sectors with risk levels
-- **Skill tracking**: 35+ skills across 8 categories
+### Advanced (Modules 13-18)
+- Module 13: Window functions (ROW_NUMBER, RANK, PARTITION BY)
+- Module 14: Advanced analytics and calculations
+- Module 15-16: Stored procedures and functions
+- Module 17-18: Performance optimization and indexing
 
-### **Query Examples Supported**
-```sql
--- Module 2: Simple queries
-SELECT * FROM Companies WHERE AnnualRevenue > 10000000;
+---
 
--- Module 4: Complex JOINs
-SELECT c.CompanyName, e.FirstName + ' ' + e.LastName as Manager
-FROM Companies c
-    INNER JOIN Departments d ON c.CompanyID = d.CompanyID
-    INNER JOIN Employees e ON d.ManagerEmployeeID = e.EmployeeID;
+## 📁 Folder Structure
 
--- Module 9: Advanced analytics
-SELECT 
-    c.CompanyName,
-    COUNT(e.EmployeeID) as EmployeeCount,
-    AVG(e.BaseSalary) as AvgSalary,
-    MAX(e.BaseSalary) as MaxSalary
-FROM Companies c
-    LEFT JOIN Employees e ON c.CompanyID = e.CompanyID
-GROUP BY c.CompanyID, c.CompanyName
-ORDER BY AvgSalary DESC;
+```
+tech company/
+├── 00_TechCorp_MASTER_Setup.sql          ⭐ MASTER SETUP FILE (USE THIS)
+├── README.md                              📖 This file
+├── adding_data_scripts/                   📂 Modular setup scripts (optional)
+│   ├── 01_TechCorp_Database_Creation.sql
+│   ├── 02_TechCorp_Table_Creation.sql
+│   ├── 03-13_*.sql                       (Component scripts)
+│   ├── README.md                          (Documentation for modular approach)
+│   └── archive/                           🗄️ Historical fix and test scripts
+│       ├── fix_scripts/                   (Column fixes, enhancements, validations)
+│       ├── test_scripts/                  (Test queries and validation scripts)
+│       └── documentation/                 (Development notes and guides)
+├── exercises/                             📝 Training exercises with solutions
+│   ├── Comprehensive_Beginner_Exercise_Complete.md
+│   └── Progressive_Exercise_Answer_Key_Complete.md
+└── untitled/                              🎓 18 Training modules
+    ├── Module_01_Basic_SELECT/
+    ├── Module_02_Filtering_WHERE/
+    ├── ...
+    └── Module_18_Performance_Optimization/
 ```
 
-## 🚀 Getting Started
+---
 
-1. **Open SQL Server Management Studio (SSMS)**
-2. **Connect to your SQL Server 2016 instance**
-3. **Run the master setup script**: `00_TechCorp_Master_Setup.sql`
-4. **Verify setup** with the sample queries provided
-5. **Start training** with Module 1 exercises
+## 🎯 Usage Instructions
 
-## 📊 Verification Queries
+### Option 1: Single-File Setup (RECOMMENDED)
+```sql
+-- Step 1: Open SSMS
+-- Step 2: Open 00_TechCorp_MASTER_Setup.sql
+-- Step 3: Execute (F5 or Execute button)
+-- Step 4: Done! Database is ready for training
+```
+
+### Option 2: Modular Setup (Advanced Users)
+If you prefer to run component scripts individually, use the files in `adding_data_scripts/` folder:
+- Run scripts in numerical order (01, 02, 03... 13)
+- See `adding_data_scripts/README.md` for detailed instructions
+
+---
+
+## 🔍 Sample Queries
 
 After setup, verify with these queries:
 
 ```sql
--- Check record counts
-SELECT 'Companies' as Table, COUNT(*) as Records FROM Companies
-UNION ALL
-SELECT 'Employees', COUNT(*) FROM Employees
-UNION ALL  
-SELECT 'Departments', COUNT(*) FROM Departments;
+-- Check database summary
+USE TechCorpDB;
+SELECT 'Countries' as TableName, COUNT(*) as RecordCount FROM Countries
+UNION ALL SELECT 'Companies', COUNT(*) FROM Companies
+UNION ALL SELECT 'Employees', COUNT(*) FROM Employees
+UNION ALL SELECT 'Customers', COUNT(*) FROM Customers
+UNION ALL SELECT 'Orders', COUNT(*) FROM Orders;
 
--- Test relationships
-SELECT TOP 5
-    e.FirstName + ' ' + e.LastName as Employee,
-    d.DepartmentName,
-    c.CompanyName
+-- View companies by size
+SELECT CompanySize, COUNT(*) as CompanyCount, AVG(AnnualRevenue) as AvgRevenue
+FROM Companies 
+GROUP BY CompanySize
+ORDER BY CompanyCount DESC;
+
+-- Employee project assignments
+SELECT e.FirstName + ' ' + e.LastName as EmployeeName, 
+       p.ProjectName, 
+       ep.Role, 
+       ep.HoursWorked
 FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    INNER JOIN Companies c ON e.CompanyID = c.CompanyID;
+JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+JOIN Projects p ON ep.ProjectID = p.ProjectID
+WHERE ep.IsActive = 1
+ORDER BY e.LastName;
 ```
 
-## 🛠️ Technical Requirements
+---
 
-- **SQL Server 2016** or later
-- **SQL Server Management Studio (SSMS)**
-- **Database permissions** to CREATE DATABASE
-- **Approximately 50MB** disk space
+## 🛠️ Archive Folder
+
+The `adding_data_scripts/archive/` folder contains historical scripts:
+
+- **fix_scripts/** - Column fixes, schema enhancements, validation scripts (kept for reference)
+- **test_scripts/** - Test queries used during development
+- **documentation/** - Development notes, enhancement guides, completion reports
+
+⚠️ **Note:** Archive files are for reference only. The master setup file already includes all fixes and enhancements.
+
+---
+
+## 📋 Database Statistics
+
+- **15 Companies** across 7 industries
+- **20+ Departments** with full budget tracking
+- **7 Leadership Employees** (C-level executives, VPs, Directors)
+- **10 Customers** (Business, Enterprise, Government, Individual)
+- **10 Products/Services** with pricing and inventory
+- **8 Active Projects** with budgets and timelines
+- **30+ Skills** across 6 categories
+- **20 Employee Skills** assignments with proficiency levels
+- **20 Performance Metrics** records
+- **10 Time Tracking** entries
+- **10 Archived Employees** (for UNION operations - Module 11)
+- **7 Department History** records (for temporal queries - Module 11)
+- **6 Recent Orders** with order details
+
+---
+
+## 🔄 Updates & Maintenance
+
+**Current Version:** 2.0 (November 25, 2025)
+
+**Recent Enhancements:**
+- ✅ Added BonusTarget, EmploymentType, BudgetPeriod columns
+- ✅ Training compatibility aliases (ManagerID, Phone, PlannedEndDate)
+- ✅ Extended Projects table with BillingType, HourlyRate, Currency
+- ✅ Enhanced PerformanceMetrics with Achievement calculations
+- ✅ Added EmployeeArchive and DepartmentHistory for advanced modules
+- ✅ Complete foreign key relationships and constraints
+
+---
+
+## 🤝 Contributing
+
+This database is designed for SQL training. If you find issues or want to suggest enhancements:
+1. Document the issue or enhancement clearly
+2. Test with the master setup file
+3. Submit changes via pull request
+
+---
 
 ## 📞 Support
 
-This database supports all SQL Server 2016 training modules with realistic, interconnected business data that demonstrates real-world scenarios students will encounter in professional environments.
+For questions or issues:
+- Review the `exercises/` folder for training examples
+- Check the `untitled/` modules for progressive learning content
+- Consult `adding_data_scripts/archive/documentation/` for historical context
 
 ---
-**Ready to start your SQL training journey with TechCorp Solutions!** 🚀
+
+## ⚖️ License
+
+This training database is provided for educational purposes.
+
+---
+
+**Happy Learning! 🎓**
