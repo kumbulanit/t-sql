@@ -1,19 +1,22 @@
 # Module 6: Built-In Functions
 ## Central Bank of Lesotho - Data Management Division
+## For Economists and Statisticians
 
 ### Lab Overview
 **Duration:** 90-120 minutes  
 **Difficulty:** Intermediate  
-**Prerequisites:** Modules 1-5 completed
+**Prerequisites:** Modules 1-5 completed  
+**Target Audience:** Economists and Statisticians formatting data for publication and analysis
 
 ---
 
 ## Learning Objectives
-1. Master string manipulation functions
-2. Use date and time functions effectively
-3. Apply mathematical and numeric functions
-4. Perform data type conversions
-5. Format data for reports and exports
+1. Master string manipulation for creating variable labels and metadata
+2. Use date and time functions for temporal analysis and fiscal year calculations
+3. Apply mathematical functions for index numbers, ratios, and growth rate calculations
+4. Perform data type conversions for econometric software compatibility
+5. Format statistical tables for publication in economic bulletins and policy briefs
+6. Generate standardized outputs compliant with international statistical standards (IMF SDDS)
 
 ---
 

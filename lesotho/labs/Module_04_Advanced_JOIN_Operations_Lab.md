@@ -1,19 +1,22 @@
 # Module 4: Advanced JOIN Operations
 ## Central Bank of Lesotho - Data Management Division
+## For Economists and Statisticians
 
 ### Lab Overview
 **Duration:** 90-120 minutes  
 **Difficulty:** Intermediate with advanced sections  
-**Prerequisites:** Module 3 completed
+**Prerequisites:** Module 3 completed  
+**Target Audience:** Economists and Statisticians handling incomplete datasets and panel data
 
 ---
 
 ## Learning Objectives
-1. Master LEFT and RIGHT OUTER JOINs
-2. Use FULL OUTER JOIN for complete datasets
-3. Identify missing data with outer joins
-4. Apply self-joins for hierarchical data
-5. Use CROSS JOIN for combinations
+1. Master LEFT and RIGHT OUTER JOINs for handling missing observations in economic datasets
+2. Use FULL OUTER JOIN for complete coverage analysis and data gap identification
+3. Identify missing data points and non-reporting entities (missing at random analysis)
+4. Apply self-joins for longitudinal comparisons and time series transformations
+5. Use CROSS JOIN for generating balanced panels and scenario analysis
+6. Handle unbalanced datasets common in economic statistics
 
 ---
 

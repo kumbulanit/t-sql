@@ -20,8 +20,8 @@ The UNION operator is a powerful set operation that combines the results of two 
 Employees: e.EmployeeID (3001+), e.FirstName, e.LastName, e.BaseSalary, DepartmentID, ManagerID, e.JobTitle, e.HireDate, IsActive
 Departments: DepartmentID (2001+), DepartmentName, Budget, Location, IsActive
 Projects: ProjectID (4001+), ProjectName, Budget, ProjectManagerID, StartDate, EndDate, IsActive
-Orders: OrderID (5001+), CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
-Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, IsActive
+Orders: OrderID (5001+), CompanyID, e.EmployeeID, OrderDate, TotalAmount, IsActive
+Companies: CompanyID (1001+), CompanyName, PrimaryEmail, City, CountryID, IsActive
 EmployeeArchive: e.EmployeeID, e.FirstName, e.LastName, e.BaseSalary, DepartmentID, TerminationDate, Reason
 ```
 
@@ -85,12 +85,13 @@ UNION ALL
 
 SELECT 
     'Customer' AS ContactType,
-    c.ContactName AS ContactName,
-    c.Email AS Email,
+    c.CompanyName AS ContactName,
+    c.PrimaryEmail AS Email,
     c.CompanyName AS Organization,
-    c.City + ', ' + c.Country AS Location,
+    c.City + ', ' + co.CountryName AS Location,
     'External' AS ContactCategory
-FROM Customers c
+FROM Companies c
+INNER JOIN Countries co ON c.CountryID = co.CountryID
 WHERE c.IsActive = 1
 
 ORDER BY ContactType, ContactName;
@@ -361,21 +362,21 @@ ORDER BY EmployeeName, SkillCategory;
 #### Performance Comparison
 ```sql
 -- ✅ GOOD: Use UNION ALL when duplicates are acceptable or known not to exist
-SELECT CustomerID, CompanyName FROM Customers WHERE Country = 'USA' AND IsActive = 1
+SELECT c.CompanyID, c.CompanyName FROM Companies c INNER JOIN Countries co ON c.CountryID = co.CountryID WHERE co.CountryCode = 'US' AND c.IsActive = 1
 UNION ALL  -- Faster - no duplicate checking
-SELECT CustomerID, CompanyName FROM Customers WHERE Country = 'Canada' AND IsActive = 1;
+SELECT c.CompanyID, c.CompanyName FROM Companies c INNER JOIN Countries co ON c.CountryID = co.CountryID WHERE co.CountryCode = 'CA' AND c.IsActive = 1;
 
 -- ⚠️ CONSIDER: Use UNION only when duplicates must be removed
-SELECT CustomerID, CompanyName FROM Customers WHERE Country = 'USA' AND IsActive = 1
+SELECT c.CompanyID, c.CompanyName FROM Companies c INNER JOIN Countries co ON c.CountryID = co.CountryID WHERE co.CountryCode = 'US' AND c.IsActive = 1
 UNION  -- Slower - checks and removes duplicates
-SELECT CustomerID, CompanyName FROM Customers WHERE Country = 'Canada' AND IsActive = 1;
+SELECT c.CompanyID, c.CompanyName FROM Companies c INNER JOIN Countries co ON c.CountryID = co.CountryID WHERE co.CountryCode = 'CA' AND c.IsActive = 1;
 
 -- ✅ ALTERNATIVE: Use UNION ALL with DISTINCT if needed
-SELECT DISTINCT CustomerID, CompanyName
+SELECT DISTINCT CompanyID, CompanyName
 FROM (
-    SELECT CustomerID, CompanyName FROM Customers WHERE Country = 'USA' AND IsActive = 1
+    SELECT c.CompanyID, c.CompanyName FROM Companies c INNER JOIN Countries co ON c.CountryID = co.CountryID WHERE co.CountryCode = 'US' AND c.IsActive = 1
     UNION ALL
-    SELECT CustomerID, CompanyName FROM Customers WHERE Country = 'Canada' AND IsActive = 1
+    SELECT c.CompanyID, c.CompanyName FROM Companies c INNER JOIN Countries co ON c.CountryID = co.CountryID WHERE co.CountryCode = 'CA' AND c.IsActive = 1
 ) combined;
 ```
 
@@ -394,7 +395,7 @@ SELECT
     o.TotalAmount AS Amount,
     c.CompanyName AS ClientName
 FROM Orders o
-INNER JOIN Customers c ON o.CustomerID = c.CustomerID
+INNER JOIN Companies c ON o.CompanyID = c.CompanyID
 WHERE o.OrderDate >= '2024-01-01'
   AND o.IsActive = 1
 
@@ -568,11 +569,11 @@ WHERE e.IsActive = 1
 UNION ALL
 
 SELECT 
-    c.CustomerID AS ID,
-    c.ContactName AS FullName,
-    'Customer' AS RecordType,
+    c.CompanyID AS ID,
+    c.CompanyName AS FullName,
+    'Company' AS RecordType,
     c.CreatedDate AS StartDate
-FROM Customers c
+FROM Companies c
 WHERE c.IsActive = 1
 
 ORDER BY RecordType, FullName;
@@ -581,7 +582,7 @@ ORDER BY RecordType, FullName;
 SELECT e.EmployeeID, e.FirstName + ' ' + e.LastName, 'Employee'
 FROM Employees e WHERE IsActive = 1
 UNION ALL
-SELECT CustomerID, ContactName, 'Customer' FROM Customers WHERE IsActive = 1;
+SELECT CompanyID, CompanyName, 'Company' FROM Companies WHERE IsActive = 1;
 ```
 
 ### 2. Data Type Compatibility
@@ -605,7 +606,7 @@ SELECT
     o.TotalAmount AS Amount,
     o.OrderDate AS RecordDate
 FROM Orders o
-INNER JOIN Customers c ON o.CustomerID = c.CustomerID
+INNER JOIN Companies c ON o.CompanyID = c.CompanyID
 WHERE o.IsActive = 1;
 ```
 
@@ -648,12 +649,12 @@ ORDER BY e.LastName, e.FirstName;
 -- ❌ PROBLEM: Different number of columns
 SELECT e.FirstName, e.LastName FROM Employees e
 UNION
-SELECT CompanyName FROM Customers;  -- ERROR: Column count mismatch
+SELECT CompanyName FROM Companies;  -- ERROR: Column count mismatch
 
 -- ✅ SOLUTION: Ensure same column count
 SELECT e.FirstName, e.LastName, 'Employee' AS Type FROM Employees e
 UNION
-SELECT ContactName, CompanyName, 'Customer' AS Type FROM Customers;
+SELECT CompanyName, PrimaryEmail, 'Company' AS Type FROM Companies;
 ```
 
 ### 2. Data Type Incompatibility
@@ -663,12 +664,12 @@ SELECT ContactName, CompanyName, 'Customer' AS Type FROM Customers;
 -- ❌ PROBLEM: Incompatible data types
 SELECT e.EmployeeID, e.BaseSalary FROM Employees e  -- INT, DECIMAL
 UNION
-SELECT CompanyName, ContactName FROM Customers;  -- VARCHAR, VARCHAR
+SELECT CompanyName, PrimaryEmail FROM Companies;  -- VARCHAR, VARCHAR
 
 -- ✅ SOLUTION: Convert to compatible types
 SELECT CAST(e.EmployeeID AS VARCHAR(50)), CAST(e.BaseSalary AS VARCHAR(50)) FROM Employees e
 UNION
-SELECT CompanyName, ContactName FROM Customers;
+SELECT CompanyName, PrimaryEmail FROM Companies;
 ```
 
 ### 3. Unexpected ORDER BY Behavior
@@ -678,13 +679,13 @@ SELECT CompanyName, ContactName FROM Customers;
 -- ❌ PROBLEM: ORDER BY in individual SELECT statements
 SELECT e.FirstName, e.LastName FROM Employees e ORDER BY e.LastName  -- This ORDER BY is ignored
 UNION
-SELECT ContactName, CompanyName FROM Customers ORDER BY CompanyName;  -- This ORDER BY is ignored
+SELECT CompanyName, PrimaryEmail FROM Companies ORDER BY CompanyName;  -- This ORDER BY is ignored
 
 -- ✅ SOLUTION: ORDER BY only at the end
 SELECT e.FirstName, e.LastName FROM Employees e
 UNION
-SELECT ContactName, CompanyName FROM Customers
-ORDER BY e.LastName;  -- This ORDER BY applies to the entire result
+SELECT CompanyName, PrimaryEmail FROM Companies
+ORDER BY 1;  -- This ORDER BY applies to the entire result
 ```
 
 ## Summary

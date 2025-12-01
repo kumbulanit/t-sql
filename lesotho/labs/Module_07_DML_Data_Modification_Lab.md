@@ -1,27 +1,32 @@
 # Module 7: DML - Data Modification
 ## Central Bank of Lesotho - Data Management Division
+## For Economists and Statisticians
 
 ### Lab Overview
 **Duration:** 90-120 minutes  
 **Difficulty:** Intermediate to Advanced  
-**Prerequisites:** Modules 1-6 completed
+**Prerequisites:** Modules 1-6 completed  
+**Target Audience:** Economists and Statisticians responsible for data curation and revision management
 
-### ⚠️ IMPORTANT SAFETY NOTICE
-This module involves INSERT, UPDATE, and DELETE operations. Always:
-- Work in a test environment first
-- Use transactions for safety
-- Test SELECT before UPDATE/DELETE
-- Keep backups of important data
-- Use WHERE clauses carefully
+### ⚠️ IMPORTANT SAFETY NOTICE FOR DATA CURATORS
+This module involves INSERT, UPDATE, and DELETE operations on economic time series. Always:
+- Work in a test environment first (staging databases)
+- Use transactions for statistical integrity and reproducibility
+- Test SELECT before UPDATE/DELETE to verify observations affected
+- Maintain version control and audit trails for data revisions
+- Document data revisions following statistical standards (IMF DQAF)
+- Keep backups of critical economic indicators
+- Use WHERE clauses carefully to avoid corrupting time series
 
 ---
 
 ## Learning Objectives
-1. Insert new data records safely
-2. Update existing data correctly
-3. Delete data with precision
-4. Use transactions for data integrity
-5. Handle errors and maintain audit trails
+1. Insert new economic observations and statistical series safely
+2. Update existing data with proper revision tracking (provisional → final)
+3. Delete test data or erroneous observations with precision
+4. Use transactions to maintain statistical database integrity
+5. Handle errors and maintain comprehensive audit trails for data governance
+6. Implement best practices for economic data lifecycle management
 
 ---
 

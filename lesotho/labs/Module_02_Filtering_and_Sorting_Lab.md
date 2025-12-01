@@ -1,21 +1,24 @@
 # Module 2: Filtering and Sorting Data - Lab Exercise
 ## Central Bank of Lesotho - Data Management Division
+## For Economists and Statisticians
 
 ### Lab Overview
 **Duration:** 75-100 minutes  
 **Difficulty:** Beginner with optional intermediate/advanced sections  
-**Prerequisites:** Module 1 completed, CBL_DataWarehouse database
+**Prerequisites:** Module 1 completed, CBL_DataWarehouse database  
+**Target Audience:** Economists and Statisticians conducting data analysis and statistical compilation
 
 ---
 
 ## Learning Objectives
-1. Use WHERE clause to filter data
-2. Work with comparison operators (=, <, >, <=, >=, <>)
-3. Combine conditions with AND, OR, NOT
-4. Use BETWEEN, IN, and LIKE operators
-5. Sort results with ORDER BY
-6. Handle NULL values
-7. Filter date ranges for time series data
+1. Use WHERE clause to filter observations for statistical subsets and conditional analysis
+2. Work with comparison operators for threshold analysis (inflation targets, prudential ratios)
+3. Combine conditions with logical operators for complex economic criteria
+4. Use BETWEEN for range analysis and IN for categorical filtering (country groups, indicator sets)
+5. Apply pattern matching with LIKE for indicator code searching
+6. Sort results with ORDER BY for time series chronological ordering and ranking
+7. Handle NULL values (missing observations) common in economic datasets
+8. Filter date ranges for temporal analysis and period-specific reporting
 
 ---
 

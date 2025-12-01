@@ -1,19 +1,22 @@
 # Module 3: JOIN Operations - Querying Multiple Tables
 ## Central Bank of Lesotho - Data Management Division
+## For Economists and Statisticians
 
 ### Lab Overview
 **Duration:** 90-120 minutes  
 **Difficulty:** Beginner with optional intermediate/advanced sections  
-**Prerequisites:** Modules 1-2 completed
+**Prerequisites:** Modules 1-2 completed  
+**Target Audience:** Economists and Statisticians working with relational economic databases
 
 ---
 
 ## Learning Objectives
-1. Understand table relationships and foreign keys
-2. Master INNER JOIN operations
-3. Join data from multiple sources
-4. Create meaningful datasets for reporting
-5. Understand join performance considerations
+1. Understand relational data structures for economic datasets (entity-relationship models)
+2. Master INNER JOIN operations for combining time series with metadata
+3. Join multiple data sources to create comprehensive statistical datasets
+4. Create denormalized datasets for econometric analysis and statistical software export
+5. Build publication-ready tables with proper variable labels and classifications
+6. Understand query optimization for large macroeconomic time series databases
 
 ---
 

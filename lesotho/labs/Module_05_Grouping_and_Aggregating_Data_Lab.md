@@ -1,19 +1,22 @@
 # Module 5: Grouping and Aggregating Data
 ## Central Bank of Lesotho - Data Management Division
+## For Economists and Statisticians
 
 ### Lab Overview
 **Duration:** 90-120 minutes  
 **Difficulty:** Intermediate  
-**Prerequisites:** Modules 1-4 completed
+**Prerequisites:** Modules 1-4 completed  
+**Target Audience:** Economists and Statisticians performing statistical aggregation and descriptive analysis
 
 ---
 
 ## Learning Objectives
-1. Master GROUP BY clause for data summarization
-2. Use aggregate functions (COUNT, SUM, AVG, MIN, MAX)
-3. Apply HAVING clause for filtered aggregates
-4. Calculate statistical measures for reporting
-5. Generate summary reports for management
+1. Master GROUP BY clause for statistical summarization and cross-tabulation
+2. Use aggregate functions for descriptive statistics (COUNT, SUM, AVG, MIN, MAX, STDEV)
+3. Apply HAVING clause for conditional aggregation in economic analysis
+4. Calculate key statistical measures (mean, variance, range) for econometric datasets
+5. Generate summary statistics tables for policy reports and economic bulletins
+6. Compute sector aggregates and composite economic indicators
 
 ---
 
@@ -427,14 +430,14 @@ ORDER BY YEAR(ts.PeriodDate), MONTH(ts.PeriodDate);
 
 ## Real-World Scenarios
 
-### Scenario 1: Governor's Monthly Brief
-The Governor needs a one-page summary showing: total banking sector assets, average inflation, foreign reserves level, and key economic indicators. Create an aggregate query that provides all these metrics for the current month.
+### Scenario 1: Governor's Monthly Economic Brief (Economist Task)
+The Governor needs a one-page statistical summary showing: total banking sector assets (aggregate), average inflation rate (mean), foreign reserves level, and key economic indicators with their descriptive statistics. As an economist, create aggregate queries that provide summary statistics including means, totals, and period-over-period changes.
 
-### Scenario 2: IMF Reporting Package
-Prepare aggregated statistics for IMF reporting: quarterly GDP, annual inflation averages, banking sector concentration ratios, and external sector balances. Use GROUP BY and HAVING to filter significant indicators.
+### Scenario 2: IMF Article IV Statistical Package (Statistician Task)
+Prepare aggregated statistical tables for IMF reporting: quarterly GDP aggregates with seasonal adjustment flags, annual inflation averages with standard deviations, banking sector concentration ratios (Herfindahl index components), and external sector balances. Use GROUP BY for time series aggregation and HAVING to filter statistically significant indicators.
 
-### Scenario 3: Data Quality Dashboard
-The Data Management Division manager needs a weekly dashboard showing: data completeness by source, timeliness metrics (average lag), provisional vs final data ratios, and missing data alerts. Build aggregated queries for this dashboard.
+### Scenario 3: Statistical Quality Assessment Dashboard (Data Quality Officer Task)
+The Senior Statistician needs a weekly quality dashboard showing: data completeness ratios by source, timeliness metrics (mean lag in days), provisional vs final data proportions, coefficient of variation for volatility assessment, and missing data alerts. Build aggregated queries using statistical measures for this quality assurance dashboard.
 
 ---
 
@@ -445,24 +448,26 @@ The Data Management Division manager needs a weekly dashboard showing: data comp
 - Must include all non-aggregated columns
 - Creates summary rows
 
-✅ **Aggregate Functions:**
-- COUNT: Count rows/non-null values
-- SUM: Total of numeric values
-- AVG: Mean/average
-- MIN/MAX: Smallest/largest values
-- STDEV: Standard deviation
+✅ **Aggregate Functions (Descriptive Statistics):**
+- COUNT: Count observations/sample size (n)
+- SUM: Total aggregate (Σx) for economic totals
+- AVG: Arithmetic mean (μ or x̄) for central tendency
+- MIN/MAX: Range boundaries for distribution analysis
+- STDEV: Standard deviation (σ) for dispersion/volatility
+- VAR: Variance (σ²) for variability analysis
 
-✅ **HAVING:**
-- Filters grouped results
-- Uses aggregate functions
-- Applied after GROUP BY
-- Different from WHERE (filters before grouping)
+✅ **HAVING (Post-Aggregation Filtering):**
+- Filters grouped statistical results
+- Uses aggregate functions for conditional analysis
+- Applied after GROUP BY (similar to subset selection in statistical software)
+- Different from WHERE (filters before aggregation/grouping)
 
-✅ **Best Practices:**
-- Use meaningful aliases
-- Include all non-aggregated columns in GROUP BY
-- HAVING for aggregate conditions
-- WHERE for row-level filtering
+✅ **Best Practices for Economists & Statisticians:**
+- Use meaningful aliases for statistical measures
+- Include all non-aggregated dimensions in GROUP BY
+- HAVING for filtering on summary statistics
+- WHERE for filtering raw observations
+- Document calculation methods for reproducibility
 
 ---
 

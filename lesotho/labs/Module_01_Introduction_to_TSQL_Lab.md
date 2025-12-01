@@ -1,20 +1,22 @@
 # Module 1: Introduction to T-SQL Querying - Lab Exercise
 ## Central Bank of Lesotho - Data Management Division
+## For Economists and Statisticians
 
 ### Lab Overview
 **Duration:** 60-90 minutes  
 **Difficulty:** Beginner with optional intermediate/advanced sections  
-**Prerequisites:** CBL_DataWarehouse database setup completed
+**Prerequisites:** CBL_DataWarehouse database setup completed  
+**Target Audience:** Economists and Statisticians working with macroeconomic data
 
 ---
 
 ## Learning Objectives
 By the end of this lab, you will be able to:
-1. Write basic SELECT statements to retrieve data
-2. Use SELECT with specific columns
-3. Understand the difference between SELECT * and specific columns
-4. Use simple expressions and calculations in queries
-5. Understand basic SQL syntax and statement structure
+1. Write basic SELECT statements to retrieve economic indicators and time series data
+2. Query macroeconomic datasets using specific columns relevant to statistical analysis
+3. Extract data for econometric analysis and statistical reporting
+4. Perform simple calculations on economic variables (growth rates, ratios, indices)
+5. Understand SQL syntax for querying data warehouses used in economic research
 
 ---
 

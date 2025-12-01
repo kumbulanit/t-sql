@@ -25,7 +25,7 @@ Departments: d.DepartmentID (2001+), d.DepartmentName, d.Budget, Location, IsAct
 Projects: ProjectID (4001+), ProjectName, d.Budget, ProjectManagerID, StartDate, EndDate, IsActive
 Orders: OrderID (5001+), CustomerID, e.EmployeeID, OrderDate, TotalAmount, IsActive
 EmployeeProjects: e.EmployeeID, ProjectID, Role, StartDate, EndDate, HoursWorked, IsActive
-Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, WorkEmail, IsActive
+Companies: CompanyID (1001+), CompanyName, PrimaryEmail, City, CountryID, IsActive
 EmployeeArchive: e.EmployeeID, e.FirstName, e.LastName, e.BaseSalary, d.DepartmentID, TerminationDate, Reason, IsActive
 ```
 
@@ -353,15 +353,16 @@ WHERE e.IsActive = 1
 UNION
 
 SELECT 
-    'Customer' AS ContactType,
-    c.ContactName AS FullName,
-    c.WorkEmail AS EmailAddress,
+    'Company' AS ContactType,
+    c.CompanyName AS FullName,
+    c.PrimaryEmail AS EmailAddress,
     c.CompanyName AS Organization,
-    c.City + CASE WHEN c.Country IS NOT NULL THEN ', ' + c.Country ELSE '' END AS Location,
+    c.City + CASE WHEN co.CountryName IS NOT NULL THEN ', ' + co.CountryName ELSE '' END AS Location,
     'External' AS ContactCategory
-FROM Customers c
+FROM Companies c
+INNER JOIN Countries co ON c.CountryID = co.CountryID
 WHERE c.IsActive = 1
-  AND c.WorkEmail IS NOT NULL
+  AND c.PrimaryEmail IS NOT NULL
 
 ORDER BY ContactType, FullName;
 ```
@@ -559,26 +560,27 @@ ORDER BY
 -- Sales Team: Premium Customer Analysis
 SELECT 
     c.CompanyName,
-    c.ContactName,
-    c.Country,
+    c.PrimaryEmail,
+    co.CountryName,
     (SELECT COUNT(o.OrderID)
      FROM Orders o
-     WHERE o.CustomerID = c.CustomerID
+     WHERE o.CompanyID = c.CompanyID
        AND o.IsActive = 1) AS TotalOrders,
     FORMAT((SELECT MAX(o.TotalAmount)
             FROM Orders o
-            WHERE o.CustomerID = c.CustomerID
+            WHERE o.CompanyID = c.CompanyID
               AND o.IsActive = 1), 'C') AS HighestOrderValue,
     FORMAT((SELECT SUM(o.TotalAmount)
             FROM Orders o
-            WHERE o.CustomerID = c.CustomerID
+            WHERE o.CompanyID = c.CompanyID
               AND o.IsActive = 1), 'C') AS TotalRevenueGenerated,
     'Premium & Frequent' AS CustomerSegment
 FROM (
     -- High-value customers (orders > $5,000)
-    SELECT DISTINCT c.CustomerID, c.CompanyName, c.ContactName, c.Country
-    FROM Customers c
-    INNER JOIN Orders o ON c.CustomerID = o.CustomerID
+    SELECT DISTINCT c.CompanyID, c.CompanyName, c.PrimaryEmail, co.CountryName
+    FROM Companies c
+    INNER JOIN Countries co ON c.CountryID = co.CountryID
+    INNER JOIN Orders o ON c.CompanyID = o.CompanyID
     WHERE o.TotalAmount > 5000
       AND c.IsActive = 1
       AND o.IsActive = 1
@@ -586,17 +588,19 @@ FROM (
     INTERSECT
 
     -- High-frequency customers (>10 orders)
-    SELECT DISTINCT c.CustomerID, c.CompanyName, c.ContactName, c.Country
-    FROM Customers c
-    INNER JOIN Orders o ON c.CustomerID = o.CustomerID
+    SELECT DISTINCT c.CompanyID, c.CompanyName, c.PrimaryEmail, co.CountryName
+    FROM Companies c
+    INNER JOIN Countries co ON c.CountryID = co.CountryID
+    INNER JOIN Orders o ON c.CompanyID = o.CompanyID
     WHERE c.IsActive = 1
       AND o.IsActive = 1
-    GROUP BY c.CustomerID, c.CompanyName, c.ContactName, c.Country
+    GROUP BY c.CompanyID, c.CompanyName, c.PrimaryEmail, co.CountryName
     HAVING COUNT(o.OrderID) > 10
 ) c
+LEFT JOIN Countries co ON 1=1  -- Add country join for result set
 WHERE c.CompanyName IS NOT NULL
 ORDER BY 
-    (SELECT SUM(o.TotalAmount) FROM Orders o WHERE o.CustomerID = c.CustomerID AND o.IsActive = 1) DESC;
+    (SELECT SUM(o.TotalAmount) FROM Orders o WHERE o.CompanyID = c.CompanyID AND o.IsActive = 1) DESC;
 ```
 
 **Key Learning Points:**
