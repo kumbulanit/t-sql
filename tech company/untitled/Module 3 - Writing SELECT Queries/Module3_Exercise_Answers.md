@@ -175,7 +175,7 @@ ORDER BY e.LastName, e.FirstName;
 ```sql
 SELECT 
     s.SkillName AS [Skill],
-    s.SkillCategory AS [Category],
+    s.SkillCategoryID AS [Category],
     s.DifficultyLevel AS [Complexity Level],
     
     -- Usage frequency
@@ -204,8 +204,8 @@ SELECT
     END AS [Organizational Demand]
 FROM Skills s
 LEFT JOIN EmployeeSkills es ON s.SkillID = es.SkillID
-GROUP BY s.SkillID, s.SkillName, s.SkillCategory, s.DifficultyLevel
-ORDER BY COUNT(es.e.EmployeeID) DESC, s.SkillCategory, s.SkillName;
+GROUP BY s.SkillID, s.SkillName, s.SkillCategoryID, s.DifficultyLevel
+ORDER BY COUNT(es.e.EmployeeID) DESC, s.SkillCategoryID, s.SkillName;
 ```
 
 **Explanation**: Aggregation with conditional counting, percentage calculations, and business intelligence categorization.
@@ -366,12 +366,12 @@ ORDER BY
 ```sql
 WITH SkillDiversityAnalysis AS (
     SELECT DISTINCT
-        s.SkillCategory,
+        s.SkillCategoryID,
         s.DifficultyLevel,
-        COUNT(es.e.EmployeeID) OVER (PARTITION BY s.SkillCategory, s.DifficultyLevel) AS [Employee Count],
-        COUNT(s.SkillID) OVER (PARTITION BY s.SkillCategory, s.DifficultyLevel) AS [Available Skills],
+        COUNT(es.e.EmployeeID) OVER (PARTITION BY s.SkillCategoryID, s.DifficultyLevel) AS [Employee Count],
+        COUNT(s.SkillID) OVER (PARTITION BY s.SkillCategoryID, s.DifficultyLevel) AS [Available Skills],
         COUNT(CASE WHEN es.CertificationDate IS NOT NULL THEN 1 END) 
-              OVER (PARTITION BY s.SkillCategory, s.DifficultyLevel) AS [Certified Count]
+              OVER (PARTITION BY s.SkillCategoryID, s.DifficultyLevel) AS [Certified Count]
     FROM Skills s
     LEFT JOIN EmployeeSkills es ON s.SkillID = es.SkillID
 ),
@@ -695,9 +695,9 @@ SELECT
     
     -- Skills gap analysis using workforce development language
     CASE 
-        WHEN COUNT(DISTINCT sk.SkillCategory) >= 3 THEN 'Cross-Functional Capability'
-        WHEN COUNT(DISTINCT sk.SkillCategory) = 2 THEN 'Dual Domain Expertise'
-        WHEN COUNT(DISTINCT sk.SkillCategory) = 1 THEN 'Specialized Expertise'
+        WHEN COUNT(DISTINCT sk.SkillCategoryID) >= 3 THEN 'Cross-Functional Capability'
+        WHEN COUNT(DISTINCT sk.SkillCategoryID) = 2 THEN 'Dual Domain Expertise'
+        WHEN COUNT(DISTINCT sk.SkillCategoryID) = 1 THEN 'Specialized Expertise'
         ELSE 'Skill Development Needed'
     END AS [Capability Breadth Assessment],
     

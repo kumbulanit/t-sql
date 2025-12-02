@@ -343,7 +343,7 @@ SELECT CustomerID FROM Orders WHERE OrderDate = '2023-01-02';
 #### 3. EXISTS vs IN for Large Sets
 ```sql
 -- EXISTS is often more efficient for large datasets
-SELECT c.CompanyName
+SELECT c.CustomerName
 FROM Customers c
 WHERE EXISTS (
     SELECT 1 FROM Orders o 
@@ -410,7 +410,7 @@ ActualOrders AS (
     INNER JOIN OrderDetails od ON o.OrderID = od.OrderID
     WHERE od.ProductID IN (SELECT ProductID FROM CategoryProducts)
 )
-SELECT c.CustomerID, c.CompanyName
+SELECT c.CustomerID, c.CustomerName
 FROM Customers c
 WHERE NOT EXISTS (
     SELECT 1 

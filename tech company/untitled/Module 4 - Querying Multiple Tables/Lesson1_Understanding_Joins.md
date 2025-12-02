@@ -514,7 +514,7 @@ LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 SELECT 
     o.OrderID,
     o.OrderDate,
-    c.CompanyName,
+    c.CustomerName,
     s.IsActiveDescription
 FROM Orders o
 INNER JOIN Customers c ON o.CustomerID = c.CustomerID
@@ -525,13 +525,13 @@ INNER JOIN OrderIsActive s ON o.IsActiveID = s.IsActiveID;
 ```sql
 -- Summarize related data
 SELECT 
-    c.CompanyName,
+    c.CustomerName,
     COUNT(o.OrderID) AS TotalOrders,
     SUM(o.OrderTotal) AS TotalSales,
     MAX(o.OrderDate) AS LastOrderDate
 FROM Customers c
 LEFT JOIN Orders o ON c.CustomerID = o.CustomerID
-GROUP BY c.CustomerID, c.CompanyName;
+GROUP BY c.CustomerID, c.CustomerName;
 ```
 
 ### 3. Hierarchy Pattern

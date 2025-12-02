@@ -165,7 +165,7 @@ ORDER BY Growth_Multiplier DESC, d.DepartmentName;
 -- Transform customer revenue data for geographic and segment analysis
 WITH CustomerOrderSegmentation AS (
     SELECT 
-        c.Country,
+        c.CountryID,
         CASE 
             WHEN o.TotalAmount >= 10000 THEN 'Large Orders'
             WHEN o.TotalAmount >= 5000 THEN 'Medium Orders'

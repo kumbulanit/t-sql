@@ -147,7 +147,7 @@ WHERE EXISTS (
 );
 
 -- NOT EXISTS for anti-join pattern
-SELECT c.CompanyName
+SELECT c.CustomerName
 FROM Customers c
 WHERE NOT EXISTS (
     SELECT 1 FROM Orders o 
@@ -221,7 +221,7 @@ WHERE e.FirstName LIKE '%[aeiou]%[aeiou]%';  -- Contains at least two vowels
 #### 3. Advanced EXISTS Patterns
 ```sql
 -- Double negation (find customers who have ordered ALL products from a category)
-SELECT c.CompanyName
+SELECT c.CustomerName
 FROM Customers c
 WHERE NOT EXISTS (
     SELECT p.ProductID
@@ -401,7 +401,7 @@ SELECT * FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.Departm
 ### 3. EXISTS vs IN Performance
 ```sql
 -- EXISTS often performs better with correlated subqueries
-SELECT c.CompanyName
+SELECT c.CustomerName
 FROM Customers c
 WHERE EXISTS (
     SELECT 1 FROM Orders o 

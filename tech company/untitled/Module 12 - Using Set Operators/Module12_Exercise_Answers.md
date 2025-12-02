@@ -152,7 +152,7 @@ FROM (
         e.FirstName + ' ' + e.LastName AS EmployeeName,
         o.OrderDate AS ActivityDate,
         o.TotalAmount AS ActivityValue,
-        'Order #' + CAST(o.OrderID AS VARCHAR(10)) + ' for ' + c.CompanyName AS Description
+        'Order #' + CAST(o.OrderID AS VARCHAR(10)) + ' for ' + c.CustomerName AS Description
     FROM Orders o
     INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
     INNER JOIN Customers c ON o.CustomerID = c.CustomerID
@@ -349,10 +349,10 @@ AND ep.StartDate >= DATEADD(MONTH, -6, GETDATE());
 WITH LastYearCustomers AS (
     SELECT DISTINCT 
         c.CustomerID,
-        c.CompanyName,
-        c.ContactName,
+        c.CustomerName,
+        CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
         c.City,
-        c.Country
+        c.CountryID
     FROM Customers c
     INNER JOIN Orders o ON c.CustomerID = o.CustomerID
     WHERE o.IsActive = 1
@@ -362,10 +362,10 @@ WITH LastYearCustomers AS (
 ThisYearCustomers AS (
     SELECT DISTINCT 
         c.CustomerID,
-        c.CompanyName,
-        c.ContactName,
+        c.CustomerName,
+        CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
         c.City,
-        c.Country
+        c.CountryID
     FROM Customers c
     INNER JOIN Orders o ON c.CustomerID = o.CustomerID
     WHERE o.IsActive = 1
@@ -512,29 +512,29 @@ ORDER BY TotalCollaborationHours DESC;
 WITH HighVolumeCustomers AS (
     SELECT 
         c.CustomerID,
-        c.CompanyName,
-        c.ContactName,
+        c.CustomerName,
+        CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
         c.City,
-        c.Country
+        c.CountryID
     FROM Customers c
     INNER JOIN Orders o ON c.CustomerID = o.CustomerID
     WHERE c.IsActive = 1
     AND o.IsActive = 1
-    GROUP BY c.CustomerID, c.CompanyName, c.ContactName, c.City, c.Country
+    GROUP BY c.CustomerID, c.CustomerName, CONCAT(c.ContactFirstName, ' ', c.ContactLastName), c.City, c.CountryID
     HAVING COUNT(o.OrderID) >= 10 -- High volume: 10+ orders
 ),
 HighValueCustomers AS (
     SELECT 
         c.CustomerID,
-        c.CompanyName,
-        c.ContactName,
+        c.CustomerName,
+        CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
         c.City,
-        c.Country
+        c.CountryID
     FROM Customers c
     INNER JOIN Orders o ON c.CustomerID = o.CustomerID
     WHERE c.IsActive = 1
     AND o.IsActive = 1
-    GROUP BY c.CustomerID, c.CompanyName, c.ContactName, c.City, c.Country
+    GROUP BY c.CustomerID, c.CustomerName, CONCAT(c.ContactFirstName, ' ', c.ContactLastName), c.City, c.CountryID
     HAVING SUM(o.TotalAmount) >= 100000 -- High value: $100K+ total
 )
 
@@ -774,10 +774,10 @@ ORDER BY performance_metrics.PerformanceScore DESC, e.BaseSalary DESC;
 -- Dynamic customer segmentation using OUTER APPLY
 SELECT 
     c.CustomerID,
-    c.CompanyName,
-    c.ContactName,
+    c.CustomerName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
     c.City,
-    c.Country,
+    c.CountryID,
     
     -- Customer metrics
     customer_metrics.OrderCount,
@@ -819,14 +819,14 @@ CROSS APPLY (
     SELECT 
         -- Primary segmentation varies by country and order pattern
         CASE 
-            WHEN c.Country IN ('USA', 'Canada') THEN
+            WHEN c.CountryID IN ('USA', 'Canada') THEN
                 CASE 
                     WHEN customer_metrics.TotalRevenue >= 100000 THEN 'North America Premium'
                     WHEN customer_metrics.OrderCount >= 10 THEN 'North America High Volume'
                     WHEN customer_metrics.OrderCount > 0 THEN 'North America Standard'
                     ELSE 'North America Prospect'
                 END
-            WHEN c.Country IN ('UK', 'Germany', 'France') THEN
+            WHEN c.CountryID IN ('UK', 'Germany', 'France') THEN
                 CASE 
                     WHEN customer_metrics.TotalRevenue >= 75000 THEN 'Europe Premium'
                     WHEN customer_metrics.OrderCount >= 8 THEN 'Europe High Volume'
@@ -935,14 +935,14 @@ FROM (
     SELECT 
         customer_metrics.TotalRevenue,
         CASE 
-            WHEN c.Country IN ('USA', 'Canada') THEN
+            WHEN c.CountryID IN ('USA', 'Canada') THEN
                 CASE 
                     WHEN customer_metrics.TotalRevenue >= 100000 THEN 'North America Premium'
                     WHEN customer_metrics.OrderCount >= 10 THEN 'North America High Volume'
                     WHEN customer_metrics.OrderCount > 0 THEN 'North America Standard'
                     ELSE 'North America Prospect'
                 END
-            WHEN c.Country IN ('UK', 'Germany', 'France') THEN
+            WHEN c.CountryID IN ('UK', 'Germany', 'France') THEN
                 CASE 
                     WHEN customer_metrics.TotalRevenue >= 75000 THEN 'Europe Premium'
                     WHEN customer_metrics.OrderCount >= 8 THEN 'Europe High Volume'

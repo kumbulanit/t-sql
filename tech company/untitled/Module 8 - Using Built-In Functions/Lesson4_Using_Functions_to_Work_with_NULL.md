@@ -68,7 +68,7 @@ SELECT
     
     -- Handle missing employment data
     ISNULL(CAST(e.BaseSalary AS VARCHAR), 'e.BaseSalary Confidential') AS SalaryDisplay,
-    ISNULL(e.Commission, 0) AS CommissionRate,
+    ISNULL(e.CommissionRate, 0) AS CommissionRate,
     ISNULL(CONVERT(VARCHAR, e.HireDate, 101), 'Hire Date Unknown') AS e.HireDate,
     
     -- Handle missing department/manager information
@@ -84,7 +84,7 @@ SELECT
     ) AS DirectManager,
     
     -- Smart business calculations with NULL protection
-    ISNULL(e.BaseSalary, 0) + (ISNULL(e.BaseSalary, 0) * ISNULL(e.Commission, 0) / 100) AS TotalCompensationEstimate,
+    ISNULL(e.BaseSalary, 0) + (ISNULL(e.BaseSalary, 0) * ISNULL(e.CommissionRate, 0) / 100) AS TotalCompensationEstimate,
     
     -- Handle missing dates for tenure calculation
     CASE 
@@ -106,8 +106,8 @@ SELECT
     END AS EmploymentIsActive,
     
     -- Emergency contact handling
-    ISNULL(e.EmergencyContactName, 'No Emergency Contact') AS EmergencyContact,
-    ISNULL(e.EmergencyContactPhone, 'No Emergency Phone') AS EmergencyPhone,
+    ISNULL(e.EmergencyContact, 'No Emergency Contact') AS EmergencyContact,
+    ISNULL(e.EmergencyContact, 'No Emergency Phone') AS EmergencyPhone,
     
     -- Professional display of optional fields
     ISNULL(e.Skills, 'Skills Assessment Pending') AS PrimarySkills,
@@ -285,8 +285,8 @@ SELECT ISNULL(d.DepartmentName, 'Unassigned Department') AS DepartmentName,
     FORMAT(SUM(ISNULL(e.BaseSalary, 0)), 'C') AS TotalPayroll,
     
     -- Commission analysis
-    COUNT(CASE WHEN ISNULL(e.Commission, 0) > 0 THEN 1 END) AS CommissionEligibleEmployees,
-    FORMAT(AVG(ISNULL(e.Commission, 0)), 'N2') + '%' AS AvgCommissionRate,
+    COUNT(CASE WHEN ISNULL(e.CommissionRate, 0) > 0 THEN 1 END) AS CommissionEligibleEmployees,
+    FORMAT(AVG(ISNULL(e.CommissionRate, 0)), 'N2') + '%' AS AvgCommissionRate,
     
     -- Tenure analysis with missing hire date handling
     AVG(
@@ -372,7 +372,7 @@ SELECT
     NULLIF(e.BaseSalary, 0) AS CleanSalary,
     
     -- Clean commission rates
-    NULLIF(e.Commission, -1) AS CleanCommission,  -- -1 might be "not applicable"
+    NULLIF(e.CommissionRate, -1) AS CleanCommission,  -- -1 might be "not applicable"
     
     -- Clean dates that might be placeholders
     NULLIF(e.HireDate, '1900-01-01') AS CleanHireDate,
@@ -385,8 +385,8 @@ SELECT
     NULLIF(NULLIF(e.Certifications, ''), 'None Listed') AS CleanCertifications,
     
     -- Emergency contact cleaning
-    NULLIF(NULLIF(e.EmergencyContactName, ''), 'None') AS CleanEmergencyName,
-    NULLIF(NULLIF(NULLIF(e.EmergencyContactPhone, ''), '000-000-0000'), 'None') AS CleanEmergencyPhone,
+    NULLIF(NULLIF(e.EmergencyContact, ''), 'None') AS CleanEmergencyName,
+    NULLIF(NULLIF(NULLIF(e.EmergencyContact, ''), '000-000-0000'), 'None') AS CleanEmergencyPhone,
     
     -- Data quality assessment after cleaning
     CASE 
@@ -489,7 +489,7 @@ SELECT
         NULLIF(e.Phone, ''), 
         NULLIF(e.MobilePhone, ''), 
         NULLIF(e.HomePhone, ''),
-        NULLIF(e.EmergencyContactPhone, ''),
+        NULLIF(e.EmergencyContact, ''),
         'No Phone Available'
     ) AS PrimaryPhone,
     
@@ -561,9 +561,9 @@ SELECT
     -- Emergency contact with comprehensive fallback
     COALESCE(
         CASE 
-            WHEN NULLIF(e.EmergencyContactName, '') IS NOT NULL 
-                 AND NULLIF(e.EmergencyContactPhone, '') IS NOT NULL
-            THEN e.EmergencyContactName + ' (' + e.EmergencyContactPhone + ')'
+            WHEN NULLIF(e.EmergencyContact, '') IS NOT NULL 
+                 AND NULLIF(e.EmergencyContact, '') IS NOT NULL
+            THEN e.EmergencyContact + ' (' + e.EmergencyContact + ')'
             ELSE NULL
         END,
         CASE 

@@ -90,10 +90,10 @@ UNION ALL
 SELECT 
     'External' AS ContactCategory,
     'Customer' AS ContactType,
-    c.ContactName AS FullName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName) AS FullName,
     c.WorkEmail AS ContactEmail,
-    c.CompanyName AS Organization,
-    c.City + ', ' + c.Country AS PrimaryLocation,
+    c.CustomerName AS Organization,
+    c.City + ', ' + c.CountryID AS PrimaryLocation,
     'Customer Contact' AS Position,
     'Active' AS Status
 FROM Customers c
@@ -493,7 +493,7 @@ SELECT
     FORMAT(o.OrderDate, 'yyyy-MM-dd') AS TransactionDate,
     o.TotalAmount AS Amount,
     'Customer Order' AS Source,
-    c.CompanyName AS ClientName,
+    c.CustomerName AS ClientName,
     e.FirstName + ' ' + e.LastName AS ProcessedBy
 FROM Orders o
 INNER JOIN Customers c ON o.CustomerID = c.CustomerID
@@ -549,7 +549,7 @@ SELECT
     'Customer Transaction' AS AuditCategory,
     'Order Placement' AS TransactionType,
     CAST(o.OrderID AS VARCHAR(20)) AS EntityID,
-    c.CompanyName AS EntityName,
+    c.CustomerName AS EntityName,
     FORMAT(o.TotalAmount, 'C') AS TransactionAmount,
     'Completed' AS TransactionStatus,
     FORMAT(o.OrderDate, 'yyyy-MM-dd HH:mm:ss') AS TransactionTimestamp,
@@ -604,7 +604,7 @@ SELECT
     'High' AS SeverityLevel,
     'Customer service and follow-up communications compromised' AS BusinessImpact
 FROM Customers c
-WHERE (c.WorkEmail IS NULL OR c.WorkEmail = '' OR c.ContactName IS NULL)
+WHERE (c.WorkEmail IS NULL OR c.WorkEmail = '' OR CONCAT(c.ContactFirstName, ' ', c.ContactLastName) IS NULL)
   AND c.IsActive = 1
 
 UNION ALL
@@ -663,7 +663,7 @@ UNION ALL
 
 SELECT 
     CAST(o.OrderID AS VARCHAR(20)) AS RecordID,
-    c.CompanyName AS RecordName,
+    c.CustomerName AS RecordName,
     'Order' AS RecordType,
     o.TotalAmount AS RecordValue,
     o.OrderDate AS RecordDate
@@ -727,10 +727,10 @@ UNION ALL
 
 SELECT 
     'Customer Contact' AS ContactSource,
-    c.ContactName AS ContactPersonName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName) AS ContactPersonName,
     c.WorkEmail AS PrimaryEmailAddress,
-    c.CompanyName AS OrganizationalUnit,
-    c.City + ', ' + c.Country AS PhysicalLocation,
+    c.CustomerName AS OrganizationalUnit,
+    c.City + ', ' + c.CountryID AS PhysicalLocation,
     'External' AS ContactClassification
 FROM Customers c
 WHERE c.IsActive = 1
@@ -763,7 +763,7 @@ SELECT ContactName, CompanyName, 'Customer' AS RecordType FROM Customers WHERE I
 -- ❌ PROBLEM: Incompatible data types
 SELECT e.EmployeeID, e.BaseSalary FROM Employees e  -- INT, DECIMAL
 UNION
-SELECT CompanyName, ContactName FROM Customers;  -- VARCHAR, VARCHAR
+SELECT CustomerName, CONCAT(ContactFirstName, ' ', ContactLastName) FROM Customers;  -- VARCHAR, VARCHAR
 
 -- ✅ SOLUTION: Convert to compatible types
 SELECT 

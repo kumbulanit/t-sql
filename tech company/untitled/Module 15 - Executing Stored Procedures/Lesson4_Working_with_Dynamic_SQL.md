@@ -623,9 +623,9 @@ BEGIN
         SET @SelectClause = '
         SELECT ' + @TopClause + '
             c.CustomerID,
-            c.CompanyName,
+            c.CustomerName,
             c.City,
-            c.Country,
+            c.CountryID,
             COUNT(o.OrderID) AS TotalOrders,
             FORMAT(SUM(o.TotalAmount), ''C'') AS TotalAmount,
             FORMAT(AVG(o.TotalAmount), ''C'') AS AverageOrderAmount,
@@ -686,7 +686,7 @@ BEGIN
         SELECT ' + @TopClause + '
             o.OrderID,
             o.OrderDate,
-            c.CompanyName AS CustomerName,
+            c.CustomerName AS CustomerName,
             c.City AS CustomerCity,
             e.FirstName + '' '' + e.LastName AS ProcessedBy,
             d.DepartmentName,
@@ -761,7 +761,7 @@ BEGIN
                 WHEN 'OrderCount' THEN ' ORDER BY COUNT(o.OrderID) DESC'
                 WHEN 'AverageAmount' THEN ' ORDER BY AVG(o.TotalAmount) DESC'
             END;
-        SET @GroupByClause = ' GROUP BY c.CustomerID, c.CompanyName, c.City, c.Country';
+        SET @GroupByClause = ' GROUP BY c.CustomerID, c.CustomerName, c.City, c.CountryID';
     END
     ELSE IF @AnalysisType = 'Trends'
     BEGIN

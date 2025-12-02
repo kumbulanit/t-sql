@@ -204,7 +204,7 @@ WITH ProjectStatistics AS (
         d.DepartmentName,
         c.CompanyName,
         c.CompanySize,
-        c.Industry,
+        c.IndustryID,
         
         -- Calculate efficiency metrics
         CASE 
@@ -299,7 +299,7 @@ FROM Projects ptatistics;
 
 SELECT 
     c.CompanyName,
-    c.Industry,
+    c.IndustryID,
     c.CompanySize,
     c.AnnualRevenue,
     c.CreditRating,
@@ -388,7 +388,7 @@ WHERE c.IsActive = 1
     AND p.IsActive = 1
     AND p.StartDate >= DATEADD(YEAR, -3, GETDATE())
 GROUP BY 
-    c.CompanyID, c.CompanyName, c.Industry, c.CompanySize, 
+    c.CompanyID, c.CompanyName, c.IndustryID, c.CompanySize, 
     c.AnnualRevenue, c.CreditRating
 HAVING COUNT(p.ProjectID) > 0  -- Only clients with projects
 ORDER BY SUM(p.Budget) DESC;

@@ -236,7 +236,7 @@ ORDER BY
 -- Comprehensive customer analysis using CUBE for all dimension combinations
 WITH CustomerOrderData AS (
     SELECT 
-        c.Country,
+        c.CountryID,
         CASE 
             WHEN o.TotalAmount >= 10000 THEN 'Large'
             WHEN o.TotalAmount >= 5000 THEN 'Medium'

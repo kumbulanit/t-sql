@@ -66,7 +66,7 @@ WITH ExecutiveMetrics AS (
         
         -- CONVERSION FUNCTIONS: Professional e.BaseSalary and data formatting
         FORMAT(ISNULL(e.BaseSalary, 0), 'C') AS FormattedSalary,
-        CAST(ISNULL(e.Commission, 0) AS DECIMAL(5,2)) AS CommissionDecimal,
+        CAST(ISNULL(e.CommissionRate, 0) AS DECIMAL(5,2)) AS CommissionDecimal,
         
         -- DATE/TIME FUNCTIONS: Advanced temporal analysis
         DATEDIFF(YEAR, ISNULL(e.HireDate, '1900-01-01'), GETDATE()) AS YearsOfService,
@@ -87,7 +87,7 @@ WITH ExecutiveMetrics AS (
         ) AS DaysToNextAnniversary,
         
         -- MATHEMATICAL FUNCTIONS: Advanced compensation analysis
-        ISNULL(e.BaseSalary, 0) * (1 + ISNULL(e.Commission, 0) / 100.0) AS EstimatedTotalComp,
+        ISNULL(e.BaseSalary, 0) * (1 + ISNULL(e.CommissionRate, 0) / 100.0) AS EstimatedTotalComp,
         
         -- Calculate compound annual e.BaseSalary growth (assuming 3% average)
         ISNULL(e.BaseSalary, 0) * POWER(1.03, DATEDIFF(YEAR, ISNULL(e.HireDate, GETDATE()), GETDATE())) AS ProjectedCurrentValue,
@@ -149,7 +149,7 @@ WITH ExecutiveMetrics AS (
             WHEN ISNULL(e.BaseSalary, 0) > 0
             THEN ROUND(
                 ISNULL(e.BaseSalary, 0) * 
-                (ISNULL(e.Commission, 0) / 100.0) *
+                (ISNULL(e.CommissionRate, 0) / 100.0) *
                 (1 + (DATEDIFF(YEAR, ISNULL(e.HireDate, GETDATE()), GETDATE()) * 0.02)) *
                 CASE 
                     WHEN PERCENT_RANK() OVER (PARTITION BY e.DepartmentID ORDER BY ISNULL(e.BaseSalary, 0)) >= 0.9 THEN 1.5
@@ -191,7 +191,7 @@ ProjectAnalytics AS (
         
         COALESCE(
             CAST(NULLIF(p.ActualCost, 0) AS DECIMAL(15,2)),
-            CAST(NULLIF(p.EstimatedCost, 0) AS DECIMAL(15,2)),
+            CAST(NULLIF(p.EstimatedHours, 0) AS DECIMAL(15,2)),
             0.00
         ) AS EffectiveCost,
         
@@ -217,11 +217,11 @@ ProjectAnalytics AS (
         
         -- ROI calculation with safe division
         CASE 
-            WHEN COALESCE(NULLIF(p.ActualCost, 0), NULLIF(p.EstimatedCost, 0)) > 0
+            WHEN COALESCE(NULLIF(p.ActualCost, 0), NULLIF(p.EstimatedHours, 0)) > 0
             THEN ROUND(
                 ((COALESCE(NULLIF(p.Budget, 0), NULLIF(p.EstimatedRevenue, 0), 0) - 
-                  COALESCE(NULLIF(p.ActualCost, 0), NULLIF(p.EstimatedCost, 0), 0)) * 100.0) /
-                COALESCE(NULLIF(p.ActualCost, 0), NULLIF(p.EstimatedCost, 0), 1),
+                  COALESCE(NULLIF(p.ActualCost, 0), NULLIF(p.EstimatedHours, 0), 0)) * 100.0) /
+                COALESCE(NULLIF(p.ActualCost, 0), NULLIF(p.EstimatedHours, 0), 1),
                 2
             )
             ELSE NULL
@@ -381,12 +381,12 @@ WITH HistoricalTrends AS (
         
         -- STRING FUNCTIONS: Intelligent categorization
         CASE 
-            WHEN UPPER(COALESCE(c.Industry, 'UNKNOWN')) LIKE '%TECH%' THEN 'Technology'
-            WHEN UPPER(COALESCE(c.Industry, 'UNKNOWN')) LIKE '%FINANCE%' THEN 'Financial Services'
-            WHEN UPPER(COALESCE(c.Industry, 'UNKNOWN')) LIKE '%HEALTH%' THEN 'Healthcare'
-            WHEN UPPER(COALESCE(c.Industry, 'UNKNOWN')) LIKE '%RETAIL%' THEN 'Retail'
-            WHEN UPPER(COALESCE(c.Industry, 'UNKNOWN')) LIKE '%MANUFACT%' THEN 'Manufacturing'
-            ELSE COALESCE(UPPER(LEFT(c.Industry, 1)) + LOWER(SUBSTRING(c.Industry, 2, 50)), 'Other')
+            WHEN UPPER(COALESCE(c.IndustryID, 'UNKNOWN')) LIKE '%TECH%' THEN 'Technology'
+            WHEN UPPER(COALESCE(c.IndustryID, 'UNKNOWN')) LIKE '%FINANCE%' THEN 'Financial Services'
+            WHEN UPPER(COALESCE(c.IndustryID, 'UNKNOWN')) LIKE '%HEALTH%' THEN 'Healthcare'
+            WHEN UPPER(COALESCE(c.IndustryID, 'UNKNOWN')) LIKE '%RETAIL%' THEN 'Retail'
+            WHEN UPPER(COALESCE(c.IndustryID, 'UNKNOWN')) LIKE '%MANUFACT%' THEN 'Manufacturing'
+            ELSE COALESCE(UPPER(LEFT(c.IndustryID, 1)) + LOWER(SUBSTRING(c.IndustryID, 2, 50)), 'Other')
         END AS IndustryCategory,
         
         -- CONVERSION AND NULL FUNCTIONS: Robust data preparation
@@ -693,10 +693,10 @@ WITH DataQualityAssessment AS (
         
         -- MATHEMATICAL FUNCTIONS: Statistical validation
         CASE 
-            WHEN e.Commission IS NULL THEN 'VALID'  -- Commission can be null
-            WHEN e.Commission < 0 THEN 'NEGATIVE_VALUE'
-            WHEN e.Commission > 50 THEN 'UNUSUALLY_HIGH'
-            WHEN ABS(e.Commission - ROUND(e.Commission, 2)) > 0.001 THEN 'PRECISION_ERROR'
+            WHEN e.CommissionRate IS NULL THEN 'VALID'  -- Commission can be null
+            WHEN e.CommissionRate < 0 THEN 'NEGATIVE_VALUE'
+            WHEN e.CommissionRate > 50 THEN 'UNUSUALLY_HIGH'
+            WHEN ABS(e.CommissionRate - ROUND(e.CommissionRate, 2)) > 0.001 THEN 'PRECISION_ERROR'
             ELSE 'VALID'
         END AS CommissionQuality,
         

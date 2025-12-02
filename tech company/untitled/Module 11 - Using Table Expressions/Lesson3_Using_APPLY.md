@@ -108,8 +108,8 @@ ORDER BY d.DepartmentName, top_earners.e.BaseSalary DESC;
 ```sql
 -- Get the 5 most recent orders for each customer
 SELECT 
-    c.CompanyName,
-    c.ContactName,
+    c.CustomerName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
     c.City,
     recent_orders.OrderDate,
     FORMAT(recent_orders.TotalAmount, 'C') AS OrderAmount,
@@ -130,7 +130,7 @@ CROSS APPLY (
     ORDER BY o.OrderDate DESC
 ) recent_orders
 WHERE c.IsActive = 1
-ORDER BY c.CompanyName, recent_orders.OrderDate DESC;
+ORDER BY c.CustomerName, recent_orders.OrderDate DESC;
 ```
 
 ### 2. Complex Per-Row Calculations
@@ -281,9 +281,9 @@ ORDER BY subordinate_info.SubordinateCount DESC, mgr.e.LastName;
 ```sql
 -- Analyze customer purchasing trends over time
 SELECT 
-    c.CompanyName,
-    c.ContactName,
-    c.Country,
+    c.CustomerName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
+    c.CountryID,
     trend_analysis.FirstOrderDate,
     trend_analysis.LastOrderDate,
     trend_analysis.TotalOrders,
@@ -523,7 +523,7 @@ ORDER BY d.DepartmentName;
 ```sql
 -- ✅ GOOD: Early filtering and appropriate TOP usage
 SELECT 
-    c.CompanyName,
+    c.CustomerName,
     recent_orders.OrderDate,
     recent_orders.TotalAmount
 FROM Customers c
@@ -538,8 +538,8 @@ CROSS APPLY (
     ORDER BY o.OrderDate DESC
 ) recent_orders
 WHERE c.IsActive = 1
-  AND c.Country = 'USA'  -- Filter customers early
-ORDER BY c.CompanyName;
+  AND c.CountryID = 'USA'  -- Filter customers early
+ORDER BY c.CustomerName;
 ```
 
 ## Common Use Cases and Business Applications
@@ -614,14 +614,14 @@ ORDER BY
 #### Problem and Solution
 ```sql
 -- ❌ PROBLEM: Inefficient APPLY without proper filtering
-SELECT c.CompanyName, all_orders.*
+SELECT c.CustomerName, all_orders.*
 FROM Customers c
 CROSS APPLY (
     SELECT * FROM Orders o WHERE o.CustomerID = c.CustomerID  -- No filtering, returns all orders
 ) all_orders;
 
 -- ✅ SOLUTION: Proper filtering and limiting
-SELECT c.CompanyName, recent_orders.*
+SELECT c.CustomerName, recent_orders.*
 FROM Customers c
 CROSS APPLY (
     SELECT TOP 10 OrderID, OrderDate, TotalAmount

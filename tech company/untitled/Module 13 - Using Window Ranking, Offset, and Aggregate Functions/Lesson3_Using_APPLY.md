@@ -113,9 +113,9 @@ ORDER BY d.DepartmentName, top_earners.e.BaseSalary DESC;
 ```sql
 -- Get the 5 most recent orders for each customer with order details
 SELECT 
-    c.CompanyName,
-    c.ContactName,
-    c.Country,
+    c.CustomerName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
+    c.CountryID,
     recent_orders.OrderDate,
     FORMAT(recent_orders.TotalAmount, 'C') AS OrderAmount,
     recent_orders.OrderRank,
@@ -145,7 +145,7 @@ WHERE c.IsActive = 1
       WHERE o.CustomerID = c.CustomerID 
         AND o.IsActive = 1
   )
-ORDER BY c.CompanyName, recent_orders.OrderDate DESC;
+ORDER BY c.CustomerName, recent_orders.OrderDate DESC;
 ```
 
 ### 2. Complex Per-Row Calculations
@@ -478,9 +478,9 @@ ORDER BY team_analysis.TeamSize DESC, mgr.e.BaseSalary DESC;
 ```sql
 -- Analyze customer growth patterns and predict future behavior
 SELECT 
-    c.CompanyName,
-    c.ContactName,
-    c.Country,
+    c.CustomerName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
+    c.CountryID,
     trend_analysis.FirstOrderDate,
     trend_analysis.LastOrderDate,
     trend_analysis.CustomerLifespanMonths,
@@ -616,7 +616,7 @@ ORDER BY d.DepartmentName, top_performers.e.BaseSalary DESC;
 ```sql
 -- APPLY approach (efficient for Top-N with complex logic)
 SELECT 
-    c.CompanyName,
+    c.CustomerName,
     recent_orders.OrderDate,
     recent_orders.TotalAmount,
     recent_orders.ProcessedBy
@@ -643,7 +643,7 @@ SELECT
     ProcessedBy
 FROM (
     SELECT 
-        c.CompanyName,
+        c.CustomerName,
         o.OrderDate,
         o.TotalAmount,
         e.FirstName + ' ' + e.LastName AS ProcessedBy,
@@ -698,7 +698,7 @@ OUTER APPLY (
         -- Recent order processing
         SELECT 
             COUNT(o.OrderID) AS OrderCount,
-            MAX(c.CompanyName) AS LatestOrder
+            MAX(c.CustomerName) AS LatestOrder
         FROM Orders o
         INNER JOIN Customers c ON o.CustomerID = c.CustomerID
         WHERE o.e.EmployeeID = e.EmployeeID
@@ -772,8 +772,8 @@ ORDER BY
 ```sql
 -- ✅ GOOD: Early filtering and appropriate TOP usage
 SELECT 
-    c.CompanyName,
-    c.Country,
+    c.CustomerName,
+    c.CountryID,
     high_value_orders.OrderDate,
     FORMAT(high_value_orders.TotalAmount, 'C') AS OrderAmount,
     high_value_orders.ProcessedBy
@@ -793,7 +793,7 @@ CROSS APPLY (
     ORDER BY o.TotalAmount DESC
 ) high_value_orders
 WHERE c.IsActive = 1
-  AND c.Country IN ('USA', 'Canada', 'UK')  -- Filter customers early
+  AND c.CountryID IN ('USA', 'Canada', 'UK')  -- Filter customers early
   AND EXISTS (
       SELECT 1
       FROM Orders o
@@ -801,7 +801,7 @@ WHERE c.IsActive = 1
         AND o.TotalAmount >= 5000
         AND o.IsActive = 1
   )
-ORDER BY c.CompanyName;
+ORDER BY c.CustomerName;
 ```
 
 ## Common Pitfalls and Solutions
@@ -811,7 +811,7 @@ ORDER BY c.CompanyName;
 #### Problem and Solution
 ```sql
 -- ❌ PROBLEM: Inefficient APPLY without proper filtering
-SELECT c.CompanyName, all_orders.*
+SELECT c.CustomerName, all_orders.*
 FROM Customers c
 CROSS APPLY (
     SELECT * FROM Orders o 
@@ -819,7 +819,7 @@ CROSS APPLY (
 ) all_orders;
 
 -- ✅ SOLUTION: Proper filtering and limiting
-SELECT c.CompanyName, recent_significant_orders.*
+SELECT c.CustomerName, recent_significant_orders.*
 FROM Customers c
 CROSS APPLY (
     SELECT TOP 10
@@ -834,7 +834,7 @@ CROSS APPLY (
     ORDER BY o.OrderDate DESC
 ) recent_significant_orders
 WHERE c.IsActive = 1
-  AND c.Country = 'USA';  -- Filter customers early
+  AND c.CountryID = 'USA';  -- Filter customers early
 ```
 
 ### 2. Incorrect Use of CROSS APPLY vs OUTER APPLY

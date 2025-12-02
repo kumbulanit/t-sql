@@ -894,9 +894,9 @@ BEGIN
         SET @SelectClause = '
         SELECT ' + CASE WHEN @TopN IS NOT NULL THEN 'TOP (' + CAST(@TopN AS VARCHAR) + ') ' ELSE '' END + '
             c.CustomerID,
-            c.CompanyName,
+            c.CustomerName,
             c.City,
-            c.Country,
+            c.CountryID,
             COUNT(o.OrderID) AS TotalOrders,
             FORMAT(SUM(o.TotalAmount), ''C'') AS TotalSpent,
             FORMAT(AVG(o.TotalAmount), ''C'') AS AverageOrderValue,
@@ -920,7 +920,7 @@ BEGIN
         FROM Customers c
         INNER JOIN Orders o ON c.CustomerID = o.CustomerID';
         
-        SET @GroupByClause = ' GROUP BY c.CustomerID, c.CompanyName, c.City, c.Country';
+        SET @GroupByClause = ' GROUP BY c.CustomerID, c.CustomerName, c.City, c.CountryID';
         SET @OrderByClause = ' ORDER BY SUM(o.TotalAmount) DESC';
     END
     

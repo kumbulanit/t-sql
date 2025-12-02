@@ -170,7 +170,7 @@ ORDER BY SUM(p.d.Budget) / COUNT(DISTINCT e.EmployeeID) DESC;
 
 SELECT 
     c.CompanyName,
-    c.Industry,
+    c.IndustryID,
     c.CompanySize,
     c.AnnualRevenue,
     
@@ -266,7 +266,7 @@ WHERE c.IsActive = 1
     AND p.IsActive = 1
     AND p.StartDate >= DATEADD(YEAR, -3, GETDATE())
 GROUP BY 
-    c.CompanyID, c.CompanyName, c.Industry, c.CompanySize, c.AnnualRevenue, c.CreditRating
+    c.CompanyID, c.CompanyName, c.IndustryID, c.CompanySize, c.AnnualRevenue, c.CreditRating
 
 -- STRATEGIC HAVING CLAUSES for premium client identification
 HAVING 
@@ -304,7 +304,7 @@ ORDER BY SUM(p.d.Budget) DESC, AVG(p.d.Budget) DESC;
 -- Business scenario: Early warning system for business segments requiring intervention
 
 SELECT 
-    ISNULL(c.Industry, 'Unknown Industry') AS Industry,
+    ISNULL(c.IndustryID, 'Unknown Industry') AS Industry,
     pt.TypeName AS ServiceLine,
     pt.ComplexityLevel,
     
@@ -391,7 +391,7 @@ SELECT
              AND ((SUM(ISNULL(p.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0) / NULLIF(SUM(p.Budget), 0) < 15
         THEN 'PRICING PRESSURE: Small projects with low margins indicate pricing issues'
         
-        WHEN c.Industry IN ('Retail', 'Manufacturing') 
+        WHEN c.IndustryID IN ('Retail', 'Manufacturing') 
              AND COUNT(CASE WHEN p.IsActive = 'Cancelled' THEN 1 END) * 100.0 / COUNT(p.ProjectID) >= 15
         THEN 'INDUSTRY CHALLENGES: Traditional industries may have different needs'
         
@@ -448,7 +448,7 @@ WHERE c.IsActive = 1
     AND pt.IsActive = 1
     AND p.StartDate >= DATEADD(YEAR, -2, GETDATE())
 GROUP BY 
-    c.Industry, pt.ProjectTypeID, pt.TypeName, pt.ComplexityLevel
+    c.IndustryID, pt.ProjectTypeID, pt.TypeName, pt.ComplexityLevel
 
 -- STRATEGIC HAVING CLAUSES for underperforming segment identification
 HAVING 
@@ -503,7 +503,7 @@ Advanced HAVING techniques enable sophisticated business rules:
 
 WITH GrowthAnalysis AS (
     SELECT 
-        c.Industry,
+        c.IndustryID,
         pt.TypeName AS ServiceLine,
         
         -- Current year metrics
@@ -536,7 +536,7 @@ WITH GrowthAnalysis AS (
         AND p.IsActive = 1
         AND pt.IsActive = 1
         AND p.StartDate >= DATEADD(YEAR, -2, GETDATE())
-    GROUP BY c.Industry, pt.ProjectTypeID, pt.TypeName
+    GROUP BY c.IndustryID, pt.ProjectTypeID, pt.TypeName
 )
 
 SELECT 

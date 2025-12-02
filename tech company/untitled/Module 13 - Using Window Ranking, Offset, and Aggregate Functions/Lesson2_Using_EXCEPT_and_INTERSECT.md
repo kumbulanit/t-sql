@@ -121,10 +121,10 @@ ORDER BY d.DepartmentName, YearsOfService DESC;
 -- Find customers who were active but haven't placed orders recently
 SELECT 
     c.CustomerID,
-    c.CompanyName,
-    c.ContactName,
+    c.CustomerName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
     c.City,
-    c.Country,
+    c.CountryID,
     (SELECT MAX(o.OrderDate) 
      FROM Orders o 
      WHERE o.CustomerID = c.CustomerID 
@@ -148,10 +148,10 @@ EXCEPT
 
 SELECT 
     c.CustomerID,
-    c.CompanyName,
-    c.ContactName,
+    c.CustomerName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
     c.City,
-    c.Country,
+    c.CountryID,
     (SELECT MAX(o.OrderDate) 
      FROM Orders o 
      WHERE o.CustomerID = c.CustomerID 
@@ -332,9 +332,9 @@ ORDER BY CurrentSalary DESC, ProjectsManaged DESC;
 -- Identify customers who are both high-value AND high-frequency purchasers
 SELECT 
     c.CustomerID,
-    c.CompanyName,
-    c.ContactName,
-    c.Country,
+    c.CustomerName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
+    c.CountryID,
     COUNT(o.OrderID) AS TotalOrders,
     FORMAT(SUM(o.TotalAmount), 'C') AS TotalRevenue,
     FORMAT(AVG(o.TotalAmount), 'C') AS AverageOrderValue,
@@ -343,16 +343,16 @@ FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
 WHERE c.IsActive = 1
   AND o.IsActive = 1
-GROUP BY c.CustomerID, c.CompanyName, c.ContactName, c.Country
+GROUP BY c.CustomerID, c.CustomerName, CONCAT(c.ContactFirstName, ' ', c.ContactLastName), c.CountryID
 HAVING SUM(o.TotalAmount) >= 25000  -- High-value customers
 
 INTERSECT
 
 SELECT 
     c.CustomerID,
-    c.CompanyName,
-    c.ContactName,
-    c.Country,
+    c.CustomerName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
+    c.CountryID,
     COUNT(o.OrderID) AS TotalOrders,
     FORMAT(SUM(o.TotalAmount), 'C') AS TotalRevenue,
     FORMAT(AVG(o.TotalAmount), 'C') AS AverageOrderValue,
@@ -361,7 +361,7 @@ FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
 WHERE c.IsActive = 1
   AND o.IsActive = 1
-GROUP BY c.CustomerID, c.CompanyName, c.ContactName, c.Country
+GROUP BY c.CustomerID, c.CustomerName, CONCAT(c.ContactFirstName, ' ', c.ContactLastName), c.CountryID
 HAVING COUNT(o.OrderID) >= 15  -- High-frequency customers
 
 ORDER BY TotalRevenue DESC, TotalOrders DESC;
@@ -501,7 +501,7 @@ FROM (
     -- High-value, low-frequency customers (Strategic accounts)
     SELECT 
         c.CustomerID,
-        c.CompanyName,
+        c.CustomerName,
         'Strategic Account' AS CustomerType,
         COUNT(o.OrderID) AS TotalOrders,
         FORMAT(SUM(o.TotalAmount), 'C') AS TotalSpent,
@@ -510,7 +510,7 @@ FROM (
     INNER JOIN Orders o ON c.CustomerID = o.CustomerID
     WHERE c.IsActive = 1
       AND o.IsActive = 1
-    GROUP BY c.CustomerID, c.CompanyName
+    GROUP BY c.CustomerID, c.CustomerName
     HAVING SUM(o.TotalAmount) >= 50000  -- High value
        AND COUNT(o.OrderID) <= 10       -- Low frequency
 
@@ -518,7 +518,7 @@ FROM (
 
     SELECT 
         c.CustomerID,
-        c.CompanyName,
+        c.CustomerName,
         'Strategic Account' AS CustomerType,
         COUNT(o.OrderID) AS TotalOrders,
         FORMAT(SUM(o.TotalAmount), 'C') AS TotalSpent,
@@ -528,7 +528,7 @@ FROM (
     WHERE c.IsActive = 1
       AND o.IsActive = 1
       AND o.OrderDate >= DATEADD(YEAR, -2, GETDATE())  -- Recent activity
-    GROUP BY c.CustomerID, c.CompanyName
+    GROUP BY c.CustomerID, c.CustomerName
     HAVING COUNT(DISTINCT YEAR(o.OrderDate)) >= 2  -- Multi-year relationship
 ) analysis_results
 ORDER BY analysis_results.TotalSpent DESC;
@@ -794,7 +794,7 @@ WHERE IsActive = 1 AND WorkEmail IS NOT NULL;
 -- ❌ PROBLEM: Inconsistent column types or order
 SELECT e.EmployeeID, e.BaseSalary FROM Employees e  -- INT, DECIMAL
 EXCEPT
-SELECT CustomerID, CompanyName FROM Customers;  -- INT, VARCHAR
+SELECT CustomerID, CustomerName FROM Customers;  -- INT, VARCHAR
 
 -- ✅ SOLUTION: Ensure compatible types and consistent column order
 SELECT 

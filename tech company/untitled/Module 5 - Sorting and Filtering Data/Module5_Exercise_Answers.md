@@ -345,14 +345,14 @@ ORDER BY c.CategoryName, p.ProductName;
 2. **Customers who have placed at least one order using EXISTS**:
 
 ```sql
-SELECT c.CustomerID, c.CompanyName, c.Country
+SELECT c.CustomerID, c.CustomerName, c.CountryID
 FROM Customers c
 WHERE EXISTS (
     SELECT 1 
     FROM Orders o 
     WHERE o.CustomerID = c.CustomerID
 )
-ORDER BY c.CompanyName;
+ORDER BY c.CustomerName;
 ```
 
 3. **Products that have never been ordered using NOT EXISTS**:
@@ -419,12 +419,12 @@ ORDER BY e.BaseSalary DESC;
 2. **Find the top 10% of customers by total order value**:
 
 ```sql
-SELECT TOP 10 PERCENT c.CustomerID, c.CompanyName, 
+SELECT TOP 10 PERCENT c.CustomerID, c.CustomerName, 
        SUM(od.e.BaseSalary * od.Quantity * (1 - od.Discount)) as TotalOrderValue
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
 INNER JOIN [Order Details] od ON o.OrderID = od.OrderID
-GROUP BY c.CustomerID, c.CompanyName
+GROUP BY c.CustomerID, c.CustomerName
 ORDER BY TotalOrderValue DESC;
 ```
 
@@ -576,12 +576,12 @@ FETCH NEXT 1000 ROWS ONLY;
 2. **OFFSET-FETCH with complex sorting criteria**:
 
 ```sql
-SELECT o.OrderID, c.CompanyName, o.OrderDate, 
+SELECT o.OrderID, c.CustomerName, o.OrderDate, 
        SUM(od.e.BaseSalary * od.Quantity) as OrderTotal
 FROM Orders o
 INNER JOIN Customers c ON o.CustomerID = c.CustomerID
 INNER JOIN [Order Details] od ON o.OrderID = od.OrderID
-GROUP BY o.OrderID, c.CompanyName, o.OrderDate
+GROUP BY o.OrderID, c.CustomerName, o.OrderDate
 ORDER BY OrderTotal DESC, o.OrderDate DESC
 OFFSET 20 ROWS
 FETCH NEXT 10 ROWS ONLY;
@@ -757,11 +757,11 @@ ORDER BY od.OrderID;
 
 ```sql
 -- LEFT JOIN to include customers even if EmployeeID is NULL
-SELECT c.CustomerID, c.CompanyName, 
+SELECT c.CustomerID, c.CustomerName, 
        ISNULL(e.FirstName + ' ' + e.LastName, 'No Sales Rep') as SalesRep
 FROM Customers c
 LEFT JOIN Employees e ON c.EmployeeID = e.EmployeeID
-ORDER BY c.CompanyName;
+ORDER BY c.CustomerName;
 ```
 
 2. **Use CASE to provide different default values for NULL based on other columns**:
@@ -828,14 +828,14 @@ DECLARE @PageNumber INT = 1;
 DECLARE @PageSize INT = 20;
 
 WITH CustomerOrderTotals AS (
-    SELECT c.CustomerID, c.CompanyName, 
+    SELECT c.CustomerID, c.CustomerName, 
            ISNULL(c.Region, 'Not Specified') as Region,
-           c.Country,
+           c.CountryID,
            SUM(od.BaseSalary * od.Quantity * (1 - ISNULL(od.Discount, 0))) as TotalOrderValue
     FROM Customers c
     INNER JOIN Orders o ON c.CustomerID = o.CustomerID
     INNER JOIN [Order Details] od ON o.OrderID = od.OrderID
-    GROUP BY c.CustomerID, c.CompanyName, c.Region, c.Country
+    GROUP BY c.CustomerID, c.CustomerName, c.Region, c.CountryID
     HAVING SUM(od.BaseSalary * od.Quantity * (1 - ISNULL(od.Discount, 0))) > 1000
 )
 SELECT CustomerID, CompanyName, Region, Country, TotalOrderValue
@@ -868,14 +868,14 @@ ORDER BY c.CategoryName, p.UnitsInStock;
 ```sql
 WITH CustomerSalesLast6Months AS (
     SELECT c.CustomerID, 
-           ISNULL(c.CompanyName, 'Unknown Customer') as CompanyName,
+           ISNULL(c.CustomerName, 'Unknown Customer') as CompanyName,
            COUNT(o.OrderID) as OrderCount,
            SUM(od.BaseSalary * od.Quantity * (1 - ISNULL(od.Discount, 0))) as TotalValue
     FROM Customers c
     INNER JOIN Orders o ON c.CustomerID = o.CustomerID
     INNER JOIN [Order Details] od ON o.OrderID = od.OrderID
     WHERE o.OrderDate >= DATEADD(MONTH, -6, GETDATE())
-    GROUP BY c.CustomerID, c.CompanyName
+    GROUP BY c.CustomerID, c.CustomerName
     HAVING COUNT(o.OrderID) >= 3
 )
 SELECT TOP 10 CustomerID, CompanyName, OrderCount, TotalValue

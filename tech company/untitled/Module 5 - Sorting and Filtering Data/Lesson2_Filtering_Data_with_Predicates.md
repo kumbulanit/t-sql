@@ -517,7 +517,7 @@ WHERE
                 SELECT 1 FROM Employees e ekills es
                 INNER JOIN Skills s ON es.SkillID = s.SkillID
                 WHERE es.e.EmployeeID = e.EmployeeID 
-                AND s.SkillCategory = 'Finance'
+                AND s.SkillCategoryID = 'Finance'
                 AND es.CertificationDate IS NOT NULL
             ))
             

@@ -452,7 +452,7 @@ CREATE TABLE Customers (
 
 -- Efficient join (matching data types)
 SELECT 
-    c.CompanyName,
+    c.CustomerName,
     o.OrderID,
     o.OrderDate,
     o.TotalAmount

@@ -707,9 +707,9 @@ ORDER BY d.DepartmentName, top_performers.PerformanceRank;
 ```sql
 -- Customer Success: Comprehensive Customer Analysis
 SELECT 
-    c.CompanyName,
-    c.ContactName,
-    c.Country,
+    c.CustomerName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
+    c.CountryID,
     ISNULL(customer_metrics.TotalOrders, 0) AS TotalOrders,
     FORMAT(ISNULL(customer_metrics.LifetimeValue, 0), 'C') AS LifetimeValue,
     ISNULL(FORMAT(customer_metrics.LastOrderDate, 'yyyy-MM-dd'), 'Never') AS LastOrderDate,

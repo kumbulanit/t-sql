@@ -227,7 +227,7 @@ WITH SalesMetrics AS (
         e.EmployeeID,
         e.FirstName + ' ' + e.LastName AS SalesRep,
         e.BaseSalary,
-        e.Commission,
+        e.CommissionRate,
         d.DepartmentName,
         
         -- Calculate total project value for each sales rep
@@ -245,7 +245,7 @@ WITH SalesMetrics AS (
     WHERE d.DepartmentName = 'Sales' 
         AND e.IsActive = 1
         AND p.CreatedDate >= DATEADD(YEAR, -1, GETDATE())
-    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.BaseSalary, e.Commission, d.DepartmentName
+    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.BaseSalary, e.CommissionRate, d.DepartmentName
 )
 SELECT 
     e.EmployeeID,

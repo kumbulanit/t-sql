@@ -499,12 +499,12 @@ PRINT 'Remaining discontinued products: ' + CAST(@AfterCount AS VARCHAR(10));
 -- First, let's see which customers have never ordered
 SELECT 
     c.CustomerID,
-    c.CompanyName,
-    c.ContactName,
+    c.CustomerName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
     COUNT(o.OrderID) as OrderCount
 FROM Customers c
 LEFT JOIN Orders o ON c.CustomerID = o.CustomerID
-GROUP BY c.CustomerID, c.CompanyName, c.ContactName
+GROUP BY c.CustomerID, c.CustomerName, CONCAT(c.ContactFirstName, ' ', c.ContactLastName)
 HAVING COUNT(o.OrderID) = 0;
 
 -- Create a backup before deletion

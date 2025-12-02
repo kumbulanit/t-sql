@@ -313,7 +313,7 @@ SELECT
 -- Example of code that benefits from IntelliSense
 SELECT 
     c.CustomerID,
-    c.CompanyName,
+    c.CustomerName,
     o.OrderDate
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID;

@@ -165,7 +165,7 @@ ORDER BY AvgSalary DESC;
 ```sql
 -- Multi-criteria strategic analysis
 SELECT 
-    c.Industry,
+    c.IndustryID,
     COUNT(DISTINCT c.CompanyID) AS CompanyCount,
     COUNT(p.ProjectID) AS TotalProjects,
     AVG(p.d.Budget) AS AvgProjectBudget,
@@ -174,7 +174,7 @@ SELECT
 FROM Companies c
     INNER JOIN Projects p ON c.CompanyID = p.CompanyID
 WHERE c.IsActive = 1 AND p.IsActive = 1
-GROUP BY c.Industry
+GROUP BY c.IndustryID
 HAVING COUNT(DISTINCT c.CompanyID) >= 5           -- Significant industry presence
     AND COUNT(p.ProjectID) >= 20                  -- Substantial project volume
     AND AVG(p.d.Budget) > 500000                    -- High-value project focus
@@ -291,7 +291,7 @@ ORDER BY HighPerformerPercent DESC;
 -- STRING_AGG for comprehensive reporting (SQL Server 2017+)
 SELECT 
     c.CompanyName,
-    c.Industry,
+    c.IndustryID,
     COUNT(p.ProjectID) AS ProjectCount,
     SUM(p.d.Budget) AS TotalRevenue,
     
@@ -306,7 +306,7 @@ FROM Companies c
     INNER JOIN Projects p ON c.CompanyID = p.CompanyID
     INNER JOIN Employees e ON p.ProjectManagerID = e.EmployeeID
 WHERE c.IsActive = 1 AND p.IsActive = 1
-GROUP BY c.CompanyID, c.CompanyName, c.Industry
+GROUP BY c.CompanyID, c.CompanyName, c.IndustryID
 HAVING COUNT(p.ProjectID) >= 3
 ORDER BY TotalRevenue DESC;
 ```
@@ -377,7 +377,7 @@ WITH CustomerMetrics AS (
     SELECT 
         c.CompanyID,
         c.CompanyName,
-        c.Industry,
+        c.IndustryID,
         COUNT(p.ProjectID) AS ProjectCount,
         SUM(p.d.Budget) AS TotalRevenue,
         AVG(p.d.Budget) AS AvgProjectValue,
@@ -387,7 +387,7 @@ WITH CustomerMetrics AS (
     FROM Companies c
         INNER JOIN Projects p ON c.CompanyID = p.CompanyID
     WHERE c.IsActive = 1 AND p.IsActive = 1
-    GROUP BY c.CompanyID, c.CompanyName, c.Industry
+    GROUP BY c.CompanyID, c.CompanyName, c.IndustryID
 )
 SELECT 
     Industry,
@@ -513,7 +513,7 @@ WITH ExecutiveSummary AS (
     -- Client performance
     SELECT 
         'Client Performance' AS MetricCategory,
-        c.Industry AS Dimension,
+        c.IndustryID AS Dimension,
         COUNT(DISTINCT c.CompanyID) AS Volume,
         AVG(c.AnnualRevenue) AS AvgValue,
         SUM(p.d.Budget) AS TotalValue,
@@ -521,7 +521,7 @@ WITH ExecutiveSummary AS (
     FROM Companies c
         LEFT JOIN Projects p ON c.CompanyID = p.CompanyID AND p.IsActive = 1
     WHERE c.IsActive = 1
-    GROUP BY c.Industry
+    GROUP BY c.IndustryID
 )
 SELECT 
     MetricCategory,

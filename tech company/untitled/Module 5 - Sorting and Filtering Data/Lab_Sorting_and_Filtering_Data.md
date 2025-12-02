@@ -381,14 +381,14 @@ Use these queries to verify your solutions:
 
 ```sql
 -- Verify sorting results
-SELECT TOP 5 CustomerID, CompanyName 
+SELECT TOP 5 CustomerID, CustomerName 
 FROM Customers 
-ORDER BY CompanyName;
+ORDER BY CustomerName;
 
 -- Verify filtering results
 SELECT COUNT(*) as GermanCustomers 
 FROM Customers 
-WHERE Country = 'Germany';
+WHERE CountryID = 'Germany';
 
 -- Verify pagination
 SELECT COUNT(*) as TotalProducts FROM Products;

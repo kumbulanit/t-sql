@@ -514,7 +514,7 @@ WHERE EXISTS (
 SELECT 
     o.OrderID,
     o.OrderDate,
-    c.CompanyName,
+    c.CustomerName,
     od.ProductName,
     od.Quantity,
     od.e.BaseSalary,
@@ -535,8 +535,8 @@ SELECT
     es.IsActiveDescription AS EmployeeIsActive,
     d.DepartmentName
 FROM Employees e
-INNER JOIN EmployeeTypes et ON e.EmployeeTypeID = et.EmployeeTypeID
-INNER JOIN EmployeeIsActivees es ON e.IsActiveID = es.IsActiveID
+INNER JOIN EmployeeTypes et ON e.EmployeeID = et.EmployeeTypeID
+INNER JOIN EmployeeIsActivees es ON e.IsActive = es.IsActiveID
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID;
 ```
 

@@ -443,7 +443,7 @@ SELECT
     e.JobTitle,
     d.DepartmentName,
     s.SkillName,
-    s.SkillCategory,
+    s.SkillCategoryID,
     deptskills.EmployeesWithSkill,
     deptskills.TotalDeptEmployees,
     CAST((deptskills.EmployeesWithSkill * 100.0) / deptskills.TotalDeptEmployees AS DECIMAL(5,1)) AS SkillPrevalence

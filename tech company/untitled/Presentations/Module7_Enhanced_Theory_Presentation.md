@@ -503,7 +503,7 @@ RETURN
     SELECT 
         o.OrderID,
         o.CustomerID,
-        c.CompanyName,
+        c.CustomerName,
         o.OrderDate,
         SUM(od.BaseSalary * od.Quantity) AS OrderTotal,
         COUNT(od.ProductID) AS ItemCount
@@ -511,7 +511,7 @@ RETURN
     JOIN Customers c ON o.CustomerID = c.CustomerID
     JOIN OrderDetails od ON o.OrderID = od.OrderID
     WHERE o.OrderDate BETWEEN @StartDate AND @EndDate
-    GROUP BY o.OrderID, o.CustomerID, c.CompanyName, o.OrderDate
+    GROUP BY o.OrderID, o.CustomerID, c.CustomerName, o.OrderDate
     HAVING SUM(od.BaseSalary * od.Quantity) >= @MinAmount
 );
 

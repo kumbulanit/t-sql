@@ -318,10 +318,10 @@ BEGIN
     -- Return customer basic information
     SELECT 
         c.CustomerID,
-        c.CompanyName,
-        c.ContactName,
+        c.CustomerName,
+        CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
         c.City,
-        c.Country,
+        c.CountryID,
         c.WorkEmail,
         -- Order statistics
         ISNULL(order_stats.TotalOrders, 0) AS TotalOrderCount,

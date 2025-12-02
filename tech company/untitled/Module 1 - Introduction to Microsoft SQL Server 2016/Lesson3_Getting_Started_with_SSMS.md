@@ -179,10 +179,10 @@ The Query Editor is where you write and execute T-SQL commands.
 │  Database: [YourDB ▼] │ Available Databases           │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
-│  1  SELECT CustomerID, CompanyName                     │
+│  1  SELECT CustomerID, CustomerName                     │
 │  2  FROM Customers                                      │
-│  3  WHERE Country = 'USA'                              │
-│  4  ORDER BY CompanyName;                             │
+│  3  WHERE CountryID = 'USA'                              │
+│  4  ORDER BY CustomerName;                             │
 │  5                                                      │
 │                                                         │
 ├─────────────────────────────────────────────────────────┤
@@ -197,7 +197,7 @@ The Query Editor is where you write and execute T-SQL commands.
 **Advanced Query Editor Features:**
 ```sql
 -- IntelliSense example
-SELECT c.CustomerID, c.CompanyName, o.OrderDate
+SELECT c.CustomerID, c.CustomerName, o.OrderDate
 FROM Customers c -- IntelliSense suggests columns
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID;
 
@@ -387,14 +387,14 @@ SET STATISTICS IO ON;
 SET STATISTICS TIME ON;
 
 SELECT 
-    c.CompanyName,
+    c.CustomerName,
     COUNT(o.OrderID) as OrderCount,
     SUM(od.Quantity * od.BaseSalary) as TotalRevenue
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
 INNER JOIN OrderDetails od ON o.OrderID = od.OrderID
 WHERE o.OrderDate >= '2024-01-01'
-GROUP BY c.CustomerID, c.CompanyName
+GROUP BY c.CustomerID, c.CustomerName
 HAVING COUNT(o.OrderID) > 5
 ORDER BY TotalRevenue DESC;
 
@@ -618,7 +618,7 @@ WITH CustomerSummary AS (
     GROUP BY CustomerID
 )
 SELECT 
-    c.CompanyName,
+    c.CustomerName,
     cs.OrderCount,
     cs.TotalRevenue,
     cs.AvgOrderValue,

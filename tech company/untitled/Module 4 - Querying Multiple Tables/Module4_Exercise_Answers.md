@@ -110,7 +110,7 @@ ORDER BY [d.Budget Used %] DESC;
 -- Skills market value and internal supply analysis
 SELECT 
     s.SkillName AS [Skill],
-    s.SkillCategory AS [Category],
+    s.SkillCategoryID AS [Category],
     s.MarketDemand AS [Market Demand],
     COUNT(es.e.EmployeeID) AS [Employees with Skill],
     AVG(CAST(es.YearsExperience AS FLOAT)) AS [Avg Years Experience],
@@ -149,7 +149,7 @@ INNER JOIN EmployeeSkills es ON s.SkillID = es.SkillID
 INNER JOIN Employees e ON es.e.EmployeeID = e.EmployeeID
 WHERE e.IsActive = 1
   AND es.CertificationDate IS NOT NULL  -- Only certified skills
-GROUP BY s.SkillID, s.SkillName, s.SkillCategory, s.MarketDemand
+GROUP BY s.SkillID, s.SkillName, s.SkillCategoryID, s.MarketDemand
 HAVING COUNT(es.e.EmployeeID) >= 1
 ORDER BY 
     CASE s.MarketDemand 
@@ -168,7 +168,7 @@ ORDER BY
 -- Client-focused project portfolio analysis
 SELECT 
     c.CompanyName AS [Client],
-    c.Industry AS [Industry],
+    c.IndustryID AS [Industry],
     FORMAT(c.AnnualRevenue, 'C0') AS [Client Revenue],
     p.ProjectName AS [Project],
     FORMAT(p.d.Budget, 'C0') AS [Project d.Budget],
@@ -216,7 +216,7 @@ INNER JOIN Employees pm ON p.ProjectManagerID = pm.e.EmployeeID
 LEFT JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
 WHERE p.d.Budget >= 200000
   AND c.IsActive = 1
-GROUP BY c.CompanyID, c.CompanyName, c.Industry, c.AnnualRevenue,
+GROUP BY c.CompanyID, c.CompanyName, c.IndustryID, c.AnnualRevenue,
          p.ProjectID, p.ProjectName, p.d.Budget, p.Status, p.Priority,
          p.StartDate, p.PlannedEndDate, p.ActualCost,
          pm.e.FirstName, pm.e.LastName, pm.WorkEmail

@@ -270,8 +270,8 @@ ORDER BY e.BaseSalary DESC;
 ```sql
 -- Sales Team: Customers with Top-Tier Order Values
 SELECT 
-    c.CompanyName,
-    c.ContactName,
+    c.CustomerName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
     FORMAT(o.TotalAmount, 'C') AS OrderAmount,
     FORMAT(o.OrderDate, 'yyyy-MM-dd') AS OrderDate,
     e.FirstName + ' ' + e.LastName AS ProcessedBy
@@ -449,10 +449,10 @@ ORDER BY NumberOfDirectReports DESC, e.HireDate;
 ```sql
 -- Customer Success: At-Risk Customer Analysis
 SELECT 
-    c.CompanyName,
-    c.ContactName,
+    c.CustomerName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
     c.City,
-    c.Country,
+    c.CountryID,
     (SELECT MAX(o.OrderDate)
      FROM Orders o
      WHERE o.CustomerID = c.CustomerID

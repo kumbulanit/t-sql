@@ -333,7 +333,7 @@ WHERE emp.IsActive = 1;
 SELECT 
     d.DayName,
     s.ShiftName,
-    e.EmployeeName
+    e.EmployeeNumber
 FROM Days d
 CROSS JOIN Shifts s
 CROSS JOIN Employees e

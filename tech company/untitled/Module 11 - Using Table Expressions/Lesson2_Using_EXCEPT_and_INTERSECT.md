@@ -160,8 +160,8 @@ WHERE dh.RecordDate = DATEADD(MONTH, -1, GETDATE())
 -- Find customers who placed orders this month but not last month
 SELECT DISTINCT
     c.CustomerID,
-    c.CompanyName,
-    c.ContactName,
+    c.CustomerName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
     c.City
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
@@ -174,8 +174,8 @@ EXCEPT
 
 SELECT DISTINCT
     c.CustomerID,
-    c.CompanyName,
-    c.ContactName,
+    c.CustomerName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
     c.City
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
@@ -259,9 +259,9 @@ WHERE e.IsActive = 1
 -- Find customers who have orders from multiple departments
 SELECT DISTINCT
     c.CustomerID,
-    c.CompanyName,
-    c.ContactName,
-    c.Country
+    c.CustomerName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
+    c.CountryID
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
 INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
@@ -273,9 +273,9 @@ INTERSECT
 
 SELECT DISTINCT
     c.CustomerID,
-    c.CompanyName,
-    c.ContactName,
-    c.Country
+    c.CustomerName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
+    c.CountryID
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
 INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
@@ -327,28 +327,28 @@ WHERE p.Budget <= 50000  -- Low-budget projects
 -- Find customers who are both high-value (>$10k orders) AND frequent (>5 orders)
 SELECT 
     c.CustomerID,
-    c.CompanyName,
-    c.ContactName,
+    c.CustomerName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
     SUM(o.TotalAmount) AS TotalRevenue,
     COUNT(o.OrderID) AS OrderCount
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
 WHERE c.IsActive = 1 AND o.IsActive = 1
-GROUP BY c.CustomerID, c.CompanyName, c.ContactName
+GROUP BY c.CustomerID, c.CustomerName, CONCAT(c.ContactFirstName, ' ', c.ContactLastName)
 HAVING SUM(o.TotalAmount) > 10000
 
 INTERSECT
 
 SELECT 
     c.CustomerID,
-    c.CompanyName,
-    c.ContactName,
+    c.CustomerName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
     SUM(o.TotalAmount) AS TotalRevenue,
     COUNT(o.OrderID) AS OrderCount
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
 WHERE c.IsActive = 1 AND o.IsActive = 1
-GROUP BY c.CustomerID, c.CompanyName, c.ContactName
+GROUP BY c.CustomerID, c.CustomerName, CONCAT(c.ContactFirstName, ' ', c.ContactLastName)
 HAVING COUNT(o.OrderID) > 5;
 ```
 
@@ -536,20 +536,20 @@ WHERE p.IsActive = 1;
 -- Find customers who are in both premium segment AND loyal segment
 SELECT 
     c.CustomerID,
-    c.CompanyName,
+    c.CustomerName,
     'Premium & Loyal' AS Segment,
     SUM(o.TotalAmount) AS TotalSpent
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
 WHERE c.IsActive = 1 AND o.IsActive = 1
-GROUP BY c.CustomerID, c.CompanyName
+GROUP BY c.CustomerID, c.CustomerName
 HAVING SUM(o.TotalAmount) > 50000  -- Premium threshold
 
 INTERSECT
 
 SELECT 
     c.CustomerID,
-    c.CompanyName,
+    c.CustomerName,
     'Premium & Loyal' AS Segment,
     COUNT(o.OrderID) AS OrderCount
 FROM Customers c
@@ -557,7 +557,7 @@ INNER JOIN Orders o ON c.CustomerID = o.CustomerID
 WHERE c.IsActive = 1 
   AND o.IsActive = 1
   AND o.OrderDate >= DATEADD(YEAR, -2, GETDATE())
-GROUP BY c.CustomerID, c.CompanyName
+GROUP BY c.CustomerID, c.CustomerName
 HAVING COUNT(o.OrderID) >= 12;  -- Loyal threshold (6+ orders per year)
 ```
 
@@ -657,10 +657,10 @@ SELECT CASE WHEN NULL = NULL THEN 'Equal' ELSE 'Not Equal' END;  -- Returns: Not
 -- ❌ PROBLEM: Order matters with EXCEPT
 SELECT e.FirstName FROM Employees e
 EXCEPT
-SELECT ContactName FROM Customers;
+SELECT CONCAT(ContactFirstName, ' ', ContactLastName) FROM Customers;
 
 -- This is NOT the same as:
-SELECT ContactName FROM Customers
+SELECT CONCAT(ContactFirstName, ' ', ContactLastName) FROM Customers
 EXCEPT
 SELECT e.FirstName FROM Employees e;
 
@@ -668,7 +668,7 @@ SELECT e.FirstName FROM Employees e;
 -- Employees who are not also customer contacts
 SELECT e.FirstName FROM Employees e
 EXCEPT
-SELECT ContactName FROM Customers;
+SELECT CONCAT(ContactFirstName, ' ', ContactLastName) FROM Customers;
 ```
 
 ### 3. Performance Issues with Large Datasets

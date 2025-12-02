@@ -267,7 +267,7 @@ INNER JOIN Products p ON od.ProductID = p.ProductID
 ```sql
 -- Five-table join with proper ordering
 SELECT 
-    c.CompanyName,
+    c.CustomerName,
     o.OrderID,
     o.OrderDate,
     p.ProductName,
@@ -282,7 +282,7 @@ INNER JOIN Products p ON od.ProductID = p.ProductID
 INNER JOIN Categories cat ON p.CategoryID = cat.CategoryID
 INNER JOIN Suppliers s ON p.SupplierID = s.SupplierID
 WHERE o.OrderDate >= '2023-01-01'
-ORDER BY c.CompanyName, o.OrderDate;
+ORDER BY c.CustomerName, o.OrderDate;
 ```
 
 ##### **Self-Join for Hierarchical Data**
@@ -318,13 +318,13 @@ INCLUDE (e.EmployeeID, e.FirstName, e.LastName, e.JobTitle);
 ```sql
 -- Query optimizer typically handles this, but understanding helps
 SELECT 
-    c.CompanyName,
+    c.CustomerName,
     o.OrderID,
     od.Quantity
 FROM Customers c                    -- Large table (1M rows)
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID        -- Medium table (100K rows)  
 INNER JOIN OrderDetails od ON o.OrderID = od.OrderID      -- Small filtered result
-WHERE c.Country = 'USA'            -- Selective filter first
+WHERE c.CountryID = 'USA'            -- Selective filter first
     AND o.OrderDate >= '2023-01-01'
     AND od.Quantity > 10;
 ```
@@ -348,14 +348,14 @@ WHERE c.Country = 'USA'            -- Selective filter first
 -- All customers with their orders (including customers without orders)
 SELECT 
     c.CustomerID,
-    c.CompanyName,
-    c.Country,
+    c.CustomerName,
+    c.CountryID,
     o.OrderID,
     o.OrderDate,
     o.TotalAmount
 FROM Customers c
 LEFT JOIN Orders o ON c.CustomerID = o.CustomerID
-ORDER BY c.CompanyName;
+ORDER BY c.CustomerName;
 ```
 
 ##### **Finding Unmatched Records**
@@ -363,8 +363,8 @@ ORDER BY c.CompanyName;
 -- Customers who have never placed an order
 SELECT 
     c.CustomerID,
-    c.CompanyName,
-    c.Country,
+    c.CustomerName,
+    c.CountryID,
     c.RegistrationDate
 FROM Customers c
 LEFT JOIN Orders o ON c.CustomerID = o.CustomerID
@@ -376,14 +376,14 @@ WHERE o.CustomerID IS NULL;
 -- Customer summary with order statistics
 SELECT 
     c.CustomerID,
-    c.CompanyName,
-    c.Country,
+    c.CustomerName,
+    c.CountryID,
     COUNT(o.OrderID) AS TotalOrders,
     ISNULL(SUM(o.TotalAmount), 0) AS TotalSpent,
     MAX(o.OrderDate) AS LastOrderDate
 FROM Customers c
 LEFT JOIN Orders o ON c.CustomerID = o.CustomerID
-GROUP BY c.CustomerID, c.CompanyName, c.Country
+GROUP BY c.CustomerID, c.CustomerName, c.CountryID
 ORDER BY TotalSpent DESC;
 ```
 
@@ -397,12 +397,12 @@ ORDER BY TotalSpent DESC;
 ```sql
 -- These queries are equivalent:
 -- RIGHT JOIN version
-SELECT c.CompanyName, o.OrderID
+SELECT c.CustomerName, o.OrderID
 FROM Orders o
 RIGHT JOIN Customers c ON o.CustomerID = c.CustomerID;
 
 -- Preferred LEFT JOIN version
-SELECT c.CompanyName, o.OrderID
+SELECT c.CustomerName, o.OrderID
 FROM Customers c
 LEFT JOIN Orders o ON c.CustomerID = o.CustomerID;
 ```
@@ -418,7 +418,7 @@ LEFT JOIN Orders o ON c.CustomerID = o.CustomerID;
 -- All customers and all orders (complete picture)
 SELECT 
     c.CustomerID,
-    c.CompanyName,
+    c.CustomerName,
     o.OrderID,
     o.OrderDate,
     CASE 
@@ -428,7 +428,7 @@ SELECT
     END AS RecordIsActive
 FROM Customers c
 FULL OUTER JOIN Orders o ON c.CustomerID = o.CustomerID
-ORDER BY c.CompanyName, o.OrderDate;
+ORDER BY c.CustomerName, o.OrderDate;
 ```
 - Excludes rows without matches
 - Requires explicit JOIN condition
@@ -625,7 +625,7 @@ SELECT
     home.CountryName AS HomeCountry,
     work.CountryName AS WorkCountry
 FROM Employees e
-    LEFT JOIN Countries home ON e.HomeCountryID = home.CountryID
+    LEFT JOIN Countries home ON e.CountryID = home.CountryID
     LEFT JOIN Companies c ON e.CompanyID = c.CompanyID
     LEFT JOIN Countries work ON c.CountryID = work.CountryID;
 ```

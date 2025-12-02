@@ -194,7 +194,7 @@ StrategicMetrics AS (
 CompetitiveIntelligence AS (
     -- Market and competitive analysis
     SELECT 
-        c.Industry,
+        c.IndustryID,
         pt.TypeName AS ServiceLine,
         pt.ComplexityLevel,
         
@@ -224,7 +224,7 @@ CompetitiveIntelligence AS (
         AND p.IsActive = 1 
         AND pt.IsActive = 1
         AND p.StartDate >= DATEADD(YEAR, -2, GETDATE())
-    GROUP BY c.Industry, pt.ProjectTypeID, pt.TypeName, pt.ComplexityLevel
+    GROUP BY c.IndustryID, pt.ProjectTypeID, pt.TypeName, pt.ComplexityLevel
     HAVING COUNT(p.ProjectID) >= 3  -- Minimum for statistical significance
 )
 
@@ -448,7 +448,7 @@ WITH HistoricalPerformance AS (
     SELECT 
         YEAR(p.StartDate) AS PerformanceYear,
         MONTH(p.StartDate) AS PerformanceMonth,
-        c.Industry,
+        c.IndustryID,
         d.DepartmentName,
         
         -- VOLUME METRICS
@@ -479,7 +479,7 @@ WITH HistoricalPerformance AS (
     WHERE p.IsActive = 1 
         AND p.StartDate >= DATEADD(YEAR, -3, GETDATE())
         AND p.StartDate IS NOT NULL
-    GROUP BY YEAR(p.StartDate), MONTH(p.StartDate), c.Industry, d.DepartmentName
+    GROUP BY YEAR(p.StartDate), MONTH(p.StartDate), c.IndustryID, d.DepartmentName
 ),
 
 TrendAnalysis AS (

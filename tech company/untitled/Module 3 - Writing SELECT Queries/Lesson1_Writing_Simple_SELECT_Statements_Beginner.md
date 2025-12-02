@@ -198,10 +198,10 @@ FROM Projects p;
 ```sql
 -- Look at customer information  
 SELECT TOP 5
-    c.CompanyName AS [Company Name],
-    c.ContactName AS [Contact Person],
-    c.Email AS [Email Address],
-    c.Phone AS [Phone Number]
+    c.CustomerName AS [Company Name],
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName) AS [Contact Person],
+    c.PrimaryEmail AS [Email Address],
+    c.PrimaryPhone AS [Phone Number]
 FROM Customers c;
 ```
 

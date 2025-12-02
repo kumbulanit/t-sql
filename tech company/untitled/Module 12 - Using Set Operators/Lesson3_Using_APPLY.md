@@ -325,9 +325,9 @@ ORDER BY project_summary.TotalHours DESC, e.BaseSalary DESC;
 
 SELECT 
     c.CustomerID,
-    c.CompanyName,
+    c.CustomerName,
     c.City,
-    c.Country,
+    c.CountryID,
     customer_analysis.OrderCount,
     customer_analysis.TotalRevenue,
     customer_analysis.AverageOrderValue,

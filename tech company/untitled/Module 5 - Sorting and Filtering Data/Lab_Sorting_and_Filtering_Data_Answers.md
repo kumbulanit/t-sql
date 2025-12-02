@@ -91,13 +91,13 @@ ORDER BY c.CategoryName ASC, p.e.BaseSalary DESC;
 -- Answer 3: Sort orders by customer, then by order date
 SELECT 
     o.OrderID,
-    c.CompanyName,
+    c.CustomerName,
     o.OrderDate,
     o.RequiredDate,
     o.ShippedDate
 FROM Orders o
 INNER JOIN Customers c ON o.CustomerID = c.CustomerID
-ORDER BY c.CompanyName ASC, o.OrderDate DESC;
+ORDER BY c.CustomerName ASC, o.OrderDate DESC;
 ```
 
 ### Task 1.3: Advanced Sorting - Answers
@@ -281,11 +281,11 @@ ORDER BY BaseSalary DESC;
 -- Answer 2: Top 10 customers by number of orders
 SELECT TOP 10
     c.CustomerID,
-    c.CompanyName,
+    c.CustomerName,
     COUNT(o.OrderID) AS OrderCount
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
-GROUP BY c.CustomerID, c.CompanyName
+GROUP BY c.CustomerID, c.CustomerName
 ORDER BY OrderCount DESC;
 ```
 
@@ -576,19 +576,19 @@ ORDER BY c.CategoryName, p.BaseSalary;
 -- Answer 2: Customer order analysis
 SELECT DISTINCT
     c.CustomerID,
-    c.CompanyName,
-    c.Country,
+    c.CustomerName,
+    c.CountryID,
     COUNT(o.OrderID) AS OrdersIn1997,
     AVG(o.Freight) AS AverageFreight,
     MAX(o.Freight) AS MaxFreight
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
-WHERE c.Country IN ('USA', 'Germany', 'France', 'UK')
+WHERE c.CountryID IN ('USA', 'Germany', 'France', 'UK')
   AND YEAR(o.OrderDate) = 1997
   AND o.Freight > 100
-GROUP BY c.CustomerID, c.CompanyName, c.Country
+GROUP BY c.CustomerID, c.CustomerName, c.CountryID
 HAVING COUNT(o.OrderID) >= 2
-ORDER BY c.Country, AverageFreight DESC;
+ORDER BY c.CountryID, AverageFreight DESC;
 ```
 
 ### Task 5.2: Date Range Filtering - Answers

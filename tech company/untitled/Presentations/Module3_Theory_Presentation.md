@@ -360,7 +360,7 @@ LEFT JOIN Employees mgr ON emp.ManagerID = mgr.e.EmployeeID;  -- Self-join clari
 -- Common aliasing patterns
 SELECT 
     c.CustomerID,
-    c.CompanyName,
+    c.CustomerName,
     o.OrderID,
     o.OrderDate,
     od.ProductID,
@@ -374,7 +374,7 @@ INNER JOIN Products p ON od.ProductID = p.ProductID;
 -- Alternative: Meaningful abbreviations
 SELECT 
     cust.CustomerID,
-    cust.CompanyName,
+    cust.CustomerName,
     ord.OrderID,
     ord.OrderDate
 FROM Customers cust

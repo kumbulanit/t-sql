@@ -236,7 +236,7 @@ JOIN Suppliers s ON p.SupplierID = s.SupplierID
 WHERE 
     c.CategoryName IN ('Beverages', 'Dairy Products', 'Seafood')
     AND
-    s.Country IN ('USA', 'Canada', 'Mexico')
+    s.CountryID IN ('USA', 'Canada', 'Mexico')
     AND
     p.Discontinued = 0;
 
@@ -328,11 +328,11 @@ SELECT TOP 25 PERCENT
 FROM (
     SELECT 
         c.CustomerID,
-        c.CompanyName,
+        c.CustomerName,
         COUNT(o.OrderID) AS TotalOrders
     FROM Customers c
     LEFT JOIN Orders o ON c.CustomerID = o.CustomerID
-    GROUP BY c.CustomerID, c.CompanyName
+    GROUP BY c.CustomerID, c.CustomerName
 ) AS CustomerStats
 ORDER BY TotalOrders DESC;
 ```
@@ -365,13 +365,13 @@ SELECT
 FROM (
     SELECT 
         c.CustomerID,
-        c.CompanyName,
-        c.Country,
+        c.CustomerName,
+        c.CountryID,
         COUNT(o.OrderID) AS TotalOrders,
-        ROW_NUMBER() OVER (ORDER BY COUNT(o.OrderID) DESC, c.CompanyName) AS RowNum
+        ROW_NUMBER() OVER (ORDER BY COUNT(o.OrderID) DESC, c.CustomerName) AS RowNum
     FROM Customers c
     LEFT JOIN Orders o ON c.CustomerID = o.CustomerID
-    GROUP BY c.CustomerID, c.CompanyName, c.Country
+    GROUP BY c.CustomerID, c.CustomerName, c.CountryID
 ) AS CustomerStats
 ORDER BY RowNum
 OFFSET 0 ROWS FETCH NEXT 20 ROWS ONLY;
@@ -593,14 +593,14 @@ INCLUDE (e.EmployeeID, e.JobTitle);
 SELECT 
     o.OrderID,
     o.OrderDate,
-    c.CompanyName,
+    c.CustomerName,
     o.TotalAmount
 FROM Orders o
 JOIN Customers c ON o.CustomerID = c.CustomerID
 WHERE 
     o.OrderDate BETWEEN '2023-01-01' AND '2023-12-31'
     AND o.TotalAmount > 1000
-    AND c.Country = 'USA'
+    AND c.CountryID = 'USA'
 ORDER BY o.OrderDate DESC;
 
 -- Optimal covering indexes
@@ -641,11 +641,11 @@ SELECT
 FROM (
     SELECT 
         c.CustomerID,
-        c.CompanyName,
+        c.CustomerName,
         COUNT(o.OrderID) AS TotalOrders
     FROM Customers c
     LEFT JOIN Orders o ON c.CustomerID = o.CustomerID
-    GROUP BY c.CustomerID, c.CompanyName
+    GROUP BY c.CustomerID, c.CustomerName
 ) AS CustomerStats
 ORDER BY TotalOrders DESC, CompanyName;
 
@@ -760,8 +760,8 @@ OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;
 SELECT 
     -- Customer information
     c.CustomerID,
-    c.CompanyName,
-    c.Country,
+    c.CustomerName,
+    c.CountryID,
     c.City,
     
     -- Order summary
@@ -781,13 +781,13 @@ FROM Customers c
     LEFT JOIN Orders o ON c.CustomerID = o.CustomerID
     
 WHERE 
-    c.Country IN ('USA', 'Canada', 'Mexico')
+    c.CountryID IN ('USA', 'Canada', 'Mexico')
     AND (o.OrderDate IS NULL OR o.OrderDate >= '2022-01-01')
     
 GROUP BY 
     c.CustomerID,
-    c.CompanyName, 
-    c.Country,
+    c.CustomerName, 
+    c.CountryID,
     c.City
     
 HAVING 
@@ -797,7 +797,7 @@ HAVING
 ORDER BY 
     TotalRevenue DESC,
     TotalOrders DESC,
-    c.CompanyName;
+    c.CustomerName;
 ```
 
 This enhanced Module 5 presentation provides comprehensive coverage of sorting and filtering with detailed explanations, advanced techniques, performance considerations, and professional best practices that will give students a deep understanding of these fundamental SQL concepts.

@@ -206,7 +206,7 @@ ORDER BY e.BaseSalary DESC;
 -- Orders above average order value
 SELECT 
     o.OrderID,
-    c.CompanyName,
+    c.CustomerName,
     e.FirstName + ' ' + e.LastName AS SalesRep,
     o.OrderDate,
     o.TotalAmount,

@@ -267,7 +267,7 @@ ORDER BY SUM(p.d.Budget) DESC;
 -- Business scenario: Market positioning and vertical expertise development
 
 SELECT 
-    ISNULL(c.Industry, 'Unknown Industry') AS Industry,
+    ISNULL(c.IndustryID, 'Unknown Industry') AS Industry,
     
     -- CLIENT PORTFOLIO METRICS
     COUNT(DISTINCT c.CompanyID) AS TotalClients,
@@ -379,7 +379,7 @@ SELECT
 FROM Companies c
     LEFT JOIN Projects p ON c.CompanyID = p.CompanyID AND p.IsActive = 1
 WHERE c.IsActive = 1
-GROUP BY c.Industry
+GROUP BY c.IndustryID
 HAVING COUNT(p.ProjectID) > 0  -- Only industries with actual projects
 ORDER BY SUM(p.d.Budget) DESC;
 ```
@@ -560,7 +560,7 @@ ORDER BY
 -- Business scenario: Optimal service-market fit analysis for strategic positioning
 
 SELECT 
-    ISNULL(c.Industry, 'Unknown Industry') AS ClientIndustry,
+    ISNULL(c.IndustryID, 'Unknown Industry') AS ClientIndustry,
     pt.TypeName AS ServiceLine,
     pt.ComplexityLevel,
     
@@ -681,7 +681,7 @@ SELECT
         THEN 'EXPERT PREMIUM MARKET - High barriers to entry, premium pricing'
         WHEN pt.ComplexityLevel <= 2 AND COUNT(p.ProjectID) >= 10
         THEN 'COMMODITIZED MARKET - Compete on efficiency and scale'
-        WHEN c.Industry IN ('Technology', 'Financial Services') AND AVG(p.Budget) >= 500000
+        WHEN c.IndustryID IN ('Technology', 'Financial Services') AND AVG(p.Budget) >= 500000
         THEN 'HIGH-TECH PREMIUM - Digital transformation focus'
         ELSE 'STANDARD MARKET - Balanced approach to pricing and delivery'
     END AS MarketCharacteristics,
@@ -707,7 +707,7 @@ WHERE c.IsActive = 1
     AND pt.IsActive = 1
     AND p.StartDate >= DATEADD(YEAR, -3, GETDATE())
 GROUP BY 
-    c.Industry, pt.ProjectTypeID, pt.TypeName, pt.ComplexityLevel
+    c.IndustryID, pt.ProjectTypeID, pt.TypeName, pt.ComplexityLevel
 HAVING COUNT(p.ProjectID) >= 2  -- Only combinations with multiple projects
 ORDER BY 
     SUM(p.Budget) DESC,

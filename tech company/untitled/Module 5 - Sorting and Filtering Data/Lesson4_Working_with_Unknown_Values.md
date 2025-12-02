@@ -74,14 +74,14 @@ FROM Products;
 -- NULL in concatenation makes entire result NULL
 SELECT 
     CustomerID,
-    CompanyName,
+    CustomerName,
     City + ', ' + Region AS Location  -- NULL if Region is NULL
 FROM Customers;
 
 -- Better approach using CONCAT
 SELECT 
     CustomerID,
-    CompanyName,
+    CustomerName,
     CONCAT(City, ', ', Region) AS Location  -- Treats NULL as empty string
 FROM Customers;
 ```
@@ -93,7 +93,7 @@ FROM Customers;
 -- ISNULL replaces NULL with specified value
 SELECT 
     CustomerID,
-    CompanyName,
+    CustomerName,
     ISNULL(Region, 'Not Specified') AS Region,
     ISNULL(Fax, 'No Fax') AS FaxNumber
 FROM Customers;
@@ -113,8 +113,8 @@ FROM Products;
 -- COALESCE returns first non-NULL value
 SELECT 
     CustomerID,
-    CompanyName,
-    COALESCE(Region, City, Country, 'Unknown') AS Location
+    CustomerName,
+    COALESCE(Region, City, CountryID, 'Unknown') AS Location
 FROM Customers;
 
 -- COALESCE with multiple columns
@@ -143,7 +143,7 @@ FROM Products;
 ```sql
 SELECT 
     CustomerID,
-    CompanyName,
+    CustomerName,
     Region,
     CASE 
         WHEN Region IS NULL THEN 'No Region Specified'
@@ -246,7 +246,7 @@ WHERE Region = NULL
 -- Outer joins may introduce NULLs
 SELECT 
     c.CustomerID,
-    c.CompanyName,
+    c.CustomerName,
     ISNULL(o.OrderDate, 'No Orders') AS LastOrderDate
 FROM Customers c
 LEFT JOIN (
@@ -277,11 +277,11 @@ FROM Products;
 -- Be explicit about NULL handling in complex queries
 SELECT 
     CustomerID,
-    CompanyName,
+    CustomerName,
     -- Region: NULL indicates no regional assignment
     ISNULL(Region, 'Unassigned') AS Region,
-    -- Phone: NULL indicates no phone number available
-    ISNULL(Phone, 'Not Available') AS Phone
+    -- PrimaryPhone: NULL indicates no PrimaryPhone number available
+    ISNULL(PrimaryPhone, 'Not Available') AS PrimaryPhone
 FROM Customers;
 ```
 
@@ -295,7 +295,7 @@ FROM Customers;
 ### Efficient NULL Checks
 ```sql
 -- Efficient NULL handling in WHERE clauses
-SELECT CustomerID, CompanyName
+SELECT CustomerID, CustomerName
 FROM Customers
 WHERE Region IS NOT NULL
   AND LEN(Region) > 0;  -- Also check for empty strings

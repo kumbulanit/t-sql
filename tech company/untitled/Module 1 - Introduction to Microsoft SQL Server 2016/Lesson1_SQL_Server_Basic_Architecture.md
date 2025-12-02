@@ -240,14 +240,14 @@ SET STATISTICS TIME ON;
 
 -- Complex query with multiple joins
 SELECT 
-    c.CompanyName,
+    c.CustomerName,
     COUNT(o.OrderID) as OrderCount,
     SUM(od.Quantity * od.BaseSalary) as TotalRevenue
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
 INNER JOIN OrderDetails od ON o.OrderID = od.OrderID
 WHERE o.OrderDate >= DATEADD(YEAR, -1, GETDATE())
-GROUP BY c.CustomerID, c.CompanyName
+GROUP BY c.CustomerID, c.CustomerName
 HAVING COUNT(o.OrderID) > 5
 ORDER BY TotalRevenue DESC;
 

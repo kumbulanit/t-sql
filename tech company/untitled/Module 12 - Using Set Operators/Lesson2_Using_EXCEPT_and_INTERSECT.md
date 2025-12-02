@@ -256,10 +256,10 @@ ORDER BY e.EmployeeID, RoleType, ProjectContext;
 WITH OrderingCustomers AS (
     SELECT DISTINCT
         c.CustomerID,
-        c.CompanyName,
-        c.ContactName,
+        c.CustomerName,
+        CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
         c.City,
-        c.Country,
+        c.CountryID,
         c.WorkEmail
     FROM Customers c
     INNER JOIN Orders o ON c.CustomerID = o.CustomerID

@@ -134,7 +134,7 @@ ORDER BY e1.DepartmentName, e1.e.BaseSalary DESC;
 #### **EXISTS vs IN Performance Comparison**
 ```sql
 -- EXISTS approach (often more efficient)
-SELECT DISTINCT c.CustomerID, c.CompanyName
+SELECT DISTINCT c.CustomerID, c.CustomerName
 FROM Customers c
 WHERE EXISTS (
     SELECT 1  -- SELECT 1 is efficient, doesn't return actual values
@@ -145,7 +145,7 @@ WHERE EXISTS (
 );
 
 -- IN approach (can be less efficient with large datasets)
-SELECT c.CustomerID, c.CompanyName
+SELECT c.CustomerID, c.CustomerName
 FROM Customers c
 WHERE c.CustomerID IN (
     SELECT o.CustomerID
@@ -155,7 +155,7 @@ WHERE c.CustomerID IN (
 );
 
 -- NOT EXISTS (handles NULLs correctly)
-SELECT c.CustomerID, c.CompanyName
+SELECT c.CustomerID, c.CustomerName
 FROM Customers c
 WHERE NOT EXISTS (
     SELECT 1
@@ -166,7 +166,7 @@ WHERE NOT EXISTS (
 
 -- NOT IN (problematic with NULLs)
 -- This query may not work as expected if Orders.CustomerID contains NULLs
-SELECT c.CustomerID, c.CompanyName
+SELECT c.CustomerID, c.CustomerName
 FROM Customers c
 WHERE c.CustomerID NOT IN (
     SELECT o.CustomerID
@@ -190,15 +190,15 @@ WITH HighValueCustomers AS (
     -- CTE 1: Identify high-value customers
     SELECT 
         c.CustomerID,
-        c.CompanyName,
-        c.Country,
+        c.CustomerName,
+        c.CountryID,
         SUM(o.TotalAmount) AS TotalPurchases,
         COUNT(o.OrderID) AS OrderCount,
         AVG(o.TotalAmount) AS AverageOrderValue
     FROM Customers c
     JOIN Orders o ON c.CustomerID = o.CustomerID
     WHERE o.OrderDate >= '2023-01-01'
-    GROUP BY c.CustomerID, c.CompanyName, c.Country
+    GROUP BY c.CustomerID, c.CustomerName, c.CountryID
     HAVING SUM(o.TotalAmount) > 10000
 ),
 ProductPerformance AS (
@@ -409,8 +409,8 @@ ORDER BY p1.CategoryID, p1.e.BaseSalary DESC;
 WITH CustomerAnalysis AS (
     SELECT 
         c.CustomerID,
-        c.CompanyName,
-        c.Country,
+        c.CustomerName,
+        c.CountryID,
         
         -- Total orders and revenue
         (SELECT COUNT(*) FROM Orders o WHERE o.CustomerID = c.CustomerID) AS TotalOrders,
@@ -637,8 +637,8 @@ WITH CustomerMetrics AS (
     -- Base customer metrics
     SELECT 
         c.CustomerID,
-        c.CompanyName,
-        c.Country,
+        c.CustomerName,
+        c.CountryID,
         c.Region,
         COUNT(o.OrderID) AS TotalOrders,
         SUM(od.BaseSalary * od.Quantity) AS TotalRevenue,
@@ -649,7 +649,7 @@ WITH CustomerMetrics AS (
     FROM Customers c
     LEFT JOIN Orders o ON c.CustomerID = o.CustomerID
     LEFT JOIN OrderDetails od ON o.OrderID = od.OrderID
-    GROUP BY c.CustomerID, c.CompanyName, c.Country, c.Region
+    GROUP BY c.CustomerID, c.CustomerName, c.CountryID, c.Region
 ),
 RegionBenchmarks AS (
     -- Regional benchmarks for comparison

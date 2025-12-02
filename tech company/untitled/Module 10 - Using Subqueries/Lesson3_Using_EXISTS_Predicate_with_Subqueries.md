@@ -136,10 +136,10 @@ ORDER BY e.HireDate DESC;
 ```sql
 -- Find customers who haven't placed orders in the last 90 days
 SELECT 
-    c.CompanyName,
-    c.ContactName,
+    c.CustomerName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
     c.City,
-    c.Country,
+    c.CountryID,
     (SELECT MAX(o.OrderDate)
      FROM Orders o
      WHERE o.CustomerID = c.CustomerID
@@ -153,7 +153,7 @@ WHERE NOT EXISTS (
       AND o.IsActive = 1
 )
   AND c.IsActive = 1
-ORDER BY c.CompanyName;
+ORDER BY c.CustomerName;
 ```
 
 ## Advanced EXISTS Patterns
@@ -202,8 +202,8 @@ ORDER BY e.BaseSalary DESC;
 ```sql
 -- Find customers who have high-value orders AND multiple recent orders
 SELECT 
-    c.CompanyName,
-    c.ContactName,
+    c.CustomerName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
     c.City,
     (SELECT COUNT(*)
      FROM Orders o
@@ -410,8 +410,8 @@ WHERE NOT EXISTS (
 ```sql
 -- Segment customers based on order patterns
 SELECT 
-    c.CompanyName,
-    c.ContactName,
+    c.CustomerName,
+    CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
     CASE 
         WHEN EXISTS (
             SELECT 1 FROM Orders o 

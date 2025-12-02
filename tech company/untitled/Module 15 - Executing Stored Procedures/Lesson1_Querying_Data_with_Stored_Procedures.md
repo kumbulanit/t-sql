@@ -480,10 +480,10 @@ BEGIN
     -- Customer relationship analysis query
     SELECT 
         c.CustomerID,
-        c.CompanyName,
-        c.ContactName,
+        c.CustomerName,
+        CONCAT(c.ContactFirstName, ' ', c.ContactLastName),
         c.City,
-        c.Country,
+        c.CountryID,
         c.WorkEmail,
         -- Order activity metrics
         ISNULL(order_metrics.TotalOrders, 0) AS TotalOrders,
@@ -592,12 +592,12 @@ BEGIN
     ) employee_interaction ON c.CustomerID = employee_interaction.CustomerID
     WHERE c.IsActive = 1
       AND (@CustomerID IS NULL OR c.CustomerID = @CustomerID)
-      AND (@Country IS NULL OR c.Country = @Country)
+      AND (@Country IS NULL OR c.CountryID = @Country)
       AND (order_metrics.TotalOrderValue IS NULL OR order_metrics.TotalOrderValue >= @MinimumOrderValue)
     ORDER BY 
         ISNULL(order_metrics.TotalOrderValue, 0) DESC,
         order_metrics.LastOrderDate DESC,
-        c.CompanyName;
+        c.CustomerName;
 END;
 
 -- Example executions
