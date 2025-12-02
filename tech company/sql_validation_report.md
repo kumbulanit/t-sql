@@ -1,6 +1,6 @@
 # SQL Validation Report
 
-Generated: 2025-12-02 08:18:49
+Generated: 2025-12-02 12:38:55
 - Total SQL blocks: 2752
 - ✅ Passed: 2752
 - ❌ Failed: 0
@@ -4485,7 +4485,7 @@ Generated: 2025-12-02 08:18:49
 > LEFT JOIN          RIGHT JOIN         FULL OUTER JOIN / ┌─────────┐       ┌─────────┐        ┌─────────────┐ / │ A │ A∩B │       │ A∩B │ B │        │ A │ A∩B │ B │
 
 ✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 6, line 136)
-> -- All employees with their d.DepartmentName info (includes employees without departments) / SELECT / e.FirstName,
+> -- All employees with their department info (includes employees without departments) / SELECT / e.FirstName,
 
 ✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 7, line 152)
 > -- All departments with their employees (includes departments with no employees) / SELECT d.DepartmentName, / d.Location,
@@ -4508,37 +4508,37 @@ Generated: 2025-12-02 08:18:49
 ✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 13, line 362)
 > -- Data integrity and completeness analysis / SELECT / 'Employee Data Completeness' AS AnalysisType,
 
-✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 14, line 415)
+✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 14, line 418)
 > -- Executive dashboard with comprehensive metrics / WITH DepartmentMetrics AS ( / SELECT
 
-✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 15, line 511)
+✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 15, line 514)
 > -- Good: Explicit NULL handling / SELECT / e.FirstName,
 
-✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 16, line 524)
+✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 16, line 527)
 > -- Provide business-meaningful defaults / SELECT d.DepartmentName, / COUNT(e.EmployeeID) AS EmployeeCount,
 
-✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 17, line 539)
+✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 17, line 542)
 > -- Use WHERE clauses carefully with outer joins / SELECT e.FirstName, d.DepartmentName / FROM Employees e
 
-✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 18, line 549)
+✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 18, line 552)
 > -- When you only need to check existence, use EXISTS / SELECT e.FirstName, e.LastName / FROM Employees e
 
-✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 19, line 567)
+✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 19, line 570)
 > -- Find employees without projects / SELECT e.FirstName, e.LastName, 'No Projects' AS IsActive / FROM Employees e
 
-✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 20, line 582)
+✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 20, line 585)
 > -- Orders with optional shipping information / SELECT / o.OrderID,
 
-✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 21, line 596)
+✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 21, line 599)
 > -- Employee hierarchy with optional managers / SELECT / e.FirstName + ' ' + e.LastName AS Employee,
 
-✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 22, line 613)
+✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 22, line 616)
 > -- PROBLEM: Using INNER JOIN when you want all records / SELECT e.FirstName, p.ProjectName / FROM Employees e
 
-✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 23, line 629)
+✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 23, line 632)
 > -- PROBLEM: WHERE clause eliminates outer join benefits / SELECT e.FirstName, d.DepartmentName / FROM Employees e
 
-✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 24, line 644)
+✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins.md** (block 24, line 647)
 > -- PROBLEM: Counting NULLs incorrectly / SELECT d.DepartmentName, COUNT(e.EmployeeID) AS EmployeeCount / FROM Departments d
 
 ✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lesson3_Querying_with_Outer_Joins_Advanced.md** (block 1, line 20)
