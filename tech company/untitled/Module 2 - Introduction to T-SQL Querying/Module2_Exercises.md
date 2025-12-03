@@ -112,7 +112,7 @@ LEFT JOIN (
     SELECT e.EmployeeID, COUNT(*) AS ProjectCount
     FROM EmployeeProjects 
     GROUP BY e.EmployeeID
-) p ON e.EmployeeID = p.e.EmployeeID
+) p ON e.EmployeeID = p.EmployeeID
 WHERE Category = 'Multi-Project'
 ORDER BY ProjectCount DESC;
 ```

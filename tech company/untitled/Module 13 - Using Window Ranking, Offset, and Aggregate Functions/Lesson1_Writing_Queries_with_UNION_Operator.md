@@ -168,19 +168,19 @@ WHERE e.IsActive = 1
 UNION ALL
 
 SELECT 
-    ea.e.EmployeeID,
-    ea.e.FirstName + ' ' + ea.e.LastName AS EmployeeName,
-    ea.e.JobTitle,
+    ea.EmployeeID,
+    ea.FirstName + ' ' + ea.LastName AS EmployeeName,
+    ea.JobTitle,
     d.DepartmentName,
-    ea.e.HireDate,
+    ea.HireDate,
     ea.TerminationDate,
     'Terminated' AS EmploymentStatus,
-    DATEDIFF(YEAR, ea.e.HireDate, ISNULL(ea.TerminationDate, GETDATE())) AS TenureYears,
-    FORMAT(ea.e.BaseSalary, 'C') AS CurrentSalary,
+    DATEDIFF(YEAR, ea.HireDate, ISNULL(ea.TerminationDate, GETDATE())) AS TenureYears,
+    FORMAT(ea.BaseSalary, 'C') AS CurrentSalary,
     CASE 
-        WHEN DATEDIFF(YEAR, ea.e.HireDate, ISNULL(ea.TerminationDate, GETDATE())) >= 10 THEN 'Senior'
-        WHEN DATEDIFF(YEAR, ea.e.HireDate, ISNULL(ea.TerminationDate, GETDATE())) >= 5 THEN 'Experienced'
-        WHEN DATEDIFF(YEAR, ea.e.HireDate, ISNULL(ea.TerminationDate, GETDATE())) >= 2 THEN 'Intermediate'
+        WHEN DATEDIFF(YEAR, ea.HireDate, ISNULL(ea.TerminationDate, GETDATE())) >= 10 THEN 'Senior'
+        WHEN DATEDIFF(YEAR, ea.HireDate, ISNULL(ea.TerminationDate, GETDATE())) >= 5 THEN 'Experienced'
+        WHEN DATEDIFF(YEAR, ea.HireDate, ISNULL(ea.TerminationDate, GETDATE())) >= 2 THEN 'Intermediate'
         ELSE 'Junior'
     END AS ExperienceLevel
 FROM EmployeeArchive ea
@@ -293,7 +293,7 @@ SELECT
     SUM(o.TotalAmount) AS TotalValue,
     AVG(o.TotalAmount) AS AverageValue,
     COUNT(DISTINCT o.CustomerID) AS UniqueCustomers,
-    COUNT(DISTINCT o.e.EmployeeID) AS ProcessingEmployees
+    COUNT(DISTINCT o.EmployeeID) AS ProcessingEmployees
 FROM Orders o
 WHERE o.OrderDate >= '2024-01-01' 
   AND o.OrderDate < '2024-04-01'
@@ -308,7 +308,7 @@ SELECT
     SUM(o.TotalAmount) AS TotalValue,
     AVG(o.TotalAmount) AS AverageValue,
     COUNT(DISTINCT o.CustomerID) AS UniqueCustomers,
-    COUNT(DISTINCT o.e.EmployeeID) AS ProcessingEmployees
+    COUNT(DISTINCT o.EmployeeID) AS ProcessingEmployees
 FROM Orders o
 WHERE o.OrderDate >= '2024-04-01' 
   AND o.OrderDate < '2024-07-01'
@@ -323,7 +323,7 @@ SELECT
     SUM(o.TotalAmount) AS TotalValue,
     AVG(o.TotalAmount) AS AverageValue,
     COUNT(DISTINCT o.CustomerID) AS UniqueCustomers,
-    COUNT(DISTINCT o.e.EmployeeID) AS ProcessingEmployees
+    COUNT(DISTINCT o.EmployeeID) AS ProcessingEmployees
 FROM Orders o
 WHERE o.OrderDate >= '2024-07-01' 
   AND o.OrderDate < '2024-10-01'
@@ -338,7 +338,7 @@ SELECT
     SUM(o.TotalAmount) AS TotalValue,
     AVG(o.TotalAmount) AS AverageValue,
     COUNT(DISTINCT o.CustomerID) AS UniqueCustomers,
-    COUNT(DISTINCT o.e.EmployeeID) AS ProcessingEmployees
+    COUNT(DISTINCT o.EmployeeID) AS ProcessingEmployees
 FROM Orders o
 WHERE o.OrderDate >= '2024-10-01' 
   AND o.OrderDate < '2025-01-01'
@@ -431,7 +431,7 @@ INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 CROSS APPLY (
     SELECT COUNT(*) AS OrdersProcessed
     FROM Orders o
-    WHERE o.e.EmployeeID = e.EmployeeID
+    WHERE o.EmployeeID = e.EmployeeID
       AND o.IsActive = 1
 ) order_metrics
 WHERE e.IsActive = 1
@@ -497,7 +497,7 @@ SELECT
     e.FirstName + ' ' + e.LastName AS ProcessedBy
 FROM Orders o
 INNER JOIN Customers c ON o.CustomerID = c.CustomerID
-INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
 WHERE o.OrderDate >= DATEADD(YEAR, -1, GETDATE())
   AND o.IsActive = 1
   AND c.IsActive = 1
@@ -511,9 +511,9 @@ SELECT
     p.d.Budget AS Amount,
     'Internal Project' AS Source,
     'TechCorp Internal' AS ClientName,
-    mgr.e.FirstName + ' ' + mgr.e.LastName AS ProcessedBy
+    mgr.FirstName + ' ' + mgr.LastName AS ProcessedBy
 FROM Projects p
-INNER JOIN Employees mgr ON p.ProjectManagerID = mgr.e.EmployeeID
+INNER JOIN Employees mgr ON p.ProjectManagerID = mgr.EmployeeID
 WHERE p.StartDate >= DATEADD(YEAR, -1, GETDATE())
   AND p.IsActive = 1
   AND mgr.IsActive = 1
@@ -696,7 +696,7 @@ UNION ALL
 SELECT d.DepartmentName,
     'Historical' AS Period,
     COUNT(*) AS EmployeeCount,
-    AVG(ea.e.BaseSalary) AS AvgSalary
+    AVG(ea.BaseSalary) AS AvgSalary
 FROM Departments d
 INNER JOIN EmployeeArchive ea ON d.DepartmentID = ea.d.DepartmentID
 WHERE d.IsActive = 1

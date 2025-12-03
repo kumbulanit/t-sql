@@ -281,13 +281,13 @@ WITH SalaryAnalytics AS (
         -- Performance metrics
         (SELECT AVG(pm.Achievement) 
          FROM PerformanceMetrics pm 
-         WHERE pm.e.EmployeeID = e.EmployeeID) as AvgPerformanceRating,
+         WHERE pm.EmployeeID = e.EmployeeID) as AvgPerformanceRating,
         
         -- Project budget data
         (SELECT SUM(p.d.Budget) 
          FROM Projects p 
          INNER JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
-         WHERE ep.e.EmployeeID = e.EmployeeID) as TotalProjectBudgetManaged
+         WHERE ep.EmployeeID = e.EmployeeID) as TotalProjectBudgetManaged
          
     FROM Employees e
         INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
@@ -462,18 +462,18 @@ WITH DepartmentMetrics AS (
         LEFT JOIN (
             -- Get latest performance rating for each employee
             SELECT DISTINCT
-                pm1.e.EmployeeID, 
+                pm1.EmployeeID, 
                 pm1.Achievement,
-                ROW_NUMBER() OVER (PARTITION BY pm1.e.EmployeeID ORDER BY pm1.ReviewDate DESC) as rn
+                ROW_NUMBER() OVER (PARTITION BY pm1.EmployeeID ORDER BY pm1.ReviewDate DESC) as rn
             FROM PerformanceMetrics pm1
-        ) pm ON e.EmployeeID = pm.e.EmployeeID AND pm.rn = 1
-        LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.e.EmployeeID
+        ) pm ON e.EmployeeID = pm.EmployeeID AND pm.rn = 1
+        LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
         LEFT JOIN (
             -- Count skills per employee
             SELECT e.EmployeeID, COUNT(*) as SkillCount
             FROM Employees e ekills
             GROUP BY e.EmployeeID
-        ) emp_skills ON e.EmployeeID = emp_skills.e.EmployeeID
+        ) emp_skills ON e.EmployeeID = emp_skills.EmployeeID
         
     GROUP BY d.DepartmentID, d.DepartmentName, c.CompanyName
     HAVING COUNT(e.EmployeeID) > 0  -- Only departments with employees
@@ -490,7 +490,7 @@ ProjectMetrics AS (
         COUNT(CASE WHEN p.IsActive = 'On Hold' THEN 1 END) as ProjectsOnHold
     FROM Departments d
         LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
-        LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+        LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
         LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID
     GROUP BY d.DepartmentID
 )
@@ -673,15 +673,15 @@ WITH ExecutiveSummary AS (
     FROM Employees e
         INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
         INNER JOIN Companies c ON d.CompanyID = c.CompanyID
-        LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+        LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
         LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID
         LEFT JOIN (
             SELECT DISTINCT
-                pm1.e.EmployeeID, 
+                pm1.EmployeeID, 
                 pm1.Achievement,
-                ROW_NUMBER() OVER (PARTITION BY pm1.e.EmployeeID ORDER BY pm1.ReviewDate DESC) as rn
+                ROW_NUMBER() OVER (PARTITION BY pm1.EmployeeID ORDER BY pm1.ReviewDate DESC) as rn
             FROM PerformanceMetrics pm1
-        ) pm ON e.EmployeeID = pm.e.EmployeeID AND pm.rn = 1
+        ) pm ON e.EmployeeID = pm.EmployeeID AND pm.rn = 1
     WHERE e.IsActive = 1
 ),
 
@@ -705,16 +705,16 @@ CompetitiveAnalysis AS (
         
     FROM Departments d
         INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
-        LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.e.EmployeeID
-        LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+        LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
+        LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
         LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID
         LEFT JOIN (
             SELECT DISTINCT
-                pm1.e.EmployeeID, 
+                pm1.EmployeeID, 
                 pm1.Achievement,
-                ROW_NUMBER() OVER (PARTITION BY pm1.e.EmployeeID ORDER BY pm1.ReviewDate DESC) as rn
+                ROW_NUMBER() OVER (PARTITION BY pm1.EmployeeID ORDER BY pm1.ReviewDate DESC) as rn
             FROM PerformanceMetrics pm1
-        ) pm ON e.EmployeeID = pm.e.EmployeeID AND pm.rn = 1
+        ) pm ON e.EmployeeID = pm.EmployeeID AND pm.rn = 1
     GROUP BY d.DepartmentID, d.DepartmentName
 ),
 
@@ -732,7 +732,7 @@ RiskOpportunityAnalysis AS (
                     AND NOT EXISTS (
                         SELECT 1 FROM EmployeeProjects ep2 
                         INNER JOIN Projects p2 ON ep2.ProjectID = p2.ProjectID
-                        WHERE ep2.e.EmployeeID = e.EmployeeID 
+                        WHERE ep2.EmployeeID = e.EmployeeID 
                         AND p2.IsActive = 'Active'
                     )
               THEN 1 END) as UnderutilizedTalent,
@@ -755,18 +755,18 @@ RiskOpportunityAnalysis AS (
             SELECT d2.d.DepartmentID, COUNT(DISTINCT es2.SkillID) as SkillCount
             FROM Departments d d2
             LEFT JOIN Employees e2 ON d2.d.DepartmentID = e2.d.DepartmentID
-            LEFT JOIN EmployeeSkills es2 ON e2.e.EmployeeID = es2.e.EmployeeID
+            LEFT JOIN EmployeeSkills es2 ON e2.EmployeeID = es2.EmployeeID
             GROUP BY d2.d.DepartmentID
         ) dept_skills ON d.DepartmentID = dept_skills.d.DepartmentID
-        LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+        LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
         LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID
         LEFT JOIN (
             SELECT DISTINCT
-                pm1.e.EmployeeID, 
+                pm1.EmployeeID, 
                 pm1.Achievement,
-                ROW_NUMBER() OVER (PARTITION BY pm1.e.EmployeeID ORDER BY pm1.ReviewDate DESC) as rn
+                ROW_NUMBER() OVER (PARTITION BY pm1.EmployeeID ORDER BY pm1.ReviewDate DESC) as rn
             FROM PerformanceMetrics pm1
-        ) pm ON e.EmployeeID = pm.e.EmployeeID AND pm.rn = 1
+        ) pm ON e.EmployeeID = pm.EmployeeID AND pm.rn = 1
     WHERE e.IsActive = 1
 )
 

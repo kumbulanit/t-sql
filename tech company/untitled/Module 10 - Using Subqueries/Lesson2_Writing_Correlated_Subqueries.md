@@ -72,18 +72,18 @@ SELECT
     e.LastName,
     e.BaseSalary,
     d.DepartmentName,
-    (SELECT AVG(e2.e.BaseSalary) 
+    (SELECT AVG(e2.BaseSalary) 
      FROM Employees e e2 
      WHERE e2.d.DepartmentID = e.d.DepartmentID 
        AND e2.IsActive = 1) AS DeptAvgSalary,
-    e.BaseSalary - (SELECT AVG(e2.e.BaseSalary) 
+    e.BaseSalary - (SELECT AVG(e2.BaseSalary) 
                     FROM Employees e e2 
                     WHERE e2.d.DepartmentID = e.d.DepartmentID 
                       AND e2.IsActive = 1) AS SalaryDifferenceFromDeptAvg
 FROM Employees e
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.BaseSalary > (
-    SELECT AVG(e2.e.BaseSalary)
+    SELECT AVG(e2.BaseSalary)
     FROM Employees e e2
     WHERE e2.d.DepartmentID = e.d.DepartmentID  -- Correlation with outer query
       AND e2.IsActive = 1
@@ -115,25 +115,25 @@ ORDER BY d.Budget DESC;
 ```sql
 -- Find managers with their direct report count and average team e.BaseSalary
 SELECT 
-    mgr.e.FirstName + ' ' + mgr.e.LastName AS ManagerName,
-    mgr.e.JobTitle,
+    mgr.FirstName + ' ' + mgr.LastName AS ManagerName,
+    mgr.JobTitle,
     d.DepartmentName,
     (SELECT COUNT(*)
      FROM Employees e
     INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-     WHERE e.ManagerID = mgr.e.EmployeeID
+     WHERE e.ManagerID = mgr.EmployeeID
        AND e.IsActive = 1) AS DirectReports,
     (SELECT AVG(e.BaseSalary)
      FROM Employees e
-     WHERE e.ManagerID = mgr.e.EmployeeID
+     WHERE e.ManagerID = mgr.EmployeeID
        AND e.IsActive = 1) AS AvgTeamSalary,
-    mgr.e.BaseSalary AS ManagerSalary
+    mgr.BaseSalary AS ManagerSalary
 FROM Employees e mgr
 INNER JOIN Departments d ON mgr.d.DepartmentID = d.DepartmentID
 WHERE EXISTS (
     SELECT 1
     FROM Employees e
-    WHERE e.ManagerID = mgr.e.EmployeeID
+    WHERE e.ManagerID = mgr.EmployeeID
       AND e.IsActive = 1
 )
   AND mgr.IsActive = 1
@@ -151,14 +151,14 @@ SELECT
     d.DepartmentName,
     e.HireDate,
     DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
-    (SELECT AVG(DATEDIFF(YEAR, e2.e.HireDate, GETDATE()))
+    (SELECT AVG(DATEDIFF(YEAR, e2.HireDate, GETDATE()))
      FROM Employees e e2
      WHERE e2.d.DepartmentID = e.d.DepartmentID
        AND e2.IsActive = 1) AS DeptAvgTenure,
     (SELECT COUNT(*)
      FROM Employees e e2
      WHERE e2.d.DepartmentID = e.d.DepartmentID
-       AND e2.e.HireDate < e.HireDate
+       AND e2.HireDate < e.HireDate
        AND e2.IsActive = 1) AS EmployeesHiredBefore
 FROM Employees e
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
@@ -203,23 +203,23 @@ SELECT
     d.DepartmentName,
     (SELECT AVG(ep.HoursWorked)
      FROM EmployeeProjects ep
-     WHERE ep.e.EmployeeID = e.EmployeeID
+     WHERE ep.EmployeeID = e.EmployeeID
        AND ep.IsActive = 1) AS AvgProjectHours,
     CASE 
         WHEN e.BaseSalary > (
-            SELECT AVG(e2.e.BaseSalary)
+            SELECT AVG(e2.BaseSalary)
             FROM Employees e e2
             WHERE e2.d.DepartmentID = e.d.DepartmentID
               AND e2.IsActive = 1
         ) AND (
             SELECT AVG(ISNULL(ep.HoursWorked, 0))
             FROM EmployeeProjects ep
-            WHERE ep.e.EmployeeID = e.EmployeeID
+            WHERE ep.EmployeeID = e.EmployeeID
               AND ep.IsActive = 1
         ) > (
             SELECT AVG(ISNULL(ep2.HoursWorked, 0))
             FROM EmployeeProjects ep2
-            INNER JOIN Employees e3 ON ep2.e.EmployeeID = e3.e.EmployeeID
+            INNER JOIN Employees e3 ON ep2.EmployeeID = e3.EmployeeID
             WHERE e3.d.DepartmentID = e.d.DepartmentID
               AND ep2.IsActive = 1
               AND e3.IsActive = 1
@@ -243,22 +243,22 @@ SELECT
     d.DepartmentName,
     (SELECT COUNT(*)
      FROM Orders o
-     WHERE o.e.EmployeeID = e.EmployeeID
+     WHERE o.EmployeeID = e.EmployeeID
        AND o.IsActive = 1) AS TotalOrders,
     (SELECT ISNULL(SUM(o.TotalAmount), 0)
      FROM Orders o
-     WHERE o.e.EmployeeID = e.EmployeeID
+     WHERE o.EmployeeID = e.EmployeeID
        AND o.IsActive = 1) AS TotalSalesAmount,
     (SELECT COUNT(*)
      FROM Employees e e2
      WHERE e2.d.DepartmentID = e.d.DepartmentID
        AND (SELECT ISNULL(SUM(o2.TotalAmount), 0)
             FROM Orders o2
-            WHERE o2.e.EmployeeID = e2.e.EmployeeID
+            WHERE o2.EmployeeID = e2.EmployeeID
               AND o2.IsActive = 1) > 
            (SELECT ISNULL(SUM(o3.TotalAmount), 0)
             FROM Orders o3
-            WHERE o3.e.EmployeeID = e.EmployeeID
+            WHERE o3.EmployeeID = e.EmployeeID
               AND o3.IsActive = 1)
        AND e2.IsActive = 1) + 1 AS SalesRankInDepartment
 FROM Employees e
@@ -266,7 +266,7 @@ INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE EXISTS (
     SELECT 1
     FROM Orders o
-    WHERE o.e.EmployeeID = e.EmployeeID
+    WHERE o.EmployeeID = e.EmployeeID
       AND o.IsActive = 1
 )
   AND e.IsActive = 1
@@ -284,7 +284,7 @@ ORDER BY d.DepartmentName, TotalSalesAmount DESC;
 SELECT e.FirstName, e.LastName, e.BaseSalary
 FROM Employees e
 WHERE e.BaseSalary > (
-    SELECT AVG(e2.e.BaseSalary)
+    SELECT AVG(e2.BaseSalary)
     FROM Employees e e2
     WHERE e2.d.DepartmentID = e.d.DepartmentID  -- Can use index on d.DepartmentID
       AND e2.IsActive = 1                  -- Can use index on IsActive
@@ -295,7 +295,7 @@ WHERE e.BaseSalary > (
 SELECT e.FirstName, e.LastName, e.BaseSalary
 FROM Employees e
 WHERE e.BaseSalary > (
-    SELECT AVG(e2.e.BaseSalary * 1.1)  -- Function prevents index usage
+    SELECT AVG(e2.BaseSalary * 1.1)  -- Function prevents index usage
     FROM Employees e e2
     WHERE e2.d.DepartmentID = e.d.DepartmentID
       AND e2.IsActive = 1
@@ -310,7 +310,7 @@ WHERE e.BaseSalary > (
 SELECT e.FirstName, e.LastName, e.BaseSalary
 FROM Employees e
 WHERE e.BaseSalary > (
-    SELECT AVG(e2.e.BaseSalary)
+    SELECT AVG(e2.BaseSalary)
     FROM Employees e e2
     WHERE e2.d.DepartmentID = e.d.DepartmentID
       AND e2.IsActive = 1
@@ -364,7 +364,7 @@ SELECT
     (SELECT COUNT(*)
      FROM Employees e e2
      WHERE e2.d.DepartmentID = e.d.DepartmentID
-       AND e2.e.BaseSalary <= e.BaseSalary
+       AND e2.BaseSalary <= e.BaseSalary
        AND e2.IsActive = 1) * 100.0 / 
     (SELECT COUNT(*)
      FROM Employees e e3
@@ -373,16 +373,16 @@ SELECT
     -- Project involvement comparison
     (SELECT COUNT(*)
      FROM EmployeeProjects ep
-     WHERE ep.e.EmployeeID = e.EmployeeID
+     WHERE ep.EmployeeID = e.EmployeeID
        AND ep.IsActive = 1) AS ProjectCount,
     (SELECT AVG(project_count)
      FROM (SELECT COUNT(*) AS project_count
            FROM EmployeeProjects ep2
-           INNER JOIN Employees e4 ON ep2.e.EmployeeID = e4.e.EmployeeID
+           INNER JOIN Employees e4 ON ep2.EmployeeID = e4.EmployeeID
            WHERE e4.d.DepartmentID = e.d.DepartmentID
              AND ep2.IsActive = 1
              AND e4.IsActive = 1
-           GROUP BY ep2.e.EmployeeID) avg_calc) AS DeptAvgProjects
+           GROUP BY ep2.EmployeeID) avg_calc) AS DeptAvgProjects
 FROM Employees e
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
@@ -463,7 +463,7 @@ SET STATISTICS TIME ON;
 SELECT COUNT(*)
 FROM Employees e
 WHERE e.BaseSalary > (
-    SELECT AVG(e2.e.BaseSalary)
+    SELECT AVG(e2.BaseSalary)
     FROM Employees e e2
     WHERE e2.DepartmentID = e.DepartmentID
       AND e2.IsActive = 1
@@ -482,7 +482,7 @@ SELECT
     e.FirstName,
     e.LastName,
     e.BaseSalary,
-    ISNULL((SELECT AVG(e2.e.BaseSalary)
+    ISNULL((SELECT AVG(e2.BaseSalary)
             FROM Employees e e2
             WHERE e2.DepartmentID = e.DepartmentID
               AND e2.IsActive = 1), 0) AS DeptAvgSalary
@@ -497,8 +497,8 @@ WHERE e.IsActive = 1;
 -- ❌ PROBLEM: Correlated subquery in SELECT list causes N+1 query problem
 SELECT 
     e.FirstName,
-    (SELECT COUNT(*) FROM Orders o WHERE o.e.EmployeeID = e.EmployeeID) AS OrderCount,
-    (SELECT SUM(o.TotalAmount) FROM Orders o WHERE o.e.EmployeeID = e.EmployeeID) AS TotalSales
+    (SELECT COUNT(*) FROM Orders o WHERE o.EmployeeID = e.EmployeeID) AS OrderCount,
+    (SELECT SUM(o.TotalAmount) FROM Orders o WHERE o.EmployeeID = e.EmployeeID) AS TotalSales
 FROM Employees e;
 
 -- ✅ SOLUTION: Use JOINs or single subquery with multiple aggregates
@@ -515,7 +515,7 @@ LEFT JOIN (
     FROM Orders
     WHERE IsActive = 1
     GROUP BY e.EmployeeID
-) order_stats ON e.EmployeeID = order_stats.e.EmployeeID;
+) order_stats ON e.EmployeeID = order_stats.EmployeeID;
 ```
 
 ### 2. Logic Errors
@@ -534,7 +534,7 @@ SELECT e.FirstName, e.LastName
 FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.BaseSalary > (
-    SELECT AVG(e2.e.BaseSalary)
+    SELECT AVG(e2.BaseSalary)
     FROM Employees e e2
     WHERE e2.DepartmentID = e.DepartmentID  -- Proper correlation
       AND e2.IsActive = 1

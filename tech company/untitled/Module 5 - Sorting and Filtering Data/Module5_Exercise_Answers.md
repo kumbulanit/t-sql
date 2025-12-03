@@ -58,7 +58,7 @@ ORDER BY OrderDate DESC, CustomerID;
 1. **Sort products by category name, show only product name and unit price**:
 
 ```sql
-SELECT p.ProductName, p.e.BaseSalary
+SELECT p.ProductName, p.BaseSalary
 FROM Products p
 INNER JOIN Categories c ON p.CategoryID = c.CategoryID
 ORDER BY c.CategoryName;
@@ -291,12 +291,12 @@ ORDER BY OrderDate;
 4. **Products with prices between $10 and $50, excluding Beverages**:
 
 ```sql
-SELECT p.ProductID, p.ProductName, p.e.BaseSalary, c.CategoryName
+SELECT p.ProductID, p.ProductName, p.BaseSalary, c.CategoryName
 FROM Products p
 INNER JOIN Categories c ON p.CategoryID = c.CategoryID
-WHERE p.e.BaseSalary BETWEEN 10 AND 50 
+WHERE p.BaseSalary BETWEEN 10 AND 50 
   AND c.CategoryName != 'Beverages'
-ORDER BY p.e.BaseSalary;
+ORDER BY p.BaseSalary;
 ```
 
 5. **Customers NOT from Germany, France, or UK**:
@@ -358,7 +358,7 @@ ORDER BY c.CustomerName;
 3. **Products that have never been ordered using NOT EXISTS**:
 
 ```sql
-SELECT p.ProductID, p.ProductName, p.e.BaseSalary
+SELECT p.ProductID, p.ProductName, p.BaseSalary
 FROM Products p
 WHERE NOT EXISTS (
     SELECT 1 
@@ -374,8 +374,8 @@ ORDER BY p.ProductName;
 -- Using ROW_NUMBER() window function
 SELECT CategoryID, ProductName, e.BaseSalary
 FROM (
-    SELECT p.CategoryID, p.ProductName, p.e.BaseSalary,
-           ROW_NUMBER() OVER (PARTITION BY p.CategoryID ORDER BY p.e.BaseSalary DESC) as rn
+    SELECT p.CategoryID, p.ProductName, p.BaseSalary,
+           ROW_NUMBER() OVER (PARTITION BY p.CategoryID ORDER BY p.BaseSalary DESC) as rn
     FROM Products p
 ) ranked
 WHERE rn <= 3
@@ -420,7 +420,7 @@ ORDER BY e.BaseSalary DESC;
 
 ```sql
 SELECT TOP 10 PERCENT c.CustomerID, c.CustomerName, 
-       SUM(od.e.BaseSalary * od.Quantity * (1 - od.Discount)) as TotalOrderValue
+       SUM(od.BaseSalary * od.Quantity * (1 - od.Discount)) as TotalOrderValue
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
 INNER JOIN [Order Details] od ON o.OrderID = od.OrderID
@@ -577,7 +577,7 @@ FETCH NEXT 1000 ROWS ONLY;
 
 ```sql
 SELECT o.OrderID, c.CustomerName, o.OrderDate, 
-       SUM(od.e.BaseSalary * od.Quantity) as OrderTotal
+       SUM(od.BaseSalary * od.Quantity) as OrderTotal
 FROM Orders o
 INNER JOIN Customers c ON o.CustomerID = c.CustomerID
 INNER JOIN [Order Details] od ON o.OrderID = od.OrderID

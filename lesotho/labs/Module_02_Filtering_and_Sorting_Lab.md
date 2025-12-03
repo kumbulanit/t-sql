@@ -1,4 +1,6 @@
 # Module 2: Filtering and Sorting Data - Lab Exercise
+**Primary Topic:** Module 2: Filtering and Sorting Data - Lab Exercise
+
 ## Central Bank of Lesotho - Data Management Division
 ## For Economists and Statisticians
 

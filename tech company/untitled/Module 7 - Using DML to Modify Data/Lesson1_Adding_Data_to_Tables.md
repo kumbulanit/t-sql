@@ -309,12 +309,12 @@ UNION ALL
 
 SELECT 
     'Manager' AS ContactType,
-    m.e.FirstName,
-    m.e.LastName,
+    m.FirstName,
+    m.LastName,
     m.WorkEmail,
     d.DepartmentName
 FROM Employees e
-INNER JOIN Employees m ON e.ManagerID = m.e.EmployeeID
+INNER JOIN Employees m ON e.ManagerID = m.EmployeeID
 INNER JOIN Departments d ON m.d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1 AND m.IsActive = 1;
 
@@ -338,10 +338,10 @@ DECLARE @InsertedEmployees TABLE (
 -- INSERT with OUTPUT clause
 INSERT INTO Employees (e.FirstName, e.LastName, WorkEmail, e.BaseSalary, d.DepartmentID)
 OUTPUT 
-    inserted.e.EmployeeID,
-    inserted.e.FirstName + ' ' + inserted.e.LastName AS FullName,
+    inserted.EmployeeID,
+    inserted.FirstName + ' ' + inserted.LastName AS FullName,
     inserted.WorkEmail,
-    inserted.e.HireDate
+    inserted.HireDate
 INTO @InsertedEmployees
 VALUES 
     ('Amanda', 'Taylor', 'amanda.taylor@company.com', 73000.00, 2),
@@ -364,8 +364,8 @@ INSERT INTO Employees (e.FirstName, e.LastName, WorkEmail, e.BaseSalary, d.Depar
 OUTPUT 
     'Employees' AS TableName,
     'INSERT' AS Action,
-    inserted.e.EmployeeID,
-    inserted.e.FirstName + ' ' + inserted.e.LastName AS EmployeeName,
+    inserted.EmployeeID,
+    inserted.FirstName + ' ' + inserted.LastName AS EmployeeName,
     SYSDATETIME()
 INTO InsertLog (TableName, Action, e.EmployeeID, EmployeeName, InsertedDate)
 VALUES ('Nicole', 'Jackson', 'nicole.jackson@company.com', 71500.00, 3);
@@ -397,7 +397,7 @@ INSERT INTO ProjectAssignments (ProjectID, e.EmployeeID, Role, AllocationPercent
 OUTPUT 
     inserted.AssignmentID,
     (SELECT ProjectName FROM Projects p WHERE ProjectID = inserted.ProjectID) AS ProjectName,
-    (SELECT e.FirstName + ' ' + e.LastName FROM Employees e WHERE e.EmployeeID = inserted.e.EmployeeID) AS EmployeeName,
+    (SELECT e.FirstName + ' ' + e.LastName FROM Employees e WHERE e.EmployeeID = inserted.EmployeeID) AS EmployeeName,
     inserted.Role
 INTO @NewAssignments
 SELECT 
@@ -716,7 +716,7 @@ WITH EmployeeHierarchyCTE AS (
         h.HierarchyLevel + 1 AS HierarchyLevel,
         h.HierarchyPath + ' -> ' + e.FirstName + ' ' + e.LastName AS HierarchyPath
     FROM Employees e
-    INNER JOIN EmployeeHierarchyCTE h ON e.ManagerID = h.e.EmployeeID
+    INNER JOIN EmployeeHierarchyCTE h ON e.ManagerID = h.EmployeeID
     WHERE e.IsActive = 1
 )
 INSERT INTO EmployeeHierarchy (e.EmployeeID, EmployeeName, ManagerID, ManagerName, HierarchyLevel, HierarchyPath)

@@ -1,6 +1,6 @@
 # SQL Validation Report
 
-Generated: 2025-12-02 12:38:55
+Generated: 2025-12-02 14:54:00
 - Total SQL blocks: 2752
 - ✅ Passed: 2752
 - ❌ Failed: 0
@@ -66,7 +66,7 @@ Generated: 2025-12-02 12:38:55
 > -- Well-commented, properly formatted query
 
 ✅ **tech company/untitled/Comprehensive_Beginner_Exercise_Answer_Key_Part1.md** (block 1, line 17)
-> SELECT Companies.CompanyName, Departments.d.DepartmentName, Employees.e.FirstName / FROM Companies / INNER JOIN Departments d ON Companies.CompanyID = Departments.CompanyID
+> SELECT Companies.CompanyName, Departments.d.DepartmentName, Employees.FirstName / FROM Companies / INNER JOIN Departments d ON Companies.CompanyID = Departments.CompanyID
 
 ✅ **tech company/untitled/Comprehensive_Beginner_Exercise_Answer_Key_Part1.md** (block 2, line 25)
 > SELECT c.CompanyName, d.DepartmentName, e.FirstName / FROM Companies c                    -- "c" is the alias for Companies / INNER JOIN Departments d ON c.CompanyID = d.CompanyID    -- "d" is alias for Departments
@@ -1248,7 +1248,7 @@ Generated: 2025-12-02 12:38:55
 > -- Orders above average order value / SELECT / o.OrderID,
 
 ✅ **tech company/untitled/Module 10 - Using Subqueries/Lesson1_Writing_Self-Contained_Subqueries.md** (block 10, line 229)
-> -- Find managers who manage more people than average / SELECT / mgr.e.FirstName + ' ' + mgr.e.LastName AS ManagerName,
+> -- Find managers who manage more people than average / SELECT / mgr.FirstName + ' ' + mgr.LastName AS ManagerName,
 
 ✅ **tech company/untitled/Module 10 - Using Subqueries/Lesson1_Writing_Self-Contained_Subqueries.md** (block 11, line 266)
 > -- Complex employee analysis with multiple benchmarks / SELECT / e.FirstName,
@@ -1338,7 +1338,7 @@ Generated: 2025-12-02 12:38:55
 > -- Rank each d.DepartmentName by its position relative to other departments / SELECT d.DepartmentName, / d.Budget,
 
 ✅ **tech company/untitled/Module 10 - Using Subqueries/Lesson2_Writing_Correlated_Subqueries.md** (block 5, line 115)
-> -- Find managers with their direct report count and average team e.BaseSalary / SELECT / mgr.e.FirstName + ' ' + mgr.e.LastName AS ManagerName,
+> -- Find managers with their direct report count and average team e.BaseSalary / SELECT / mgr.FirstName + ' ' + mgr.LastName AS ManagerName,
 
 ✅ **tech company/untitled/Module 10 - Using Subqueries/Lesson2_Writing_Correlated_Subqueries.md** (block 6, line 146)
 > -- Compare each employee's tenure to others in their d.DepartmentName / SELECT / e.FirstName,
@@ -1458,7 +1458,7 @@ Generated: 2025-12-02 12:38:55
 > -- Find customers who have high-value orders AND multiple recent orders / SELECT / c.CustomerName,
 
 ✅ **tech company/untitled/Module 10 - Using Subqueries/Lesson3_Using_EXISTS_Predicate_with_Subqueries.md** (block 9, line 242)
-> -- Find all managers at different levels with their span of control / SELECT / mgr.e.FirstName + ' ' + mgr.e.LastName AS ManagerName,
+> -- Find all managers at different levels with their span of control / SELECT / mgr.FirstName + ' ' + mgr.LastName AS ManagerName,
 
 ✅ **tech company/untitled/Module 10 - Using Subqueries/Lesson3_Using_EXISTS_Predicate_with_Subqueries.md** (block 10, line 298)
 > -- ✅ GOOD: EXISTS with correlation (usually faster) / SELECT e.FirstName, e.LastName / FROM Employees e
@@ -1836,7 +1836,7 @@ Generated: 2025-12-02 12:38:55
 > -- Show all departments with their recent activity (if any) / SELECT d.DepartmentName, / d.Budget,
 
 ✅ **tech company/untitled/Module 11 - Using Table Expressions/Lesson3_Using_APPLY.md** (block 7, line 242)
-> -- Analyze management structure with subordinate details / SELECT / mgr.e.FirstName + ' ' + mgr.e.LastName AS ManagerName,
+> -- Analyze management structure with subordinate details / SELECT / mgr.FirstName + ' ' + mgr.LastName AS ManagerName,
 
 ✅ **tech company/untitled/Module 11 - Using Table Expressions/Lesson3_Using_APPLY.md** (block 8, line 281)
 > -- Analyze customer purchasing trends over time / SELECT / c.CustomerName,
@@ -2280,7 +2280,7 @@ Generated: 2025-12-02 12:38:55
 > -- Comprehensive d.DepartmentName analysis including those with no recent activity / SELECT d.DepartmentName, / FORMAT(d.Budget, 'C') AS DepartmentBudget,
 
 ✅ **tech company/untitled/Module 13 - Using Window Ranking, Offset, and Aggregate Functions/Lesson3_Using_APPLY.md** (block 7, line 383)
-> -- Analyze management effectiveness with detailed subordinate metrics / SELECT / mgr.e.FirstName + ' ' + mgr.e.LastName AS ManagerName,
+> -- Analyze management effectiveness with detailed subordinate metrics / SELECT / mgr.FirstName + ' ' + mgr.LastName AS ManagerName,
 
 ✅ **tech company/untitled/Module 13 - Using Window Ranking, Offset, and Aggregate Functions/Lesson3_Using_APPLY.md** (block 8, line 478)
 > -- Analyze customer growth patterns and predict future behavior / SELECT / c.CustomerName,
@@ -4146,7 +4146,7 @@ Generated: 2025-12-02 12:38:55
 > -- Answer 1: Employee-Manager Relationships / SELECT / emp.FirstName + ' ' + emp.LastName AS EmployeeName,
 
 ✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lab_Querying_Multiple_Tables_Answers.md** (block 14, line 285)
-> -- Answer 2: Employee Colleagues / SELECT / e1.e.FirstName + ' ' + e1.e.LastName AS Employee1,
+> -- Answer 2: Employee Colleagues / SELECT / e1.FirstName + ' ' + e1.LastName AS Employee1,
 
 ✅ **tech company/untitled/Module 4 - Querying Multiple Tables/Lab_Querying_Multiple_Tables_Answers.md** (block 15, line 306)
 > -- Answer 3: Hierarchical Structure / WITH EmployeeHierarchy AS ( / -- Anchor: Top-level managers
@@ -5232,7 +5232,7 @@ Generated: 2025-12-02 12:38:55
 > SELECT OrderID, CustomerID, OrderDate, ShippedDate / FROM Orders / ORDER BY OrderDate DESC, CustomerID;
 
 ✅ **tech company/untitled/Module 5 - Sorting and Filtering Data/Module5_Exercise_Answers.md** (block 5, line 60)
-> SELECT p.ProductName, p.e.BaseSalary / FROM Products p / INNER JOIN Categories c ON p.CategoryID = c.CategoryID
+> SELECT p.ProductName, p.BaseSalary / FROM Products p / INNER JOIN Categories c ON p.CategoryID = c.CategoryID
 
 ✅ **tech company/untitled/Module 5 - Sorting and Filtering Data/Module5_Exercise_Answers.md** (block 6, line 69)
 > SELECT e.EmployeeID, e.FirstName, e.LastName, e.HireDate / FROM Employees e / ORDER BY
@@ -5277,7 +5277,7 @@ Generated: 2025-12-02 12:38:55
 > -- Method 1: Using BETWEEN / SELECT OrderID, CustomerID, OrderDate / FROM Orders
 
 ✅ **tech company/untitled/Module 5 - Sorting and Filtering Data/Module5_Exercise_Answers.md** (block 20, line 293)
-> SELECT p.ProductID, p.ProductName, p.e.BaseSalary, c.CategoryName / FROM Products p / INNER JOIN Categories c ON p.CategoryID = c.CategoryID
+> SELECT p.ProductID, p.ProductName, p.BaseSalary, c.CategoryName / FROM Products p / INNER JOIN Categories c ON p.CategoryID = c.CategoryID
 
 ✅ **tech company/untitled/Module 5 - Sorting and Filtering Data/Module5_Exercise_Answers.md** (block 21, line 304)
 > SELECT CustomerID, CompanyName, Country / FROM Customers / WHERE Country NOT IN ('Germany', 'France', 'UK')
@@ -5289,7 +5289,7 @@ Generated: 2025-12-02 12:38:55
 > SELECT c.CustomerID, c.CustomerName, c.CountryID / FROM Customers c / WHERE EXISTS (
 
 ✅ **tech company/untitled/Module 5 - Sorting and Filtering Data/Module5_Exercise_Answers.md** (block 24, line 360)
-> SELECT p.ProductID, p.ProductName, p.e.BaseSalary / FROM Products p / WHERE NOT EXISTS (
+> SELECT p.ProductID, p.ProductName, p.BaseSalary / FROM Products p / WHERE NOT EXISTS (
 
 ✅ **tech company/untitled/Module 5 - Sorting and Filtering Data/Module5_Exercise_Answers.md** (block 25, line 373)
 > -- Using ROW_NUMBER() window function / SELECT CategoryID, ProductName, e.BaseSalary / FROM (
@@ -5298,7 +5298,7 @@ Generated: 2025-12-02 12:38:55
 > SELECT TOP 5 ProductID, ProductName, e.BaseSalary / FROM Products / ORDER BY e.BaseSalary DESC;
 
 ✅ **tech company/untitled/Module 5 - Sorting and Filtering Data/Module5_Exercise_Answers.md** (block 27, line 421)
-> SELECT TOP 10 PERCENT c.CustomerID, c.CustomerName, / SUM(od.e.BaseSalary * od.Quantity * (1 - od.Discount)) as TotalOrderValue / FROM Customers c
+> SELECT TOP 10 PERCENT c.CustomerID, c.CustomerName, / SUM(od.BaseSalary * od.Quantity * (1 - od.Discount)) as TotalOrderValue / FROM Customers c
 
 ✅ **tech company/untitled/Module 5 - Sorting and Filtering Data/Module5_Exercise_Answers.md** (block 28, line 433)
 > SELECT TOP 1 WITH TIES ProductID, ProductName, e.BaseSalary / FROM Products / ORDER BY e.BaseSalary DESC;
@@ -5325,7 +5325,7 @@ Generated: 2025-12-02 12:38:55
 > -- TOP performance (efficient) / SELECT TOP 1000 OrderID, CustomerID, OrderDate / FROM Orders
 
 ✅ **tech company/untitled/Module 5 - Sorting and Filtering Data/Module5_Exercise_Answers.md** (block 36, line 578)
-> SELECT o.OrderID, c.CustomerName, o.OrderDate, / SUM(od.e.BaseSalary * od.Quantity) as OrderTotal / FROM Orders o
+> SELECT o.OrderID, c.CustomerName, o.OrderDate, / SUM(od.BaseSalary * od.Quantity) as OrderTotal / FROM Orders o
 
 ✅ **tech company/untitled/Module 5 - Sorting and Filtering Data/Module5_Exercise_Answers.md** (block 37, line 592)
 > -- Use unique column in ORDER BY for consistency / SELECT OrderID, CustomerID, OrderDate / FROM Orders
@@ -7992,7 +7992,7 @@ Generated: 2025-12-02 12:38:55
 > -- Employee data synchronization / MERGE Employees AS target / USING EmployeeUpdates AS source
 
 ✅ **tech company/untitled/Presentations/Module7_Theory_Presentation.md** (block 14, line 336)
-> -- INSERT with OUTPUT / INSERT INTO Employees (e.FirstName, e.LastName, d.DepartmentID, e.BaseSalary) / OUTPUT INSERTED.e.EmployeeID, INSERTED.e.FirstName, INSERTED.e.LastName
+> -- INSERT with OUTPUT / INSERT INTO Employees (e.FirstName, e.LastName, d.DepartmentID, e.BaseSalary) / OUTPUT INSERTED.EmployeeID, INSERTED.FirstName, INSERTED.LastName
 
 ✅ **tech company/untitled/Presentations/Module7_Theory_Presentation.md** (block 15, line 363)
 > -- Explicit transaction / BEGIN TRANSACTION; / -- Multiple DML operations
@@ -8130,7 +8130,7 @@ Generated: 2025-12-02 12:38:55
 > -- Multi-value subqueries (return multiple values) / SELECT / CustomerID,
 
 ✅ **tech company/untitled/Presentations/Module9_Enhanced_Theory_Presentation.md** (block 3, line 99)
-> -- Correlated subqueries (reference outer query) / SELECT / e1.e.EmployeeID,
+> -- Correlated subqueries (reference outer query) / SELECT / e1.EmployeeID,
 
 ✅ **tech company/untitled/Presentations/Module9_Enhanced_Theory_Presentation.md** (block 4, line 135)
 > -- EXISTS approach (often more efficient) / SELECT DISTINCT c.CustomerID, c.CustomerName / FROM Customers c

@@ -15,7 +15,7 @@ Table aliases are **shortcut names** we give to tables to make queries easier to
 
 ### **Example Without Aliases (Long and Confusing):**
 ```sql
-SELECT Companies.CompanyName, Departments.d.DepartmentName, Employees.e.FirstName
+SELECT Companies.CompanyName, Departments.d.DepartmentName, Employees.FirstName
 FROM Companies 
 INNER JOIN Departments d ON Companies.CompanyID = Departments.CompanyID
 INNER JOIN Employees ON Departments.d.DepartmentID = Employees.d.DepartmentID;
@@ -492,12 +492,12 @@ SELECT
     e.HireDate,
     
     -- Manager information if available
-    ISNULL(m.e.FirstName + ' ' + m.e.LastName, 'No Manager Assigned') as ManagerName
+    ISNULL(m.FirstName + ' ' + m.LastName, 'No Manager Assigned') as ManagerName
 
 FROM Employees e
     INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
     INNER JOIN Companies c ON d.CompanyID = c.CompanyID
-    LEFT JOIN Employees m ON e.ManagerID = m.e.EmployeeID
+    LEFT JOIN Employees m ON e.ManagerID = m.EmployeeID
     
 WHERE e.IsActive = 1 -- Only show active employees
 
@@ -599,7 +599,7 @@ FROM Employees e
             Achievement,
             ROW_NUMBER() OVER (PARTITION BY e.EmployeeID ORDER BY ReviewDate DESC) as rn
         FROM PerformanceMetrics
-    ) pm ON e.EmployeeID = pm.e.EmployeeID AND pm.rn = 1
+    ) pm ON e.EmployeeID = pm.EmployeeID AND pm.rn = 1
     
 WHERE e.IsActive = 1
 
@@ -660,9 +660,9 @@ ORDER BY d.DepartmentName, e.Gender;
 
 SELECT 
     -- Manager information
-    mgr.e.EmployeeID as ManagerID,
-    mgr.e.FirstName + ' ' + mgr.e.LastName as ManagerName,
-    mgr.e.JobTitle as ManagerTitle,
+    mgr.EmployeeID as ManagerID,
+    mgr.FirstName + ' ' + mgr.LastName as ManagerName,
+    mgr.JobTitle as ManagerTitle,
     mgr_dept.DepartmentName as ManagerDepartment,
     
     -- Direct report information
@@ -672,29 +672,29 @@ SELECT
     emp_dept.DepartmentName as EmployeeDepartment,
     
     -- Span of control calculation
-    COUNT(*) OVER (PARTITION BY mgr.e.EmployeeID) as SpanOfControl,
+    COUNT(*) OVER (PARTITION BY mgr.EmployeeID) as SpanOfControl,
     
     -- Management level indicator
     CASE 
         WHEN mgr.ManagerID IS NULL THEN 'Executive Level'
         WHEN EXISTS (
             SELECT 1 FROM Employees e sub 
-            WHERE sub.ManagerID = mgr.e.EmployeeID
+            WHERE sub.ManagerID = mgr.EmployeeID
         ) THEN 'Middle Management'
         ELSE 'Senior Individual Contributor'
     END as ManagementLevel,
     
     -- e.BaseSalary comparison
-    FORMAT(mgr.e.BaseSalary, 'C') as ManagerSalary,
+    FORMAT(mgr.BaseSalary, 'C') as ManagerSalary,
     FORMAT(emp.BaseSalary, 'C') as EmployeeSalary,
-    FORMAT(mgr.e.BaseSalary - emp.BaseSalary, 'C') as SalaryDifference,
+    FORMAT(mgr.BaseSalary - emp.BaseSalary, 'C') as SalaryDifference,
     
     -- Tenure comparison
-    DATEDIFF(MONTH, mgr.e.HireDate, GETDATE()) as ManagerTenureMonths,
+    DATEDIFF(MONTH, mgr.HireDate, GETDATE()) as ManagerTenureMonths,
     DATEDIFF(MONTH, emp.HireDate, GETDATE()) as EmployeeTenureMonths
 
 FROM Employees e emp
-    INNER JOIN Employees mgr ON emp.ManagerID = mgr.e.EmployeeID  -- Self-join for manager relationship
+    INNER JOIN Employees mgr ON emp.ManagerID = mgr.EmployeeID  -- Self-join for manager relationship
     INNER JOIN Departments emp_dept ON emp.d.DepartmentID = emp_dept.DepartmentID
     INNER JOIN Departments mgr_dept ON mgr.d.DepartmentID = mgr_dept.DepartmentID
     
@@ -702,7 +702,7 @@ WHERE emp.IsActive = 1 AND mgr.IsActive = 1
 
 ORDER BY 
     mgr_dept.DepartmentName,
-    mgr.e.LastName,
+    mgr.LastName,
     emp.LastName;
 
 -- Summary of management structure
@@ -751,10 +751,10 @@ WITH DepartmentCollaboration AS (
         COUNT(*) as EmployeesCollaborating
     FROM Projects p
         INNER JOIN EmployeeProjects ep1 ON p.ProjectID = ep1.ProjectID
-        INNER JOIN Employees e1 ON ep1.e.EmployeeID = e1.e.EmployeeID
+        INNER JOIN Employees e1 ON ep1.EmployeeID = e1.EmployeeID
         INNER JOIN Departments d1 ON e1.d.DepartmentID = d1.d.DepartmentID
         INNER JOIN EmployeeProjects ep2 ON p.ProjectID = ep2.ProjectID
-        INNER JOIN Employees e2 ON ep2.e.EmployeeID = e2.e.EmployeeID
+        INNER JOIN Employees e2 ON ep2.EmployeeID = e2.EmployeeID
         INNER JOIN Departments d2 ON e2.d.DepartmentID = d2.d.DepartmentID
     WHERE d1.d.DepartmentID < d2.d.DepartmentID  -- Avoid duplicates
         AND p.Status IN ('Active', 'Planning')
@@ -834,7 +834,7 @@ SELECT
     FORMAT(p.Budget, 'C') as ProjectBudget,
     
     -- Team composition
-    COUNT(DISTINCT ep.e.EmployeeID) as TeamSize,
+    COUNT(DISTINCT ep.EmployeeID) as TeamSize,
     COUNT(DISTINCT e.DepartmentID) as DepartmentsInvolved,
     COUNT(DISTINCT es.SkillID) as UniqueSkills,
     
@@ -857,33 +857,33 @@ SELECT
     
     -- Budget per team member
     CASE 
-        WHEN COUNT(DISTINCT ep.e.EmployeeID) > 0 
-        THEN FORMAT(p.Budget / COUNT(DISTINCT ep.e.EmployeeID), 'C')
+        WHEN COUNT(DISTINCT ep.EmployeeID) > 0 
+        THEN FORMAT(p.Budget / COUNT(DISTINCT ep.EmployeeID), 'C')
         ELSE 'No Team Assigned'
     END as BudgetPerTeamMember,
     
     -- Team composition assessment
     CASE 
-        WHEN COUNT(DISTINCT ep.e.EmployeeID) = 0 THEN 'No Team Assigned - Critical'
-        WHEN COUNT(DISTINCT ep.e.EmployeeID) < 3 THEN 'Small Team - Risk of Knowledge Gaps'
-        WHEN COUNT(DISTINCT ep.e.EmployeeID) BETWEEN 3 AND 7 THEN 'Optimal Team Size'
-        WHEN COUNT(DISTINCT ep.e.EmployeeID) > 7 THEN 'Large Team - Coordination Challenges'
+        WHEN COUNT(DISTINCT ep.EmployeeID) = 0 THEN 'No Team Assigned - Critical'
+        WHEN COUNT(DISTINCT ep.EmployeeID) < 3 THEN 'Small Team - Risk of Knowledge Gaps'
+        WHEN COUNT(DISTINCT ep.EmployeeID) BETWEEN 3 AND 7 THEN 'Optimal Team Size'
+        WHEN COUNT(DISTINCT ep.EmployeeID) > 7 THEN 'Large Team - Coordination Challenges'
     END as TeamSizeAssessment,
     
     -- Skill diversity assessment
     CASE 
-        WHEN COUNT(DISTINCT es.SkillID) >= COUNT(DISTINCT ep.e.EmployeeID) 
+        WHEN COUNT(DISTINCT es.SkillID) >= COUNT(DISTINCT ep.EmployeeID) 
         THEN 'High Skill Diversity'
-        WHEN COUNT(DISTINCT es.SkillID) >= (COUNT(DISTINCT ep.e.EmployeeID) * 0.7) 
+        WHEN COUNT(DISTINCT es.SkillID) >= (COUNT(DISTINCT ep.EmployeeID) * 0.7) 
         THEN 'Good Skill Diversity'
         ELSE 'Limited Skill Diversity'
     END as SkillDiversityAssessment
 
 FROM Projects p
     LEFT JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID  -- LEFT JOIN to include projects without teams
-    LEFT JOIN Employees e ON ep.e.EmployeeID = e.EmployeeID
+    LEFT JOIN Employees e ON ep.EmployeeID = e.EmployeeID
     LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.e.EmployeeID
+    LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
     LEFT JOIN Skills s ON es.SkillID = s.SkillID
 
 WHERE p.Status IN ('Active', 'Planning', 'On Hold')
@@ -914,13 +914,13 @@ SELECT
     STRING_AGG(s.SkillName, ', ') as AvailableSkills
 FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.e.EmployeeID
+    LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
     LEFT JOIN Skills s ON es.SkillID = s.SkillID
 WHERE e.IsActive = 1
     AND NOT EXISTS (
         SELECT 1 FROM EmployeeProjects ep 
         INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-        WHERE ep.e.EmployeeID = e.EmployeeID 
+        WHERE ep.EmployeeID = e.EmployeeID 
         AND p.Status IN ('Active', 'Planning')
     )
 GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, d.DepartmentName, e.BaseSalary, e.HireDate
@@ -969,7 +969,7 @@ WITH PerformanceMetrics AS (
         -- Get most recent performance rating
         (SELECT TOP 1 pm.Achievement 
          FROM PerformanceMetrics pm 
-         WHERE pm.e.EmployeeID = e.EmployeeID 
+         WHERE pm.EmployeeID = e.EmployeeID 
          ORDER BY pm.ReviewDate DESC) as LatestPerformanceRating,
          
         -- Calculate e.BaseSalary percentile within d.DepartmentName and level
@@ -981,7 +981,7 @@ WITH PerformanceMetrics AS (
         -- Performance score calculation
         (
             (SELECT TOP 1 pm.Achievement FROM PerformanceMetrics pm 
-             WHERE pm.e.EmployeeID = e.EmployeeID ORDER BY pm.ReviewDate DESC) * 0.4 +
+             WHERE pm.EmployeeID = e.EmployeeID ORDER BY pm.ReviewDate DESC) * 0.4 +
             (CASE WHEN DATEDIFF(MONTH, e.HireDate, GETDATE()) >= 18 THEN 1.0 ELSE 0.0 END) * 0.3 +
             (PERCENT_RANK() OVER (PARTITION BY e.DepartmentID ORDER BY e.BaseSalary)) * 0.3
         ) as CompositePerformanceScore
@@ -991,7 +991,7 @@ WITH PerformanceMetrics AS (
     WHERE e.IsActive = 1
         AND EXISTS (
             SELECT 1 FROM PerformanceMetrics pm 
-            WHERE pm.e.EmployeeID = e.EmployeeID
+            WHERE pm.EmployeeID = e.EmployeeID
         )
 ),
 
@@ -1077,25 +1077,25 @@ WITH RetentionAnalysis AS (
         -- Latest performance rating
         (SELECT TOP 1 pm.Achievement 
          FROM PerformanceMetrics pm 
-         WHERE pm.e.EmployeeID = e.EmployeeID 
+         WHERE pm.EmployeeID = e.EmployeeID 
          ORDER BY pm.ReviewDate DESC) as LatestRating,
         
         -- Market e.BaseSalary comparison (assume market rate is 10% higher than current median)
-        (SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY e2.e.BaseSalary)
+        (SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY e2.BaseSalary)
          FROM Employees e e2 
-         WHERE e2.e.JobTitle = e.JobTitle AND e2.IsActive = 1) * 1.1 as EstimatedMarketSalary,
+         WHERE e2.JobTitle = e.JobTitle AND e2.IsActive = 1) * 1.1 as EstimatedMarketSalary,
         
         -- Time since last promotion (if promotion history exists)
         DATEDIFF(MONTH, 
             ISNULL((SELECT MAX(PromotionDate) FROM PromotionHistory ph 
-                    WHERE ph.e.EmployeeID = e.EmployeeID), e.HireDate), 
+                    WHERE ph.EmployeeID = e.EmployeeID), e.HireDate), 
             GETDATE()) as MonthsSinceLastPromotion,
         
         -- Skills market demand (count how many job postings mention their skills)
         (SELECT COUNT(DISTINCT s.SkillName) 
          FROM Employees e ekills es 
          INNER JOIN Skills s ON es.SkillID = s.SkillID
-         WHERE es.e.EmployeeID = e.EmployeeID 
+         WHERE es.EmployeeID = e.EmployeeID 
          AND s.SkillName IN ('Cloud Architecture', 'Data Science', 'AI/ML', 'DevOps', 'Cybersecurity')) as HighDemandSkillCount,
         
         -- Calculate retention risk factors

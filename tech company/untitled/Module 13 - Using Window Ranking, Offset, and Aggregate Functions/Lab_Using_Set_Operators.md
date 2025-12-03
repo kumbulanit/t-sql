@@ -277,7 +277,7 @@ CROSS APPLY (
         FROM (
             SELECT COUNT(DISTINCT ep.ProjectID) AS project_count
             FROM EmployeeProjects ep
-            WHERE ep.e.EmployeeID = e.EmployeeID
+            WHERE ep.EmployeeID = e.EmployeeID
               AND ep.IsActive = 1
         ) project_summary
     ) project_data

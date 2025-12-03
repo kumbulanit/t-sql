@@ -1,4 +1,5 @@
 # Lesotho Labs - SQL Validation
+**Primary Topic:** Lesotho Labs - SQL Validation
 
 - **Executed:** 2025-12-02 13:52:54 SAST
 - **Command:** ```.venv/bin/sqlfluff lint --dialect tsql "lesotho/labs/**/*.md"```

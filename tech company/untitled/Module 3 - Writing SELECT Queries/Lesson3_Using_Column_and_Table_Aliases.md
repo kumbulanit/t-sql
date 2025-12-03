@@ -104,11 +104,11 @@ INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID;
 SELECT 
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     d.DepartmentName AS d.DepartmentName,
-    m.e.FirstName + ' ' + m.e.LastName AS ManagerName,
+    m.FirstName + ' ' + m.LastName AS ManagerName,
     e.BaseSalary AS [Employee e.BaseSalary]
 FROM Employees e
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-LEFT JOIN Employees m ON e.ManagerID = m.e.EmployeeID;
+LEFT JOIN Employees m ON e.ManagerID = m.EmployeeID;
 ```
 
 ### 2. Aliases in Self-Joins
@@ -116,21 +116,21 @@ LEFT JOIN Employees m ON e.ManagerID = m.e.EmployeeID;
 -- Self-join requires different aliases for the same table
 SELECT 
     emp.FirstName + ' ' + emp.LastName AS EmployeeName,
-    mgr.e.FirstName + ' ' + mgr.e.LastName AS ManagerName,
+    mgr.FirstName + ' ' + mgr.LastName AS ManagerName,
     emp.Title AS EmployeeTitle,
     mgr.Title AS ManagerTitle
 FROM Employees e emp
-LEFT JOIN Employees mgr ON emp.ManagerID = mgr.e.EmployeeID
-ORDER BY mgr.e.LastName, emp.LastName;
+LEFT JOIN Employees mgr ON emp.ManagerID = mgr.EmployeeID
+ORDER BY mgr.LastName, emp.LastName;
 
 -- Find employees with the same e.BaseSalary
 SELECT 
-    e1.e.FirstName + ' ' + e1.e.LastName AS Employee1,
-    e2.e.FirstName + ' ' + e2.e.LastName AS Employee2,
-    e1.e.BaseSalary AS SharedSalary
+    e1.FirstName + ' ' + e1.LastName AS Employee1,
+    e2.FirstName + ' ' + e2.LastName AS Employee2,
+    e1.BaseSalary AS SharedSalary
 FROM Employees e e1
-INNER JOIN Employees e2 ON e1.e.BaseSalary = e2.e.BaseSalary
-    AND e1.e.EmployeeID < e2.e.EmployeeID;
+INNER JOIN Employees e2 ON e1.BaseSalary = e2.BaseSalary
+    AND e1.EmployeeID < e2.EmployeeID;
 ```
 
 ### 3. Complex Column Aliases
@@ -188,12 +188,12 @@ SELECT
         ELSE 'Under Allocated'
     END AS ProjectIsActive,
     ROUND(ep.HoursWorked / ep.HoursAllocated * 100, 2) AS CompletionPercentage,
-    mgr.e.FirstName + ' ' + mgr.e.LastName AS DirectManager
+    mgr.FirstName + ' ' + mgr.LastName AS DirectManager
 FROM Employees e emp
 INNER JOIN Departments dept ON emp.DepartmentID = dept.DepartmentID
-LEFT JOIN EmployeeProjects ep ON emp.EmployeeID = ep.e.EmployeeID
+LEFT JOIN EmployeeProjects ep ON emp.EmployeeID = ep.EmployeeID
 LEFT JOIN Projects proj ON ep.ProjectID = proj.ProjectID
-LEFT JOIN Employees mgr ON emp.ManagerID = mgr.e.EmployeeID
+LEFT JOIN Employees mgr ON emp.ManagerID = mgr.EmployeeID
 WHERE emp.IsActive = 1;
 ```
 
@@ -231,7 +231,7 @@ WITH EmployeePerformanceMetrics AS (
         ISNULL(AVG(ep.HoursWorked), 0) AS AverageProjectHours
     FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     WHERE e.IsActive = 1
     GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.BaseSalary, 
              e.HireDate, d.DepartmentName
@@ -247,21 +247,21 @@ DepartmentBenchmarks AS (
 SELECT 
     epm.FullName AS EmployeeName,
     epm.DepartmentName AS DepartmentName,
-    epm.e.BaseSalary AS CurrentSalary,
-    FORMAT(epm.e.BaseSalary, 'C') AS FormattedSalary,
+    epm.BaseSalary AS CurrentSalary,
+    FORMAT(epm.BaseSalary, 'C') AS FormattedSalary,
     epm.TenureInMonths AS MonthsEmployed,
     epm.ActiveProjects AS ProjectCount,
     epm.TotalHoursWorked AS HoursWorked,
     db.DepartmentAverageSalary AS DeptAvgSalary,
-    epm.e.BaseSalary - db.DepartmentAverageSalary AS SalaryDifferenceFromAvg,
+    epm.BaseSalary - db.DepartmentAverageSalary AS SalaryDifferenceFromAvg,
     CASE 
-        WHEN epm.e.BaseSalary > db.DepartmentAverageSalary * 1.2 THEN 'Above Market'
-        WHEN epm.e.BaseSalary < db.DepartmentAverageSalary * 0.8 THEN 'Below Market'
+        WHEN epm.BaseSalary > db.DepartmentAverageSalary * 1.2 THEN 'Above Market'
+        WHEN epm.BaseSalary < db.DepartmentAverageSalary * 0.8 THEN 'Below Market'
         ELSE 'Market Rate'
     END AS SalaryPosition
 FROM EmployeePerformanceMetrics epm
 INNER JOIN DepartmentBenchmarks db ON epm.DepartmentName = db.d.DepartmentName
-ORDER BY epm.DepartmentName, epm.e.BaseSalary DESC;
+ORDER BY epm.DepartmentName, epm.BaseSalary DESC;
 ```
 
 ### 4. Dynamic Aliases with Pivot Operations
@@ -273,7 +273,7 @@ WITH MonthlySales AS (
         DATENAME(MONTH, ord.OrderDate) AS SalesMonth,
         SUM(ord.OrderTotal) AS MonthlyTotal
     FROM Employees e emp
-    INNER JOIN Orders ord ON emp.EmployeeID = ord.e.EmployeeID
+    INNER JOIN Orders ord ON emp.EmployeeID = ord.EmployeeID
     WHERE YEAR(ord.OrderDate) = 2023
     GROUP BY emp.FirstName, emp.LastName, DATENAME(MONTH, ord.OrderDate)
 )
@@ -324,11 +324,11 @@ SELECT
     emp.FirstName AS EmployeeFirstName,
     emp.LastName AS EmployeeLastName,
     dept.DepartmentName AS DepartmentName,
-    mgr.e.FirstName AS ManagerFirstName,
-    mgr.e.LastName AS ManagerLastName
+    mgr.FirstName AS ManagerFirstName,
+    mgr.LastName AS ManagerLastName
 FROM Employees e emp
 INNER JOIN Departments dept ON emp.DepartmentID = dept.DepartmentID
-LEFT JOIN Employees mgr ON emp.ManagerID = mgr.e.EmployeeID;
+LEFT JOIN Employees mgr ON emp.ManagerID = mgr.EmployeeID;
 ```
 
 ### 3. Use Table Aliases in Multi-Table Queries
@@ -341,7 +341,7 @@ SELECT
     p.ProjectName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID;
 
 -- Avoid: Ambiguous column references without aliases
@@ -363,7 +363,7 @@ SELECT
     proj.ProjectName
 FROM Employees e emp
 INNER JOIN Departments dept ON emp.DepartmentID = dept.DepartmentID
-LEFT JOIN EmployeeProjects ep ON emp.EmployeeID = ep.e.EmployeeID
+LEFT JOIN EmployeeProjects ep ON emp.EmployeeID = ep.EmployeeID
 LEFT JOIN Projects proj ON ep.ProjectID = proj.ProjectID;
 
 -- Avoid: Too long or unintuitive aliases
@@ -486,11 +486,11 @@ SELECT
     DATEDIFF(YEAR, e.HireDate, GETDATE()) AS [Years of Service],
     CASE 
         WHEN e.ManagerID IS NULL THEN 'N/A'
-        ELSE m.e.FirstName + ' ' + m.e.LastName
+        ELSE m.FirstName + ' ' + m.LastName
     END AS [Direct Manager]
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-LEFT JOIN Employees m ON e.ManagerID = m.e.EmployeeID
+LEFT JOIN Employees m ON e.ManagerID = m.EmployeeID
 WHERE e.IsActive = 1
 ORDER BY d.DepartmentName, e.LastName;
 ```

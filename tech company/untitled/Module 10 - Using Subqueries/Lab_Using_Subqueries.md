@@ -277,7 +277,7 @@ SELECT
     e.FirstName + ' ' + e.LastName AS ProcessedBy
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
-INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
 WHERE o.TotalAmount IN (
     SELECT TOP 5 TotalAmount
     FROM Orders
@@ -304,27 +304,27 @@ SELECT
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     d.DepartmentName,
     FORMAT(e.BaseSalary, 'C') AS EmployeeSalary,
-    FORMAT((SELECT AVG(e2.e.BaseSalary)
+    FORMAT((SELECT AVG(e2.BaseSalary)
             FROM Employees e e2
             WHERE e2.d.DepartmentID = e.d.DepartmentID
               AND e2.IsActive = 1), 'C') AS DepartmentAverageSalary,
-    CAST((e.BaseSalary - (SELECT AVG(e2.e.BaseSalary)
+    CAST((e.BaseSalary - (SELECT AVG(e2.BaseSalary)
                           FROM Employees e e2
                           WHERE e2.d.DepartmentID = e.d.DepartmentID
                             AND e2.IsActive = 1)) * 100.0 /
-         (SELECT AVG(e2.e.BaseSalary)
+         (SELECT AVG(e2.BaseSalary)
           FROM Employees e e2
           WHERE e2.d.DepartmentID = e.d.DepartmentID
             AND e2.IsActive = 1) AS DECIMAL(5,1)) AS PercentAboveDeptAverage,
     (SELECT COUNT(*)
      FROM Employees e e3
      WHERE e3.d.DepartmentID = e.d.DepartmentID
-       AND e3.e.BaseSalary > e.BaseSalary
+       AND e3.BaseSalary > e.BaseSalary
        AND e3.IsActive = 1) + 1 AS RankInDepartment
 FROM Employees e
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE e.BaseSalary > (
-    SELECT AVG(e2.e.BaseSalary)
+    SELECT AVG(e2.BaseSalary)
     FROM Employees e e2
     WHERE e2.d.DepartmentID = e.d.DepartmentID
       AND e2.IsActive = 1
@@ -349,32 +349,32 @@ SELECT
     d.DepartmentName,
     ISNULL((SELECT SUM(ep.HoursWorked)
             FROM EmployeeProjects ep
-            WHERE ep.e.EmployeeID = e.EmployeeID
+            WHERE ep.EmployeeID = e.EmployeeID
               AND ep.IsActive = 1), 0) AS TotalHoursWorked,
     (SELECT AVG(total_hours.hours)
      FROM (SELECT ISNULL(SUM(ep2.HoursWorked), 0) AS hours
            FROM EmployeeProjects ep2
-           INNER JOIN Employees e2 ON ep2.e.EmployeeID = e2.e.EmployeeID
+           INNER JOIN Employees e2 ON ep2.EmployeeID = e2.EmployeeID
            WHERE e2.d.DepartmentID = e.d.DepartmentID
              AND ep2.IsActive = 1
              AND e2.IsActive = 1
-           GROUP BY ep2.e.EmployeeID) total_hours) AS DepartmentAverageHours,
+           GROUP BY ep2.EmployeeID) total_hours) AS DepartmentAverageHours,
     (SELECT COUNT(DISTINCT ep.ProjectID)
      FROM EmployeeProjects ep
-     WHERE ep.e.EmployeeID = e.EmployeeID
+     WHERE ep.EmployeeID = e.EmployeeID
        AND ep.IsActive = 1) AS NumberOfProjects,
     CASE 
         WHEN (SELECT COUNT(DISTINCT ep.ProjectID)
               FROM EmployeeProjects ep
-              WHERE ep.e.EmployeeID = e.EmployeeID
+              WHERE ep.EmployeeID = e.EmployeeID
                 AND ep.IsActive = 1) > 0
         THEN CAST(ISNULL((SELECT SUM(ep.HoursWorked)
                           FROM EmployeeProjects ep
-                          WHERE ep.e.EmployeeID = e.EmployeeID
+                          WHERE ep.EmployeeID = e.EmployeeID
                             AND ep.IsActive = 1), 0) * 1.0 /
                   (SELECT COUNT(DISTINCT ep.ProjectID)
                    FROM EmployeeProjects ep
-                   WHERE ep.e.EmployeeID = e.EmployeeID
+                   WHERE ep.EmployeeID = e.EmployeeID
                      AND ep.IsActive = 1) AS DECIMAL(8,1))
         ELSE 0
     END AS AverageHoursPerProject
@@ -382,16 +382,16 @@ FROM Employees e
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE ISNULL((SELECT SUM(ep.HoursWorked)
               FROM EmployeeProjects ep
-              WHERE ep.e.EmployeeID = e.EmployeeID
+              WHERE ep.EmployeeID = e.EmployeeID
                 AND ep.IsActive = 1), 0) > 
       (SELECT AVG(total_hours.hours)
        FROM (SELECT ISNULL(SUM(ep2.HoursWorked), 0) AS hours
              FROM EmployeeProjects ep2
-             INNER JOIN Employees e2 ON ep2.e.EmployeeID = e2.e.EmployeeID
+             INNER JOIN Employees e2 ON ep2.EmployeeID = e2.EmployeeID
              WHERE e2.d.DepartmentID = e.d.DepartmentID
                AND ep2.IsActive = 1
                AND e2.IsActive = 1
-             GROUP BY ep2.e.EmployeeID) total_hours)
+             GROUP BY ep2.EmployeeID) total_hours)
   AND e.IsActive = 1
   AND d.IsActive = 1
 ORDER BY TotalHoursWorked DESC;
@@ -430,7 +430,7 @@ WHERE EXISTS (
     -- Has no project assignments
     SELECT 1
     FROM EmployeeProjects ep
-    WHERE ep.e.EmployeeID = e.EmployeeID
+    WHERE ep.EmployeeID = e.EmployeeID
       AND ep.IsActive = 1
 )
   AND e.IsActive = 1
@@ -531,7 +531,7 @@ SELECT d.DepartmentName,
      FROM Employees e
     INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
      WHERE e.d.DepartmentID = d.DepartmentID
-       AND e.BaseSalary > (SELECT AVG(e2.e.BaseSalary)
+       AND e.BaseSalary > (SELECT AVG(e2.BaseSalary)
                            FROM Employees e e2
                            WHERE e2.d.DepartmentID = e.d.DepartmentID
                              AND e2.IsActive = 1)
@@ -544,13 +544,13 @@ SELECT d.DepartmentName,
        AND e.IsActive = 1) AS ProjectsManaged,
     (SELECT COUNT(*)
      FROM Orders o
-     INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+     INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
      WHERE e.d.DepartmentID = d.DepartmentID
        AND o.IsActive = 1
        AND e.IsActive = 1) AS TotalOrdersProcessed,
     FORMAT((SELECT ISNULL(SUM(o.TotalAmount), 0)
             FROM Orders o
-            INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+            INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
             WHERE e.d.DepartmentID = d.DepartmentID
               AND o.IsActive = 1
               AND e.IsActive = 1), 'C') AS TotalRevenueGenerated,
@@ -558,7 +558,7 @@ SELECT d.DepartmentName,
         WHEN EXISTS (
             SELECT 1
             FROM Orders o
-            INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+            INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
             WHERE e.d.DepartmentID = d.DepartmentID
               AND o.OrderDate >= DATEADD(MONTH, -1, GETDATE())
               AND o.IsActive = 1
@@ -574,7 +574,7 @@ SELECT d.DepartmentName,
         WHEN EXISTS (
             SELECT 1
             FROM Orders o
-            INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+            INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
             WHERE e.d.DepartmentID = d.DepartmentID
               AND o.OrderDate >= DATEADD(MONTH, -3, GETDATE())
               AND o.IsActive = 1
@@ -621,7 +621,7 @@ WITH PerformanceScores AS (
         CAST((SELECT COUNT(*)
               FROM Employees e e2
               WHERE e2.DepartmentID = e.DepartmentID
-                AND e2.e.BaseSalary <= e.BaseSalary
+                AND e2.BaseSalary <= e.BaseSalary
                 AND e2.IsActive = 1) * 100.0 / 
              NULLIF((SELECT COUNT(*)
                      FROM Employees e e3
@@ -630,41 +630,41 @@ WITH PerformanceScores AS (
         
         -- Project Activity Score (25% of total)
         CASE 
-            WHEN (SELECT COUNT(*) FROM EmployeeProjects ep WHERE ep.e.EmployeeID = e.EmployeeID AND ep.IsActive = 1) >
+            WHEN (SELECT COUNT(*) FROM EmployeeProjects ep WHERE ep.EmployeeID = e.EmployeeID AND ep.IsActive = 1) >
                  (SELECT AVG(project_count * 1.0)
                   FROM (SELECT COUNT(*) AS project_count
                         FROM EmployeeProjects ep2
-                        INNER JOIN Employees e4 ON ep2.e.EmployeeID = e4.e.EmployeeID
+                        INNER JOIN Employees e4 ON ep2.EmployeeID = e4.EmployeeID
                         WHERE e4.DepartmentID = e.DepartmentID
                           AND ep2.IsActive = 1
                           AND e4.IsActive = 1
-                        GROUP BY ep2.e.EmployeeID) avg_calc)
+                        GROUP BY ep2.EmployeeID) avg_calc)
             THEN 100.0
-            WHEN (SELECT COUNT(*) FROM EmployeeProjects ep WHERE ep.e.EmployeeID = e.EmployeeID AND ep.IsActive = 1) > 0
-            THEN CAST((SELECT COUNT(*) FROM EmployeeProjects ep WHERE ep.e.EmployeeID = e.EmployeeID AND ep.IsActive = 1) * 100.0 /
+            WHEN (SELECT COUNT(*) FROM EmployeeProjects ep WHERE ep.EmployeeID = e.EmployeeID AND ep.IsActive = 1) > 0
+            THEN CAST((SELECT COUNT(*) FROM EmployeeProjects ep WHERE ep.EmployeeID = e.EmployeeID AND ep.IsActive = 1) * 100.0 /
                       NULLIF((SELECT MAX(project_count)
                               FROM (SELECT COUNT(*) AS project_count
                                     FROM EmployeeProjects ep2
-                                    INNER JOIN Employees e4 ON ep2.e.EmployeeID = e4.e.EmployeeID
+                                    INNER JOIN Employees e4 ON ep2.EmployeeID = e4.EmployeeID
                                     WHERE e4.DepartmentID = e.DepartmentID
                                       AND ep2.IsActive = 1
                                       AND e4.IsActive = 1
-                                    GROUP BY ep2.e.EmployeeID) max_calc), 0) AS DECIMAL(5,1))
+                                    GROUP BY ep2.EmployeeID) max_calc), 0) AS DECIMAL(5,1))
             ELSE 0.0
         END AS ProjectActivityScore,
         
         -- Order Processing Score (25% of total)
         CASE 
-            WHEN (SELECT COUNT(*) FROM Orders o WHERE o.e.EmployeeID = e.EmployeeID AND o.IsActive = 1) > 0
-            THEN CAST((SELECT COUNT(*) FROM Orders o WHERE o.e.EmployeeID = e.EmployeeID AND o.IsActive = 1) * 100.0 /
+            WHEN (SELECT COUNT(*) FROM Orders o WHERE o.EmployeeID = e.EmployeeID AND o.IsActive = 1) > 0
+            THEN CAST((SELECT COUNT(*) FROM Orders o WHERE o.EmployeeID = e.EmployeeID AND o.IsActive = 1) * 100.0 /
                       NULLIF((SELECT MAX(order_count)
                               FROM (SELECT COUNT(*) AS order_count
                                     FROM Orders o2
-                                    INNER JOIN Employees e5 ON o2.e.EmployeeID = e5.e.EmployeeID
+                                    INNER JOIN Employees e5 ON o2.EmployeeID = e5.EmployeeID
                                     WHERE e5.DepartmentID = e.DepartmentID
                                       AND o2.IsActive = 1
                                       AND e5.IsActive = 1
-                                    GROUP BY o2.e.EmployeeID) max_calc), 0) AS DECIMAL(5,1))
+                                    GROUP BY o2.EmployeeID) max_calc), 0) AS DECIMAL(5,1))
             ELSE 0.0
         END AS OrderProcessingScore,
         

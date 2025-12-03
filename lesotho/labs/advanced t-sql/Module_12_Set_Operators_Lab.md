@@ -1,4 +1,6 @@
 # Module 12: Set Operators
+**Primary Topic:** Module 12: Set Operators
+
 ## Central Bank of Lesotho - Data Management Division
 ## For Economists and Statisticians
 

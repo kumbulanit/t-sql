@@ -1,4 +1,6 @@
 # Module 7: DML - Data Modification
+**Primary Topic:** Module 7: DML - Data Modification
+
 ## Central Bank of Lesotho - Data Management Division
 ## For Economists and Statisticians
 

@@ -141,7 +141,7 @@ SELECT
     -- Statistical functions
     STDEVP(Price) AS PriceStandardDeviationPopulation,
     VARP(Price) AS PriceVariancePopulation
-FROM Orders o INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+FROM Orders o INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
 GROUP BY Category
 ORDER BY TotalRevenue DESC;
 ```
@@ -155,7 +155,7 @@ SELECT
     STRING_AGG(Product, ', ') AS ProductList,
     STRING_AGG(Product, ', ') WITHIN GROUP (ORDER BY Price DESC) AS ProductsByPrice,
     STRING_AGG(CONCAT(Product, ' ($', CAST(Price AS VARCHAR(10)), ')'), '; ') AS ProductsWithPrices
-FROM Orders o INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+FROM Orders o INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
 GROUP BY Category
 ORDER BY Category;
 
@@ -164,12 +164,12 @@ SELECT
     Category,
     STUFF((
         SELECT ', ' + Product
-        FROM Orders o INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID ps2
+        FROM Orders o INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID ps2
         WHERE ps2.Category = ps1.Category
         ORDER BY Product
         FOR XML PATH(''), TYPE
     ).value('.', 'NVARCHAR(MAX)'), 1, 2, '') AS ProductList
-FROM Orders o INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID ps1
+FROM Orders o INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID ps1
 GROUP BY Category;
 ```
 

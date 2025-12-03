@@ -1,4 +1,6 @@
 # Module 10: Using Subqueries
+**Primary Topic:** Module 10: Using Subqueries
+
 ## Central Bank of Lesotho - Data Management Division
 ## For Economists and Statisticians
 

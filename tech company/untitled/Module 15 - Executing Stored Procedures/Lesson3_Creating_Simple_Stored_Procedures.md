@@ -164,7 +164,7 @@ BEGIN
         -- Manager information
         CASE 
             WHEN e.ManagerID IS NOT NULL 
-            THEN mgr.e.FirstName + ' ' + mgr.e.LastName
+            THEN mgr.FirstName + ' ' + mgr.LastName
             ELSE 'No Manager Assigned'
         END AS ManagerName,
         -- Service classification
@@ -176,7 +176,7 @@ BEGIN
         END AS ServiceCategory
     FROM Employees e
     INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    LEFT JOIN Employees mgr ON e.ManagerID = mgr.e.EmployeeID
+    LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
     WHERE e.EmployeeID = @e.EmployeeID
       AND d.IsActive = 1;
     
@@ -245,7 +245,7 @@ BEGIN
         -- Manager information
         CASE 
             WHEN e.ManagerID IS NOT NULL 
-            THEN mgr.e.FirstName + ' ' + mgr.e.LastName
+            THEN mgr.FirstName + ' ' + mgr.LastName
             ELSE 'No Manager'
         END AS ManagerName,
         -- Employee classification
@@ -258,7 +258,7 @@ BEGIN
         -- Row number for reporting
         ROW_NUMBER() OVER (ORDER BY e.LastName, e.FirstName) AS RowNumber
     FROM Employees e
-    LEFT JOIN Employees mgr ON e.ManagerID = mgr.e.EmployeeID
+    LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
     WHERE e.d.DepartmentID = @d.DepartmentID
       AND (e.IsActive = 1 OR @IncludeInactive = 1)
     ORDER BY e.LastName, e.FirstName;
@@ -379,7 +379,7 @@ BEGIN
             END AS OrderSize,
             ROW_NUMBER() OVER (ORDER BY o.OrderDate DESC) AS OrderRank
         FROM Orders o
-        INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+        INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
         INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
         WHERE o.CustomerID = @CustomerID
           AND o.IsActive = 1
@@ -804,7 +804,7 @@ BEGIN
             ELSE 0.0
         END
     FROM EmployeeProjects ep
-    WHERE ep.e.EmployeeID = @e.EmployeeID
+    WHERE ep.EmployeeID = @e.EmployeeID
       AND ep.IsActive = 1
       AND ep.StartDate >= DATEADD(MONTH, -@PerformancePeriodMonths, GETDATE());
     
@@ -822,7 +822,7 @@ BEGIN
             ELSE 0.0
         END
     FROM Orders o
-    WHERE o.e.EmployeeID = @e.EmployeeID
+    WHERE o.EmployeeID = @e.EmployeeID
       AND o.IsActive = 1
       AND o.OrderDate >= DATEADD(MONTH, -@PerformancePeriodMonths, GETDATE());
     

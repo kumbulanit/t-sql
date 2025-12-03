@@ -152,16 +152,16 @@ WHERE e.IsActive = 1
 UNION ALL
 
 SELECT 
-    ea.e.EmployeeID,
-    ea.e.FirstName,
-    ea.e.LastName,
-    ea.e.JobTitle,
+    ea.EmployeeID,
+    ea.FirstName,
+    ea.LastName,
+    ea.JobTitle,
     d.DepartmentName,
-    ea.e.HireDate,
+    ea.HireDate,
     ea.TerminationDate,
     'Terminated' AS EmployeeStatus,
-    FORMAT(ea.e.BaseSalary, 'C') AS LastKnownSalary,
-    DATEDIFF(YEAR, ea.e.HireDate, ISNULL(ea.TerminationDate, GETDATE())) AS YearsWithCompany
+    FORMAT(ea.BaseSalary, 'C') AS LastKnownSalary,
+    DATEDIFF(YEAR, ea.HireDate, ISNULL(ea.TerminationDate, GETDATE())) AS YearsWithCompany
 FROM EmployeeArchive ea
 INNER JOIN Departments d ON ea.DepartmentID = d.DepartmentID
 
@@ -219,7 +219,7 @@ SELECT
     MIN(o.TotalAmount) AS MinValue,
     GETDATE() AS ReportDate
 FROM Orders o
-INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE o.IsActive = 1
   AND e.IsActive = 1
@@ -240,7 +240,7 @@ SELECT
     COUNT(*) AS TransactionCount,
     SUM(o.TotalAmount) AS TotalValue,
     COUNT(DISTINCT o.CustomerID) AS UniqueCustomers,
-    COUNT(DISTINCT o.e.EmployeeID) AS ActiveEmployees
+    COUNT(DISTINCT o.EmployeeID) AS ActiveEmployees
 FROM Orders o
 WHERE o.OrderDate >= '2024-01-01' 
   AND o.OrderDate < '2024-04-01'
@@ -254,7 +254,7 @@ SELECT
     COUNT(*) AS TransactionCount,
     SUM(o.TotalAmount) AS TotalValue,
     COUNT(DISTINCT o.CustomerID) AS UniqueCustomers,
-    COUNT(DISTINCT o.e.EmployeeID) AS ActiveEmployees
+    COUNT(DISTINCT o.EmployeeID) AS ActiveEmployees
 FROM Orders o
 WHERE o.OrderDate >= '2024-04-01' 
   AND o.OrderDate < '2024-07-01'
@@ -268,7 +268,7 @@ SELECT
     COUNT(*) AS TransactionCount,
     SUM(o.TotalAmount) AS TotalValue,
     COUNT(DISTINCT o.CustomerID) AS UniqueCustomers,
-    COUNT(DISTINCT o.e.EmployeeID) AS ActiveEmployees
+    COUNT(DISTINCT o.EmployeeID) AS ActiveEmployees
 FROM Orders o
 WHERE o.OrderDate >= '2024-07-01' 
   AND o.OrderDate < '2024-10-01'
@@ -282,7 +282,7 @@ SELECT
     COUNT(*) AS TransactionCount,
     SUM(o.TotalAmount) AS TotalValue,
     COUNT(DISTINCT o.CustomerID) AS UniqueCustomers,
-    COUNT(DISTINCT o.e.EmployeeID) AS ActiveEmployees
+    COUNT(DISTINCT o.EmployeeID) AS ActiveEmployees
 FROM Orders o
 WHERE o.OrderDate >= '2024-10-01' 
   AND o.OrderDate < '2025-01-01'
@@ -341,13 +341,13 @@ SELECT
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     'Sales' AS SkillCategory,
     CASE 
-        WHEN (SELECT COUNT(*) FROM Orders o WHERE o.e.EmployeeID = e.EmployeeID AND o.IsActive = 1) >= 10
+        WHEN (SELECT COUNT(*) FROM Orders o WHERE o.EmployeeID = e.EmployeeID AND o.IsActive = 1) >= 10
         THEN 'Expert'
-        WHEN (SELECT COUNT(*) FROM Orders o WHERE o.e.EmployeeID = e.EmployeeID AND o.IsActive = 1) >= 1
+        WHEN (SELECT COUNT(*) FROM Orders o WHERE o.EmployeeID = e.EmployeeID AND o.IsActive = 1) >= 1
         THEN 'Intermediate'
         ELSE 'None'
     END AS SkillLevel,
-    (SELECT COUNT(*) FROM Orders o WHERE o.e.EmployeeID = e.EmployeeID AND o.IsActive = 1) AS SkillMetric,
+    (SELECT COUNT(*) FROM Orders o WHERE o.EmployeeID = e.EmployeeID AND o.IsActive = 1) AS SkillMetric,
     'Orders Processed' AS MetricDescription
 FROM Employees e
 WHERE e.IsActive = 1
@@ -525,7 +525,7 @@ SELECT
     CAST(COUNT(*) AS VARCHAR(50)) AS Count,
     'High' AS Severity
 FROM Orders o
-LEFT JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+LEFT JOIN Employees e ON o.EmployeeID = e.EmployeeID
 WHERE e.EmployeeID IS NULL
   AND o.IsActive = 1
 

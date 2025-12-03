@@ -228,7 +228,7 @@ FROM (
     SELECT DISTINCT 
         FORMAT(o.OrderDate, 'yyyy-MM') + ' - ' + FORMAT(o.OrderDate, 'MMM') AS MonthName
     FROM Orders o
-    INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+    INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
     INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
     WHERE o.IsActive = 1
       AND e.IsActive = 1
@@ -244,7 +244,7 @@ WITH MonthlySalesData AS (
         FORMAT(o.OrderDate, ''yyyy-MM'') + '' - '' + FORMAT(o.OrderDate, ''MMM'') AS MonthName,
         o.TotalAmount
     FROM Orders o
-    INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+    INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
     INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
     WHERE o.IsActive = 1
       AND e.IsActive = 1
@@ -281,7 +281,7 @@ WITH ProjectAllocationData AS (
         p.ProjectName + ' - ' + ep.Role AS ProjectRoleCombo
     FROM Employees e
     INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
@@ -493,25 +493,25 @@ WITH PerformanceMatrix AS (
     LEFT JOIN (
         -- Project performance scoring
         SELECT 
-            ep.e.EmployeeID,
+            ep.EmployeeID,
             AVG(CASE WHEN ep.HoursWorked > 40 THEN 85 + (ep.HoursWorked - 40) * 0.3 ELSE ep.HoursWorked * 2 END) AS ProjectScore
         FROM EmployeeProjects ep
         WHERE ep.IsActive = 1
-        GROUP BY ep.e.EmployeeID
-    ) proj_metrics ON e.EmployeeID = proj_metrics.e.EmployeeID
+        GROUP BY ep.EmployeeID
+    ) proj_metrics ON e.EmployeeID = proj_metrics.EmployeeID
     LEFT JOIN (
         -- Customer relations scoring
         SELECT 
-            o.e.EmployeeID,
+            o.EmployeeID,
             AVG(CASE WHEN o.TotalAmount > 5000 THEN 90 ELSE 60 + (o.TotalAmount / 100) END) AS CustomerScore
         FROM Orders o
         WHERE o.IsActive = 1
-        GROUP BY o.e.EmployeeID
-    ) customer_metrics ON e.EmployeeID = customer_metrics.e.EmployeeID
+        GROUP BY o.EmployeeID
+    ) customer_metrics ON e.EmployeeID = customer_metrics.EmployeeID
     LEFT JOIN (
         -- Team collaboration scoring (based on management span)
         SELECT 
-            mgr.e.EmployeeID,
+            mgr.EmployeeID,
             CASE 
                 WHEN subordinate_count.SubCount > 5 THEN 95
                 WHEN subordinate_count.SubCount > 2 THEN 80
@@ -524,18 +524,18 @@ WITH PerformanceMatrix AS (
             FROM Employees e
             WHERE IsActive = 1
             GROUP BY ManagerID
-        ) subordinate_count ON mgr.e.EmployeeID = subordinate_count.ManagerID
+        ) subordinate_count ON mgr.EmployeeID = subordinate_count.ManagerID
         WHERE mgr.IsActive = 1
-    ) team_metrics ON e.EmployeeID = team_metrics.e.EmployeeID
+    ) team_metrics ON e.EmployeeID = team_metrics.EmployeeID
     LEFT JOIN (
         -- Innovation index (project variety and complexity)
         SELECT 
-            ep.e.EmployeeID,
+            ep.EmployeeID,
             COUNT(DISTINCT ep.Role) * 15 + COUNT(DISTINCT ep.ProjectID) * 5 AS InnovationScore
         FROM EmployeeProjects ep
         WHERE ep.IsActive = 1
-        GROUP BY ep.e.EmployeeID
-    ) innovation_metrics ON e.EmployeeID = innovation_metrics.e.EmployeeID
+        GROUP BY ep.EmployeeID
+    ) innovation_metrics ON e.EmployeeID = innovation_metrics.EmployeeID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
 )

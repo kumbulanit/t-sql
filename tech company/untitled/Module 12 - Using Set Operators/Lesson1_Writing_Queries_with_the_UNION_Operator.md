@@ -127,7 +127,7 @@ SELECT
     NULL AS RelatedAmount
 FROM EmployeeProjects ep
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-INNER JOIN Employees e ON ep.e.EmployeeID = e.EmployeeID
+INNER JOIN Employees e ON ep.EmployeeID = e.EmployeeID
 WHERE ep.IsActive = 1
 AND ep.StartDate IS NOT NULL
 
@@ -218,7 +218,7 @@ WITH HighPerformers AS (
         COUNT(DISTINCT ep.ProjectID) AS ProjectCount,
         SUM(ep.HoursWorked) AS TotalHours
     FROM Employees e
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     WHERE e.IsActive = 1
     AND ep.IsActive = 1
     AND ep.StartDate >= DATEADD(YEAR, -1, GETDATE())
@@ -243,16 +243,16 @@ SalaryBenchmarks AS (
 SELECT 
     'HIGH_PERFORMER' AS AnalysisType,
     hp.EmployeeName,
-    hp.e.BaseSalary,
+    hp.BaseSalary,
     hp.ProjectCount AS MetricValue,
     'Projects completed in last year' AS MetricDescription,
     CASE 
-        WHEN hp.e.BaseSalary >= sb.AvgSalary * 1.2 THEN 'Above Average Compensation'
-        WHEN hp.e.BaseSalary >= sb.AvgSalary THEN 'Average Compensation'
+        WHEN hp.BaseSalary >= sb.AvgSalary * 1.2 THEN 'Above Average Compensation'
+        WHEN hp.BaseSalary >= sb.AvgSalary THEN 'Average Compensation'
         ELSE 'Below Average Compensation'
     END AS CompensationStatus
 FROM HighPerformers hp
-INNER JOIN Employees e ON hp.e.EmployeeID = e.EmployeeID
+INNER JOIN Employees e ON hp.EmployeeID = e.EmployeeID
 INNER JOIN SalaryBenchmarks sb ON e.DepartmentID = sb.DepartmentID
 
 UNION ALL

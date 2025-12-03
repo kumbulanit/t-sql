@@ -223,7 +223,7 @@ WHERE d.DepartmentID IN (1, 3, 5);
 -- Answer 2: Project IsActive Filter
 SELECT DISTINCT e.FirstName, e.LastName
 FROM Employees e
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE p.IsActive = 'In Progress';
 ```
@@ -249,7 +249,7 @@ WHERE EXISTS (
 -- Answer 4: Manager Filter
 SELECT e.FirstName, e.LastName
 FROM Employees e e1
-WHERE e1.e.EmployeeID NOT IN (
+WHERE e1.EmployeeID NOT IN (
     SELECT DISTINCT ManagerID 
     FROM Employees e e2 
     WHERE ManagerID IS NOT NULL
@@ -272,7 +272,7 @@ WHERE NOT EXISTS (
     AND p.ProjectID NOT IN (
         SELECT ep.ProjectID
         FROM EmployeeProjects ep
-        WHERE ep.e.EmployeeID = e.EmployeeID
+        WHERE ep.EmployeeID = e.EmployeeID
     )
 );
 ```
@@ -284,11 +284,11 @@ WHERE NOT EXISTS (
 -- Answer 2: Same Projects as Employee 2
 SELECT DISTINCT e.FirstName, e.LastName
 FROM Employees e
-INNER JOIN EmployeeProjects ep1 ON e.EmployeeID = ep1.e.EmployeeID
+INNER JOIN EmployeeProjects ep1 ON e.EmployeeID = ep1.EmployeeID
 WHERE ep1.ProjectID IN (
     SELECT ep2.ProjectID
     FROM EmployeeProjects ep2
-    WHERE ep2.e.EmployeeID = 2
+    WHERE ep2.EmployeeID = 2
 )
 AND e.EmployeeID != 2;
 ```
@@ -492,16 +492,16 @@ WHERE IsActive = 1;
 
 -- Correlated subquery example
 SELECT 
-    e1.e.FirstName,
-    e1.e.LastName,
-    e1.e.BaseSalary,
+    e1.FirstName,
+    e1.LastName,
+    e1.BaseSalary,
     (SELECT COUNT(*) 
      FROM Employees e e2 
      WHERE e2.d.DepartmentID = e1.d.DepartmentID 
-       AND e2.e.BaseSalary > e1.e.BaseSalary) AS HigherPaidInDept
+       AND e2.BaseSalary > e1.BaseSalary) AS HigherPaidInDept
 FROM Employees e e1
 WHERE e1.IsActive = 1
-ORDER BY e1.d.DepartmentID, e1.e.BaseSalary DESC;
+ORDER BY e1.d.DepartmentID, e1.BaseSalary DESC;
 ```
 
 ## Additional Practice Queries - Answers
@@ -520,7 +520,7 @@ SELECT
     COALESCE(
         (SELECT COUNT(*) 
          FROM EmployeeProjects ep 
-         WHERE ep.e.EmployeeID = e.EmployeeID), 0
+         WHERE ep.EmployeeID = e.EmployeeID), 0
     ) AS ProjectCount,
     CASE 
         WHEN e.BaseSalary > 80000 THEN 'Senior Level'

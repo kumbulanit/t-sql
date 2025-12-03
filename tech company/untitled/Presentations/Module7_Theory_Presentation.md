@@ -312,7 +312,7 @@ WHEN NOT MATCHED BY SOURCE THEN
 -- Employee data synchronization
 MERGE Employees AS target
 USING EmployeeUpdates AS source
-ON target.e.EmployeeID = source.EmployeeID
+ON target.EmployeeID = source.EmployeeID
 WHEN MATCHED AND source.LastModified > target.LastModified THEN
     UPDATE SET 
         e.FirstName = source.FirstName,
@@ -336,16 +336,16 @@ WHEN NOT MATCHED BY SOURCE AND target.IsActive = 1 THEN
 ```sql
 -- INSERT with OUTPUT
 INSERT INTO Employees (e.FirstName, e.LastName, d.DepartmentID, e.BaseSalary)
-OUTPUT INSERTED.e.EmployeeID, INSERTED.e.FirstName, INSERTED.e.LastName
+OUTPUT INSERTED.EmployeeID, INSERTED.FirstName, INSERTED.LastName
 VALUES ('John', 'Smith', 1, 75000);
 
 -- UPDATE with OUTPUT
 UPDATE Employees
 SET e.BaseSalary = e.BaseSalary * 1.05
 OUTPUT 
-    DELETED.e.EmployeeID,
-    DELETED.e.BaseSalary AS OldSalary,
-    INSERTED.e.BaseSalary AS NewSalary,
+    DELETED.EmployeeID,
+    DELETED.BaseSalary AS OldSalary,
+    INSERTED.BaseSalary AS NewSalary,
     GETDATE() AS UpdateTime
 WHERE d.DepartmentID = 1;
 

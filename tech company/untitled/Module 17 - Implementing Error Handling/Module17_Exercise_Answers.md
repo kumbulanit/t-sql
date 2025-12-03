@@ -86,7 +86,7 @@ BEGIN
                     SELECT 1 FROM Employees e e1
                     INNER JOIN Employees e2 ON e1.d.DepartmentID IN (e2.d.DepartmentID, 
                         (SELECT ParentDepartmentID FROM Departments d WHERE d.DepartmentID = e2.d.DepartmentID))
-                    WHERE e1.e.EmployeeID = @ManagerID AND e2.d.DepartmentID = @d.DepartmentID
+                    WHERE e1.EmployeeID = @ManagerID AND e2.d.DepartmentID = @d.DepartmentID
                 )
                 BEGIN
                     RAISERROR('Manager must be in the same d.DepartmentName or a parent department.', 16, 1);

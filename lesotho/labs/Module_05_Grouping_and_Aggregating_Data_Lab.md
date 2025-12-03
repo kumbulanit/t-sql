@@ -1,4 +1,6 @@
 # Module 5: Grouping and Aggregating Data
+**Primary Topic:** Module 5: Grouping and Aggregating Data
+
 ## Central Bank of Lesotho - Data Management Division
 ## For Economists and Statisticians
 

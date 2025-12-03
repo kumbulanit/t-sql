@@ -1,4 +1,6 @@
 # Module 8: Advanced Built-In Functions
+**Primary Topic:** Module 8: Advanced Built-In Functions
+
 ## Central Bank of Lesotho - Data Management Division
 ## For Economists and Statisticians
 

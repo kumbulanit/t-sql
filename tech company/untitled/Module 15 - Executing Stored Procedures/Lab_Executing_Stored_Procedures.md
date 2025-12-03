@@ -126,14 +126,14 @@ BEGIN
         -- Manager information (conditional)
         CASE 
             WHEN @IncludeManager = 1 AND e.ManagerID IS NOT NULL
-            THEN mgr.e.FirstName + ' ' + mgr.e.LastName
+            THEN mgr.FirstName + ' ' + mgr.LastName
             WHEN @IncludeManager = 1 
             THEN 'No Manager Assigned'
             ELSE 'Manager Info Not Requested'
         END AS ManagerName
     FROM Employees e
     INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    LEFT JOIN Employees mgr ON e.ManagerID = mgr.e.EmployeeID AND @IncludeManager = 1
+    LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID AND @IncludeManager = 1
     WHERE e.EmployeeID = @e.EmployeeID;
     
     -- Set output parameter
@@ -547,7 +547,7 @@ BEGIN
             COUNT(DISTINCT ep.ProjectID) AS ProjectCount,
             SUM(ep.HoursWorked) AS TotalHours
         FROM EmployeeProjects ep
-        WHERE ep.e.EmployeeID = @e.EmployeeID
+        WHERE ep.EmployeeID = @e.EmployeeID
           AND ep.IsActive = 1
           AND ep.StartDate >= DATEADD(MONTH, -@EvaluationPeriodMonths, GETDATE())
     ) project_stats;
@@ -566,7 +566,7 @@ BEGIN
             ELSE 0.0
         END
     FROM Orders o
-    WHERE o.e.EmployeeID = @e.EmployeeID
+    WHERE o.EmployeeID = @e.EmployeeID
       AND o.IsActive = 1
       AND o.OrderDate >= DATEADD(MONTH, -@EvaluationPeriodMonths, GETDATE());
     
@@ -812,7 +812,7 @@ BEGIN
         SET @FromClause = '
         FROM Employees e
         INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-        LEFT JOIN Orders o ON e.EmployeeID = o.e.EmployeeID 
+        LEFT JOIN Orders o ON e.EmployeeID = o.EmployeeID 
                               AND o.OrderDate >= @DateFromParam 
                               AND o.OrderDate <= @DateToParam
                               AND o.IsActive = 1';
@@ -822,14 +822,14 @@ BEGIN
             SET @FromClause = @FromClause + '
             LEFT JOIN (
                 SELECT 
-                    ep.e.EmployeeID,
+                    ep.EmployeeID,
                     COUNT(DISTINCT ep.ProjectID) AS ProjectCount,
                     SUM(ep.HoursWorked) AS TotalHours
                 FROM EmployeeProjects ep
                 WHERE ep.IsActive = 1
                   AND ep.StartDate >= @DateFromParam
-                GROUP BY ep.e.EmployeeID
-            ) proj_stats ON e.EmployeeID = proj_stats.e.EmployeeID';
+                GROUP BY ep.EmployeeID
+            ) proj_stats ON e.EmployeeID = proj_stats.EmployeeID';
         END
         
         SET @GroupByClause = ' GROUP BY e.EmployeeID, e.FirstName, e.LastName, d.DepartmentName';
@@ -869,7 +869,7 @@ BEGIN
         SET @FromClause = '
         FROM Departments d
         LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
-        LEFT JOIN Orders o ON e.EmployeeID = o.e.EmployeeID 
+        LEFT JOIN Orders o ON e.EmployeeID = o.EmployeeID 
                               AND o.OrderDate >= @DateFromParam 
                               AND o.OrderDate <= @DateToParam
                               AND o.IsActive = 1';
@@ -907,7 +907,7 @@ BEGIN
         IF @OutputFormat = 'Detailed'
         BEGIN
             SET @SelectClause = @SelectClause + ',
-            COUNT(DISTINCT o.e.EmployeeID) AS DifferentReps,
+            COUNT(DISTINCT o.EmployeeID) AS DifferentReps,
             CASE 
                 WHEN MAX(o.OrderDate) >= DATEADD(MONTH, -3, GETDATE()) THEN ''Active''
                 WHEN MAX(o.OrderDate) >= DATEADD(MONTH, -6, GETDATE()) THEN ''Recent''

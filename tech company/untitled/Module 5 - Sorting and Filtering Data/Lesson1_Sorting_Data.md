@@ -214,9 +214,9 @@ WITH EmployeeMetrics AS (
         COUNT(es.SkillID) AS SkillCount
     FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'Active'
-    LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.e.EmployeeID
+    LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
     WHERE e.IsActive = 1
     GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.BaseSalary, 
              e.HireDate, d.DepartmentName

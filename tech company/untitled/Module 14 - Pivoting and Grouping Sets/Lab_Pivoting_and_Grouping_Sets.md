@@ -56,7 +56,7 @@ WITH QuarterlyFinancialData AS (
         END AS Quarter,
         o.TotalAmount
     FROM Orders o
-    INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+    INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
     WHERE o.IsActive = 1
       AND e.IsActive = 1
@@ -126,7 +126,7 @@ WITH PerformanceMatrix AS (
         SUM(CASE WHEN ep.Role = 'Support' THEN ep.HoursWorked ELSE 0 END) AS Support_Hours
     FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
       AND ep.IsActive = 1

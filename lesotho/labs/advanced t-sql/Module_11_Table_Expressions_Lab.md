@@ -1,4 +1,6 @@
 # Module 11: Table Expressions (CTEs, Views, Inline TVFs)
+**Primary Topic:** Module 11: Table Expressions (CTEs, Views, Inline TVFs)
+
 ## Central Bank of Lesotho - Data Management Division
 ## For Economists and Statisticians
 

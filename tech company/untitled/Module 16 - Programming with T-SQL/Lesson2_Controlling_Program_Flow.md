@@ -140,13 +140,13 @@ BEGIN
         @ProjectCount = COUNT(DISTINCT ep.ProjectID),
         @TotalProjectHours = ISNULL(SUM(ep.HoursWorked), 0)
     FROM EmployeeProjects ep
-    WHERE ep.e.EmployeeID = @e.EmployeeID
+    WHERE ep.EmployeeID = @e.EmployeeID
       AND ep.IsActive = 1
       AND ep.StartDate >= DATEADD(MONTH, -@ReviewPeriodMonths, GETDATE());
     
     SELECT @OrdersProcessed = COUNT(*)
     FROM Orders o
-    WHERE o.e.EmployeeID = @e.EmployeeID
+    WHERE o.EmployeeID = @e.EmployeeID
       AND o.IsActive = 1
       AND o.OrderDate >= DATEADD(MONTH, -@ReviewPeriodMonths, GETDATE());
     

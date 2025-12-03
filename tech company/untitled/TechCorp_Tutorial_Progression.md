@@ -162,8 +162,8 @@ SELECT TOP 10
     p.ProjectName,
     p.Budget
 FROM Employees e
-    INNER JOIN PerformanceMetrics pm ON e.EmployeeID = pm.e.EmployeeID
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    INNER JOIN PerformanceMetrics pm ON e.EmployeeID = pm.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE pm.Achievement > 95.0
     AND p.IsActive = 'Completed'

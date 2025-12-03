@@ -346,25 +346,25 @@ WITH EmployeePerformanceData AS (
     LEFT JOIN (
         -- Project involvement metrics
         SELECT 
-            ep.e.EmployeeID,
+            ep.EmployeeID,
             COUNT(DISTINCT ep.ProjectID) AS ProjectCount,
             SUM(ep.HoursWorked) AS TotalHours
         FROM EmployeeProjects ep
         WHERE ep.IsActive = 1
           AND ep.StartDate >= DATEADD(YEAR, -1, GETDATE())
-        GROUP BY ep.e.EmployeeID
-    ) project_metrics ON e.EmployeeID = project_metrics.e.EmployeeID
+        GROUP BY ep.EmployeeID
+    ) project_metrics ON e.EmployeeID = project_metrics.EmployeeID
     LEFT JOIN (
         -- Customer interaction metrics
         SELECT 
-            o.e.EmployeeID,
+            o.EmployeeID,
             COUNT(o.OrderID) AS OrderCount,
             SUM(o.TotalAmount) AS TotalRevenue
         FROM Orders o
         WHERE o.IsActive = 1
           AND o.OrderDate >= DATEADD(YEAR, -1, GETDATE())
-        GROUP BY o.e.EmployeeID
-    ) order_metrics ON e.EmployeeID = order_metrics.e.EmployeeID
+        GROUP BY o.EmployeeID
+    ) order_metrics ON e.EmployeeID = order_metrics.EmployeeID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
 )
@@ -476,17 +476,17 @@ WITH ExecutiveMetrics AS (
         WHERE p.IsActive = 1
           AND p.StartDate >= DATEADD(QUARTER, -1, GETDATE())
         GROUP BY p.ProjectManagerID
-    ) project_data ON e.EmployeeID = project_data.e.EmployeeID
+    ) project_data ON e.EmployeeID = project_data.EmployeeID
     LEFT JOIN (
         -- Order revenue by employee
         SELECT 
-            o.e.EmployeeID,
+            o.EmployeeID,
             SUM(o.TotalAmount) AS OrderRevenue
         FROM Orders o
         WHERE o.IsActive = 1
           AND o.OrderDate >= DATEADD(QUARTER, -1, GETDATE())
-        GROUP BY o.e.EmployeeID
-    ) order_data ON e.EmployeeID = order_data.e.EmployeeID
+        GROUP BY o.EmployeeID
+    ) order_data ON e.EmployeeID = order_data.EmployeeID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
 )
@@ -606,7 +606,7 @@ WITH BudgetActualData AS (
             e.d.DepartmentID,
             SUM(o.TotalAmount) AS GeneratedRevenue
         FROM Orders o
-        INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+        INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
         WHERE o.IsActive = 1
           AND o.OrderDate >= DATEADD(YEAR, 0, DATEADD(YEAR, DATEDIFF(YEAR, 0, GETDATE()), 0))
         GROUP BY e.d.DepartmentID

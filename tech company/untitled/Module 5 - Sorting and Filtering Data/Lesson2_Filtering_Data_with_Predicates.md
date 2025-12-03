@@ -203,7 +203,7 @@ FROM Employees e
 WHERE EXISTS (
     SELECT 1 
     FROM EmployeeProjects ep 
-    WHERE ep.e.EmployeeID = e.EmployeeID
+    WHERE ep.EmployeeID = e.EmployeeID
 );
 
 -- NOT EXISTS
@@ -212,7 +212,7 @@ FROM Employees e
 WHERE NOT EXISTS (
     SELECT 1 
     FROM EmployeeProjects ep 
-    WHERE ep.e.EmployeeID = e.EmployeeID
+    WHERE ep.EmployeeID = e.EmployeeID
 );
 
 -- Complex EXISTS with multiple conditions
@@ -222,7 +222,7 @@ WHERE EXISTS (
     SELECT 1 
     FROM EmployeeProjects ep
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-    WHERE ep.e.EmployeeID = e.EmployeeID
+    WHERE ep.EmployeeID = e.EmployeeID
       AND p.IsActive = 'Active'
       AND ep.HoursAllocated > 100
 );
@@ -342,7 +342,7 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE 
     -- Above average e.BaseSalary in their d.DepartmentName
     e.BaseSalary > (
-        SELECT AVG(e2.e.BaseSalary)
+        SELECT AVG(e2.BaseSalary)
         FROM Employees e e2
         WHERE e2.DepartmentID = e.DepartmentID
           AND e2.IsActive = 1
@@ -353,14 +353,14 @@ WHERE
         SELECT 1
         FROM Employees e ekills es
         INNER JOIN Skills s ON es.SkillID = s.SkillID
-        WHERE es.e.EmployeeID = e.EmployeeID
+        WHERE es.EmployeeID = e.EmployeeID
           AND s.MarketDemand = 'High'
           AND es.ProficiencyLevel IN ('Advanced', 'Expert')
     )
     
     -- Not the highest paid in d.DepartmentName (leave room for growth)
     AND e.BaseSalary < (
-        SELECT MAX(e3.e.BaseSalary)
+        SELECT MAX(e3.BaseSalary)
         FROM Employees e e3
         WHERE e3.DepartmentID = e.DepartmentID
           AND e3.IsActive = 1
@@ -458,7 +458,7 @@ SELECT e.FirstName, e.LastName
 FROM Employees e
 WHERE EXISTS (
     SELECT 1 FROM EmployeeProjects ep
-    WHERE ep.e.EmployeeID = e.EmployeeID
+    WHERE ep.EmployeeID = e.EmployeeID
     AND ep.ProjectID IN (SELECT ProjectID FROM Projects p WHERE IsActive = 'Active')
 );
 ```
@@ -503,7 +503,7 @@ WHERE
          AND e.JobTitle LIKE '%Senior%' 
          AND EXISTS (
              SELECT 1 FROM Employees e ekills es 
-             WHERE es.e.EmployeeID = e.EmployeeID 
+             WHERE es.EmployeeID = e.EmployeeID 
              AND es.ProficiencyLevel = 'Expert'
          ))
          
@@ -516,7 +516,7 @@ WHERE
             AND EXISTS (
                 SELECT 1 FROM Employees e ekills es
                 INNER JOIN Skills s ON es.SkillID = s.SkillID
-                WHERE es.e.EmployeeID = e.EmployeeID 
+                WHERE es.EmployeeID = e.EmployeeID 
                 AND s.SkillCategoryID = 'Finance'
                 AND es.CertificationDate IS NOT NULL
             ))

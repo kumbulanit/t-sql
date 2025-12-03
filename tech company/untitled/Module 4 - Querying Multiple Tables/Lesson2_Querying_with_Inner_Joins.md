@@ -94,7 +94,7 @@ SELECT
     FORMAT(ep.HourlyRate, 'C') AS [Hourly Rate]
 FROM Employees e
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE p.IsActive = 'In Progress'
 ORDER BY d.DepartmentName, e.LastName, p.ProjectName;
@@ -130,7 +130,7 @@ SELECT
     ep.Role
 FROM Employees e
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE p.ProjectID IN (
     SELECT ProjectID 
@@ -153,7 +153,7 @@ SELECT
     AVG(ep.HoursWorked / NULLIF(ep.HoursAllocated, 0) * 100) AS [Avg Completion %]
 FROM Employees e
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE e.IsActive = 1
   AND p.IsActive IN ('In Progress', 'Planning')
@@ -171,23 +171,23 @@ ORDER BY [Avg Completion %] DESC, e.BaseSalary DESC;
 -- Comprehensive employee performance analysis
 WITH ProjectPerformance AS (
     SELECT 
-        ep.e.EmployeeID,
+        ep.EmployeeID,
         COUNT(ep.ProjectID) AS TotalProjects,
         AVG(ep.HoursWorked / NULLIF(ep.HoursAllocated, 0)) AS AvgEfficiency,
         SUM(ep.HoursWorked * ep.HourlyRate) AS TotalProjectRevenue,
         COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects
     FROM EmployeeProjects ep
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-    GROUP BY ep.e.EmployeeID
+    GROUP BY ep.EmployeeID
 ),
 SkillAssessment AS (
     SELECT 
-        es.e.EmployeeID,
+        es.EmployeeID,
         COUNT(es.SkillID) AS TotalSkills,
         COUNT(CASE WHEN es.ProficiencyLevel = 'Expert' THEN 1 END) AS ExpertSkills,
         AVG(es.YearsExperience) AS AvgSkillExperience
     FROM Employees e ekills es
-    GROUP BY es.e.EmployeeID
+    GROUP BY es.EmployeeID
 )
 SELECT 
     e.FirstName + ' ' + e.LastName AS [Employee Name],
@@ -228,8 +228,8 @@ SELECT
     END AS [Value Assessment]
 FROM Employees e
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-LEFT JOIN ProjectPerformance pp ON e.EmployeeID = pp.e.EmployeeID
-LEFT JOIN SkillAssessment sa ON e.EmployeeID = sa.e.EmployeeID
+LEFT JOIN ProjectPerformance pp ON e.EmployeeID = pp.EmployeeID
+LEFT JOIN SkillAssessment sa ON e.EmployeeID = sa.EmployeeID
 WHERE e.IsActive = 1
 ORDER BY 
     CASE 
@@ -276,7 +276,7 @@ SELECT
     END AS [Workload IsActive]
 FROM Employees e
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'In Progress'
 WHERE e.IsActive = 1
 GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.BaseSalary, 
@@ -299,7 +299,7 @@ SELECT
     FORMAT(p.d.Budget - ISNULL(p.ActualCost, 0), 'C0') AS [d.Budget Variance],
     
     -- Resource metrics
-    COUNT(DISTINCT ep.e.EmployeeID) AS [Team Size],
+    COUNT(DISTINCT ep.EmployeeID) AS [Team Size],
     SUM(ep.HoursAllocated) AS [Total Hours Allocated],
     SUM(ep.HoursWorked) AS [Total Hours Worked],
     SUM(ep.HoursWorked * ep.HourlyRate) AS [Total Labor Cost],
@@ -345,13 +345,13 @@ SELECT
 FROM Projects p
 INNER JOIN Clients c ON p.ClientID = c.ClientID
 INNER JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
-INNER JOIN Employees e ON ep.e.EmployeeID = e.EmployeeID
+INNER JOIN Employees e ON ep.EmployeeID = e.EmployeeID
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE p.IsActive IN ('Completed', 'In Progress')
 GROUP BY p.ProjectID, p.ProjectName, p.ProjectCode, p.d.Budget, p.ActualCost,
          p.IsActive, p.StartDate, p.EndDate, p.PlannedEndDate,
          c.ClientName, d.DepartmentName
-HAVING COUNT(DISTINCT ep.e.EmployeeID) >= 2  -- Projects with teams of 2+
+HAVING COUNT(DISTINCT ep.EmployeeID) >= 2  -- Projects with teams of 2+
 ORDER BY [Project Health], p.d.Budget DESC;
 ```
 
@@ -502,7 +502,7 @@ FROM Employees e
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE EXISTS (
     SELECT 1 FROM EmployeeProjects ep 
-    WHERE ep.e.EmployeeID = e.EmployeeID
+    WHERE ep.EmployeeID = e.EmployeeID
 );
 ```
 
@@ -517,8 +517,8 @@ SELECT
     c.CustomerName,
     od.ProductName,
     od.Quantity,
-    od.e.BaseSalary,
-    od.Quantity * od.e.BaseSalary AS LineTotal
+    od.BaseSalary,
+    od.Quantity * od.BaseSalary AS LineTotal
 FROM Orders o
 INNER JOIN Customers c ON o.CustomerID = c.CustomerID
 INNER JOIN OrderDetails od ON o.OrderID = od.OrderID
@@ -567,7 +567,7 @@ FROM Employees e
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID;
 
 -- Avoid: Verbose and unclear
-SELECT Employees.e.FirstName, Departments.d.DepartmentName
+SELECT Employees.FirstName, Departments.d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON Employees.d.DepartmentID = Departments.d.DepartmentID;
 ```
@@ -578,7 +578,7 @@ INNER JOIN Departments d ON Employees.d.DepartmentID = Departments.d.DepartmentI
 SELECT p.ProjectName, e.FirstName, e.LastName
 FROM Projects p  -- If fewer projects than employees
 INNER JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
-INNER JOIN Employees e ON ep.e.EmployeeID = e.EmployeeID
+INNER JOIN Employees e ON ep.EmployeeID = e.EmployeeID
 WHERE p.IsActive = 'Critical';
 ```
 
@@ -594,7 +594,7 @@ FROM Employees e
     INNER JOIN Departments d 
         ON e.d.DepartmentID = d.DepartmentID
     INNER JOIN EmployeeProjects ep 
-        ON e.EmployeeID = ep.e.EmployeeID
+        ON e.EmployeeID = ep.EmployeeID
     INNER JOIN Projects p 
         ON ep.ProjectID = p.ProjectID
 WHERE e.IsActive = 1
@@ -609,13 +609,13 @@ ORDER BY d.DepartmentName, e.LastName;
 -- PROBLEM: This excludes employees without projects
 SELECT e.FirstName, e.LastName, p.ProjectName
 FROM Employees e
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID;
 
 -- SOLUTION: Use LEFT JOIN if you want all employees
 SELECT e.FirstName, e.LastName, ISNULL(p.ProjectName, 'No Project') AS Project
 FROM Employees e
-LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID;
 ```
 

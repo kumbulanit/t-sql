@@ -1,4 +1,6 @@
 # Module 9: Advanced Grouping and Aggregation
+**Primary Topic:** Module 9: Advanced Grouping and Aggregation
+
 ## Central Bank of Lesotho - Data Management Division
 ## For Economists and Statisticians
 

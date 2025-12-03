@@ -255,7 +255,7 @@ SELECT
     od.ProductID,
     p.ProductName,
     od.Quantity,
-    od.e.BaseSalary
+    od.BaseSalary
 FROM OrderDetails od
 INNER JOIN Products p ON od.ProductID = p.ProductID 
                       AND od.SupplierID = p.SupplierID;
@@ -272,7 +272,7 @@ SELECT
     o.OrderDate,
     p.ProductName,
     od.Quantity,
-    od.e.BaseSalary,
+    od.BaseSalary,
     cat.CategoryName,
     s.CompanyName AS SupplierName
 FROM Customers c
@@ -291,11 +291,11 @@ ORDER BY c.CustomerName, o.OrderDate;
 SELECT 
     emp.EmployeeID,
     emp.FirstName + ' ' + emp.LastName AS EmployeeName,
-    mgr.e.FirstName + ' ' + mgr.e.LastName AS ManagerName,
+    mgr.FirstName + ' ' + mgr.LastName AS ManagerName,
     emp.JobTitle,
-    mgr.e.JobTitle AS ManagerTitle
+    mgr.JobTitle AS ManagerTitle
 FROM Employees e emp
-INNER JOIN Employees mgr ON emp.ManagerID = mgr.e.EmployeeID;
+INNER JOIN Employees mgr ON emp.ManagerID = mgr.EmployeeID;
 ```
 
 #### **INNER JOIN Performance Optimization**
@@ -490,7 +490,7 @@ SELECT
     e.LastName,
     p.ProjectName
 FROM Employees e
-LEFT OUTER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+LEFT OUTER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 LEFT OUTER JOIN Projects p ON ep.ProjectID = p.ProjectID;
 ```
 
@@ -508,7 +508,7 @@ SELECT
     e.LastName,
     p.ProjectName
 FROM EmployeeProjects ep
-RIGHT OUTER JOIN Employees e ON ep.e.EmployeeID = e.EmployeeID
+RIGHT OUTER JOIN Employees e ON ep.EmployeeID = e.EmployeeID
 RIGHT OUTER JOIN Projects p ON ep.ProjectID = p.ProjectID;
 ```
 
@@ -526,7 +526,7 @@ SELECT
     e.LastName,
     p.ProjectName
 FROM Employees e
-FULL OUTER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+FULL OUTER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 FULL OUTER JOIN Projects p ON ep.ProjectID = p.ProjectID;
 ```
 
@@ -563,9 +563,9 @@ FROM Skills s, SkillLevels l;
 -- Finding employees and their managers
 SELECT 
     e.FirstName + ' ' + e.LastName AS Employee,
-    m.e.FirstName + ' ' + m.e.LastName AS Manager
+    m.FirstName + ' ' + m.LastName AS Manager
 FROM Employees e
-LEFT JOIN Employees m ON e.ManagerID = m.e.EmployeeID;
+LEFT JOIN Employees m ON e.ManagerID = m.EmployeeID;
 ```
 
 **Key Concept**: Use different aliases for same table
@@ -697,13 +697,13 @@ ORDER BY EmployeeCount DESC;
 -- JOIN approach
 SELECT DISTINCT e.FirstName, e.LastName
 FROM Employees e
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID;
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID;
 
 -- Subquery approach
 SELECT e.FirstName, e.LastName
 FROM Employees e
 WHERE EXISTS (SELECT 1 FROM EmployeeProjects ep 
-              WHERE ep.e.EmployeeID = e.EmployeeID);
+              WHERE ep.EmployeeID = e.EmployeeID);
 ```
 
 ---
@@ -718,7 +718,7 @@ SELECT
     s.SkillName,
     es.ProficiencyLevel
 FROM Employees e
-    INNER JOIN EmployeeSkills es ON e.EmployeeID = es.e.EmployeeID
+    INNER JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
     INNER JOIN Skills s ON es.SkillID = s.SkillID
 WHERE es.ProficiencyLevel >= 3
 ORDER BY e.LastName, s.SkillName;
@@ -768,7 +768,7 @@ SELECT
     COALESCE(p.ProjectName, 'No Project') AS Project
 FROM Employees e
     LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID;
 ```
 

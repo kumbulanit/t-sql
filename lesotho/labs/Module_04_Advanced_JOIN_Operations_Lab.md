@@ -1,4 +1,6 @@
 # Module 4: Advanced JOIN Operations
+**Primary Topic:** Module 4: Advanced JOIN Operations
+
 ## Central Bank of Lesotho - Data Management Division
 ## For Economists and Statisticians
 

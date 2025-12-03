@@ -161,7 +161,7 @@ SELECT
     COUNT(DISTINCT ep.ProjectID),
     ISNULL(SUM(ep.HoursWorked), 0)
 FROM Employees e
-LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     AND ep.StartDate >= @LastYearDate
     AND ep.IsActive = 1
 WHERE e.IsActive = 1
@@ -368,7 +368,7 @@ BEGIN
         FROM Employees e 
         WHERE IsActive = 1
     ) e
-    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
         AND YEAR(ep.StartDate) = @BonusYear
         AND ep.IsActive = 1
     WHERE e.RowNum BETWEEN @StartEmployeeID AND @EndEmployeeID
@@ -456,7 +456,7 @@ BEGIN
         @ProjectCount = COUNT(DISTINCT ep.ProjectID),
         @TotalHours = ISNULL(SUM(ep.HoursWorked), 0)
     FROM EmployeeProjects ep
-    WHERE ep.e.EmployeeID = @e.EmployeeID
+    WHERE ep.EmployeeID = @e.EmployeeID
         AND YEAR(ep.StartDate) = @EvaluationYear
         AND ep.IsActive = 1;
     
@@ -509,7 +509,7 @@ RETURN
             ELSE 'Needs Improvement'
         END AS PerformanceRating
     FROM Employees e
-    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
         AND YEAR(ep.StartDate) = @AnalysisYear
         AND ep.IsActive = 1
     WHERE e.d.DepartmentID = @d.DepartmentID
@@ -524,7 +524,7 @@ SELECT * FROM dbo.fn_GetDepartmentAnalytics(2001, 2024);
 SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount,
     AVG(da.PerformanceScore) AS AveragePerformanceScore,
-    AVG(da.e.BaseSalary) AS AverageBaseSalary
+    AVG(da.BaseSalary) AS AverageBaseSalary
 FROM Departments d
 CROSS APPLY dbo.fn_GetDepartmentAnalytics(d.DepartmentID, 2024) da
 WHERE d.IsActive = 1
@@ -882,9 +882,9 @@ BEGIN
             
             -- d.DepartmentName summary report
             SELECT d.DepartmentName,
-                COUNT(da.e.EmployeeID) AS EmployeeCount,
+                COUNT(da.EmployeeID) AS EmployeeCount,
                 AVG(da.PerformanceScore) AS AvgPerformanceScore,
-                AVG(da.e.BaseSalary) AS AvgSalary,
+                AVG(da.BaseSalary) AS AvgSalary,
                 SUM(CASE WHEN da.PerformanceRating = 'Excellent' THEN 1 ELSE 0 END) AS ExcellentPerformers,
                 SUM(CASE WHEN da.PerformanceRating = 'Needs Improvement' THEN 1 ELSE 0 END) AS NeedsImprovement
             FROM Departments d

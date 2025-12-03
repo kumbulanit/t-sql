@@ -150,7 +150,7 @@ WITH EmployeeHierarchy AS (
         e.ManagerID,
         eh.Level + 1
     FROM Employees e
-    INNER JOIN EmployeeHierarchy eh ON e.ManagerID = eh.e.EmployeeID
+    INNER JOIN EmployeeHierarchy eh ON e.ManagerID = eh.EmployeeID
 )
 SELECT 
     REPLICATE('  ', Level) + e.FirstName + ' ' + e.LastName AS HierarchyDisplay,

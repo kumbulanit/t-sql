@@ -394,11 +394,11 @@ UNION ALL
 
 SELECT 
     'Terminated' AS EmployeeStatus,
-    ea.e.FirstName + ' ' + ea.e.LastName AS FullName,
+    ea.FirstName + ' ' + ea.LastName AS FullName,
     d.DepartmentName,
-    ea.e.JobTitle,
-    FORMAT(ea.e.BaseSalary, 'C') AS LastKnownSalary,
-    CAST(DATEDIFF(DAY, ea.e.HireDate, ea.TerminationDate) / 365.25 AS DECIMAL(4,1)) AS EmploymentDurationYears,
+    ea.JobTitle,
+    FORMAT(ea.BaseSalary, 'C') AS LastKnownSalary,
+    CAST(DATEDIFF(DAY, ea.HireDate, ea.TerminationDate) / 365.25 AS DECIMAL(4,1)) AS EmploymentDurationYears,
     ea.TerminationDate AS StatusDate
 FROM EmployeeArchive ea
 INNER JOIN Departments d ON ea.d.DepartmentID = d.DepartmentID
@@ -441,7 +441,7 @@ SELECT
     FORMAT(e.BaseSalary, 'C') AS CurrentSalary
 FROM Employees e
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 WHERE e.IsActive = 1
   AND d.IsActive = 1
   AND ep.IsActive = 1
@@ -474,11 +474,11 @@ WHERE e.BaseSalary > 75000
 EXCEPT
 
 SELECT 
-    mgr.e.FirstName + ' ' + mgr.e.LastName AS EmployeeName,
-    FORMAT(mgr.e.BaseSalary, 'C') AS CurrentSalary,
+    mgr.FirstName + ' ' + mgr.LastName AS EmployeeName,
+    FORMAT(mgr.BaseSalary, 'C') AS CurrentSalary,
     d.DepartmentName,
-    mgr.e.JobTitle,
-    CAST(DATEDIFF(DAY, mgr.e.HireDate, GETDATE()) / 365.25 AS DECIMAL(4,1)) AS YearsWithCompany
+    mgr.JobTitle,
+    CAST(DATEDIFF(DAY, mgr.HireDate, GETDATE()) / 365.25 AS DECIMAL(4,1)) AS YearsWithCompany
 FROM Employees e mgr
 INNER JOIN Departments d ON mgr.d.DepartmentID = d.DepartmentID
 WHERE mgr.IsActive = 1
@@ -486,10 +486,10 @@ WHERE mgr.IsActive = 1
   AND EXISTS (
       SELECT 1
       FROM Employees e subordinate
-      WHERE subordinate.ManagerID = mgr.e.EmployeeID
+      WHERE subordinate.ManagerID = mgr.EmployeeID
         AND subordinate.IsActive = 1
   )
-  AND mgr.e.BaseSalary > 75000
+  AND mgr.BaseSalary > 75000
 
 ORDER BY CurrentSalary DESC, YearsWithCompany DESC;
 ```
@@ -514,7 +514,7 @@ SELECT
        AND p.IsActive = 1) AS ProjectsManaged,
     (SELECT COUNT(o.OrderID)
      FROM Orders o
-     WHERE o.e.EmployeeID = e.EmployeeID
+     WHERE o.EmployeeID = e.EmployeeID
        AND o.IsActive = 1) AS OrdersProcessed,
     FORMAT((SELECT ISNULL(SUM(p.d.Budget), 0)
             FROM Projects p
@@ -522,7 +522,7 @@ SELECT
               AND p.IsActive = 1), 'C') AS TotalProjectBudgetManaged,
     FORMAT((SELECT ISNULL(SUM(o.TotalAmount), 0)
             FROM Orders o
-            WHERE o.e.EmployeeID = e.EmployeeID
+            WHERE o.EmployeeID = e.EmployeeID
               AND o.IsActive = 1), 'C') AS TotalOrderValueProcessed
 FROM (
     -- Employees who manage projects
@@ -537,7 +537,7 @@ FROM (
     -- Employees who process orders
     SELECT DISTINCT e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.d.DepartmentID
     FROM Employees e
-    INNER JOIN Orders o ON e.EmployeeID = o.e.EmployeeID
+    INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
     WHERE e.IsActive = 1
       AND o.IsActive = 1
 ) e
@@ -545,7 +545,7 @@ INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE d.IsActive = 1
 ORDER BY 
     ((SELECT ISNULL(SUM(p.d.Budget), 0) FROM Projects p WHERE p.ProjectManagerID = e.EmployeeID AND p.IsActive = 1) +
-     (SELECT ISNULL(SUM(o.TotalAmount), 0) FROM Orders o WHERE o.e.EmployeeID = e.EmployeeID AND o.IsActive = 1)) DESC;
+     (SELECT ISNULL(SUM(o.TotalAmount), 0) FROM Orders o WHERE o.EmployeeID = e.EmployeeID AND o.IsActive = 1)) DESC;
 ```
 
 **Key Learning Points:**
@@ -615,10 +615,10 @@ ORDER BY
 -- Senior Management: d.DepartmentName Performance Dashboard
 SELECT d.DepartmentName,
     top_performers.EmployeeName,
-    top_performers.e.JobTitle,
+    top_performers.JobTitle,
     CAST(top_performers.PerformanceScore AS DECIMAL(8,2)) AS PerformanceScore,
     top_performers.PerformanceRank,
-    FORMAT(top_performers.e.BaseSalary, 'C') AS e.BaseSalary,
+    FORMAT(top_performers.BaseSalary, 'C') AS e.BaseSalary,
     top_performers.ProjectsManaged,
     top_performers.OrdersProcessed
 FROM Departments d
@@ -632,7 +632,7 @@ CROSS APPLY (
             -- e.BaseSalary percentile (30% weight)
             (CAST((SELECT COUNT(*) FROM Employees e e2 
                    WHERE e2.d.DepartmentID = e.d.DepartmentID 
-                     AND e2.e.BaseSalary <= e.BaseSalary 
+                     AND e2.BaseSalary <= e.BaseSalary 
                      AND e2.IsActive = 1) AS FLOAT) * 100.0 / 
              NULLIF((SELECT COUNT(*) FROM Employees e e3 
                      WHERE e3.d.DepartmentID = e.d.DepartmentID 
@@ -647,7 +647,7 @@ CROSS APPLY (
             -- Orders processed (25% weight)
             (LEAST(ISNULL((SELECT COUNT(o.OrderID) 
                           FROM Orders o 
-                          WHERE o.e.EmployeeID = e.EmployeeID 
+                          WHERE o.EmployeeID = e.EmployeeID 
                             AND o.IsActive = 1), 0) * 2, 100)) * 0.25 +
             
             -- Years of experience (20% weight)
@@ -659,7 +659,7 @@ CROSS APPLY (
                 -- Same calculation for ordering
                 (CAST((SELECT COUNT(*) FROM Employees e e2 
                        WHERE e2.d.DepartmentID = e.d.DepartmentID 
-                         AND e2.e.BaseSalary <= e.BaseSalary 
+                         AND e2.BaseSalary <= e.BaseSalary 
                          AND e2.IsActive = 1) AS FLOAT) * 100.0 / 
                  NULLIF((SELECT COUNT(*) FROM Employees e e3 
                          WHERE e3.d.DepartmentID = e.d.DepartmentID 
@@ -670,7 +670,7 @@ CROSS APPLY (
                                 AND p.IsActive = 1), 0) * 20, 100)) * 0.25 +
                 (LEAST(ISNULL((SELECT COUNT(o.OrderID) 
                               FROM Orders o 
-                              WHERE o.e.EmployeeID = e.EmployeeID 
+                              WHERE o.EmployeeID = e.EmployeeID 
                                 AND o.IsActive = 1), 0) * 2, 100)) * 0.25 +
                 (LEAST(DATEDIFF(YEAR, e.HireDate, GETDATE()) * 5, 100)) * 0.20
             ) DESC
@@ -683,7 +683,7 @@ CROSS APPLY (
         
         ISNULL((SELECT COUNT(o.OrderID) 
                 FROM Orders o 
-                WHERE o.e.EmployeeID = e.EmployeeID 
+                WHERE o.EmployeeID = e.EmployeeID 
                   AND o.IsActive = 1), 0) AS OrdersProcessed
     
     FROM Employees e

@@ -198,21 +198,21 @@ SELECT
     c.CategoryName,
     COUNT(p.ProductID) AS ProductCount,
     -- Basic statistics
-    MIN(p.e.BaseSalary) AS MinPrice,
-    MAX(p.e.BaseSalary) AS MaxPrice,
-    AVG(p.e.BaseSalary) AS AvgPrice,
+    MIN(p.BaseSalary) AS MinPrice,
+    MAX(p.BaseSalary) AS MaxPrice,
+    AVG(p.BaseSalary) AS AvgPrice,
     -- Advanced calculations
-    STDEV(p.e.BaseSalary) AS StandardDeviation,
-    VAR(p.e.BaseSalary) AS Variance,
+    STDEV(p.BaseSalary) AS StandardDeviation,
+    VAR(p.BaseSalary) AS Variance,
     -- Percentile approximations
-    AVG(p.e.BaseSalary) - STDEV(p.e.BaseSalary) AS LowerBound,
-    AVG(p.e.BaseSalary) + STDEV(p.e.BaseSalary) AS UpperBound,
+    AVG(p.BaseSalary) - STDEV(p.BaseSalary) AS LowerBound,
+    AVG(p.BaseSalary) + STDEV(p.BaseSalary) AS UpperBound,
     -- Range analysis
-    MAX(p.e.BaseSalary) - MIN(p.e.BaseSalary) AS PriceRange,
-    (MAX(p.e.BaseSalary) - MIN(p.e.BaseSalary)) / NULLIF(AVG(p.e.BaseSalary), 0) * 100 AS RangeAsPercentOfAvg
+    MAX(p.BaseSalary) - MIN(p.BaseSalary) AS PriceRange,
+    (MAX(p.BaseSalary) - MIN(p.BaseSalary)) / NULLIF(AVG(p.BaseSalary), 0) * 100 AS RangeAsPercentOfAvg
 FROM Products p
 INNER JOIN Categories c ON p.CategoryID = c.CategoryID
-WHERE p.e.BaseSalary IS NOT NULL
+WHERE p.BaseSalary IS NOT NULL
 GROUP BY c.CategoryID, c.CategoryName
 HAVING COUNT(p.ProductID) > 3
 ORDER BY AvgPrice DESC;

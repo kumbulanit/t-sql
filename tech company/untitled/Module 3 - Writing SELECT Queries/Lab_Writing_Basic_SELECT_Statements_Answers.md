@@ -278,7 +278,7 @@ SELECT
     ep.HoursWorked
 FROM Employees e
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 ORDER BY e.LastName, e.FirstName, p.ProjectName;
 ```
@@ -293,11 +293,11 @@ ORDER BY e.LastName, e.FirstName, p.ProjectName;
 SELECT 
     emp.FirstName + ' ' + emp.LastName AS EmployeeName,
     emp.Title AS EmployeeTitle,
-    mgr.e.FirstName + ' ' + mgr.e.LastName AS ManagerName,
+    mgr.FirstName + ' ' + mgr.LastName AS ManagerName,
     mgr.Title AS ManagerTitle
 FROM Employees e emp
-LEFT JOIN Employees mgr ON emp.ManagerID = mgr.e.EmployeeID
-ORDER BY mgr.e.LastName, emp.LastName;
+LEFT JOIN Employees mgr ON emp.ManagerID = mgr.EmployeeID
+ORDER BY mgr.LastName, emp.LastName;
 ```
 
 ## Exercise 4: CASE Expressions - Answers
@@ -447,7 +447,7 @@ LEFT JOIN (
         AVG(HoursWorked) AS AvgHoursWorked
     FROM EmployeeProjects
     GROUP BY e.EmployeeID
-) ep ON e.EmployeeID = ep.e.EmployeeID
+) ep ON e.EmployeeID = ep.EmployeeID
 WHERE e.IsActive = 1
 ORDER BY PerformanceRating, e.LastName;
 ```

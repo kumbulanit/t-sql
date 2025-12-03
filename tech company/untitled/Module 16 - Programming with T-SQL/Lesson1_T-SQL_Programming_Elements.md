@@ -184,7 +184,7 @@ SELECT
     END AS PerformanceRating
 FROM Employees e
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID 
+LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID 
                                 AND ep.IsActive = 1
                                 AND ep.StartDate >= DATEADD(YEAR, -1, GETDATE())
 WHERE e.IsActive = 1
@@ -290,7 +290,7 @@ SELECT
     END AS ServiceCategory,
     
     -- Null handling functions
-    ISNULL(mgr.e.FirstName + ' ' + mgr.e.LastName, 'No Manager') AS ManagerName,
+    ISNULL(mgr.FirstName + ' ' + mgr.LastName, 'No Manager') AS ManagerName,
     COALESCE(e.JobTitle, 'Position TBD') AS JobTitleOrDefault,
     NULLIF(e.BaseSalary, 0) AS SalaryNullIfZero,
     
@@ -326,7 +326,7 @@ SELECT
 
 FROM Employees e
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-LEFT JOIN Employees mgr ON e.ManagerID = mgr.e.EmployeeID
+LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
 WHERE e.IsActive = 1
   AND d.IsActive = 1
 ORDER BY d.DepartmentName, e.LastName, e.FirstName;
@@ -425,7 +425,7 @@ BEGIN
             COUNT(DISTINCT ep.ProjectID) AS ProjectCount,
             SUM(ep.HoursWorked) AS TotalHours
         FROM EmployeeProjects ep
-        WHERE ep.e.EmployeeID = @e.EmployeeID
+        WHERE ep.EmployeeID = @e.EmployeeID
           AND ep.IsActive = 1
           AND ep.StartDate >= DATEADD(MONTH, -@EvaluationMonths, GETDATE())
     ) project_stats;
@@ -444,7 +444,7 @@ BEGIN
             ELSE 0.0
         END
     FROM Orders o
-    WHERE o.e.EmployeeID = @e.EmployeeID
+    WHERE o.EmployeeID = @e.EmployeeID
       AND o.IsActive = 1
       AND o.OrderDate >= DATEADD(MONTH, -@EvaluationMonths, GETDATE());
     
@@ -518,7 +518,7 @@ RETURN
         CASE WHEN e.IsActive = 1 THEN 'Active' ELSE 'Inactive' END AS EmployeeStatus,
         
         -- Manager information
-        ISNULL(mgr.e.FirstName + ' ' + mgr.e.LastName, 'No Manager') AS ManagerName,
+        ISNULL(mgr.FirstName + ' ' + mgr.LastName, 'No Manager') AS ManagerName,
         
         -- Performance score using custom scalar function
         dbo.fn_CalculateEmployeePerformanceScore(e.EmployeeID, 12) AS PerformanceScore,
@@ -556,27 +556,27 @@ RETURN
         customer_stats.TotalOrderValue
         
     FROM Employees e
-    LEFT JOIN Employees mgr ON e.ManagerID = mgr.e.EmployeeID
+    LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
     LEFT JOIN (
         SELECT 
-            ep.e.EmployeeID,
+            ep.EmployeeID,
             COUNT(DISTINCT ep.ProjectID) AS ActiveProjects,
             SUM(ep.HoursWorked) AS TotalProjectHours
         FROM EmployeeProjects ep
         WHERE ep.IsActive = 1
           AND ep.StartDate >= DATEADD(YEAR, -1, GETDATE())
-        GROUP BY ep.e.EmployeeID
-    ) project_stats ON e.EmployeeID = project_stats.e.EmployeeID
+        GROUP BY ep.EmployeeID
+    ) project_stats ON e.EmployeeID = project_stats.EmployeeID
     LEFT JOIN (
         SELECT 
-            o.e.EmployeeID,
+            o.EmployeeID,
             COUNT(o.OrderID) AS OrdersProcessed,
             SUM(o.TotalAmount) AS TotalOrderValue
         FROM Orders o
         WHERE o.IsActive = 1
           AND o.OrderDate >= DATEADD(YEAR, -1, GETDATE())
-        GROUP BY o.e.EmployeeID
-    ) customer_stats ON e.EmployeeID = customer_stats.e.EmployeeID
+        GROUP BY o.EmployeeID
+    ) customer_stats ON e.EmployeeID = customer_stats.EmployeeID
     
     WHERE e.d.DepartmentID = @d.DepartmentID
       AND (e.IsActive = 1 OR @IncludeInactive = 1)
@@ -615,14 +615,14 @@ ORDER BY PerformanceScore DESC, YearsOfService DESC;
 
 -- Comprehensive d.DepartmentName comparison using custom functions
 SELECT d.DepartmentName,
-    COUNT(f.e.EmployeeID) AS TotalEmployees,
-    FORMAT(AVG(f.e.BaseSalary), 'C') AS AverageBaseSalary,
+    COUNT(f.EmployeeID) AS TotalEmployees,
+    FORMAT(AVG(f.BaseSalary), 'C') AS AverageBaseSalary,
     FORMAT(AVG(f.PerformanceScore), 'N1') AS AveragePerformanceScore,
     SUM(CASE WHEN f.PerformanceRating = 'Exceptional' THEN 1 ELSE 0 END) AS ExceptionalPerformers,
     SUM(CASE WHEN f.SalaryPositioning = 'Above Market' THEN 1 ELSE 0 END) AS AboveMarketSalaries,
     FORMAT(
         CAST(SUM(CASE WHEN f.PerformanceRating IN ('Exceptional', 'Outstanding') THEN 1 ELSE 0 END) AS FLOAT) 
-        / COUNT(f.e.EmployeeID) * 100, 'N1'
+        / COUNT(f.EmployeeID) * 100, 'N1'
     ) + '%' AS HighPerformerPercentage
 FROM Departments d
 CROSS APPLY dbo.fn_GetDepartmentEmployeeAnalysis(d.DepartmentID, 0) f
@@ -732,7 +732,7 @@ LEFT JOIN (
         (emp.BaseSalary * 0.1 * (DATEDIFF(YEAR, emp.HireDate, GETDATE()) + 1) / 5.0) AS BonusAmount
     FROM Employees e emp
     WHERE emp.IsActive = 1
-) calculated_bonus ON e.EmployeeID = calculated_bonus.e.EmployeeID
+) calculated_bonus ON e.EmployeeID = calculated_bonus.EmployeeID
 WHERE e.IsActive = 1
   AND d.IsActive = 1
 ORDER BY e.BaseSalary DESC, e.HireDate;
@@ -756,7 +756,7 @@ SELECT
     
     -- Existence checks
     COUNT(CASE WHEN EXISTS (
-        SELECT 1 FROM Orders o WHERE o.e.EmployeeID = e.EmployeeID AND o.IsActive = 1
+        SELECT 1 FROM Orders o WHERE o.EmployeeID = e.EmployeeID AND o.IsActive = 1
     ) THEN 1 END) AS EmployeesWithOrders,
     
     -- Range and pattern matching

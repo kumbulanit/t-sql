@@ -225,11 +225,11 @@ FROM Employees e
 WHERE e.BaseSalary > 70000;
 
 -- Alternative using JOIN (common approach)
-SELECT DISTINCT e1.e.EmployeeID, e1.e.FirstName, e1.e.LastName
+SELECT DISTINCT e1.EmployeeID, e1.FirstName, e1.LastName
 FROM Employees e e1
 INNER JOIN (
     SELECT e.EmployeeID FROM Employees e WHERE e.BaseSalary > 70000
-) e2 ON e1.e.EmployeeID = e2.e.EmployeeID
+) e2 ON e1.EmployeeID = e2.EmployeeID
 WHERE d.DepartmentName = 'Engineering';
 ```
 
@@ -272,8 +272,8 @@ WHERE d.DepartmentName = 'Engineering'
   AND NOT EXISTS (
     SELECT 1 FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID e2 
-    WHERE e2.e.EmployeeID = e1.e.EmployeeID 
-      AND e2.e.BaseSalary > 80000
+    WHERE e2.EmployeeID = e1.EmployeeID 
+      AND e2.BaseSalary > 80000
   );
 ```
 
@@ -449,10 +449,10 @@ UNION
 SELECT e.EmployeeID FROM ProjectEmployees;
 
 -- JOIN alternative (often faster)
-SELECT DISTINCT e1.e.EmployeeID
+SELECT DISTINCT e1.EmployeeID
 FROM ActiveEmployees e1
 FULL OUTER JOIN ProjectEmployees e2 
-    ON e1.e.EmployeeID = e2.e.EmployeeID;
+    ON e1.EmployeeID = e2.EmployeeID;
 ```
 
 **Optimization Tips**:

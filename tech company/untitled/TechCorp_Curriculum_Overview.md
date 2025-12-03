@@ -75,7 +75,7 @@ SELECT
 FROM Companies c
     INNER JOIN Departments d ON c.CompanyID = d.CompanyID
     INNER JOIN Employees e ON d.DepartmentID = e.DepartmentID
-    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID;
 ```
 
@@ -88,7 +88,7 @@ SELECT TOP 10
     pm.Achievement,
     jl.LevelName
 FROM Employees e
-    INNER JOIN PerformanceMetrics pm ON e.EmployeeID = pm.e.EmployeeID
+    INNER JOIN PerformanceMetrics pm ON e.EmployeeID = pm.EmployeeID
     INNER JOIN JobLevels jl ON e.JobLevelID = jl.JobLevelID
 WHERE pm.Achievement > 95.0
     AND e.IsActive = 1

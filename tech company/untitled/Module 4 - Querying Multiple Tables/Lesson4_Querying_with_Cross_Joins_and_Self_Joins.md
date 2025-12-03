@@ -295,13 +295,13 @@ CREATE INDEX IX_Employees_ManagerID ON Employees(ManagerID);
 CREATE INDEX IX_Employees_DepartmentID_Salary ON Employees(DepartmentID, e.BaseSalary);
 
 -- Use proper filtering to reduce comparison sets
-SELECT e1.e.FirstName, e2.e.FirstName
+SELECT e1.FirstName, e2.FirstName
 FROM Employees e e1
 INNER JOIN Employees e2 ON e1.DepartmentID = e2.DepartmentID
-    AND e1.e.EmployeeID < e2.e.EmployeeID
+    AND e1.EmployeeID < e2.EmployeeID
 WHERE e1.IsActive = 1 
   AND e2.IsActive = 1
-  AND e1.e.HireDate >= '2020-01-01';  -- Limit comparison scope
+  AND e1.HireDate >= '2020-01-01';  -- Limit comparison scope
 ```
 
 ## Best Practices
@@ -324,9 +324,9 @@ WHERE e1.IsActive = 1
 -- Good: Clear aliases and conditions
 SELECT 
     emp.FirstName AS EmployeeName,
-    mgr.e.FirstName AS ManagerName
+    mgr.FirstName AS ManagerName
 FROM Employees e emp
-LEFT JOIN Employees mgr ON emp.ManagerID = mgr.e.EmployeeID
+LEFT JOIN Employees mgr ON emp.ManagerID = mgr.EmployeeID
 WHERE emp.IsActive = 1;
 
 -- Good: Limited cross join with business purpose

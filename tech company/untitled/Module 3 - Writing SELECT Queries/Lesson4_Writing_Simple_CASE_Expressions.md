@@ -289,7 +289,7 @@ SELECT
              THEN 'Not Eligible - Finance Role Requirement'
         WHEN EXISTS (
             SELECT 1 FROM EmployeeProjects ep 
-            WHERE ep.e.EmployeeID = e.EmployeeID 
+            WHERE ep.EmployeeID = e.EmployeeID 
             AND ep.HoursWorked < ep.HoursAllocated * 0.8
         ) THEN 'Not Eligible - Performance Issue'
         ELSE 'Eligible for Promotion Review'
@@ -301,7 +301,7 @@ SELECT
                 WHEN EXISTS (
                     SELECT 1 FROM EmployeeProjects ep 
                     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-                    WHERE ep.e.EmployeeID = e.EmployeeID 
+                    WHERE ep.EmployeeID = e.EmployeeID 
                     AND p.IsActive = 'Completed'
                     AND ep.HoursWorked <= ep.HoursAllocated
                 ) THEN e.BaseSalary * 0.15  -- Project completion bonus
@@ -359,7 +359,7 @@ SELECT
     d.DepartmentName,
     p.ProjectName,
     CASE 
-        WHEN ep.e.EmployeeID IS NULL THEN 'No Project Assignment'
+        WHEN ep.EmployeeID IS NULL THEN 'No Project Assignment'
         WHEN p.IsActive = 'Completed' THEN 'Completed Project'
         WHEN p.IsActive = 'In Progress' AND ep.HoursWorked > ep.HoursAllocated 
              THEN 'Over-allocated on Active Project'
@@ -369,7 +369,7 @@ SELECT
         ELSE 'Unknown Project IsActive'
     END AS ProjectIsActive,
     CASE 
-        WHEN ep.e.EmployeeID IS NOT NULL AND p.ProjectID IS NOT NULL THEN
+        WHEN ep.EmployeeID IS NOT NULL AND p.ProjectID IS NOT NULL THEN
             CASE 
                 WHEN ep.HoursWorked = 0 THEN 'Project Not Started'
                 WHEN ep.HoursWorked >= ep.HoursAllocated THEN 'Project Complete'
@@ -382,7 +382,7 @@ SELECT
     END AS CompletionIsActive
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE e.IsActive = 1;
 ```

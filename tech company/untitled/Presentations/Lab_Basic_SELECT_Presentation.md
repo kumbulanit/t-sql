@@ -174,9 +174,9 @@ WHERE e.DepartmentID = d.DepartmentID;
 -- Meaningful alias names
 SELECT 
     emp.FirstName AS EmployeeFirstName,
-    mgr.e.FirstName AS ManagerFirstName
+    mgr.FirstName AS ManagerFirstName
 FROM Employees e emp, Employees mgr
-WHERE emp.ManagerID = mgr.e.EmployeeID;
+WHERE emp.ManagerID = mgr.EmployeeID;
 ```
 
 **Alias Benefits**:

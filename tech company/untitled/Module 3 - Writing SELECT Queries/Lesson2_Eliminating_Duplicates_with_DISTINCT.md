@@ -157,9 +157,9 @@ ORDER BY d.DepartmentName;
 -- Find unique combinations of d.DepartmentName and manager information
 SELECT DISTINCT 
     d.DepartmentName,
-    m.e.FirstName + ' ' + m.e.LastName AS ManagerName
+    m.FirstName + ' ' + m.LastName AS ManagerName
 FROM Departments d
-LEFT JOIN Employees m ON d.ManagerID = m.e.EmployeeID
+LEFT JOIN Employees m ON d.ManagerID = m.EmployeeID
 ORDER BY d.DepartmentName;
 ```
 
@@ -174,7 +174,7 @@ WITH EmployeeSkillSets AS (
         e.FirstName + ' ' + e.LastName AS EmployeeName,
         STRING_AGG(s.SkillName, ', ') WITHIN GROUP (ORDER BY s.SkillName) AS SkillSet
     FROM Employees e
-    LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.e.EmployeeID
+    LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
     LEFT JOIN Skills s ON es.SkillID = s.SkillID
     GROUP BY e.EmployeeID, e.FirstName, e.LastName
 )
@@ -225,8 +225,8 @@ SELECT DISTINCT
     'Potential Duplicate Name' AS DataQualityIssue
 FROM Employees e
 INNER JOIN PotentialDuplicates pd 
-    ON e.FirstName = pd.e.FirstName 
-    AND e.LastName = pd.e.LastName
+    ON e.FirstName = pd.FirstName 
+    AND e.LastName = pd.LastName
 ORDER BY e.LastName, e.FirstName, e.EmployeeID;
 
 -- Find distinct email domain patterns for validation

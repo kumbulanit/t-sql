@@ -67,10 +67,10 @@ SELECT d.DepartmentName,
     d.Budget AS DepartmentBudget,
     top_performers.EmployeeRank,
     top_performers.EmployeeName,
-    top_performers.e.JobTitle,
-    top_performers.e.BaseSalary,
+    top_performers.JobTitle,
+    top_performers.BaseSalary,
     top_performers.SalaryPercentileInDept,
-    FORMAT(top_performers.e.BaseSalary / d.Budget * 100, 'N2') + '%' AS SalaryAsBudgetPercent
+    FORMAT(top_performers.BaseSalary / d.Budget * 100, 'N2') + '%' AS SalaryAsBudgetPercent
 FROM Departments d
 CROSS APPLY (
     SELECT TOP 3
@@ -94,13 +94,13 @@ ORDER BY d.DepartmentName, top_performers.EmployeeRank;
 SELECT d.DepartmentName,
     top_performers.EmployeeRank,
     top_performers.EmployeeName,
-    top_performers.e.BaseSalary,
+    top_performers.BaseSalary,
     dept_stats.DepartmentAvgSalary,
     dept_stats.TotalEmployees,
-    FORMAT((top_performers.e.BaseSalary / dept_stats.DepartmentAvgSalary - 1) * 100, 'N1') + '%' AS AboveAvgPercent,
+    FORMAT((top_performers.BaseSalary / dept_stats.DepartmentAvgSalary - 1) * 100, 'N1') + '%' AS AboveAvgPercent,
     CASE 
         WHEN top_performers.EmployeeRank = 1 THEN 'Top Performer'
-        WHEN top_performers.e.BaseSalary > dept_stats.DepartmentAvgSalary * 1.2 THEN 'High Performer'
+        WHEN top_performers.BaseSalary > dept_stats.DepartmentAvgSalary * 1.2 THEN 'High Performer'
         ELSE 'Standard Performer'
     END AS PerformanceCategory
 FROM Departments d
@@ -256,7 +256,7 @@ RETURN
         MAX(ISNULL(ep.EndDate, GETDATE())) AS LastProjectActivity
     FROM EmployeeProjects ep
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-    WHERE ep.e.EmployeeID = @e.EmployeeID
+    WHERE ep.EmployeeID = @e.EmployeeID
     AND ep.IsActive = 1
     AND p.IsActive = 1
     AND ep.StartDate >= DATEADD(MONTH, -@LookbackMonths, GETDATE())
@@ -303,7 +303,7 @@ CROSS APPLY (
         MAX(ISNULL(ep.EndDate, GETDATE())) AS LastProjectActivity
     FROM EmployeeProjects ep
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-    WHERE ep.e.EmployeeID = e.EmployeeID
+    WHERE ep.EmployeeID = e.EmployeeID
     AND ep.IsActive = 1
     AND p.IsActive = 1
     AND ep.StartDate >= DATEADD(MONTH, -12, GETDATE())
@@ -500,7 +500,7 @@ CROSS APPLY (
         COUNT(DISTINCT ep.ProjectID) AS ProjectCount,
         ROW_NUMBER() OVER (ORDER BY SUM(ISNULL(ep.HoursWorked, 0)) DESC) AS ContributionRank
     FROM Employees e
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     WHERE e.d.DepartmentID = dpm.d.DepartmentID
     AND e.IsActive = 1
     AND ep.IsActive = 1
@@ -515,7 +515,7 @@ CROSS APPLY (
     SELECT 
         SUM(ISNULL(ep.HoursWorked, 0)) AS DepartmentTotalHours
     FROM Employees e
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     WHERE e.d.DepartmentID = dpm.d.DepartmentID
     AND e.IsActive = 1
     AND ep.IsActive = 1
@@ -537,7 +537,7 @@ CROSS APPLY (
     SELECT TOP 5
         SUM(ISNULL(ep.HoursWorked, 0)) AS TotalProjectHours
     FROM Employees e
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     WHERE e.d.DepartmentID = dpm.d.DepartmentID
     AND e.IsActive = 1
     AND ep.IsActive = 1
@@ -569,14 +569,14 @@ FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 LEFT JOIN (
     SELECT 
-        ep.e.EmployeeID,
+        ep.EmployeeID,
         COUNT(DISTINCT ep.ProjectID) AS ProjectCount,
         SUM(ep.HoursWorked) AS TotalHours
     FROM EmployeeProjects ep
     WHERE ep.IsActive = 1
     AND ep.StartDate >= DATEADD(MONTH, -6, GETDATE())
-    GROUP BY ep.e.EmployeeID
-) AS recent_projects ON e.EmployeeID = recent_projects.e.EmployeeID
+    GROUP BY ep.EmployeeID
+) AS recent_projects ON e.EmployeeID = recent_projects.EmployeeID
 WHERE e.IsActive = 1
 ORDER BY recent_projects.TotalHours DESC;
 
@@ -609,7 +609,7 @@ CROSS APPLY (
         END AS PerformanceCategory
     FROM EmployeeProjects ep
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-    WHERE ep.e.EmployeeID = e.EmployeeID
+    WHERE ep.EmployeeID = e.EmployeeID
     AND ep.IsActive = 1
     AND p.IsActive = 1
     AND ep.StartDate >= DATEADD(MONTH, -6, GETDATE())

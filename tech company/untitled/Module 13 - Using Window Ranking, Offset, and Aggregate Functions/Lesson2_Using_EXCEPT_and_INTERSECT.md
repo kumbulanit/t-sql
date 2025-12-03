@@ -108,7 +108,7 @@ SELECT
     FORMAT(e.BaseSalary, 'C') AS CurrentSalary
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 WHERE e.IsActive = 1
   AND d.IsActive = 1
   AND ep.IsActive = 1
@@ -193,22 +193,22 @@ WHERE e.BaseSalary > 85000  -- High e.BaseSalary threshold
 EXCEPT
 
 SELECT 
-    mgr.e.EmployeeID,
-    mgr.e.FirstName + ' ' + mgr.e.LastName AS EmployeeName,
-    FORMAT(mgr.e.BaseSalary, 'C') AS CurrentSalary,
-    mgr.e.JobTitle,
+    mgr.EmployeeID,
+    mgr.FirstName + ' ' + mgr.LastName AS EmployeeName,
+    FORMAT(mgr.BaseSalary, 'C') AS CurrentSalary,
+    mgr.JobTitle,
     d.DepartmentName,
-    DATEDIFF(YEAR, mgr.e.HireDate, GETDATE()) AS YearsOfService,
+    DATEDIFF(YEAR, mgr.HireDate, GETDATE()) AS YearsOfService,
     'Policy Violation: High e.BaseSalary Without Management' AS ComplianceIssue
 FROM Employees e mgr
 INNER JOIN Departments d ON mgr.DepartmentID = d.DepartmentID
 WHERE mgr.IsActive = 1
   AND d.IsActive = 1
-  AND mgr.e.BaseSalary > 85000
+  AND mgr.BaseSalary > 85000
   AND EXISTS (
       SELECT 1
       FROM Employees e subordinate
-      WHERE subordinate.ManagerID = mgr.e.EmployeeID
+      WHERE subordinate.ManagerID = mgr.EmployeeID
         AND subordinate.IsActive = 1
   )
 
@@ -229,9 +229,9 @@ SELECT
     FORMAT(e.BaseSalary, 'C') AS StartingSalary,
     CASE 
         WHEN e.ManagerID IS NOT NULL 
-        THEN (SELECT mgr.e.FirstName + ' ' + mgr.e.LastName 
+        THEN (SELECT mgr.FirstName + ' ' + mgr.LastName 
               FROM Employees e mgr 
-              WHERE mgr.e.EmployeeID = e.ManagerID 
+              WHERE mgr.EmployeeID = e.ManagerID 
                 AND mgr.IsActive = 1)
         ELSE 'No Manager Assigned'
     END AS ReportsTo
@@ -252,9 +252,9 @@ SELECT
     FORMAT(e.BaseSalary, 'C') AS StartingSalary,
     CASE 
         WHEN e.ManagerID IS NOT NULL 
-        THEN (SELECT mgr.e.FirstName + ' ' + mgr.e.LastName 
+        THEN (SELECT mgr.FirstName + ' ' + mgr.LastName 
               FROM Employees e mgr 
-              WHERE mgr.e.EmployeeID = e.ManagerID 
+              WHERE mgr.EmployeeID = e.ManagerID 
                 AND mgr.IsActive = 1)
         ELSE 'No Manager Assigned'
     END AS ReportsTo
@@ -380,17 +380,17 @@ SELECT
     (SELECT COUNT(DISTINCT p.ProjectID)
      FROM EmployeeProjects ep
      INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-     INNER JOIN Employees mgr ON p.ProjectManagerID = mgr.e.EmployeeID
-     WHERE ep.e.EmployeeID = e.EmployeeID
+     INNER JOIN Employees mgr ON p.ProjectManagerID = mgr.EmployeeID
+     WHERE ep.EmployeeID = e.EmployeeID
        AND mgr.DepartmentID <> e.DepartmentID
        AND ep.IsActive = 1
        AND p.IsActive = 1
        AND mgr.IsActive = 1) AS CrossDeptProjects
 FROM Employees e
 INNER JOIN Departments home_dept ON e.DepartmentID = home_dept.DepartmentID
-INNER JOIN EmployeeProjects ep1 ON e.EmployeeID = ep1.e.EmployeeID
+INNER JOIN EmployeeProjects ep1 ON e.EmployeeID = ep1.EmployeeID
 INNER JOIN Projects p1 ON ep1.ProjectID = p1.ProjectID
-INNER JOIN Employees mgr1 ON p1.ProjectManagerID = mgr1.e.EmployeeID
+INNER JOIN Employees mgr1 ON p1.ProjectManagerID = mgr1.EmployeeID
 WHERE e.IsActive = 1
   AND home_dept.IsActive = 1
   AND ep1.IsActive = 1
@@ -408,17 +408,17 @@ SELECT
     (SELECT COUNT(DISTINCT p.ProjectID)
      FROM EmployeeProjects ep
      INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-     INNER JOIN Employees mgr ON p.ProjectManagerID = mgr.e.EmployeeID
-     WHERE ep.e.EmployeeID = e.EmployeeID
+     INNER JOIN Employees mgr ON p.ProjectManagerID = mgr.EmployeeID
+     WHERE ep.EmployeeID = e.EmployeeID
        AND mgr.DepartmentID <> e.DepartmentID
        AND ep.IsActive = 1
        AND p.IsActive = 1
        AND mgr.IsActive = 1) AS CrossDeptProjects
 FROM Employees e
 INNER JOIN Departments home_dept ON e.DepartmentID = home_dept.DepartmentID
-INNER JOIN EmployeeProjects ep2 ON e.EmployeeID = ep2.e.EmployeeID
+INNER JOIN EmployeeProjects ep2 ON e.EmployeeID = ep2.EmployeeID
 INNER JOIN Projects p2 ON ep2.ProjectID = p2.ProjectID
-INNER JOIN Employees mgr2 ON p2.ProjectManagerID = mgr2.e.EmployeeID
+INNER JOIN Employees mgr2 ON p2.ProjectManagerID = mgr2.EmployeeID
 WHERE e.IsActive = 1
   AND home_dept.IsActive = 1
   AND ep2.IsActive = 1
@@ -462,7 +462,7 @@ ProjectContributors AS (
         'Project Contributor' AS Classification
     FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
       AND ep.IsActive = 1
@@ -475,11 +475,11 @@ SELECT *
 FROM HighPerformers
 EXCEPT
 SELECT 
-    pc.e.EmployeeID,
+    pc.EmployeeID,
     pc.EmployeeName,
-    pc.e.JobTitle,
+    pc.JobTitle,
     pc.DepartmentName,
-    pc.e.BaseSalary,
+    pc.BaseSalary,
     'High Performer' AS Classification
 FROM ProjectContributors pc
 ORDER BY e.BaseSalary DESC;
@@ -580,7 +580,7 @@ WHERE e.IsActive = 1
 EXCEPT
 SELECT e.EmployeeID, e.FirstName, e.LastName
 FROM Employees e
-INNER JOIN Orders o ON e.EmployeeID = o.e.EmployeeID
+INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
 WHERE e.IsActive = 1 AND o.IsActive = 1;
 
 -- Alternative: NOT EXISTS approach (often more efficient)
@@ -590,7 +590,7 @@ WHERE e.IsActive = 1
   AND NOT EXISTS (
       SELECT 1
       FROM Orders o
-      WHERE o.e.EmployeeID = e.EmployeeID
+      WHERE o.EmployeeID = e.EmployeeID
         AND o.IsActive = 1
   );
 
@@ -607,7 +607,7 @@ WHERE e.IsActive = 1
   AND EXISTS (
       SELECT 1
       FROM Orders o
-      WHERE o.e.EmployeeID = e.EmployeeID
+      WHERE o.EmployeeID = e.EmployeeID
         AND o.IsActive = 1
   );
 ```
@@ -632,7 +632,7 @@ FROM (
     EXCEPT
     SELECT DISTINCT e.EmployeeID
     FROM Employees e
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     WHERE e.IsActive = 1 AND ep.IsActive = 1
 ) underutilized
 
@@ -832,7 +832,7 @@ WHERE IsActive = 1
   AND EXISTS (
       SELECT 1
       FROM EmployeeProjects ep
-      WHERE ep.e.EmployeeID = Employees.e.EmployeeID
+      WHERE ep.EmployeeID = Employees.EmployeeID
         AND ep.IsActive = 1
   );
 ```

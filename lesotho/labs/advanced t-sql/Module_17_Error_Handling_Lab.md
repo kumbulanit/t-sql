@@ -1,4 +1,6 @@
 # Module 17: Implementing Error Handling
+**Primary Topic:** Module 17: Implementing Error Handling
+
 ## Central Bank of Lesotho - Data Management Division
 ## For Economists and Statisticians
 

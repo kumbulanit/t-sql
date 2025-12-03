@@ -142,7 +142,7 @@ SELECT e.FirstName, e.LastName
 FROM Employees e
 WHERE EXISTS (
     SELECT 1 FROM Orders o 
-    WHERE o.e.EmployeeID = e.EmployeeID 
+    WHERE o.EmployeeID = e.EmployeeID 
     AND o.OrderDate >= '2023-01-01'
 );
 
@@ -242,8 +242,8 @@ FROM Employees e
 WHERE EXISTS (
     SELECT 1
     FROM Orders o
-    WHERE o.e.EmployeeID = e.EmployeeID
-    GROUP BY o.e.EmployeeID
+    WHERE o.EmployeeID = e.EmployeeID
+    GROUP BY o.EmployeeID
     HAVING COUNT(*) > 10 AND AVG(o.OrderTotal) > 1000
 );
 ```

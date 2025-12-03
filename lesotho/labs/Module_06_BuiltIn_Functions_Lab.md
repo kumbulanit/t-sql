@@ -1,4 +1,6 @@
 # Module 6: Built-In Functions
+**Primary Topic:** Module 6: Built-In Functions
+
 ## Central Bank of Lesotho - Data Management Division
 ## For Economists and Statisticians
 

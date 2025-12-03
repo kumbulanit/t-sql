@@ -158,7 +158,7 @@ BEGIN
             e.WorkEmail,
             CASE WHEN e.IsActive = 1 THEN 'Active' ELSE 'Inactive' END AS Status,
             -- Manager information
-            ISNULL(mgr.e.FirstName + ' ' + mgr.e.LastName, 'No Manager') AS ManagerName,
+            ISNULL(mgr.FirstName + ' ' + mgr.LastName, 'No Manager') AS ManagerName,
             -- Additional metrics
             CASE 
                 WHEN e.BaseSalary >= 80000 THEN 'Senior Level'
@@ -174,7 +174,7 @@ BEGIN
              CASE WHEN @MaxSalary IS NOT NULL AND e.BaseSalary <= @MaxSalary THEN 3 ELSE 0 END) AS RelevanceScore
         FROM Employees e
         INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-        LEFT JOIN Employees mgr ON e.ManagerID = mgr.e.EmployeeID
+        LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
         WHERE d.IsActive = 1
           -- Apply all filter parameters
           AND (@d.DepartmentID IS NULL OR e.d.DepartmentID = @d.DepartmentID)
@@ -365,7 +365,7 @@ BEGIN
                 SUM(o.TotalAmount) AS OrderRevenue,
                 COUNT(DISTINCT o.CustomerID) AS UniqueCustomers
             FROM Orders o
-            INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+            INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
             WHERE o.IsActive = 1
               AND e.IsActive = 1
               AND (@IncludeOrderData = 1)
@@ -560,12 +560,12 @@ BEGIN
     SELECT @ProjectEngagementRate = 
         CASE 
             WHEN @ActiveEmployees > 0 
-            THEN CAST(COUNT(DISTINCT ep.e.EmployeeID) * 100.0 / @ActiveEmployees AS DECIMAL(5,2))
+            THEN CAST(COUNT(DISTINCT ep.EmployeeID) * 100.0 / @ActiveEmployees AS DECIMAL(5,2))
             ELSE 0
         END
     FROM Employees e
     INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
       AND ep.IsActive = 1
@@ -576,12 +576,12 @@ BEGIN
     SELECT @CustomerServiceRate = 
         CASE 
             WHEN @ActiveEmployees > 0 
-            THEN CAST(COUNT(DISTINCT o.e.EmployeeID) * 100.0 / @ActiveEmployees AS DECIMAL(5,2))
+            THEN CAST(COUNT(DISTINCT o.EmployeeID) * 100.0 / @ActiveEmployees AS DECIMAL(5,2))
             ELSE 0
         END
     FROM Employees e
     INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    INNER JOIN Orders o ON e.EmployeeID = o.e.EmployeeID
+    INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
       AND o.IsActive = 1
@@ -874,7 +874,7 @@ BEGIN
                 COUNT(DISTINCT ep.ProjectID) AS ProjectCount,
                 SUM(ep.HoursWorked) AS TotalHours
             FROM EmployeeProjects ep
-            WHERE ep.e.EmployeeID = @e.EmployeeID
+            WHERE ep.EmployeeID = @e.EmployeeID
               AND ep.IsActive = 1
               AND ep.StartDate >= DATEADD(MONTH, -@PerformancePeriodMonths, GETDATE())
         ) project_data;
@@ -904,7 +904,7 @@ BEGIN
                 COUNT(o.OrderID) AS OrderCount,
                 SUM(o.TotalAmount) AS TotalRevenue
             FROM Orders o
-            WHERE o.e.EmployeeID = @e.EmployeeID
+            WHERE o.EmployeeID = @e.EmployeeID
               AND o.IsActive = 1
               AND o.OrderDate >= DATEADD(MONTH, -@PerformancePeriodMonths, GETDATE())
         ) customer_data;
@@ -986,28 +986,28 @@ BEGIN
         FROM Employees e
         LEFT JOIN (
             SELECT 
-                ep.e.EmployeeID,
+                ep.EmployeeID,
                 CASE WHEN COUNT(DISTINCT ep.ProjectID) >= 3 THEN 80 ELSE 40 END AS score
             FROM EmployeeProjects ep
             WHERE ep.IsActive = 1
-            GROUP BY ep.e.EmployeeID
-        ) proj ON e.EmployeeID = proj.e.EmployeeID
+            GROUP BY ep.EmployeeID
+        ) proj ON e.EmployeeID = proj.EmployeeID
         LEFT JOIN (
             SELECT 
-                o.e.EmployeeID,
+                o.EmployeeID,
                 CASE WHEN COUNT(o.OrderID) >= 10 THEN 75 ELSE 35 END AS score
             FROM Orders o
             WHERE o.IsActive = 1
-            GROUP BY o.e.EmployeeID
-        ) cust ON e.EmployeeID = cust.e.EmployeeID
+            GROUP BY o.EmployeeID
+        ) cust ON e.EmployeeID = cust.EmployeeID
         LEFT JOIN (
             SELECT 
-                mgr.e.EmployeeID,
-                CASE WHEN COUNT(sub.e.EmployeeID) >= 2 THEN 70 ELSE 45 END AS score
+                mgr.EmployeeID,
+                CASE WHEN COUNT(sub.EmployeeID) >= 2 THEN 70 ELSE 45 END AS score
             FROM Employees e mgr
-            LEFT JOIN Employees sub ON mgr.e.EmployeeID = sub.ManagerID
-            GROUP BY mgr.e.EmployeeID
-        ) lead ON e.EmployeeID = lead.e.EmployeeID
+            LEFT JOIN Employees sub ON mgr.EmployeeID = sub.ManagerID
+            GROUP BY mgr.EmployeeID
+        ) lead ON e.EmployeeID = lead.EmployeeID
         WHERE e.DepartmentID = @DepartmentID 
           AND e.IsActive = 1
           AND e.EmployeeID != @e.EmployeeID

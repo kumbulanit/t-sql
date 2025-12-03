@@ -1,4 +1,6 @@
 # Module 14: Pivoting and Grouping Sets
+**Primary Topic:** Module 14: Pivoting and Grouping Sets
+
 ## Central Bank of Lesotho - Data Management Division
 ## For Economists and Statisticians
 

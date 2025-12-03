@@ -213,7 +213,7 @@ SELECT
     FORMAT(o.TotalAmount, 'C') AS FormattedAmount
 FROM Orders o
 INNER JOIN Customers c ON o.CustomerID = c.CustomerID
-INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
 WHERE o.TotalAmount > (
     SELECT AVG(TotalAmount)
     FROM Orders
@@ -229,8 +229,8 @@ ORDER BY o.TotalAmount DESC;
 ```sql
 -- Find managers who manage more people than average
 SELECT 
-    mgr.e.FirstName + ' ' + mgr.e.LastName AS ManagerName,
-    mgr.e.JobTitle,
+    mgr.FirstName + ' ' + mgr.LastName AS ManagerName,
+    mgr.JobTitle,
     d.DepartmentName,
     team_size.DirectReports
 FROM Employees e mgr
@@ -243,7 +243,7 @@ INNER JOIN (
     WHERE ManagerID IS NOT NULL
       AND IsActive = 1
     GROUP BY ManagerID
-) team_size ON mgr.e.EmployeeID = team_size.ManagerID
+) team_size ON mgr.EmployeeID = team_size.ManagerID
 WHERE team_size.DirectReports > (
     SELECT AVG(team_count)
     FROM (

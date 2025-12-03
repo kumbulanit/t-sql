@@ -85,7 +85,7 @@ SELECT
     e.HireDate
 FROM Employees e
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 WHERE e.IsActive = 1
 AND ep.IsActive = 1
 AND (ep.EndDate IS NULL OR ep.EndDate > GETDATE())
@@ -121,7 +121,7 @@ FROM (
         e.HireDate
     FROM Employees e
     INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     WHERE e.IsActive = 1
     AND ep.IsActive = 1
     AND (ep.EndDate IS NULL OR ep.EndDate > GETDATE())
@@ -163,7 +163,7 @@ SELECT
     d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 WHERE e.IsActive = 1 AND ep.IsActive = 1
 
 ORDER BY d.DepartmentName, EmployeeName;
@@ -196,7 +196,7 @@ FROM (
         d.DepartmentName
     FROM Employees e
     INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     WHERE e.IsActive = 1 AND ep.IsActive = 1
 ) AS dual_role
 INNER JOIN Projects p ON dual_role.EmployeeID = p.ProjectManagerID
@@ -231,10 +231,10 @@ FROM (
         d.DepartmentName
     FROM Employees e
     INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     WHERE e.IsActive = 1 AND ep.IsActive = 1
 ) AS dual_role
-INNER JOIN EmployeeProjects ep ON dual_role.EmployeeID = ep.e.EmployeeID
+INNER JOIN EmployeeProjects ep ON dual_role.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE ep.IsActive = 1 AND p.IsActive = 1
 
@@ -411,7 +411,7 @@ HighlyEngagedEmployees AS (
         e.d.DepartmentID,
         e.BaseSalary
     FROM Employees e
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     WHERE e.IsActive = 1
     AND ep.IsActive = 1
     AND ep.StartDate >= DATEADD(YEAR, -1, GETDATE())
@@ -475,7 +475,7 @@ SELECT
     DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
     (SELECT COUNT(DISTINCT ep.ProjectID) 
      FROM EmployeeProjects ep 
-     WHERE ep.e.EmployeeID = high_value.EmployeeID 
+     WHERE ep.EmployeeID = high_value.EmployeeID 
      AND ep.IsActive = 1 
      AND ep.StartDate >= DATEADD(YEAR, -1, GETDATE())) AS RecentProjects,
     (SELECT AVG(e.BaseSalary) 
@@ -539,14 +539,14 @@ ManagementEmployees AS (
 ProjectAssignedEmployees AS (
     SELECT DISTINCT e.EmployeeID, e.FirstName + ' ' + e.LastName AS EmployeeName
     FROM Employees e
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     WHERE e.IsActive = 1
     AND ep.IsActive = 1
     AND (ep.EndDate IS NULL OR ep.EndDate > GETDATE())
 ),
 
 HighPerformanceProjects AS (
-    SELECT DISTINCT ep.e.EmployeeID
+    SELECT DISTINCT ep.EmployeeID
     FROM EmployeeProjects ep
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
     WHERE ep.IsActive = 1
@@ -594,13 +594,13 @@ INTERSECT
 
 SELECT 
     'MANAGEMENT_ON_HIGH_VALUE_PROJECTS' AS AnalysisType,
-    hpp.e.EmployeeID,
+    hpp.EmployeeID,
     e.FirstName + ' ' + e.LastName AS EmployeeName,
     e.JobTitle,
     d.DepartmentName,
     e.BaseSalary
 FROM HighPerformanceProjects hpp
-INNER JOIN Employees e ON hpp.e.EmployeeID = e.EmployeeID
+INNER JOIN Employees e ON hpp.EmployeeID = e.EmployeeID
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 
 ORDER BY AnalysisType, d.DepartmentName, EmployeeName;
@@ -637,7 +637,7 @@ FROM (
         'MANAGEMENT_ON_HIGH_VALUE_PROJECTS' AS AnalysisType,
         e.BaseSalary
     FROM HighPerformanceProjects hpp
-    INNER JOIN Employees e ON hpp.e.EmployeeID = e.EmployeeID
+    INNER JOIN Employees e ON hpp.EmployeeID = e.EmployeeID
 ) AS ResourceAnalysis;
 ```
 
@@ -657,9 +657,9 @@ The APPLY operator enables you to invoke a table-valued function for each row of
 SELECT d.DepartmentName,
     top_employees.EmployeeRank,
     top_employees.EmployeeName,
-    top_employees.e.JobTitle,
-    top_employees.e.BaseSalary,
-    top_employees.e.HireDate
+    top_employees.JobTitle,
+    top_employees.BaseSalary,
+    top_employees.HireDate
 FROM Departments d
 CROSS APPLY (
     SELECT TOP 3

@@ -1,4 +1,6 @@
 # Module 1: Introduction to T-SQL Querying - Lab Exercise
+**Primary Topic:** Module 1: Introduction to T-SQL Querying - Lab Exercise
+
 ## Central Bank of Lesotho - Data Management Division
 ## For Economists and Statisticians
 

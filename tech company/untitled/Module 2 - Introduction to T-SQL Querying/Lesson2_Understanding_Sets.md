@@ -151,14 +151,14 @@ FROM Employees e
 WHERE EXISTS (
     SELECT 1 
     FROM Orders o 
-    WHERE o.e.EmployeeID = e.EmployeeID
+    WHERE o.EmployeeID = e.EmployeeID
 );
 
 -- Using IN (simpler syntax)
 SELECT e.FirstName, e.LastName
 FROM Employees e
 WHERE e.EmployeeID IN (
-    SELECT DISTINCT o.e.EmployeeID 
+    SELECT DISTINCT o.EmployeeID 
     FROM Orders o
 );
 ```
@@ -209,7 +209,7 @@ SELECT
     e.LastName,
     es.SkillSet
 FROM Employees e
-INNER JOIN EmployeeSkills es ON e.EmployeeID = es.e.EmployeeID
+INNER JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
 WHERE es.SkillSet NOT IN (
     SELECT SkillSet 
     FROM Employees e ekills 
@@ -288,7 +288,7 @@ LEFT JOIN (
         SUM(OrderTotal) AS TotalSales
     FROM Orders
     GROUP BY e.EmployeeID
-) o ON e.EmployeeID = o.e.EmployeeID;
+) o ON e.EmployeeID = o.EmployeeID;
 ```
 
 ## Working with NULL Values in Sets
@@ -306,7 +306,7 @@ FROM Employees e e1
 WHERE NOT EXISTS (
     SELECT 1
     FROM Employees e e2
-    WHERE e2.e.EmployeeID != e1.e.EmployeeID
+    WHERE e2.EmployeeID != e1.EmployeeID
     AND (
         (e2.MiddleName = e1.MiddleName) OR 
         (e2.MiddleName IS NULL AND e1.MiddleName IS NULL)
@@ -361,7 +361,7 @@ SELECT e.EmployeeID, e.FirstName, e.LastName
 FROM Employees e
 WHERE NOT EXISTS (
     SELECT 1 FROM Orders o 
-    WHERE o.e.EmployeeID = e.EmployeeID
+    WHERE o.EmployeeID = e.EmployeeID
 );
 ```
 

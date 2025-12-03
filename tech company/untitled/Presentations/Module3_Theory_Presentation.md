@@ -348,11 +348,11 @@ SELECT
     emp.FirstName,
     emp.LastName,
     dept.DepartmentName,
-    mgr.e.FirstName AS ManagerFirstName,
-    mgr.e.LastName AS ManagerLastName
+    mgr.FirstName AS ManagerFirstName,
+    mgr.LastName AS ManagerLastName
 FROM Employees e emp                         -- Descriptive alias
 INNER JOIN Departments dept ON emp.DepartmentID = dept.DepartmentID
-LEFT JOIN Employees mgr ON emp.ManagerID = mgr.e.EmployeeID;  -- Self-join clarity
+LEFT JOIN Employees mgr ON emp.ManagerID = mgr.EmployeeID;  -- Self-join clarity
 ```
 
 #### **Alias Conventions**
@@ -434,7 +434,7 @@ FROM Employees e;
 
 ```sql
 -- Without alias (verbose)
-SELECT Employees.e.FirstName, Employees.e.LastName
+SELECT Employees.FirstName, Employees.LastName
 FROM Employees e
 WHERE d.DepartmentName = 'Engineering';
 

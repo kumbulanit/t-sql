@@ -1,4 +1,6 @@
 # Module 18: Implementing Transactions
+**Primary Topic:** Module 18: Implementing Transactions
+
 ## Central Bank of Lesotho - Data Management Division
 ## For Economists and Statisticians
 

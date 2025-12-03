@@ -159,7 +159,7 @@ BEGIN
             ELSE 'Inactive'
         END AS EmployeeStatus,
         -- Manager information
-        ISNULL(mgr.e.FirstName + ' ' + mgr.e.LastName, 'No Manager') AS ManagerName,
+        ISNULL(mgr.FirstName + ' ' + mgr.LastName, 'No Manager') AS ManagerName,
         -- Performance indicators
         CASE 
             WHEN e.BaseSalary >= 80000 THEN 'Senior Level'
@@ -176,7 +176,7 @@ BEGIN
         END AS ServiceCategory
     FROM Employees e
     INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    LEFT JOIN Employees mgr ON e.ManagerID = mgr.e.EmployeeID
+    LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
     WHERE (@d.DepartmentID IS NULL OR e.d.DepartmentID = @d.DepartmentID)
       AND (e.IsActive = 1 OR @IncludeInactive = 1)
       AND d.IsActive = 1
@@ -266,7 +266,7 @@ BEGIN
     LEFT JOIN (
         -- Project involvement aggregation
         SELECT 
-            ep.e.EmployeeID,
+            ep.EmployeeID,
             COUNT(DISTINCT ep.ProjectID) AS ProjectCount,
             SUM(ep.HoursWorked) AS TotalProjectHours,
             SUM(p.d.Budget) AS TotalProjectBudget
@@ -275,20 +275,20 @@ BEGIN
         WHERE ep.IsActive = 1
           AND p.IsActive = 1
           AND ep.StartDate >= DATEADD(MONTH, -@PerformancePeriodMonths, GETDATE())
-        GROUP BY ep.e.EmployeeID
-    ) project_metrics ON e.EmployeeID = project_metrics.e.EmployeeID
+        GROUP BY ep.EmployeeID
+    ) project_metrics ON e.EmployeeID = project_metrics.EmployeeID
     LEFT JOIN (
         -- Customer interaction aggregation
         SELECT 
-            o.e.EmployeeID,
+            o.EmployeeID,
             COUNT(o.OrderID) AS OrdersProcessed,
             SUM(o.TotalAmount) AS TotalRevenue,
             COUNT(DISTINCT o.CustomerID) AS UniqueCustomers
         FROM Orders o
         WHERE o.IsActive = 1
           AND o.OrderDate >= DATEADD(MONTH, -@PerformancePeriodMonths, GETDATE())
-        GROUP BY o.e.EmployeeID
-    ) customer_metrics ON e.EmployeeID = customer_metrics.e.EmployeeID
+        GROUP BY o.EmployeeID
+    ) customer_metrics ON e.EmployeeID = customer_metrics.EmployeeID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
       AND (@e.EmployeeID IS NULL OR e.EmployeeID = @e.EmployeeID)
@@ -427,7 +427,7 @@ BEGIN
             COUNT(o.OrderID) AS OrderCount,
             COUNT(DISTINCT o.CustomerID) AS UniqueCustomerCount
         FROM Orders o
-        INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+        INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
         WHERE o.IsActive = 1
           AND e.IsActive = 1
           AND o.OrderDate >= DATEADD(MONTH, -@AnalysisPeriodMonths, GETDATE())
@@ -566,10 +566,10 @@ BEGIN
         -- Employee interaction aggregation
         SELECT 
             o.CustomerID,
-            COUNT(DISTINCT o.e.EmployeeID) AS UniqueEmployeesServed,
+            COUNT(DISTINCT o.EmployeeID) AS UniqueEmployeesServed,
             (SELECT TOP 1 e.FirstName + ' ' + e.LastName
              FROM Orders o2 
-             INNER JOIN Employees e ON o2.e.EmployeeID = e.EmployeeID
+             INNER JOIN Employees e ON o2.EmployeeID = e.EmployeeID
              WHERE o2.CustomerID = o.CustomerID 
                AND o2.IsActive = 1
                AND e.IsActive = 1
@@ -577,7 +577,7 @@ BEGIN
              ORDER BY COUNT(*) DESC) AS PrimaryContactEmployee,
             (SELECT TOP 1 d.DepartmentName
              FROM Orders o2 
-             INNER JOIN Employees e ON o2.e.EmployeeID = e.EmployeeID
+             INNER JOIN Employees e ON o2.EmployeeID = e.EmployeeID
              INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
              WHERE o2.CustomerID = o.CustomerID 
                AND o2.IsActive = 1
@@ -687,13 +687,13 @@ BEGIN
         INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
         LEFT JOIN (
             SELECT 
-                ep.e.EmployeeID,
+                ep.EmployeeID,
                 COUNT(DISTINCT ep.ProjectID) AS ProjectCount,
                 SUM(ep.HoursWorked) AS TotalHours
             FROM EmployeeProjects ep
             WHERE ep.IsActive = 1 AND @IncludeProjectDetails = 1
-            GROUP BY ep.e.EmployeeID
-        ) project_summary ON e.EmployeeID = project_summary.e.EmployeeID
+            GROUP BY ep.EmployeeID
+        ) project_summary ON e.EmployeeID = project_summary.EmployeeID
         WHERE e.EmployeeID = @e.EmployeeID
           AND e.IsActive = 1
           AND d.IsActive = 1;

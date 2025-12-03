@@ -1,4 +1,6 @@
 # Module 15: Executing Stored Procedures
+**Primary Topic:** Module 15: Executing Stored Procedures
+
 ## Central Bank of Lesotho - Data Management Division
 ## For Economists and Statisticians
 

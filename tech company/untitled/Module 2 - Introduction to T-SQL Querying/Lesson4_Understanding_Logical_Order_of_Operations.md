@@ -214,7 +214,7 @@ SELECT
     ep.HoursWorked
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE e.IsActive = 1
   AND (ep.HoursWorked > 40 OR ep.HoursWorked IS NULL)

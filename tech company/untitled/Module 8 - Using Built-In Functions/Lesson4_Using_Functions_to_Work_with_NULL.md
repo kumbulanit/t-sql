@@ -77,9 +77,9 @@ SELECT
     
     -- Manager information with NULL handling
     ISNULL(
-        (SELECT m.e.FirstName + ' ' + m.e.LastName 
+        (SELECT m.FirstName + ' ' + m.LastName 
          FROM Employees e m 
-         WHERE m.e.EmployeeID = e.DirectManagerID), 
+         WHERE m.EmployeeID = e.DirectManagerID), 
         'No Manager Assigned'
     ) AS DirectManager,
     
@@ -509,9 +509,9 @@ SELECT
     
     -- Manager chain - find the first available manager up the hierarchy
     COALESCE(
-        (SELECT m1.e.FirstName + ' ' + m1.e.LastName FROM Employees e m1 WHERE m1.e.EmployeeID = e.DirectManagerID),
-        (SELECT m2.e.FirstName + ' ' + m2.e.LastName FROM Employees e m2 WHERE m2.e.EmployeeID = 
-            (SELECT m1.DirectManagerID FROM Employees e m1 WHERE m1.e.EmployeeID = e.DirectManagerID)),
+        (SELECT m1.FirstName + ' ' + m1.LastName FROM Employees e m1 WHERE m1.EmployeeID = e.DirectManagerID),
+        (SELECT m2.FirstName + ' ' + m2.LastName FROM Employees e m2 WHERE m2.EmployeeID = 
+            (SELECT m1.DirectManagerID FROM Employees e m1 WHERE m1.EmployeeID = e.DirectManagerID)),
         'No Manager Found'
     ) AS ManagerInChain,
     

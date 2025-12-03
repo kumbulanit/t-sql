@@ -165,8 +165,8 @@ BEGIN
         e.WorkEmail,
         CASE WHEN e.IsActive = 1 THEN ''Active'' ELSE ''Inactive'' END AS Status,
         CASE 
-            WHEN mgr.e.EmployeeID IS NOT NULL 
-            THEN mgr.e.FirstName + '' '' + mgr.e.LastName
+            WHEN mgr.EmployeeID IS NOT NULL 
+            THEN mgr.FirstName + '' '' + mgr.LastName
             ELSE ''No Manager''
         END AS ManagerName,
         -- Row number for pagination
@@ -185,7 +185,7 @@ BEGIN
         END + ' ' + @SortOrder + ') AS RowNum
     FROM Employees e
     INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    LEFT JOIN Employees mgr ON e.ManagerID = mgr.e.EmployeeID';
+    LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID';
     
     -- Build WHERE clause dynamically
     SET @WhereClause = ' WHERE 1=1';
@@ -450,12 +450,12 @@ BEGIN
         SET @FromClause = @FromClause + '
         LEFT JOIN (
             SELECT 
-                e1.e.EmployeeID,
+                e1.EmployeeID,
                 COUNT(e1.ManagerID) AS ManagerCount
             FROM Employees e e1
             WHERE e1.IsActive = 1
-            GROUP BY e1.e.EmployeeID
-        ) mgr_count ON e.EmployeeID = mgr_count.e.EmployeeID';
+            GROUP BY e1.EmployeeID
+        ) mgr_count ON e.EmployeeID = mgr_count.EmployeeID';
     END
     
     -- Build WHERE clause
@@ -705,7 +705,7 @@ BEGIN
     SET @FromClause = '
     FROM Orders o
     INNER JOIN Customers c ON o.CustomerID = c.CustomerID
-    INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+    INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID';
     
     -- Build WHERE clause
@@ -728,7 +728,7 @@ BEGIN
     -- Add employee filter
     IF @EmployeeIDs IS NOT NULL AND LTRIM(RTRIM(@EmployeeIDs)) != ''
     BEGIN
-        SET @WhereClause = @WhereClause + ' AND o.e.EmployeeID IN (SELECT value FROM STRING_SPLIT(@EmployeeIDsParam, '',''))';
+        SET @WhereClause = @WhereClause + ' AND o.EmployeeID IN (SELECT value FROM STRING_SPLIT(@EmployeeIDsParam, '',''))';
         SET @Params = @Params + ', @EmployeeIDsParam VARCHAR(1000)';
     END
     

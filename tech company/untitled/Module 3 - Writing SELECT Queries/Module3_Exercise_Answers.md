@@ -106,7 +106,7 @@ SELECT d.DepartmentName AS [Department],
     -- Manager information
     CASE 
         WHEN d.ManagerID IS NOT NULL 
-        THEN m.e.FirstName + ' ' + m.e.LastName
+        THEN m.FirstName + ' ' + m.LastName
         ELSE 'Position Vacant'
     END AS [Department Manager],
     
@@ -121,10 +121,10 @@ SELECT d.DepartmentName AS [Department],
     -- Employee count
     COUNT(e.EmployeeID) AS [Current Headcount]
 FROM Departments d
-LEFT JOIN Employees m ON d.ManagerID = m.e.EmployeeID
+LEFT JOIN Employees m ON d.ManagerID = m.EmployeeID
 LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
 GROUP BY d.DepartmentID, d.DepartmentName, d.Location, d.Budget, 
-         d.CostCenter, d.ManagerID, m.e.FirstName, m.e.LastName
+         d.CostCenter, d.ManagerID, m.FirstName, m.LastName
 ORDER BY d.Budget DESC;
 ```
 
@@ -179,7 +179,7 @@ SELECT
     s.DifficultyLevel AS [Complexity Level],
     
     -- Usage frequency
-    COUNT(es.e.EmployeeID) AS [Employees with Skill],
+    COUNT(es.EmployeeID) AS [Employees with Skill],
     
     -- Experience level distribution
     AVG(CAST(es.YearsExperience AS FLOAT)) AS [Average Years Experience],
@@ -189,23 +189,23 @@ SELECT
     -- Certification analysis
     COUNT(CASE WHEN es.CertificationDate IS NOT NULL THEN 1 END) AS [Certified Employees],
     CASE 
-        WHEN COUNT(es.e.EmployeeID) > 0 
+        WHEN COUNT(es.EmployeeID) > 0 
         THEN CAST(COUNT(CASE WHEN es.CertificationDate IS NOT NULL THEN 1 END) * 100.0 
-                  / COUNT(es.e.EmployeeID) AS VARCHAR) + '%'
+                  / COUNT(es.EmployeeID) AS VARCHAR) + '%'
         ELSE '0%'
     END AS [Certification Rate],
     
     -- Skill demand indicator
     CASE 
-        WHEN COUNT(es.e.EmployeeID) >= 5 THEN 'High Demand'
-        WHEN COUNT(es.e.EmployeeID) BETWEEN 2 AND 4 THEN 'Moderate Demand'
-        WHEN COUNT(es.e.EmployeeID) = 1 THEN 'Low Demand'
+        WHEN COUNT(es.EmployeeID) >= 5 THEN 'High Demand'
+        WHEN COUNT(es.EmployeeID) BETWEEN 2 AND 4 THEN 'Moderate Demand'
+        WHEN COUNT(es.EmployeeID) = 1 THEN 'Low Demand'
         ELSE 'No Current Usage'
     END AS [Organizational Demand]
 FROM Skills s
 LEFT JOIN EmployeeSkills es ON s.SkillID = es.SkillID
 GROUP BY s.SkillID, s.SkillName, s.SkillCategoryID, s.DifficultyLevel
-ORDER BY COUNT(es.e.EmployeeID) DESC, s.SkillCategoryID, s.SkillName;
+ORDER BY COUNT(es.EmployeeID) DESC, s.SkillCategoryID, s.SkillName;
 ```
 
 **Explanation**: Aggregation with conditional counting, percentage calculations, and business intelligence categorization.
@@ -368,7 +368,7 @@ WITH SkillDiversityAnalysis AS (
     SELECT DISTINCT
         s.SkillCategoryID,
         s.DifficultyLevel,
-        COUNT(es.e.EmployeeID) OVER (PARTITION BY s.SkillCategoryID, s.DifficultyLevel) AS [Employee Count],
+        COUNT(es.EmployeeID) OVER (PARTITION BY s.SkillCategoryID, s.DifficultyLevel) AS [Employee Count],
         COUNT(s.SkillID) OVER (PARTITION BY s.SkillCategoryID, s.DifficultyLevel) AS [Available Skills],
         COUNT(CASE WHEN es.CertificationDate IS NOT NULL THEN 1 END) 
               OVER (PARTITION BY s.SkillCategoryID, s.DifficultyLevel) AS [Certified Count]
@@ -518,7 +518,7 @@ SELECT
     END AS [Workforce Stability Assessment]
 FROM Employees e emp
 LEFT JOIN Departments dept ON emp.d.DepartmentID = dept.DepartmentID
-LEFT JOIN EmployeeProjects ep ON emp.EmployeeID = ep.e.EmployeeID
+LEFT JOIN EmployeeProjects ep ON emp.EmployeeID = ep.EmployeeID
 LEFT JOIN Projects proj ON ep.ProjectID = proj.ProjectID AND proj.IsActive = 'In Progress';
 ```
 
@@ -583,7 +583,7 @@ SELECT
     proj.Priority AS [Business Priority],
     
     -- Resource utilization with PM terminology
-    COUNT(DISTINCT ep.e.EmployeeID) AS [Team Size],
+    COUNT(DISTINCT ep.EmployeeID) AS [Team Size],
     SUM(ep.HoursAllocated) AS [Total Planned Effort Hours],
     SUM(ep.HoursWorked) AS [Actual Effort Expended],
     CASE 
@@ -617,7 +617,7 @@ SELECT
              THEN 'd.Budget Risk'
         WHEN proj.IsActive = 'In Progress' AND GETDATE() > proj.PlannedEndDate 
              THEN 'Schedule Risk'
-        WHEN proj.Priority = 'Critical' AND COUNT(DISTINCT ep.e.EmployeeID) < 3 
+        WHEN proj.Priority = 'Critical' AND COUNT(DISTINCT ep.EmployeeID) < 3 
              THEN 'Resource Risk'
         WHEN proj.IsActive = 'Completed' THEN 'Successfully Delivered'
         ELSE 'Low Risk'
@@ -711,7 +711,7 @@ SELECT
     END AS [Development Recommendation]
 FROM Employees e emp
 INNER JOIN Departments dept ON emp.d.DepartmentID = dept.DepartmentID
-LEFT JOIN EmployeeSkills es ON emp.EmployeeID = es.e.EmployeeID
+LEFT JOIN EmployeeSkills es ON emp.EmployeeID = es.EmployeeID
 LEFT JOIN Skills sk ON es.SkillID = sk.SkillID
 WHERE emp.IsActive = 1
 GROUP BY emp.EmployeeID, emp.FirstName, emp.LastName, emp.Title, dept.d.DepartmentName
@@ -783,7 +783,7 @@ SELECT dept.d.DepartmentName AS [Cost Center],
     END AS [Business Unit Classification]
 FROM Departments d dept
 LEFT JOIN Employees emp ON dept.DepartmentID = emp.d.DepartmentID AND emp.IsActive = 1
-LEFT JOIN EmployeeProjects ep ON emp.EmployeeID = ep.e.EmployeeID
+LEFT JOIN EmployeeProjects ep ON emp.EmployeeID = ep.EmployeeID
 LEFT JOIN Projects proj ON ep.ProjectID = proj.ProjectID
 GROUP BY dept.DepartmentID, dept.DepartmentName, dept.CostCenter, dept.Budget
 ORDER BY dept.Budget DESC;
@@ -891,8 +891,8 @@ SELECT
     END AS [Development Recommendation]
 FROM Employees e emp
 INNER JOIN Departments dept ON emp.DepartmentID = dept.DepartmentID
-LEFT JOIN EmployeeProjects ep ON emp.EmployeeID = ep.e.EmployeeID
-LEFT JOIN EmployeeSkills es ON emp.EmployeeID = es.e.EmployeeID
+LEFT JOIN EmployeeProjects ep ON emp.EmployeeID = ep.EmployeeID
+LEFT JOIN EmployeeSkills es ON emp.EmployeeID = es.EmployeeID
 WHERE emp.IsActive = 1
 GROUP BY emp.EmployeeID, emp.FirstName, emp.LastName, emp.Title, 
          dept.DepartmentName, emp.BaseSalary, emp.HireDate, emp.IsActive
@@ -1000,8 +1000,8 @@ WITH EmployeeMetrics AS (
         AVG(CASE WHEN ep.HoursAllocated > 0 THEN ep.HoursWorked / ep.HoursAllocated END) AS PerformanceRatio
     FROM Employees e emp
     INNER JOIN Departments dept ON emp.DepartmentID = dept.DepartmentID
-    LEFT JOIN EmployeeProjects ep ON emp.EmployeeID = ep.e.EmployeeID
-    LEFT JOIN EmployeeSkills es ON emp.EmployeeID = es.e.EmployeeID
+    LEFT JOIN EmployeeProjects ep ON emp.EmployeeID = ep.EmployeeID
+    LEFT JOIN EmployeeSkills es ON emp.EmployeeID = es.EmployeeID
     WHERE emp.IsActive = 1
     GROUP BY emp.EmployeeID, emp.FirstName, emp.LastName, emp.Title, 
              emp.BaseSalary, emp.HireDate, dept.d.DepartmentName

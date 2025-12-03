@@ -120,11 +120,11 @@ SELECT
     activity_log.ActivityDate,
     activity_log.ActivityValue,
     activity_log.Description,
-    COUNT(*) OVER (PARTITION BY activity_log.e.EmployeeID) AS TotalActivities,
-    AVG(activity_log.ActivityValue) OVER (PARTITION BY activity_log.e.EmployeeID) AS AvgActivityValue,
+    COUNT(*) OVER (PARTITION BY activity_log.EmployeeID) AS TotalActivities,
+    AVG(activity_log.ActivityValue) OVER (PARTITION BY activity_log.EmployeeID) AS AvgActivityValue,
     CASE 
-        WHEN COUNT(*) OVER (PARTITION BY activity_log.e.EmployeeID) >= 10 THEN 'Highly Active'
-        WHEN COUNT(*) OVER (PARTITION BY activity_log.e.EmployeeID) >= 5 THEN 'Active'
+        WHEN COUNT(*) OVER (PARTITION BY activity_log.EmployeeID) >= 10 THEN 'Highly Active'
+        WHEN COUNT(*) OVER (PARTITION BY activity_log.EmployeeID) >= 5 THEN 'Active'
         ELSE 'Low Activity'
     END AS ActivityLevel
 FROM (
@@ -137,7 +137,7 @@ FROM (
         ep.HoursWorked AS ActivityValue,
         'Project: ' + p.ProjectName + ' (' + ep.Role + ')' AS Description
     FROM EmployeeProjects ep
-    INNER JOIN Employees e ON ep.e.EmployeeID = e.EmployeeID
+    INNER JOIN Employees e ON ep.EmployeeID = e.EmployeeID
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
     WHERE ep.IsActive = 1
     AND e.IsActive = 1
@@ -154,7 +154,7 @@ FROM (
         o.TotalAmount AS ActivityValue,
         'Order #' + CAST(o.OrderID AS VARCHAR(10)) + ' for ' + c.CustomerName AS Description
     FROM Orders o
-    INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+    INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
     INNER JOIN Customers c ON o.CustomerID = c.CustomerID
     WHERE o.IsActive = 1
     AND e.IsActive = 1
@@ -284,7 +284,7 @@ WITH ActiveEmployees AS (
     WHERE e.IsActive = 1
 ),
 RecentProjectEmployees AS (
-    SELECT DISTINCT ep.e.EmployeeID
+    SELECT DISTINCT ep.EmployeeID
     FROM EmployeeProjects ep
     WHERE ep.IsActive = 1
     AND ep.StartDate >= DATEADD(MONTH, -6, GETDATE())
@@ -334,7 +334,7 @@ SELECT
     e.BaseSalary
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 WHERE e.IsActive = 1
 AND ep.IsActive = 1
 AND ep.StartDate >= DATEADD(MONTH, -6, GETDATE());
@@ -439,9 +439,9 @@ WITH EmployeeDepartmentProjects AS (
         ep.Role
     FROM Employees e
     INNER JOIN Departments d_home ON e.DepartmentID = d_home.DepartmentID
-    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-    INNER JOIN Employees pm ON p.ProjectManagerID = pm.e.EmployeeID
+    INNER JOIN Employees pm ON p.ProjectManagerID = pm.EmployeeID
     INNER JOIN Departments d_proj ON pm.DepartmentID = d_proj.DepartmentID
     WHERE e.IsActive = 1
     AND ep.IsActive = 1
@@ -450,7 +450,7 @@ WITH EmployeeDepartmentProjects AS (
 )
 
 SELECT 
-    collaboration_summary.e.EmployeeID,
+    collaboration_summary.EmployeeID,
     collaboration_summary.EmployeeName,
     collaboration_summary.HomeDepartment,
     collaboration_summary.CrossDeptProjectCount,
@@ -466,7 +466,7 @@ SELECT
     collaboration_summary.TotalCrossDeptHours * 50 AS EstimatedCollaborationValue -- $50/hour value
 FROM (
     SELECT 
-        edp.e.EmployeeID,
+        edp.EmployeeID,
         edp.EmployeeName,
         edp.HomeDepartment,
         COUNT(DISTINCT edp.ProjectID) AS CrossDeptProjectCount,
@@ -475,7 +475,7 @@ FROM (
         AVG(edp.HoursWorked) AS AverageHoursPerProject,
         STRING_AGG(DISTINCT edp.ProjectDepartment, ', ') AS CollaboratingDepartments
     FROM EmployeeDepartmentProjects edp
-    GROUP BY edp.e.EmployeeID, edp.EmployeeName, edp.HomeDepartment
+    GROUP BY edp.EmployeeID, edp.EmployeeName, edp.HomeDepartment
     HAVING COUNT(DISTINCT edp.ProjectDepartmentID) >= 2 -- Must work with at least 2 other departments
 ) AS collaboration_summary
 ORDER BY collaboration_summary.CrossDeptProjectCount DESC, collaboration_summary.TotalCrossDeptHours DESC;
@@ -484,14 +484,14 @@ ORDER BY collaboration_summary.CrossDeptProjectCount DESC, collaboration_summary
 SELECT 
     dept_pairs.Department1,
     dept_pairs.Department2,
-    COUNT(DISTINCT dept_pairs.e.EmployeeID) AS SharedEmployees,
+    COUNT(DISTINCT dept_pairs.EmployeeID) AS SharedEmployees,
     COUNT(DISTINCT dept_pairs.ProjectID) AS SharedProjects,
     SUM(dept_pairs.HoursWorked) AS TotalCollaborationHours
 FROM (
     SELECT DISTINCT
         d1.DepartmentName AS Department1,
         d2.DepartmentName AS Department2,
-        edp.e.EmployeeID,
+        edp.EmployeeID,
         edp.ProjectID,
         edp.HoursWorked
     FROM EmployeeDepartmentProjects edp
@@ -708,7 +708,7 @@ CROSS APPLY (
         
     FROM EmployeeProjects ep
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-    WHERE ep.e.EmployeeID = e.EmployeeID
+    WHERE ep.EmployeeID = e.EmployeeID
     AND ep.IsActive = 1
     AND p.IsActive = 1
     AND ep.StartDate >= DATEADD(YEAR, -1, GETDATE())

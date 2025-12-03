@@ -1,4 +1,6 @@
 # Module 3: JOIN Operations - Querying Multiple Tables
+**Primary Topic:** Module 3: JOIN Operations - Querying Multiple Tables
+
 ## Central Bank of Lesotho - Data Management Division
 ## For Economists and Statisticians
 **Topic:** MS20761 Module 4 Lesson 3 – See every dissemination event with linked report info

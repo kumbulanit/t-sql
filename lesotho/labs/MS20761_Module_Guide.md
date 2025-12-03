@@ -1,4 +1,5 @@
 # MS20761 Alignment Guide – Lesotho SQL Labs
+**Primary Topic:** MS20761 Alignment Guide – Lesotho SQL Labs
 
 This guide connects every module in the **MS 20761: Querying Data with Transact-SQL** syllabus to the Central Bank of Lesotho (CBL) training data set. Each section gives a plain-language explanation plus ready-to-run sample queries that reuse the same macroeconomic and banking tables already in the lab environment. No existing lab query was altered; these are additive reference snippets you can paste into SSMS for quick refreshers.
 

@@ -96,7 +96,7 @@ SELECT
     e.HireDate
 FROM Employees e
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-INNER JOIN Orders o ON e.EmployeeID = o.e.EmployeeID
+INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
 WHERE e.IsActive = 1
   AND o.IsActive = 1;
 ```
@@ -249,7 +249,7 @@ SELECT
     d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-INNER JOIN Orders o ON e.EmployeeID = o.e.EmployeeID
+INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
 WHERE e.IsActive = 1
   AND o.IsActive = 1;
 ```
@@ -264,7 +264,7 @@ SELECT DISTINCT
     c.CountryID
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
-INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
 WHERE e.DepartmentID = 2001  -- Sales d.DepartmentName
   AND c.IsActive = 1
   AND o.IsActive = 1
@@ -278,7 +278,7 @@ SELECT DISTINCT
     c.CountryID
 FROM Customers c
 INNER JOIN Orders o ON c.CustomerID = o.CustomerID
-INNER JOIN Employees e ON o.e.EmployeeID = e.EmployeeID
+INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
 WHERE e.DepartmentID = 2002  -- Marketing d.DepartmentName
   AND c.IsActive = 1
   AND o.IsActive = 1;
@@ -295,7 +295,7 @@ SELECT
     e.LastName,
     e.JobTitle
 FROM Employees e
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE p.Budget > 100000  -- High-budget projects
   AND e.IsActive = 1
@@ -310,7 +310,7 @@ SELECT
     e.LastName,
     e.JobTitle
 FROM Employees e
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE p.Budget <= 50000  -- Low-budget projects
   AND e.IsActive = 1
@@ -459,7 +459,7 @@ EXCEPT
 
 SELECT e.EmployeeID, e.FirstName, e.LastName
 FROM Employees e
-INNER JOIN Orders o ON e.EmployeeID = o.e.EmployeeID
+INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
 WHERE e.DepartmentID = 2001 AND e.IsActive = 1 AND o.IsActive = 1;
 ```
 
@@ -477,7 +477,7 @@ WHERE e.IsActive = 1
   AND NOT EXISTS (
       SELECT 1 
       FROM Orders o 
-      WHERE o.e.EmployeeID = e.EmployeeID 
+      WHERE o.EmployeeID = e.EmployeeID 
         AND o.IsActive = 1
   );
 
@@ -497,7 +497,7 @@ WHERE e.IsActive = 1
   AND EXISTS (
       SELECT 1 
       FROM Orders o 
-      WHERE o.e.EmployeeID = e.EmployeeID 
+      WHERE o.EmployeeID = e.EmployeeID 
         AND o.IsActive = 1
   );
 ```
@@ -521,10 +521,10 @@ WHERE e.IsActive = 1
 EXCEPT
 
 SELECT 
-    p.e.EmployeeID,
-    p.e.FirstName,
-    p.e.LastName,
-    p.e.JobTitle
+    p.EmployeeID,
+    p.FirstName,
+    p.LastName,
+    p.JobTitle
 FROM PayrollRecords p
 WHERE p.IsActive = 1;
 ```
@@ -589,7 +589,7 @@ SELECT
     e.JobTitle,
     e.BaseSalary
 FROM Employees e
-INNER JOIN PromotionHistory ph ON e.EmployeeID = ph.e.EmployeeID
+INNER JOIN PromotionHistory ph ON e.EmployeeID = ph.EmployeeID
 WHERE ph.PromotionDate >= DATEADD(YEAR, -2, GETDATE())
   AND e.IsActive = 1;
 ```

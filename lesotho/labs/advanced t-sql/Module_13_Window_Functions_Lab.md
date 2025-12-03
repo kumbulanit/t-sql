@@ -1,4 +1,6 @@
 # Module 13: Window Ranking, Offset, and Aggregate Functions
+**Primary Topic:** Module 13: Window Ranking, Offset, and Aggregate Functions
+
 ## Central Bank of Lesotho - Data Management Division
 ## For Economists and Statisticians
 

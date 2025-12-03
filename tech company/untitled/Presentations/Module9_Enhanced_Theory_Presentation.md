@@ -99,20 +99,20 @@ AND ProductID NOT IN (
 ```sql
 -- Correlated subqueries (reference outer query)
 SELECT 
-    e1.e.EmployeeID,
-    e1.e.FirstName + ' ' + e1.e.LastName AS EmployeeName,
+    e1.EmployeeID,
+    e1.FirstName + ' ' + e1.LastName AS EmployeeName,
     e1.DepartmentName,
-    e1.e.BaseSalary,
+    e1.BaseSalary,
     
     -- Correlated subquery for d.DepartmentName ranking
     (SELECT COUNT(*)
      FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID e2 
      WHERE e2.DepartmentID = e1.DepartmentID 
-         AND e2.e.BaseSalary >= e1.e.BaseSalary) AS DepartmentSalaryRank,
+         AND e2.BaseSalary >= e1.BaseSalary) AS DepartmentSalaryRank,
     
     -- Correlated subquery for percentage calculation
-    CAST(e1.e.BaseSalary AS DECIMAL(10,2)) / 
+    CAST(e1.BaseSalary AS DECIMAL(10,2)) / 
     (SELECT AVG(e.BaseSalary) FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID e3 WHERE e3.DepartmentID = e1.DepartmentID) * 100 AS PercentOfDeptAverage,
     
@@ -120,7 +120,7 @@ SELECT
     CASE 
         WHEN EXISTS (SELECT 1 FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID e4 
-                    WHERE e4.ManagerID = e1.e.EmployeeID)
+                    WHERE e4.ManagerID = e1.EmployeeID)
         THEN 'Manager'
         ELSE 'Individual Contributor'
     END AS Role
@@ -128,7 +128,7 @@ SELECT
 FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID e1
 WHERE e1.IsActive = 1
-ORDER BY e1.DepartmentName, e1.e.BaseSalary DESC;
+ORDER BY e1.DepartmentName, e1.BaseSalary DESC;
 ```
 
 #### **EXISTS vs IN Performance Comparison**
@@ -209,7 +209,7 @@ ProductPerformance AS (
         p.CategoryID,
         COUNT(od.OrderID) AS TimesOrdered,
         SUM(od.Quantity) AS TotalQuantitySold,
-        SUM(od.e.BaseSalary * od.Quantity) AS TotalRevenue
+        SUM(od.BaseSalary * od.Quantity) AS TotalRevenue
     FROM Products p
     JOIN OrderDetails od ON p.ProductID = od.ProductID
     JOIN Orders o ON od.OrderID = o.OrderID
@@ -224,7 +224,7 @@ CustomerProductMatrix AS (
         pp.ProductID,
         pp.ProductName,
         SUM(od.Quantity) AS QuantityPurchased,
-        SUM(od.e.BaseSalary * od.Quantity) AS ProductRevenue
+        SUM(od.BaseSalary * od.Quantity) AS ProductRevenue
     FROM HighValueCustomers hvc
     JOIN Orders o ON hvc.CustomerID = o.CustomerID
     JOIN OrderDetails od ON o.OrderID = od.OrderID
@@ -279,7 +279,7 @@ WITH EmployeeHierarchy AS (
         eh.Level + 1,
         eh.HierarchyPath + ' > ' + e.FirstName + ' ' + e.LastName
     FROM Employees e
-    JOIN EmployeeHierarchy eh ON e.ManagerID = eh.e.EmployeeID
+    JOIN EmployeeHierarchy eh ON e.ManagerID = eh.EmployeeID
     WHERE eh.Level < 10  -- Prevent infinite recursion
 )
 SELECT 
@@ -291,11 +291,11 @@ SELECT
     HierarchyPath,
     -- Calculate span of control
     (SELECT COUNT(*) FROM Employees e
-    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE e.ManagerID = eh.e.EmployeeID) AS DirectReports,
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID WHERE e.ManagerID = eh.EmployeeID) AS DirectReports,
     -- Calculate total subordinates (recursive count)
     (SELECT COUNT(*) FROM EmployeeHierarchy eh2 
      WHERE eh2.HierarchyPath LIKE eh.HierarchyPath + '%' 
-         AND eh2.e.EmployeeID != eh.e.EmployeeID) AS TotalSubordinates
+         AND eh2.EmployeeID != eh.EmployeeID) AS TotalSubordinates
 FROM EmployeeHierarchy eh
 ORDER BY HierarchyPath;
 ```
@@ -368,10 +368,10 @@ FROM (
         p.CategoryID,
         p.ProductID,
         p.ProductName,
-        p.e.BaseSalary,
-        ROW_NUMBER() OVER (PARTITION BY p.CategoryID ORDER BY p.e.BaseSalary DESC) AS CategoryRank,
+        p.BaseSalary,
+        ROW_NUMBER() OVER (PARTITION BY p.CategoryID ORDER BY p.BaseSalary DESC) AS CategoryRank,
         -- Calculate percentile within category
-        PERCENT_RANK() OVER (PARTITION BY p.CategoryID ORDER BY p.e.BaseSalary) AS PricePercentile
+        PERCENT_RANK() OVER (PARTITION BY p.CategoryID ORDER BY p.BaseSalary) AS PricePercentile
     FROM Products p
     WHERE p.Discontinued = 0
 ) AS RankedProducts
@@ -384,11 +384,11 @@ SELECT
     p1.CategoryID,
     p1.ProductID,
     p1.ProductName,
-    p1.e.BaseSalary
+    p1.BaseSalary
 FROM Products p1
-WHERE p1.e.BaseSalary >= (
+WHERE p1.BaseSalary >= (
     -- Find the 3rd highest price in the category
-    SELECT MIN(p2.e.BaseSalary)
+    SELECT MIN(p2.BaseSalary)
     FROM (
         SELECT TOP 3 e.BaseSalary
         FROM Products p3
@@ -398,7 +398,7 @@ WHERE p1.e.BaseSalary >= (
     ) p2
 )
 AND p1.Discontinued = 0
-ORDER BY p1.CategoryID, p1.e.BaseSalary DESC;
+ORDER BY p1.CategoryID, p1.BaseSalary DESC;
 ```
 
 ### Conditional Aggregation with Subqueries
@@ -503,7 +503,7 @@ ORDER BY TotalRevenue DESC;
 SELECT 
     p.ProductID,
     p.ProductName,
-    p.e.BaseSalary,
+    p.BaseSalary,
     (SELECT c.CategoryName FROM Categories c WHERE c.CategoryID = p.CategoryID) AS CategoryName,
     (SELECT COUNT(*) FROM OrderDetails od WHERE od.ProductID = p.ProductID) AS TimesOrdered
 FROM Products p
@@ -518,7 +518,7 @@ WHERE p.ProductID IN (
 SELECT DISTINCT
     p.ProductID,
     p.ProductName,
-    p.e.BaseSalary,
+    p.BaseSalary,
     c.CategoryName,
     product_stats.TimesOrdered
 FROM Products p
@@ -547,7 +547,7 @@ SELECT
     (SELECT COUNT(*) 
      FROM Employees e e2 
      WHERE e2.DepartmentID = e.DepartmentID 
-         AND e2.e.BaseSalary > e.BaseSalary) + 1 AS DepartmentRank
+         AND e2.BaseSalary > e.BaseSalary) + 1 AS DepartmentRank
 FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1

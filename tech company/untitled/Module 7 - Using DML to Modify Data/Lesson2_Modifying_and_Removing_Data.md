@@ -212,7 +212,7 @@ SET
 WHERE NOT EXISTS (
     SELECT 1 
     FROM EmployeeIsActiveHistory esh
-    WHERE esh.e.EmployeeID = Employees.e.EmployeeID
+    WHERE esh.EmployeeID = Employees.EmployeeID
       AND esh.IsActiveChangeDate >= DATEADD(MONTH, -6, GETDATE())
 );
 ```
@@ -263,14 +263,14 @@ LEFT JOIN Employees e ON d.ManagerID = e.EmployeeID;
 UPDATE e
 SET 
     e.BaseSalary = CASE 
-        WHEN mgr.e.BaseSalary IS NOT NULL AND e.BaseSalary > mgr.e.BaseSalary * 0.9 
-            THEN mgr.e.BaseSalary * 0.85  -- Cap at 85% of manager e.BaseSalary
+        WHEN mgr.BaseSalary IS NOT NULL AND e.BaseSalary > mgr.BaseSalary * 0.9 
+            THEN mgr.BaseSalary * 0.85  -- Cap at 85% of manager e.BaseSalary
         ELSE e.BaseSalary
     END,
     ModifiedDate = SYSDATETIME()
 FROM Employees e
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-LEFT JOIN Employees mgr ON e.ManagerID = mgr.e.EmployeeID
+LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
 WHERE e.IsActive = 1 
   AND mgr.IsActive = 1;
 
@@ -308,7 +308,7 @@ INNER JOIN (
             DATEDIFF(MONTH, ep.StartDate, ISNULL(ep.EndDate, DATEADD(MONTH, 6, ep.StartDate))) / 12.0
         ) AS TotalEmployeeCost
     FROM EmployeeProjects ep
-    INNER JOIN Employees e ON ep.e.EmployeeID = e.EmployeeID
+    INNER JOIN Employees e ON ep.EmployeeID = e.EmployeeID
     WHERE e.IsActive = 1
     GROUP BY ep.ProjectID
 ) calculated_costs ON p.ProjectID = calculated_costs.ProjectID;
@@ -353,11 +353,11 @@ SET
     e.BaseSalary = e.BaseSalary * 1.07,  -- 7% across-the-board raise
     ModifiedDate = SYSDATETIME()
 OUTPUT 
-    inserted.e.EmployeeID,
-    inserted.e.FirstName + ' ' + inserted.e.LastName,
-    deleted.e.BaseSalary,
-    inserted.e.BaseSalary,
-    CAST(((inserted.e.BaseSalary - deleted.e.BaseSalary) / deleted.e.BaseSalary) * 100 AS DECIMAL(5,2))
+    inserted.EmployeeID,
+    inserted.FirstName + ' ' + inserted.LastName,
+    deleted.BaseSalary,
+    inserted.BaseSalary,
+    CAST(((inserted.BaseSalary - deleted.BaseSalary) / deleted.BaseSalary) * 100 AS DECIMAL(5,2))
 INTO @SalaryChanges
 WHERE IsActive = 1 AND e.BaseSalary IS NOT NULL;
 
@@ -402,14 +402,14 @@ SET
     END,
     ModifiedDate = SYSDATETIME()
 OUTPUT 
-    inserted.e.EmployeeID,
-    inserted.e.FirstName + ' ' + inserted.e.LastName,
+    inserted.EmployeeID,
+    inserted.FirstName + ' ' + inserted.LastName,
     deleted.IsActive,
     inserted.IsActive,
     CASE 
-        WHEN deleted.IsActive = 1 AND inserted.IsActive = 0 AND DATEDIFF(YEAR, inserted.e.HireDate, GETDATE()) >= 30 
+        WHEN deleted.IsActive = 1 AND inserted.IsActive = 0 AND DATEDIFF(YEAR, inserted.HireDate, GETDATE()) >= 30 
             THEN 'Retirement Eligibility'
-        WHEN deleted.IsActive = 1 AND inserted.IsActive = 0 AND inserted.e.BaseSalary IS NULL 
+        WHEN deleted.IsActive = 1 AND inserted.IsActive = 0 AND inserted.BaseSalary IS NULL 
             THEN 'Invalid e.BaseSalary Data'
         ELSE 'No Change'
     END
@@ -523,8 +523,8 @@ DECLARE @DeletedEmployees TABLE (
 
 DELETE FROM EmployeeTemp
 OUTPUT 
-    deleted.e.EmployeeID,
-    deleted.e.FirstName + ' ' + deleted.e.LastName,
+    deleted.EmployeeID,
+    deleted.FirstName + ' ' + deleted.LastName,
     deleted.WorkEmail,
     SYSDATETIME()
 INTO @DeletedEmployees
@@ -603,7 +603,7 @@ WHERE EXISTS (
     SELECT 1 
     FROM EmployeeTemp e2 
     WHERE e2.WorkEmail = e1.WorkEmail 
-      AND e2.e.EmployeeID < e1.e.EmployeeID
+      AND e2.EmployeeID < e1.EmployeeID
 );
 
 -- Verify no duplicates remain
@@ -637,7 +637,7 @@ WHERE IsActive = 0;
 -- DELETE with INNER JOIN
 DELETE e
 FROM EmployeeTemp e
-INNER JOIN InactiveEmployeeCleanup ic ON e.EmployeeID = ic.e.EmployeeID
+INNER JOIN InactiveEmployeeCleanup ic ON e.EmployeeID = ic.EmployeeID
 WHERE ic.LastActivityDate < DATEADD(MONTH, -6, GETDATE());
 
 -- DELETE employees from specific departments with low performance
@@ -661,7 +661,7 @@ WHERE IsActive = 0;
 -- Delete low-performing inactive employees
 DELETE e
 FROM EmployeeTemp e
-INNER JOIN PerformanceReviews pr ON e.EmployeeID = pr.e.EmployeeID
+INNER JOIN PerformanceReviews pr ON e.EmployeeID = pr.EmployeeID
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
 WHERE pr.ReviewScore < 2.0 
   AND e.IsActive = 0
@@ -674,11 +674,11 @@ WHERE pr.ReviewScore < 2.0
 DELETE e
 FROM EmployeeTemp e
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
-LEFT JOIN PerformanceReviews pr ON e.EmployeeID = pr.e.EmployeeID
+LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
+LEFT JOIN PerformanceReviews pr ON e.EmployeeID = pr.EmployeeID
 WHERE e.IsActive = 0  -- Must be inactive
   AND d.Budget < 100000  -- From low-budget departments
-  AND ep.e.EmployeeID IS NULL  -- Not assigned to any projects
+  AND ep.EmployeeID IS NULL  -- Not assigned to any projects
   AND (pr.ReviewScore < 2.5 OR pr.ReviewScore IS NULL)  -- Poor or no performance review
   AND DATEDIFF(MONTH, e.HireDate, GETDATE()) < 6;  -- Recent hires (probationary)
 
@@ -715,16 +715,16 @@ DECLARE @DeletedData TABLE (
 -- Delete and capture all deleted employee data
 DELETE FROM EmployeeTemp
 OUTPUT 
-    deleted.e.EmployeeID,
-    'ID:' + CAST(deleted.e.EmployeeID AS VARCHAR(10)) + 
-    ',Name:' + deleted.e.FirstName + ' ' + deleted.e.LastName +
+    deleted.EmployeeID,
+    'ID:' + CAST(deleted.EmployeeID AS VARCHAR(10)) + 
+    ',Name:' + deleted.FirstName + ' ' + deleted.LastName +
     ',WorkEmail:' + ISNULL(deleted.WorkEmail, 'NULL') +
-    ',e.BaseSalary:' + ISNULL(CAST(deleted.e.BaseSalary AS VARCHAR(20)), 'NULL') +
+    ',e.BaseSalary:' + ISNULL(CAST(deleted.BaseSalary AS VARCHAR(20)), 'NULL') +
     ',Dept:' + CAST(deleted.DepartmentID AS VARCHAR(10)) +
     ',Active:' + CAST(deleted.IsActive AS VARCHAR(1)),
     CASE 
         WHEN deleted.IsActive = 0 THEN 'Inactive employee cleanup'
-        WHEN deleted.e.BaseSalary IS NULL THEN 'Data quality - NULL e.BaseSalary'
+        WHEN deleted.BaseSalary IS NULL THEN 'Data quality - NULL e.BaseSalary'
         WHEN deleted.WorkEmail IS NULL OR deleted.WorkEmail = '' THEN 'Data quality - missing email'
         ELSE 'General cleanup'
     END
@@ -1087,7 +1087,7 @@ BEGIN
             FORMAT(AVG(bu.NewSalary), 'C') AS AverageNewSalary,
             CAST(@SalaryIncreasePercent AS VARCHAR(10)) + '%' AS IncreasePercent
         FROM @EmployeesBeforeUpdate bu
-        INNER JOIN Employees e ON bu.e.EmployeeID = e.EmployeeID
+        INNER JOIN Employees e ON bu.EmployeeID = e.EmployeeID
         INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
         GROUP BY d.DepartmentName;
         
@@ -1141,8 +1141,8 @@ COMMIT TRANSACTION;
 UPDATE Employees 
 SET IsActive = 0
 OUTPUT 
-    deleted.e.EmployeeID,
-    deleted.e.FirstName + ' ' + deleted.e.LastName AS EmployeeName,
+    deleted.EmployeeID,
+    deleted.FirstName + ' ' + deleted.LastName AS EmployeeName,
     'Deactivated on ' + CAST(SYSDATETIME() AS VARCHAR(30)) AS AuditInfo
 WHERE e.EmployeeID = 999;
 

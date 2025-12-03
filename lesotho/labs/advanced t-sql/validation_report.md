@@ -1,4 +1,5 @@
 # Advanced T-SQL Labs – Automated Validation
+**Primary Topic:** Advanced T-SQL Labs – Automated Validation
 
 - **Executed:** 2025-12-02 12:35:47 local time
 - **Command:** ```.venv/bin/sqlfluff lint --dialect tsql lesotho/labs/advanced\ t-sql/*.md```

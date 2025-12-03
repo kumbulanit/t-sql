@@ -298,7 +298,7 @@ SELECT
     ep.HoursAllocated
 FROM Employees e
 INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE p.IsActive = 'Active'
 ORDER BY d.DepartmentName, e.LastName;
@@ -348,29 +348,29 @@ WITH EmployeeSummary AS (
         e.HireDate,
         d.DepartmentName,
         d.Location,
-        mgr.e.FirstName + ' ' + mgr.e.LastName AS ManagerName,
+        mgr.FirstName + ' ' + mgr.LastName AS ManagerName,
         COUNT(ep.ProjectID) AS ActiveProjects,
         SUM(ep.HoursAllocated) AS TotalHoursAllocated,
         AVG(ep.HourlyRate) AS AverageHourlyRate
     FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-    LEFT JOIN Employees mgr ON e.ManagerID = mgr.e.EmployeeID
-    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.e.EmployeeID
+    LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
+    LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'Active'
     WHERE e.IsActive = 1
     GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.BaseSalary, 
-             e.HireDate, d.DepartmentName, d.Location, mgr.e.FirstName, mgr.e.LastName
+             e.HireDate, d.DepartmentName, d.Location, mgr.FirstName, mgr.LastName
 )
 SELECT 
     EmployeeName,
-    Title,
+    JobTitle,
     DepartmentName,
     Location,
     ManagerName,
-    FORMAT(e.BaseSalary, 'C') AS FormattedSalary,
-    DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
+    FORMAT(BaseSalary, 'C') AS FormattedSalary,
+    DATEDIFF(YEAR, HireDate, GETDATE()) AS YearsOfService,
     ActiveProjects,
-    TotalHoursAllocated,
+    ISNULL(TotalHoursAllocated, 0) AS TotalHoursAllocated,
     CASE 
         WHEN ActiveProjects = 0 THEN 'Available for Assignment'
         WHEN ActiveProjects BETWEEN 1 AND 2 THEN 'Normal Workload'
@@ -383,8 +383,8 @@ SELECT
         WHEN AverageHourlyRate >= 75 THEN 'Standard Rate'
         ELSE 'Junior Rate'
     END AS RateCategory
-FROM Employees e eummary
-ORDER BY DepartmentIDName, e.BaseSalary DESC;
+FROM EmployeeSummary es
+ORDER BY DepartmentName, BaseSalary DESC;
 ```
 
 ### Advanced Join Patterns
@@ -392,14 +392,14 @@ ORDER BY DepartmentIDName, e.BaseSalary DESC;
 -- Find employees who work on the same projects as their managers
 SELECT DISTINCT
     emp.FirstName + ' ' + emp.LastName AS EmployeeName,
-    mgr.e.FirstName + ' ' + mgr.e.LastName AS ManagerName,
+    mgr.FirstName + ' ' + mgr.LastName AS ManagerName,
     p.ProjectName,
     d.DepartmentName
-FROM Employees e emp
-INNER JOIN Employees mgr ON emp.ManagerID = mgr.e.EmployeeID
+FROM Employees emp
+INNER JOIN Employees mgr ON emp.ManagerID = mgr.EmployeeID
 INNER JOIN Departments d ON emp.DepartmentID = d.DepartmentID
-INNER JOIN EmployeeProjects ep1 ON emp.EmployeeID = ep1.e.EmployeeID
-INNER JOIN EmployeeProjects ep2 ON mgr.e.EmployeeID = ep2.e.EmployeeID
+INNER JOIN EmployeeProjects ep1 ON emp.EmployeeID = ep1.EmployeeID
+INNER JOIN EmployeeProjects ep2 ON mgr.EmployeeID = ep2.EmployeeID
 INNER JOIN Projects p ON ep1.ProjectID = p.ProjectID AND ep2.ProjectID = p.ProjectID
 WHERE p.IsActive = 'Active'
 ORDER BY d.DepartmentName, p.ProjectName;
@@ -429,7 +429,7 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 SELECT e.FirstName, e.LastName, p.ProjectName
 FROM Projects p  -- If Projects has fewer rows
 INNER JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
-INNER JOIN Employees e ON ep.e.EmployeeID = e.EmployeeID
+INNER JOIN Employees e ON ep.EmployeeID = e.EmployeeID
 WHERE p.IsActive = 'Active';  -- Filter early
 ```
 
@@ -459,8 +459,8 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
 -- Avoid: Ambiguous and verbose
 SELECT 
-    Employees.e.FirstName,
-    Employees.e.LastName,
+    Employees.FirstName,
+    Employees.LastName,
     Departments.d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON Employees.DepartmentID = Departments.DepartmentID;
@@ -539,13 +539,13 @@ GROUP BY c.CustomerID, c.CustomerName;
 -- Self-join for hierarchical data
 SELECT 
     emp.FirstName + ' ' + emp.LastName AS Employee,
-    mgr.e.FirstName + ' ' + mgr.e.LastName AS Manager,
+    mgr.FirstName + ' ' + mgr.LastName AS Manager,
     CASE 
         WHEN emp.ManagerID IS NULL THEN 'Top Level'
-        ELSE 'Reports To: ' + mgr.e.FirstName + ' ' + mgr.e.LastName
+        ELSE 'Reports To: ' + mgr.FirstName + ' ' + mgr.LastName
     END AS ReportingStructure
 FROM Employees e emp
-LEFT JOIN Employees mgr ON emp.ManagerID = mgr.e.EmployeeID;
+LEFT JOIN Employees mgr ON emp.ManagerID = mgr.EmployeeID;
 ```
 
 ### 4. Many-to-Many Pattern

@@ -77,11 +77,11 @@ ORDER BY Country ASC, City ASC;
 SELECT 
     p.ProductName,
     c.CategoryName,
-    p.e.BaseSalary,
+    p.BaseSalary,
     p.UnitsInStock
 FROM Products p
 INNER JOIN Categories c ON p.CategoryID = c.CategoryID
-ORDER BY c.CategoryName ASC, p.e.BaseSalary DESC;
+ORDER BY c.CategoryName ASC, p.BaseSalary DESC;
 ```
 
 #### Question 3: Sort orders by customer, then by order date

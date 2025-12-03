@@ -1,4 +1,6 @@
 # Module 16: Programming with T-SQL
+**Primary Topic:** Module 16: Programming with T-SQL
+
 ## Central Bank of Lesotho - Data Management Division
 ## For Economists and Statisticians
 

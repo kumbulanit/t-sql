@@ -277,7 +277,7 @@ WHERE e.BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees e)
 -- EXISTS subquery
 WHERE EXISTS (
     SELECT 1 FROM EmployeeProjects ep 
-    WHERE ep.e.EmployeeID = Employees.e.EmployeeID
+    WHERE ep.EmployeeID = Employees.EmployeeID
 )
 
 -- IN subquery
