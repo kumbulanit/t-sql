@@ -78,7 +78,7 @@ SELECT
     e.BaseSalary
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-ORDER BY DepartmentIDName, e.BaseSalary DESC;
+ORDER BY d.DepartmentName, e.BaseSalary DESC;
 
 -- Sort by multiple criteria with different directions
 SELECT 
@@ -314,7 +314,7 @@ SELECT
     DepartmentName,
     e.BaseSalary,
     -- Ranking within d.DepartmentName
-    RANK() OVER (PARTITION BY DepartmentIDName ORDER BY e.BaseSalary DESC) AS DeptSalaryRank,
+    RANK() OVER (PARTITION BY d.DepartmentName ORDER BY e.BaseSalary DESC) AS DeptSalaryRank,
     -- Overall ranking
     DENSE_RANK() OVER (ORDER BY e.BaseSalary DESC) AS OverallSalaryRank,
     -- Percentile ranking
@@ -490,7 +490,7 @@ SELECT d.DepartmentName,
 FROM Employees e
 INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
-GROUP BY DepartmentIDName
+GROUP BY d.DepartmentName
 ORDER BY 
     EmployeeCount DESC,  -- Largest departments first
     AvgSalary DESC;      -- Highest paying departments first
