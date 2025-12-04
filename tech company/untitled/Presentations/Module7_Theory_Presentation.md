@@ -145,7 +145,7 @@ UPDATE e
 SET e.BaseSalary = e.BaseSalary * (1 + d.BonusMultiplier),
     e.LastModified = GETDATE()
 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.PerformanceRating >= 4
     AND d.BudgetApproved = 1;
 
@@ -154,7 +154,7 @@ UPDATE Employees
 SET e.BaseSalary = (
     SELECT AVG(e.BaseSalary) * 1.1
     FROM Employees e e2
-    WHERE e2.d.DepartmentID = Employees.d.DepartmentID
+    WHERE d.DepartmentID = Employees.d.DepartmentID
       AND e2.IsActive = 1
 )
 WHERE PerformanceRating >= 4;
@@ -223,7 +223,7 @@ WHERE NOT EXISTS (
 -- DELETE with JOIN (SQL Server syntax)
 DELETE e
 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE d.IsActive = 0
     AND e.LastLoginDate < DATEADD(MONTH, -6, GETDATE());
 

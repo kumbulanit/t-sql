@@ -167,17 +167,17 @@ BEGIN
                 ELSE 'Entry Level'
             END AS SalaryBand,
             -- Search relevance scoring
-            (CASE WHEN @d.DepartmentID IS NOT NULL AND e.d.DepartmentID = @d.DepartmentID THEN 10 ELSE 0 END +
+            (CASE WHEN @d.DepartmentID IS NOT NULL AND d.DepartmentID = @d.DepartmentID THEN 10 ELSE 0 END +
              CASE WHEN @LocationFilter IS NOT NULL AND d.Location LIKE '%' + @LocationFilter + '%' THEN 5 ELSE 0 END +
              CASE WHEN @JobTitlePattern IS NOT NULL AND e.JobTitle LIKE '%' + @JobTitlePattern + '%' THEN 8 ELSE 0 END +
              CASE WHEN @MinSalary IS NOT NULL AND e.BaseSalary >= @MinSalary THEN 3 ELSE 0 END +
              CASE WHEN @MaxSalary IS NOT NULL AND e.BaseSalary <= @MaxSalary THEN 3 ELSE 0 END) AS RelevanceScore
         FROM Employees e
-        INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+        INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
         LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
         WHERE d.IsActive = 1
           -- Apply all filter parameters
-          AND (@d.DepartmentID IS NULL OR e.d.DepartmentID = @d.DepartmentID)
+          AND (@d.DepartmentID IS NULL OR d.DepartmentID = @d.DepartmentID)
           AND (@LocationFilter IS NULL OR d.Location LIKE '%' + @LocationFilter + '%')
           AND (@MinSalary IS NULL OR e.BaseSalary >= @MinSalary)
           AND (@MaxSalary IS NULL OR e.BaseSalary <= @MaxSalary)
@@ -333,21 +333,21 @@ BEGIN
         INNER JOIN (
             -- Employee cost aggregation
             SELECT 
-                e.d.DepartmentID,
+                d.DepartmentID,
                 COUNT(*) AS EmployeeCount,
                 SUM(e.BaseSalary) AS TotalBaseSalaryCost,
                 AVG(e.BaseSalary) AS AverageBaseSalary
             FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
             WHERE e.IsActive = 1
-            GROUP BY e.d.DepartmentID
-        ) employee_data ON d.DepartmentID = employee_data.d.DepartmentID
+            GROUP BY d.DepartmentID
+        ) employee_data ON d.DepartmentID = d.DepartmentID
         LEFT JOIN (
             -- Project data aggregation (only if parameter enabled)
             SELECT 
-                e.d.DepartmentID,
+                d.DepartmentID,
                 COUNT(DISTINCT p.ProjectID) AS ProjectCount,
-                SUM(p.d.Budget) AS ProjectBudget
+                SUM(d.Budget) AS ProjectBudget
             FROM Projects p
             INNER JOIN Employees e ON p.ProjectManagerID = e.EmployeeID
             WHERE p.IsActive = 1
@@ -355,12 +355,12 @@ BEGIN
               AND (@IncludeProjectData = 1)
               AND p.StartDate >= @StartDate
               AND p.StartDate <= @EndDate
-            GROUP BY e.d.DepartmentID
-        ) project_data ON d.DepartmentID = project_data.d.DepartmentID
+            GROUP BY d.DepartmentID
+        ) project_data ON d.DepartmentID = d.DepartmentID
         LEFT JOIN (
             -- Order data aggregation (only if parameter enabled)
             SELECT 
-                e.d.DepartmentID,
+                d.DepartmentID,
                 COUNT(o.OrderID) AS OrderCount,
                 SUM(o.TotalAmount) AS OrderRevenue,
                 COUNT(DISTINCT o.CustomerID) AS UniqueCustomers
@@ -372,8 +372,8 @@ BEGIN
               AND o.OrderDate >= @StartDate
               AND o.OrderDate <= @EndDate
               AND o.TotalAmount >= @MinimumOrderValue
-            GROUP BY e.d.DepartmentID
-        ) order_data ON d.DepartmentID = order_data.d.DepartmentID
+            GROUP BY d.DepartmentID
+        ) order_data ON d.DepartmentID = d.DepartmentID
         WHERE d.IsActive = 1
           AND (@d.DepartmentID IS NULL OR d.DepartmentID = @d.DepartmentID)
     )
@@ -536,9 +536,9 @@ BEGIN
         @TotalPayroll = SUM(CASE WHEN IsActive = 1 THEN e.BaseSalary ELSE 0 END),
         @AverageYearsOfService = AVG(CASE WHEN IsActive = 1 THEN DATEDIFF(YEAR, e.HireDate, GETDATE()) ELSE NULL END)
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     WHERE d.IsActive = 1
-      AND (@d.DepartmentID IS NULL OR e.d.DepartmentID = @d.DepartmentID);
+      AND (@d.DepartmentID IS NULL OR d.DepartmentID = @d.DepartmentID);
     
     -- Calculate median e.BaseSalary using a more complex query
     WITH SalaryRanked AS (
@@ -547,10 +547,10 @@ BEGIN
             ROW_NUMBER() OVER (ORDER BY e.BaseSalary) AS RowAsc,
             ROW_NUMBER() OVER (ORDER BY e.BaseSalary DESC) AS RowDesc
         FROM Employees e
-        INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+        INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
         WHERE e.IsActive = 1
           AND d.IsActive = 1
-          AND (@d.DepartmentID IS NULL OR e.d.DepartmentID = @d.DepartmentID)
+          AND (@d.DepartmentID IS NULL OR d.DepartmentID = @d.DepartmentID)
     )
     SELECT @MedianSalary = AVG(e.BaseSalary)
     FROM SalaryRanked
@@ -564,13 +564,13 @@ BEGIN
             ELSE 0
         END
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
       AND ep.IsActive = 1
       AND ep.StartDate >= DATEADD(MONTH, -@AnalysisPeriodMonths, GETDATE())
-      AND (@d.DepartmentID IS NULL OR e.d.DepartmentID = @d.DepartmentID);
+      AND (@d.DepartmentID IS NULL OR d.DepartmentID = @d.DepartmentID);
     
     -- Calculate customer service rate
     SELECT @CustomerServiceRate = 
@@ -580,13 +580,13 @@ BEGIN
             ELSE 0
         END
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
       AND o.IsActive = 1
       AND o.OrderDate >= DATEADD(MONTH, -@AnalysisPeriodMonths, GETDATE())
-      AND (@d.DepartmentID IS NULL OR e.d.DepartmentID = @d.DepartmentID);
+      AND (@d.DepartmentID IS NULL OR d.DepartmentID = @d.DepartmentID);
     
     -- Set success status message with summary
     SET @StatusMessage = 'Success: Analyzed ' + CAST(@TotalEmployees AS VARCHAR) + ' total employees';

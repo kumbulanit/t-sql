@@ -61,7 +61,7 @@ SELECT d.DepartmentName,
     COUNT(e.EmployeeID) AS EmployeeCount,
     AVG(e.BaseSalary) AS AverageBaseSalary
 FROM Departments d
-LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID
 WHERE d.IsActive = 1
 GROUP BY d.DepartmentID, d.DepartmentName
 ORDER BY d.DepartmentName;
@@ -512,7 +512,7 @@ RETURN
     LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
         AND YEAR(ep.StartDate) = @AnalysisYear
         AND ep.IsActive = 1
-    WHERE e.d.DepartmentID = @d.DepartmentID
+    WHERE d.DepartmentID = @d.DepartmentID
         AND e.IsActive = 1
     GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.BaseSalary, e.JobTitle, e.HireDate
 );

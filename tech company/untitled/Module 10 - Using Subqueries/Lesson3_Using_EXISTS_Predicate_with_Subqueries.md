@@ -79,7 +79,7 @@ SELECT
     e.JobTitle,
     d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE EXISTS (
     SELECT 1                    -- Common pattern: SELECT 1 (any constant works)
     FROM Orders o
@@ -101,7 +101,7 @@ WHERE EXISTS (
     SELECT 1
     FROM Projects p
     INNER JOIN Employees e ON p.ProjectManagerID = e.EmployeeID
-    WHERE e.d.DepartmentID = d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID
       AND p.IsActive = 1
       AND e.IsActive = 1
 )
@@ -121,7 +121,7 @@ SELECT
     d.DepartmentName,
     e.HireDate
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE NOT EXISTS (
     SELECT 1
     FROM Orders o
@@ -170,7 +170,7 @@ SELECT
     d.DepartmentName,
     e.BaseSalary
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE EXISTS (
     -- Check if employee is a manager
     SELECT 1
@@ -273,7 +273,7 @@ SELECT
         ELSE 'Individual Contributor'
     END AS ManagementLevel
 FROM Employees e mgr
-INNER JOIN Departments d ON mgr.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE EXISTS (
     SELECT 1
     FROM Employees e subordinate
@@ -354,7 +354,7 @@ SELECT
     e.LastName,
     d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE d.DepartmentName IN ('Sales', 'Marketing', 'Customer Service')  -- Filter first
   AND e.IsActive = 1
   AND EXISTS (
@@ -378,12 +378,12 @@ SELECT
     e.EmployeeID,
     e.FirstName,
     e.LastName,
-    e.d.DepartmentID
+    d.DepartmentID
 FROM Employees e
 WHERE NOT EXISTS (
     SELECT 1
     FROM Departments d
-    WHERE d.DepartmentID = e.d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID
       AND d.IsActive = 1
 )
   AND e.IsActive = 1;
@@ -397,8 +397,8 @@ FROM Departments d
 WHERE NOT EXISTS (
     SELECT 1
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    WHERE e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID
       AND e.IsActive = 1
 )
   AND d.IsActive = 1;
@@ -454,13 +454,13 @@ SELECT d.DepartmentName,
     -- Active employees count
     (SELECT COUNT(*)
      FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-     WHERE e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+     WHERE d.DepartmentID = d.DepartmentID
        AND e.IsActive = 1) AS ActiveEmployees,
     -- Employees with recent orders
     (SELECT COUNT(*)
      FROM Employees e
-     WHERE e.d.DepartmentID = d.DepartmentID
+     WHERE d.DepartmentID = d.DepartmentID
        AND e.IsActive = 1
        AND EXISTS (
            SELECT 1
@@ -472,7 +472,7 @@ SELECT d.DepartmentName,
     -- Employees on active projects
     (SELECT COUNT(*)
      FROM Employees e
-     WHERE e.d.DepartmentID = d.DepartmentID
+     WHERE d.DepartmentID = d.DepartmentID
        AND e.IsActive = 1
        AND EXISTS (
            SELECT 1
@@ -488,7 +488,7 @@ SELECT d.DepartmentName,
             SELECT 1
             FROM Employees e
             INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
-            WHERE e.d.DepartmentID = d.DepartmentID
+            WHERE d.DepartmentID = d.DepartmentID
               AND o.OrderDate >= DATEADD(WEEK, -1, GETDATE())
               AND e.IsActive = 1
               AND o.IsActive = 1
@@ -497,7 +497,7 @@ SELECT d.DepartmentName,
             SELECT 1
             FROM Employees e
             INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
-            WHERE e.d.DepartmentID = d.DepartmentID
+            WHERE d.DepartmentID = d.DepartmentID
               AND o.OrderDate >= DATEADD(MONTH, -1, GETDATE())
               AND e.IsActive = 1
               AND o.IsActive = 1

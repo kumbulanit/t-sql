@@ -71,7 +71,7 @@ SELECT
     e.BaseSalary,
     e.HireDate
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 
 EXCEPT
@@ -84,7 +84,7 @@ SELECT
     e.BaseSalary,
     e.HireDate
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 WHERE e.IsActive = 1
 AND ep.IsActive = 1
@@ -107,7 +107,7 @@ FROM (
         e.BaseSalary,
         e.HireDate
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     WHERE e.IsActive = 1
 
     EXCEPT
@@ -120,13 +120,13 @@ FROM (
         e.BaseSalary,
         e.HireDate
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     WHERE e.IsActive = 1
     AND ep.IsActive = 1
     AND (ep.EndDate IS NULL OR ep.EndDate > GETDATE())
 ) AS AvailableEmployees e
-INNER JOIN Departments d ON e.d.DepartmentName = d.DepartmentName
+INNER JOIN Departments d ON d.DepartmentName = d.DepartmentName
 GROUP BY d.DepartmentName
 ORDER BY AvailableEmployees DESC;
 ```
@@ -150,7 +150,7 @@ SELECT
     e.JobTitle,
     d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
 WHERE e.IsActive = 1 AND p.IsActive = 1
 
@@ -162,7 +162,7 @@ SELECT
     e.JobTitle,
     d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 WHERE e.IsActive = 1 AND ep.IsActive = 1
 
@@ -172,10 +172,10 @@ ORDER BY d.DepartmentName, EmployeeName;
 SELECT 
     dual_role.EmployeeID,
     dual_role.EmployeeName,
-    dual_role.d.DepartmentName,
+    d.DepartmentName,
     'PROJECT_MANAGER' AS RoleType,
     p.ProjectName AS ProjectContext,
-    p.d.Budget AS RelatedBudget
+    d.Budget AS RelatedBudget
 FROM (
     SELECT 
         e.EmployeeID,
@@ -183,7 +183,7 @@ FROM (
         e.JobTitle,
         d.DepartmentName
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
     WHERE e.IsActive = 1 AND p.IsActive = 1
 
@@ -195,7 +195,7 @@ FROM (
         e.JobTitle,
         d.DepartmentName
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     WHERE e.IsActive = 1 AND ep.IsActive = 1
 ) AS dual_role
@@ -207,7 +207,7 @@ UNION ALL
 SELECT 
     dual_role.EmployeeID,
     dual_role.EmployeeName,
-    dual_role.d.DepartmentName,
+    d.DepartmentName,
     'TEAM_MEMBER' AS RoleType,
     p.ProjectName AS ProjectContext,
     NULL AS RelatedBudget
@@ -218,7 +218,7 @@ FROM (
         e.JobTitle,
         d.DepartmentName
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
     WHERE e.IsActive = 1 AND p.IsActive = 1
 
@@ -230,7 +230,7 @@ FROM (
         e.JobTitle,
         d.DepartmentName
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     WHERE e.IsActive = 1 AND ep.IsActive = 1
 ) AS dual_role
@@ -391,14 +391,14 @@ WITH HighSalaryEmployees AS (
     SELECT 
         e.EmployeeID,
         e.FirstName + ' ' + e.LastName AS EmployeeName,
-        e.d.DepartmentID,
+        d.DepartmentID,
         e.BaseSalary
     FROM Employees e
     WHERE e.IsActive = 1
     AND e.BaseSalary >= (
         SELECT PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY e.BaseSalary)
         FROM Employees e e2 
-        WHERE e2.d.DepartmentID = e.d.DepartmentID 
+        WHERE d.DepartmentID = d.DepartmentID 
         AND e2.IsActive = 1
     )
 ),
@@ -408,14 +408,14 @@ HighlyEngagedEmployees AS (
     SELECT 
         e.EmployeeID,
         e.FirstName + ' ' + e.LastName AS EmployeeName,
-        e.d.DepartmentID,
+        d.DepartmentID,
         e.BaseSalary
     FROM Employees e
     INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     WHERE e.IsActive = 1
     AND ep.IsActive = 1
     AND ep.StartDate >= DATEADD(YEAR, -1, GETDATE())
-    GROUP BY e.EmployeeID, e.FirstName, e.LastName, e.d.DepartmentID, e.BaseSalary
+    GROUP BY e.EmployeeID, e.FirstName, e.LastName, d.DepartmentID, e.BaseSalary
     HAVING COUNT(DISTINCT ep.ProjectID) >= 2
 ),
 
@@ -424,7 +424,7 @@ LongTenureEmployees AS (
     SELECT 
         e.EmployeeID,
         e.FirstName + ' ' + e.LastName AS EmployeeName,
-        e.d.DepartmentID,
+        d.DepartmentID,
         e.BaseSalary
     FROM Employees e
     WHERE e.IsActive = 1
@@ -447,7 +447,7 @@ INTERSECT
 SELECT 
     hee.EmployeeID,
     hee.EmployeeName,
-    hee.d.DepartmentID,
+    d.DepartmentID,
     hee.BaseSalary,
     NULL,
     NULL,
@@ -459,7 +459,7 @@ INTERSECT
 SELECT 
     lte.EmployeeID,
     lte.EmployeeName,
-    lte.d.DepartmentID,
+    d.DepartmentID,
     lte.BaseSalary,
     NULL,
     NULL,
@@ -480,11 +480,11 @@ SELECT
      AND ep.StartDate >= DATEADD(YEAR, -1, GETDATE())) AS RecentProjects,
     (SELECT AVG(e.BaseSalary) 
      FROM Employees e 
-     WHERE d.DepartmentID = e.d.DepartmentID 
+     WHERE d.DepartmentID = d.DepartmentID 
      AND IsActive = 1) AS DepartmentAvgSalary,
     FORMAT((high_value.BaseSalary / (SELECT AVG(e.BaseSalary) 
                                     FROM Employees e 
-                                    WHERE d.DepartmentID = e.d.DepartmentID 
+                                    WHERE d.DepartmentID = d.DepartmentID 
                                     AND IsActive = 1) - 1) * 100, 'N1') + '%' AS SalaryAboveAverage
 FROM (
     SELECT e.EmployeeID, EmployeeName, d.DepartmentID, e.BaseSalary
@@ -501,7 +501,7 @@ FROM (
     FROM LongTenureEmployees
 ) AS high_value
 INNER JOIN Employees e ON high_value.EmployeeID = e.EmployeeID
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 ORDER BY d.DepartmentName, high_value.BaseSalary DESC;
 ```
 
@@ -551,7 +551,7 @@ HighPerformanceProjects AS (
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
     WHERE ep.IsActive = 1
     AND p.IsActive = 1
-    AND p.d.Budget > 100000  -- High-value projects
+    AND d.Budget > 100000  -- High-value projects
     AND ep.StartDate >= DATEADD(YEAR, -1, GETDATE())
 )
 
@@ -576,7 +576,7 @@ SELECT
     e.BaseSalary
 FROM ProjectAssignedEmployees pae
 INNER JOIN Employees e ON pae.EmployeeID = e.EmployeeID
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 
 UNION ALL
 
@@ -601,7 +601,7 @@ SELECT
     e.BaseSalary
 FROM HighPerformanceProjects hpp
 INNER JOIN Employees e ON hpp.EmployeeID = e.EmployeeID
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 
 ORDER BY AnalysisType, d.DepartmentName, EmployeeName;
 
@@ -669,8 +669,8 @@ CROSS APPLY (
         e.BaseSalary,
         e.HireDate
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    WHERE e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID
     AND e.IsActive = 1
     ORDER BY e.BaseSalary DESC
 ) AS top_employees
@@ -696,8 +696,8 @@ OUTER APPLY (
         SUM(e.BaseSalary) AS TotalSalaryExpense,
         AVG(e.BaseSalary) AS AverageBaseSalary
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    WHERE e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID
     AND e.IsActive = 1
 ) AS emp_stats
 WHERE d.IsActive = 1

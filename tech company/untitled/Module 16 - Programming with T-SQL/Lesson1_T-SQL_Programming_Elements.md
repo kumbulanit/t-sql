@@ -93,7 +93,7 @@ SELECT @d.DepartmentName = d.DepartmentName,
     @AverageSalary = AVG(e.BaseSalary),
     @TotalPayroll = SUM(e.BaseSalary)
 FROM Departments d
-INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
 WHERE d.DepartmentID = @d.DepartmentID
   AND d.IsActive = 1
   AND e.IsActive = 1
@@ -137,8 +137,8 @@ DECLARE @HighPerformerThreshold DECIMAL(10,2) = @AverageSalary * 1.2;
 
 SELECT @HighPerformerCount = COUNT(*)
 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-WHERE e.d.DepartmentID = @d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+WHERE d.DepartmentID = @d.DepartmentID
   AND e.BaseSalary >= @HighPerformerThreshold
   AND e.IsActive = 1;
 
@@ -183,7 +183,7 @@ SELECT
         ELSE 'Needs Improvement'
     END AS PerformanceRating
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID 
                                 AND ep.IsActive = 1
                                 AND ep.StartDate >= DATEADD(YEAR, -1, GETDATE())
@@ -314,18 +314,18 @@ SELECT
         WHEN e.BaseSalary > (
             SELECT AVG(e.BaseSalary) * 1.2 
             FROM Employees e 
-            WHERE d.DepartmentID = e.d.DepartmentID AND IsActive = 1
+            WHERE d.DepartmentID = d.DepartmentID AND IsActive = 1
         ) THEN 'High Performer'
         WHEN e.BaseSalary > (
             SELECT AVG(e.BaseSalary) 
             FROM Employees e 
-            WHERE d.DepartmentID = e.d.DepartmentID AND IsActive = 1
+            WHERE d.DepartmentID = d.DepartmentID AND IsActive = 1
         ) THEN 'Above Average'
         ELSE 'Standard'
     END AS SalaryPerformanceIndicator
 
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
 WHERE e.IsActive = 1
   AND d.IsActive = 1
@@ -373,7 +373,7 @@ SELECT
     ) + '%' AS HighEarnerPercentage
 
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND d.IsActive = 1
 GROUP BY d.DepartmentID, d.DepartmentName
@@ -578,7 +578,7 @@ RETURN
         GROUP BY o.EmployeeID
     ) customer_stats ON e.EmployeeID = customer_stats.EmployeeID
     
-    WHERE e.d.DepartmentID = @d.DepartmentID
+    WHERE d.DepartmentID = @d.DepartmentID
       AND (e.IsActive = 1 OR @IncludeInactive = 1)
 );
 
@@ -724,7 +724,7 @@ SELECT
     END AS SeasonalAdjustedSalary
 
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 LEFT JOIN (
     -- Subquery to calculate bonus amounts
     SELECT 
@@ -749,7 +749,7 @@ SELECT
     COUNT(CASE WHEN e.WorkEmail NOT LIKE '%temp%' AND e.IsActive = 1 THEN 1 END) AS PermanentActiveEmployees,
     
     -- Set membership operations
-    COUNT(CASE WHEN e.d.DepartmentID IN (2001, 2002, 2003) THEN 1 END) AS CoreDepartmentEmployees,
+    COUNT(CASE WHEN d.DepartmentID IN (2001, 2002, 2003) THEN 1 END) AS CoreDepartmentEmployees,
     COUNT(CASE WHEN e.EmployeeID NOT IN (
         SELECT ManagerID FROM Employees e WHERE ManagerID IS NOT NULL
     ) THEN 1 END) AS NonManagerEmployees,
@@ -778,7 +778,7 @@ SELECT
     COUNT(CASE WHEN YEAR(e.HireDate) = YEAR(GETDATE()) THEN 1 END) AS CurrentYearHires
 
 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1;
 ```
 

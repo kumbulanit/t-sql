@@ -41,7 +41,7 @@ SELECT
         ELSE 'Needs Attention'
     END AS [Performance IsActive]
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE e.IsActive = 1
@@ -73,7 +73,7 @@ WITH DepartmentMetrics AS (
         AVG(ep.HoursWorked / NULLIF(ep.HoursAllocated, 0)) AS AvgUtilizationRate,
         COUNT(DISTINCT es.SkillID) AS UniqueSkills
     FROM Departments d
-    INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
+    INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID AND e.IsActive = 1
     LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'In Progress'
     LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
@@ -243,7 +243,7 @@ WITH EmployeeMetrics AS (
         COUNT(es.SkillID) AS SkillsCount,
         COUNT(CASE WHEN es.CertificationDate IS NOT NULL THEN 1 END) AS CertificationCount
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
     INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'In Progress'
@@ -325,7 +325,7 @@ WITH EmployeeIntegration AS (
         COUNT(es.SkillID) AS SkillsCount,
         CASE WHEN COUNT(es.SkillID) > 0 THEN 1 ELSE 0 END AS HasSkills
     FROM Employees e
-    LEFT JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    LEFT JOIN Departments d ON d.DepartmentID = d.DepartmentID
     LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
     LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'In Progress'
@@ -389,7 +389,7 @@ WITH DepartmentAnalysis AS (
         AVG(CASE WHEN ep.HoursAllocated > 0 THEN ep.HoursWorked / ep.HoursAllocated END) AS AvgEfficiency,
         COUNT(DISTINCT es.SkillID) AS SkillsCoverage
     FROM Departments d
-    LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
+    LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID AND e.IsActive = 1
     LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     LEFT JOIN (
         SELECT DISTINCT ep.EmployeeID, p.ProjectID

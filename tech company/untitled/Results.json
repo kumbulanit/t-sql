@@ -1,0 +1,1262 @@
+[
+  {
+    "TableName": "Companies",
+    "ColumnName": "CompanyID"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "CompanyName"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "LegalName"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "TaxID"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "IndustryID"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "CompanySize"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "FoundedYear"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "AnnualRevenue"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "EmployeeCount"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "Website"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "PrimaryEmail"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "PrimaryPhone"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "CountryID"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "StreetAddress"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "City"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "StateProvince"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "PostalCode"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "Latitude"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "Longitude"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "CreditRating"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "PaymentTerms"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "PreferredCurrency"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "IsActive"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "CreatedDate"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "CreatedBy"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "ModifiedDate"
+  },
+  {
+    "TableName": "Companies",
+    "ColumnName": "ModifiedBy"
+  },
+  {
+    "TableName": "Countries",
+    "ColumnName": "CountryID"
+  },
+  {
+    "TableName": "Countries",
+    "ColumnName": "CountryName"
+  },
+  {
+    "TableName": "Countries",
+    "ColumnName": "CountryCode"
+  },
+  {
+    "TableName": "Countries",
+    "ColumnName": "Region"
+  },
+  {
+    "TableName": "Countries",
+    "ColumnName": "IsActive"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "CustomerID"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "CompanyID"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "CustomerName"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "CustomerType"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "ContactFirstName"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "ContactLastName"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "ContactTitle"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "PrimaryEmail"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "PrimaryPhone"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "SecondaryPhone"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "Website"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "IndustryID"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "CountryID"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "StreetAddress"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "City"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "StateProvince"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "PostalCode"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "CreditLimit"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "CurrentBalance"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "PaymentTerms"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "AccountStatus"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "IsActive"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "CreatedDate"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "CreatedBy"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "ModifiedDate"
+  },
+  {
+    "TableName": "Customers",
+    "ColumnName": "ModifiedBy"
+  },
+  {
+    "TableName": "DepartmentHistory",
+    "ColumnName": "DepartmentHistoryID"
+  },
+  {
+    "TableName": "DepartmentHistory",
+    "ColumnName": "DepartmentID"
+  },
+  {
+    "TableName": "DepartmentHistory",
+    "ColumnName": "DepartmentName"
+  },
+  {
+    "TableName": "DepartmentHistory",
+    "ColumnName": "DepartmentCode"
+  },
+  {
+    "TableName": "DepartmentHistory",
+    "ColumnName": "Budget"
+  },
+  {
+    "TableName": "DepartmentHistory",
+    "ColumnName": "Location"
+  },
+  {
+    "TableName": "DepartmentHistory",
+    "ColumnName": "EffectiveDate"
+  },
+  {
+    "TableName": "DepartmentHistory",
+    "ColumnName": "EndDate"
+  },
+  {
+    "TableName": "DepartmentHistory",
+    "ColumnName": "ChangeType"
+  },
+  {
+    "TableName": "DepartmentHistory",
+    "ColumnName": "ChangedBy"
+  },
+  {
+    "TableName": "DepartmentHistory",
+    "ColumnName": "CreatedDate"
+  },
+  {
+    "TableName": "Departments",
+    "ColumnName": "DepartmentID"
+  },
+  {
+    "TableName": "Departments",
+    "ColumnName": "CompanyID"
+  },
+  {
+    "TableName": "Departments",
+    "ColumnName": "DepartmentName"
+  },
+  {
+    "TableName": "Departments",
+    "ColumnName": "DepartmentCode"
+  },
+  {
+    "TableName": "Departments",
+    "ColumnName": "ManagerEmployeeID"
+  },
+  {
+    "TableName": "Departments",
+    "ColumnName": "Budget"
+  },
+  {
+    "TableName": "Departments",
+    "ColumnName": "BudgetPeriod"
+  },
+  {
+    "TableName": "Departments",
+    "ColumnName": "CostCenter"
+  },
+  {
+    "TableName": "Departments",
+    "ColumnName": "Location"
+  },
+  {
+    "TableName": "Departments",
+    "ColumnName": "IsActive"
+  },
+  {
+    "TableName": "Departments",
+    "ColumnName": "CreatedDate"
+  },
+  {
+    "TableName": "Departments",
+    "ColumnName": "CreatedBy"
+  },
+  {
+    "TableName": "Departments",
+    "ColumnName": "ModifiedDate"
+  },
+  {
+    "TableName": "Departments",
+    "ColumnName": "ModifiedBy"
+  },
+  {
+    "TableName": "EmployeeArchive",
+    "ColumnName": "EmployeeArchiveID"
+  },
+  {
+    "TableName": "EmployeeArchive",
+    "ColumnName": "EmployeeID"
+  },
+  {
+    "TableName": "EmployeeArchive",
+    "ColumnName": "FirstName"
+  },
+  {
+    "TableName": "EmployeeArchive",
+    "ColumnName": "LastName"
+  },
+  {
+    "TableName": "EmployeeArchive",
+    "ColumnName": "MiddleName"
+  },
+  {
+    "TableName": "EmployeeArchive",
+    "ColumnName": "JobTitle"
+  },
+  {
+    "TableName": "EmployeeArchive",
+    "ColumnName": "BaseSalary"
+  },
+  {
+    "TableName": "EmployeeArchive",
+    "ColumnName": "DepartmentID"
+  },
+  {
+    "TableName": "EmployeeArchive",
+    "ColumnName": "DepartmentName"
+  },
+  {
+    "TableName": "EmployeeArchive",
+    "ColumnName": "ArchiveDate"
+  },
+  {
+    "TableName": "EmployeeArchive",
+    "ColumnName": "TerminationDate"
+  },
+  {
+    "TableName": "EmployeeArchive",
+    "ColumnName": "ReasonForLeaving"
+  },
+  {
+    "TableName": "EmployeeArchive",
+    "ColumnName": "IsActive"
+  },
+  {
+    "TableName": "EmployeeArchive",
+    "ColumnName": "ArchivedBy"
+  },
+  {
+    "TableName": "EmployeeArchive",
+    "ColumnName": "CreatedDate"
+  },
+  {
+    "TableName": "EmployeeProjects",
+    "ColumnName": "EmployeeProjectID"
+  },
+  {
+    "TableName": "EmployeeProjects",
+    "ColumnName": "EmployeeID"
+  },
+  {
+    "TableName": "EmployeeProjects",
+    "ColumnName": "ProjectID"
+  },
+  {
+    "TableName": "EmployeeProjects",
+    "ColumnName": "Role"
+  },
+  {
+    "TableName": "EmployeeProjects",
+    "ColumnName": "StartDate"
+  },
+  {
+    "TableName": "EmployeeProjects",
+    "ColumnName": "EndDate"
+  },
+  {
+    "TableName": "EmployeeProjects",
+    "ColumnName": "AllocationPercentage"
+  },
+  {
+    "TableName": "EmployeeProjects",
+    "ColumnName": "HoursWorked"
+  },
+  {
+    "TableName": "EmployeeProjects",
+    "ColumnName": "HoursAllocated"
+  },
+  {
+    "TableName": "EmployeeProjects",
+    "ColumnName": "EstimatedHours"
+  },
+  {
+    "TableName": "EmployeeProjects",
+    "ColumnName": "BillableRate"
+  },
+  {
+    "TableName": "EmployeeProjects",
+    "ColumnName": "HourlyRate"
+  },
+  {
+    "TableName": "EmployeeProjects",
+    "ColumnName": "PerformanceRating"
+  },
+  {
+    "TableName": "EmployeeProjects",
+    "ColumnName": "IsLead"
+  },
+  {
+    "TableName": "EmployeeProjects",
+    "ColumnName": "ResponsibilityArea"
+  },
+  {
+    "TableName": "EmployeeProjects",
+    "ColumnName": "ClientFeedbackScore"
+  },
+  {
+    "TableName": "EmployeeProjects",
+    "ColumnName": "InternalFeedbackScore"
+  },
+  {
+    "TableName": "EmployeeProjects",
+    "ColumnName": "IsActive"
+  },
+  {
+    "TableName": "EmployeeProjects",
+    "ColumnName": "CreatedDate"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "EmployeeID"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "CompanyID"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "DepartmentID"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "JobLevelID"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "EmployeeNumber"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "FirstName"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "LastName"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "MiddleName"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "JobTitle"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "ReportsToEmployeeID"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "ManagerID"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "HireDate"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "TerminationDate"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "BaseSalary"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "BonusTarget"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "CommissionRate"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "BonusEligible"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "EmploymentType"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "WorkEmail"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "WorkPhone"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "Phone"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "PersonalEmail"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "PersonalPhone"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "BirthDate"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "Gender"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "Nationality"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "MaritalStatus"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "EmergencyContact"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "EmergencyPhone"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "StreetAddress"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "City"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "StateProvince"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "PostalCode"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "CountryID"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "IsActive"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "CreatedDate"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "CreatedBy"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "ModifiedDate"
+  },
+  {
+    "TableName": "Employees",
+    "ColumnName": "ModifiedBy"
+  },
+  {
+    "TableName": "EmployeeSkills",
+    "ColumnName": "EmployeeSkillID"
+  },
+  {
+    "TableName": "EmployeeSkills",
+    "ColumnName": "EmployeeID"
+  },
+  {
+    "TableName": "EmployeeSkills",
+    "ColumnName": "SkillID"
+  },
+  {
+    "TableName": "EmployeeSkills",
+    "ColumnName": "ProficiencyLevel"
+  },
+  {
+    "TableName": "EmployeeSkills",
+    "ColumnName": "YearsExperience"
+  },
+  {
+    "TableName": "EmployeeSkills",
+    "ColumnName": "LastAssessed"
+  },
+  {
+    "TableName": "EmployeeSkills",
+    "ColumnName": "LastUsedDate"
+  },
+  {
+    "TableName": "EmployeeSkills",
+    "ColumnName": "CertificationDate"
+  },
+  {
+    "TableName": "EmployeeSkills",
+    "ColumnName": "IsPrimary"
+  },
+  {
+    "TableName": "EmployeeSkills",
+    "ColumnName": "SelfAssessmentScore"
+  },
+  {
+    "TableName": "EmployeeSkills",
+    "ColumnName": "ManagerAssessmentScore"
+  },
+  {
+    "TableName": "EmployeeSkills",
+    "ColumnName": "AssessmentDate"
+  },
+  {
+    "TableName": "EmployeeSkills",
+    "ColumnName": "IsActive"
+  },
+  {
+    "TableName": "Industries",
+    "ColumnName": "IndustryID"
+  },
+  {
+    "TableName": "Industries",
+    "ColumnName": "IndustryName"
+  },
+  {
+    "TableName": "Industries",
+    "ColumnName": "IndustryCode"
+  },
+  {
+    "TableName": "Industries",
+    "ColumnName": "Description"
+  },
+  {
+    "TableName": "Industries",
+    "ColumnName": "IsActive"
+  },
+  {
+    "TableName": "JobLevels",
+    "ColumnName": "JobLevelID"
+  },
+  {
+    "TableName": "JobLevels",
+    "ColumnName": "LevelName"
+  },
+  {
+    "TableName": "JobLevels",
+    "ColumnName": "LevelCode"
+  },
+  {
+    "TableName": "JobLevels",
+    "ColumnName": "MinSalary"
+  },
+  {
+    "TableName": "JobLevels",
+    "ColumnName": "MaxSalary"
+  },
+  {
+    "TableName": "JobLevels",
+    "ColumnName": "Description"
+  },
+  {
+    "TableName": "JobLevels",
+    "ColumnName": "IsActive"
+  },
+  {
+    "TableName": "OrderDetails",
+    "ColumnName": "OrderDetailID"
+  },
+  {
+    "TableName": "OrderDetails",
+    "ColumnName": "OrderID"
+  },
+  {
+    "TableName": "OrderDetails",
+    "ColumnName": "ProductID"
+  },
+  {
+    "TableName": "OrderDetails",
+    "ColumnName": "Quantity"
+  },
+  {
+    "TableName": "OrderDetails",
+    "ColumnName": "UnitPrice"
+  },
+  {
+    "TableName": "OrderDetails",
+    "ColumnName": "Discount"
+  },
+  {
+    "TableName": "OrderDetails",
+    "ColumnName": "LineTotal"
+  },
+  {
+    "TableName": "Orders",
+    "ColumnName": "OrderID"
+  },
+  {
+    "TableName": "Orders",
+    "ColumnName": "CustomerID"
+  },
+  {
+    "TableName": "Orders",
+    "ColumnName": "CompanyID"
+  },
+  {
+    "TableName": "Orders",
+    "ColumnName": "OrderNumber"
+  },
+  {
+    "TableName": "Orders",
+    "ColumnName": "OrderDate"
+  },
+  {
+    "TableName": "Orders",
+    "ColumnName": "RequiredDate"
+  },
+  {
+    "TableName": "Orders",
+    "ColumnName": "ShippedDate"
+  },
+  {
+    "TableName": "Orders",
+    "ColumnName": "OrderStatus"
+  },
+  {
+    "TableName": "Orders",
+    "ColumnName": "SubTotal"
+  },
+  {
+    "TableName": "Orders",
+    "ColumnName": "TaxAmount"
+  },
+  {
+    "TableName": "Orders",
+    "ColumnName": "ShippingCost"
+  },
+  {
+    "TableName": "Orders",
+    "ColumnName": "TotalAmount"
+  },
+  {
+    "TableName": "Orders",
+    "ColumnName": "PaymentStatus"
+  },
+  {
+    "TableName": "Orders",
+    "ColumnName": "PaymentMethod"
+  },
+  {
+    "TableName": "Orders",
+    "ColumnName": "Notes"
+  },
+  {
+    "TableName": "Orders",
+    "ColumnName": "CreatedDate"
+  },
+  {
+    "TableName": "PerformanceMetrics",
+    "ColumnName": "PerformanceMetricID"
+  },
+  {
+    "TableName": "PerformanceMetrics",
+    "ColumnName": "MetricID"
+  },
+  {
+    "TableName": "PerformanceMetrics",
+    "ColumnName": "EmployeeID"
+  },
+  {
+    "TableName": "PerformanceMetrics",
+    "ColumnName": "MetricType"
+  },
+  {
+    "TableName": "PerformanceMetrics",
+    "ColumnName": "MetricName"
+  },
+  {
+    "TableName": "PerformanceMetrics",
+    "ColumnName": "TargetValue"
+  },
+  {
+    "TableName": "PerformanceMetrics",
+    "ColumnName": "Target"
+  },
+  {
+    "TableName": "PerformanceMetrics",
+    "ColumnName": "ActualValue"
+  },
+  {
+    "TableName": "PerformanceMetrics",
+    "ColumnName": "MetricValue"
+  },
+  {
+    "TableName": "PerformanceMetrics",
+    "ColumnName": "MeasurementUnit"
+  },
+  {
+    "TableName": "PerformanceMetrics",
+    "ColumnName": "Achievement"
+  },
+  {
+    "TableName": "PerformanceMetrics",
+    "ColumnName": "PeriodStart"
+  },
+  {
+    "TableName": "PerformanceMetrics",
+    "ColumnName": "PeriodEnd"
+  },
+  {
+    "TableName": "PerformanceMetrics",
+    "ColumnName": "MeasurementDate"
+  },
+  {
+    "TableName": "PerformanceMetrics",
+    "ColumnName": "ReviewDate"
+  },
+  {
+    "TableName": "PerformanceMetrics",
+    "ColumnName": "Quarter"
+  },
+  {
+    "TableName": "PerformanceMetrics",
+    "ColumnName": "Year"
+  },
+  {
+    "TableName": "PerformanceMetrics",
+    "ColumnName": "Weight"
+  },
+  {
+    "TableName": "PerformanceMetrics",
+    "ColumnName": "Comments"
+  },
+  {
+    "TableName": "PerformanceMetrics",
+    "ColumnName": "ReviewedBy"
+  },
+  {
+    "TableName": "PerformanceMetrics",
+    "ColumnName": "IsActive"
+  },
+  {
+    "TableName": "PerformanceMetrics",
+    "ColumnName": "CreatedDate"
+  },
+  {
+    "TableName": "Products",
+    "ColumnName": "ProductID"
+  },
+  {
+    "TableName": "Products",
+    "ColumnName": "CompanyID"
+  },
+  {
+    "TableName": "Products",
+    "ColumnName": "ProductName"
+  },
+  {
+    "TableName": "Products",
+    "ColumnName": "ProductCode"
+  },
+  {
+    "TableName": "Products",
+    "ColumnName": "ProductCategory"
+  },
+  {
+    "TableName": "Products",
+    "ColumnName": "Description"
+  },
+  {
+    "TableName": "Products",
+    "ColumnName": "UnitPrice"
+  },
+  {
+    "TableName": "Products",
+    "ColumnName": "Cost"
+  },
+  {
+    "TableName": "Products",
+    "ColumnName": "StockQuantity"
+  },
+  {
+    "TableName": "Products",
+    "ColumnName": "MinStockLevel"
+  },
+  {
+    "TableName": "Products",
+    "ColumnName": "IsActive"
+  },
+  {
+    "TableName": "Products",
+    "ColumnName": "CreatedDate"
+  },
+  {
+    "TableName": "ProductSuppliers",
+    "ColumnName": "ProductSupplierID"
+  },
+  {
+    "TableName": "ProductSuppliers",
+    "ColumnName": "ProductID"
+  },
+  {
+    "TableName": "ProductSuppliers",
+    "ColumnName": "SupplierID"
+  },
+  {
+    "TableName": "ProductSuppliers",
+    "ColumnName": "SupplierProductCode"
+  },
+  {
+    "TableName": "ProductSuppliers",
+    "ColumnName": "CostPrice"
+  },
+  {
+    "TableName": "ProductSuppliers",
+    "ColumnName": "LeadTimeDays"
+  },
+  {
+    "TableName": "ProductSuppliers",
+    "ColumnName": "MinOrderQuantity"
+  },
+  {
+    "TableName": "ProductSuppliers",
+    "ColumnName": "IsPreferredSupplier"
+  },
+  {
+    "TableName": "ProductSuppliers",
+    "ColumnName": "IsActive"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "ProjectID"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "CompanyID"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "ProjectName"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "ProjectCode"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "ProjectTypeID"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "ProjectManagerID"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "StartDate"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "PlannedEndDate"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "EndDate"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "ActualEndDate"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "Budget"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "ActualCost"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "EstimatedHours"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "ActualHours"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "BillingType"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "HourlyRate"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "Currency"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "RiskLevel"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "ClientName"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "ClientContactName"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "ClientContactEmail"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "Status"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "Priority"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "Description"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "IsActive"
+  },
+  {
+    "TableName": "Projects",
+    "ColumnName": "CreatedDate"
+  },
+  {
+    "TableName": "ProjectTypes",
+    "ColumnName": "ProjectTypeID"
+  },
+  {
+    "TableName": "ProjectTypes",
+    "ColumnName": "TypeName"
+  },
+  {
+    "TableName": "ProjectTypes",
+    "ColumnName": "Description"
+  },
+  {
+    "TableName": "ProjectTypes",
+    "ColumnName": "IsActive"
+  },
+  {
+    "TableName": "SkillCategories",
+    "ColumnName": "SkillCategoryID"
+  },
+  {
+    "TableName": "SkillCategories",
+    "ColumnName": "CategoryName"
+  },
+  {
+    "TableName": "SkillCategories",
+    "ColumnName": "Description"
+  },
+  {
+    "TableName": "SkillCategories",
+    "ColumnName": "IsActive"
+  },
+  {
+    "TableName": "Skills",
+    "ColumnName": "SkillID"
+  },
+  {
+    "TableName": "Skills",
+    "ColumnName": "SkillName"
+  },
+  {
+    "TableName": "Skills",
+    "ColumnName": "SkillCategoryID"
+  },
+  {
+    "TableName": "Skills",
+    "ColumnName": "Description"
+  },
+  {
+    "TableName": "Skills",
+    "ColumnName": "IsActive"
+  },
+  {
+    "TableName": "Skills",
+    "ColumnName": "CreatedDate"
+  },
+  {
+    "TableName": "Suppliers",
+    "ColumnName": "SupplierID"
+  },
+  {
+    "TableName": "Suppliers",
+    "ColumnName": "SupplierName"
+  },
+  {
+    "TableName": "Suppliers",
+    "ColumnName": "ContactName"
+  },
+  {
+    "TableName": "Suppliers",
+    "ColumnName": "ContactTitle"
+  },
+  {
+    "TableName": "Suppliers",
+    "ColumnName": "PrimaryEmail"
+  },
+  {
+    "TableName": "Suppliers",
+    "ColumnName": "PrimaryPhone"
+  },
+  {
+    "TableName": "Suppliers",
+    "ColumnName": "CountryID"
+  },
+  {
+    "TableName": "Suppliers",
+    "ColumnName": "StreetAddress"
+  },
+  {
+    "TableName": "Suppliers",
+    "ColumnName": "City"
+  },
+  {
+    "TableName": "Suppliers",
+    "ColumnName": "StateProvince"
+  },
+  {
+    "TableName": "Suppliers",
+    "ColumnName": "PostalCode"
+  },
+  {
+    "TableName": "Suppliers",
+    "ColumnName": "Website"
+  },
+  {
+    "TableName": "Suppliers",
+    "ColumnName": "PaymentTerms"
+  },
+  {
+    "TableName": "Suppliers",
+    "ColumnName": "IsActive"
+  },
+  {
+    "TableName": "Suppliers",
+    "ColumnName": "CreatedDate"
+  },
+  {
+    "TableName": "TimeTracking",
+    "ColumnName": "TimeTrackingID"
+  },
+  {
+    "TableName": "TimeTracking",
+    "ColumnName": "TimeEntryID"
+  },
+  {
+    "TableName": "TimeTracking",
+    "ColumnName": "EmployeeID"
+  },
+  {
+    "TableName": "TimeTracking",
+    "ColumnName": "ProjectID"
+  },
+  {
+    "TableName": "TimeTracking",
+    "ColumnName": "WorkDate"
+  },
+  {
+    "TableName": "TimeTracking",
+    "ColumnName": "HoursWorked"
+  },
+  {
+    "TableName": "TimeTracking",
+    "ColumnName": "WorkCategory"
+  },
+  {
+    "TableName": "TimeTracking",
+    "ColumnName": "ActivityType"
+  },
+  {
+    "TableName": "TimeTracking",
+    "ColumnName": "Description"
+  },
+  {
+    "TableName": "TimeTracking",
+    "ColumnName": "BillableHours"
+  },
+  {
+    "TableName": "TimeTracking",
+    "ColumnName": "HourlyRate"
+  },
+  {
+    "TableName": "TimeTracking",
+    "ColumnName": "IsApproved"
+  },
+  {
+    "TableName": "TimeTracking",
+    "ColumnName": "CreatedDate"
+  }
+]

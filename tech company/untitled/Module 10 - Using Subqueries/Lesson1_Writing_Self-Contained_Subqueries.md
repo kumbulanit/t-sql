@@ -112,8 +112,8 @@ SELECT
     d.DepartmentName,
     d.Budget
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-WHERE e.d.DepartmentID IN (
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+WHERE d.DepartmentID IN (
     SELECT d.DepartmentID
     FROM Departments d
     WHERE d.Budget > 500000
@@ -149,7 +149,7 @@ Return multiple rows and columns (used in FROM clause)
 #### TechCorp Example: d.DepartmentName Summary Statistics
 ```sql
 -- Create d.DepartmentName summary and find above-average departments
-SELECT ds.d.DepartmentName,
+SELECT d.DepartmentName,
     ds.EmployeeCount,
     ds.AverageSalary,
     ds.TotalSalaryBudget
@@ -159,7 +159,7 @@ FROM (
         AVG(e.BaseSalary) AS AverageBaseSalary,
         SUM(e.BaseSalary) AS TotalSalaryBudget
     FROM Departments d
-    INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+    INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
     WHERE d.IsActive = 1 AND e.IsActive = 1
     GROUP BY d.DepartmentID, d.DepartmentName
 ) ds
@@ -189,7 +189,7 @@ SELECT
     e.BaseSalary,
     d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.BaseSalary >= (
     SELECT PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY e.BaseSalary)
     FROM Employees e
@@ -234,7 +234,7 @@ SELECT
     d.DepartmentName,
     team_size.DirectReports
 FROM Employees e mgr
-INNER JOIN Departments d ON mgr.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 INNER JOIN (
     SELECT 
         ManagerID,
@@ -288,7 +288,7 @@ SELECT
         ELSE 'Newer Employee'
     END AS TenureCategory
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 ORDER BY e.BaseSalary DESC, e.HireDate;
 ```
@@ -313,7 +313,7 @@ INNER JOIN (
     FROM Employees e
     WHERE IsActive = 1
     GROUP BY d.DepartmentID
-) dept_stats ON d.DepartmentID = dept_stats.d.DepartmentID
+) dept_stats ON d.DepartmentID = d.DepartmentID
 WHERE d.Budget > (
     SELECT AVG(d.Budget)
     FROM Departments d

@@ -41,7 +41,7 @@ Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, WorkEmai
 │  │ CROSS APPLY (                       │      the applied table-valued    │
 │  │   SELECT TOP 2 e.FirstName, e.LastName │      expression returns data     │
 │  │   FROM Employees e                  │                                   │
-│  │   WHERE e.d.DepartmentID = d.DeptID   │      Result: Excludes depts      │
+│  │   WHERE d.DepartmentID = d.DeptID   │      Result: Excludes depts      │
 │  │   ORDER BY e.BaseSalary DESC          │      with no qualifying employees │
 │  │ ) top_emp                           │                                   │
 │  └─────────────────────────────────────┘                                   │
@@ -53,7 +53,7 @@ Customers: CustomerID (6001+), CompanyName, ContactName, City, Country, WorkEmai
 │  │ OUTER APPLY (                       │      with NULL values when       │
 │  │   SELECT TOP 2 e.FirstName, e.LastName │      no matching data exists     │
 │  │   FROM Employees e                  │                                   │
-│  │   WHERE e.d.DepartmentID = d.DeptID   │      Result: Includes all depts  │
+│  │   WHERE d.DepartmentID = d.DeptID   │      Result: Includes all depts  │
 │  │   ORDER BY e.BaseSalary DESC          │      regardless of employees     │
 │  │ ) top_emp                           │                                   │
 │  └─────────────────────────────────────┘                                   │
@@ -100,8 +100,8 @@ CROSS APPLY (
         DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
         ROW_NUMBER() OVER (ORDER BY e.BaseSalary DESC) AS SalaryRank
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    WHERE e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID
       AND e.IsActive = 1
     ORDER BY e.BaseSalary DESC
 ) top_earners
@@ -165,7 +165,7 @@ SELECT
     performance_data.PerformanceCategory,
     performance_data.RecommendedActions
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 CROSS APPLY (
     SELECT 
         -- Project engagement metrics
@@ -328,8 +328,8 @@ OUTER APPLY (
         -- Employee metrics
         SELECT COUNT(*) AS ActiveEmployees
         FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-        WHERE e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+        WHERE d.DepartmentID = d.DepartmentID
           AND e.IsActive = 1
     ) employee_metrics
     CROSS JOIN (
@@ -337,7 +337,7 @@ OUTER APPLY (
         SELECT COUNT(DISTINCT p.ProjectID) AS RecentProjects
         FROM Projects p
         INNER JOIN Employees e ON p.ProjectManagerID = e.EmployeeID
-        WHERE e.d.DepartmentID = d.DepartmentID
+        WHERE d.DepartmentID = d.DepartmentID
           AND p.StartDate >= DATEADD(MONTH, -6, GETDATE())
           AND p.IsActive = 1
           AND e.IsActive = 1
@@ -349,7 +349,7 @@ OUTER APPLY (
             SUM(o.TotalAmount) AS RecentRevenue
         FROM Orders o
         INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
-        WHERE e.d.DepartmentID = d.DepartmentID
+        WHERE d.DepartmentID = d.DepartmentID
           AND o.OrderDate >= DATEADD(MONTH, -3, GETDATE())
           AND o.IsActive = 1
           AND e.IsActive = 1
@@ -359,7 +359,7 @@ OUTER APPLY (
         SELECT TOP 1
             e.FirstName + ' ' + e.LastName AS TopPerformer
         FROM Employees e
-        WHERE e.d.DepartmentID = d.DepartmentID
+        WHERE d.DepartmentID = d.DepartmentID
           AND e.IsActive = 1
         ORDER BY e.BaseSalary DESC
     ) top_performer
@@ -395,7 +395,7 @@ SELECT
     team_analysis.TeamPerformanceRating,
     team_analysis.ManagementRecommendation
 FROM Employees e mgr
-INNER JOIN Departments d ON mgr.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 CROSS APPLY (
     SELECT 
         subordinate_stats.TeamSize,
@@ -601,8 +601,8 @@ CROSS APPLY (
         e.BaseSalary,
         ROW_NUMBER() OVER (ORDER BY e.BaseSalary DESC) AS PerformanceRank
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    WHERE e.d.DepartmentID = d.DepartmentID  -- Uses index efficiently
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID  -- Uses index efficiently
       AND e.IsActive = 1
     ORDER BY e.BaseSalary DESC
 ) top_performers
@@ -674,7 +674,7 @@ SELECT
     recent_activity.OrderCount,
     recent_activity.LatestOrder
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 OUTER APPLY (
     -- Comprehensive recent activity analysis for each employee
     SELECT 
@@ -742,8 +742,8 @@ OUTER APPLY (
             AVG(e.BaseSalary) AS AvgSalary,
             MAX(e.FirstName + ' ' + e.LastName) AS TopEmployee
         FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-        WHERE e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+        WHERE d.DepartmentID = d.DepartmentID
           AND e.IsActive = 1
         HAVING COUNT(*) > 0  -- Only return results if employees exist
     ) employee_data
@@ -751,7 +751,7 @@ OUTER APPLY (
         SELECT COUNT(DISTINCT p.ProjectID) AS ProjectCount
         FROM Projects p
         INNER JOIN Employees e ON p.ProjectManagerID = e.EmployeeID
-        WHERE e.d.DepartmentID = d.DepartmentID
+        WHERE d.DepartmentID = d.DepartmentID
           AND p.IsActive = 1
           AND e.IsActive = 1
     ) project_data
@@ -847,8 +847,8 @@ FROM Departments d
 CROSS APPLY (
     SELECT TOP 1 e.FirstName, e.BaseSalary
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    WHERE e.d.DepartmentID = d.DepartmentID 
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID 
       AND e.IsActive = 1
     ORDER BY e.BaseSalary DESC
 ) emp;  -- This excludes departments with no employees
@@ -861,8 +861,8 @@ FROM Departments d
 OUTER APPLY (
     SELECT TOP 1 e.FirstName, e.BaseSalary
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    WHERE e.d.DepartmentID = d.DepartmentID 
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID 
       AND e.IsActive = 1
     ORDER BY e.BaseSalary DESC
 ) emp
@@ -887,7 +887,7 @@ CROSS APPLY (
                 SELECT TOP 1 * FROM Orders o1 
                 WHERE o1.EmployeeID = e1.EmployeeID
             ) nested_orders
-            WHERE e1.d.DepartmentID = d.DepartmentID
+            WHERE d.DepartmentID = d.DepartmentID
         ) inner_data
     ) nested_data
 ) complex_data;
@@ -904,14 +904,14 @@ WITH DepartmentTopEmployee AS (
     CROSS APPLY (
         SELECT TOP 1 e.EmployeeID, e.FirstName, e.LastName, e.BaseSalary
         FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-        WHERE e.d.DepartmentID = d.DepartmentID 
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+        WHERE d.DepartmentID = d.DepartmentID 
           AND e.IsActive = 1
         ORDER BY e.BaseSalary DESC
     ) e
     WHERE d.IsActive = 1
 )
-SELECT dte.d.DepartmentName,
+SELECT d.DepartmentName,
     dte.EmployeeName,
     FORMAT(dte.BaseSalary, 'C') AS TopEmployeeSalary,
     recent_order.OrderDate,
@@ -924,7 +924,7 @@ OUTER APPLY (
       AND o.IsActive = 1
     ORDER BY OrderDate DESC
 ) recent_order
-ORDER BY dte.d.DepartmentName;
+ORDER BY d.DepartmentName;
 ```
 
 ## Summary

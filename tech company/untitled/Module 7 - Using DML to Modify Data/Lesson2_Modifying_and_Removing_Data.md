@@ -195,11 +195,11 @@ SET
 WHERE e.EmployeeID IN (
     SELECT e.EmployeeID 
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     WHERE e.BaseSalary > (
         SELECT AVG(e.BaseSalary) 
         FROM Employees e 
-        WHERE d.DepartmentID = e.d.DepartmentID AND IsActive = 1
+        WHERE d.DepartmentID = d.DepartmentID AND IsActive = 1
     )
     AND e.IsActive = 1
 );
@@ -231,7 +231,7 @@ SET
     END,
     ModifiedDate = SYSDATETIME()
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1;
 
 -- Update d.DepartmentName manager based on highest e.BaseSalary in d.DepartmentName
@@ -247,7 +247,7 @@ INNER JOIN (
         ROW_NUMBER() OVER (PARTITION BY DepartmentIDID ORDER BY e.BaseSalary DESC) as rn
     FROM Employees e
     WHERE IsActive = 1
-) emp ON d.DepartmentID = emp.d.DepartmentID AND emp.rn = 1;
+) emp ON d.DepartmentID = d.DepartmentID AND emp.rn = 1;
 
 -- Verify the d.DepartmentName manager updates
 SELECT d.DepartmentName,
@@ -269,7 +269,7 @@ SET
     END,
     ModifiedDate = SYSDATETIME()
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
 WHERE e.IsActive = 1 
   AND mgr.IsActive = 1;
@@ -662,7 +662,7 @@ WHERE IsActive = 0;
 DELETE e
 FROM EmployeeTemp e
 INNER JOIN PerformanceReviews pr ON e.EmployeeID = pr.EmployeeID
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE pr.ReviewScore < 2.0 
   AND e.IsActive = 0
   AND d.DepartmentName != 'Human Resources';  -- Don't auto-delete HR employees
@@ -673,7 +673,7 @@ WHERE pr.ReviewScore < 2.0
 -- Complex deletion scenario: Remove employees who meet multiple criteria
 DELETE e
 FROM EmployeeTemp e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 LEFT JOIN PerformanceReviews pr ON e.EmployeeID = pr.EmployeeID
 WHERE e.IsActive = 0  -- Must be inactive
@@ -1059,8 +1059,8 @@ BEGIN
             e.BaseSalary = e.BaseSalary * (1 + @SalaryIncreasePercent / 100.0),
             ModifiedDate = SYSDATETIME()
         FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-        WHERE e.d.DepartmentID = @d.DepartmentID 
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+        WHERE d.DepartmentID = @d.DepartmentID 
           AND e.IsActive = 1 
           AND e.BaseSalary IS NOT NULL;
         
@@ -1088,7 +1088,7 @@ BEGIN
             CAST(@SalaryIncreasePercent AS VARCHAR(10)) + '%' AS IncreasePercent
         FROM @EmployeesBeforeUpdate bu
         INNER JOIN Employees e ON bu.EmployeeID = e.EmployeeID
-        INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+        INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
         GROUP BY d.DepartmentName;
         
     END TRY

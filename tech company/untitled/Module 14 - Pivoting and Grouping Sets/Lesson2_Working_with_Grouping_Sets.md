@@ -140,7 +140,7 @@ SELECT
         ELSE ''
     END AS Budget_Status
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND d.IsActive = 1
 GROUP BY ROLLUP(d.Location, d.DepartmentName)
@@ -342,7 +342,7 @@ WITH EmployeePerformanceData AS (
         ISNULL(order_metrics.OrderCount, 0) AS CustomerOrderCount,
         ISNULL(order_metrics.TotalRevenue, 0) AS CustomerRevenue
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     LEFT JOIN (
         -- Project involvement metrics
         SELECT 
@@ -466,12 +466,12 @@ WITH ExecutiveMetrics AS (
         ISNULL(project_data.ProjectBudget, 0) AS ProjectBudget,
         ISNULL(order_data.OrderRevenue, 0) AS OrderRevenue
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     LEFT JOIN (
         -- Project budget by employee
         SELECT 
             p.ProjectManagerID AS e.EmployeeID,
-            SUM(p.d.Budget) AS ProjectBudget
+            SUM(d.Budget) AS ProjectBudget
         FROM Projects p
         WHERE p.IsActive = 1
           AND p.StartDate >= DATEADD(QUARTER, -1, GETDATE())
@@ -588,29 +588,29 @@ WITH BudgetActualData AS (
         -- Revenue generation
         ISNULL(revenue_data.GeneratedRevenue, 0) AS GeneratedRevenue
     FROM Departments d
-    INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+    INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
     LEFT JOIN (
         -- Project spending by d.DepartmentName
         SELECT 
-            e.d.DepartmentID,
-            SUM(p.d.Budget) AS ProjectSpending
+            d.DepartmentID,
+            SUM(d.Budget) AS ProjectSpending
         FROM Projects p
         INNER JOIN Employees e ON p.ProjectManagerID = e.EmployeeID
         WHERE p.IsActive = 1
           AND p.StartDate >= DATEADD(YEAR, 0, DATEADD(YEAR, DATEDIFF(YEAR, 0, GETDATE()), 0))
-        GROUP BY e.d.DepartmentID
-    ) project_spending ON d.DepartmentID = project_spending.d.DepartmentID
+        GROUP BY d.DepartmentID
+    ) project_spending ON d.DepartmentID = d.DepartmentID
     LEFT JOIN (
         -- Revenue by d.DepartmentName
         SELECT 
-            e.d.DepartmentID,
+            d.DepartmentID,
             SUM(o.TotalAmount) AS GeneratedRevenue
         FROM Orders o
         INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
         WHERE o.IsActive = 1
           AND o.OrderDate >= DATEADD(YEAR, 0, DATEADD(YEAR, DATEDIFF(YEAR, 0, GETDATE()), 0))
-        GROUP BY e.d.DepartmentID
-    ) revenue_data ON d.DepartmentID = revenue_data.d.DepartmentID
+        GROUP BY d.DepartmentID
+    ) revenue_data ON d.DepartmentID = d.DepartmentID
     WHERE d.IsActive = 1
       AND e.IsActive = 1
     GROUP BY 

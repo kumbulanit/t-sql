@@ -80,7 +80,7 @@ SELECT
     e.JobTitle AS Position,
     'Active' AS Status
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND e.WorkEmail IS NOT NULL
   AND d.IsActive = 1
@@ -161,7 +161,7 @@ SELECT
         ELSE 'Junior'
     END AS ExperienceLevel
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND d.IsActive = 1
 
@@ -184,7 +184,7 @@ SELECT
         ELSE 'Junior'
     END AS ExperienceLevel
 FROM EmployeeArchive ea
-INNER JOIN Departments d ON ea.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE ea.TerminationDate >= DATEADD(YEAR, -3, GETDATE())  -- Last 3 years only
   AND d.IsActive = 1
 
@@ -373,7 +373,7 @@ SELECT
     'Direct Reports Managed' AS MetricDescription,
     mgmt_metrics.DirectReports * 25 AS SkillScore
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 CROSS APPLY (
     SELECT COUNT(*) AS DirectReports
     FROM Employees e subordinate
@@ -400,7 +400,7 @@ SELECT
     'Projects Successfully Managed' AS MetricDescription,
     proj_metrics.ProjectsManaged * 20 AS SkillScore
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 CROSS APPLY (
     SELECT COUNT(*) AS ProjectsManaged
     FROM Projects p
@@ -427,7 +427,7 @@ SELECT
     'Customer Orders Processed' AS MetricDescription,
     order_metrics.OrdersProcessed * 2 AS SkillScore
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 CROSS APPLY (
     SELECT COUNT(*) AS OrdersProcessed
     FROM Orders o
@@ -539,7 +539,7 @@ SELECT
     d.DepartmentName AS BusinessUnit,
     'System Generated' AS TransactionSource
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND d.IsActive = 1
 
@@ -568,7 +568,7 @@ SELECT
     'd.Budget Allocation' AS TransactionType,
     CAST(p.ProjectID AS VARCHAR(20)) AS EntityID,
     p.ProjectName AS EntityName,
-    FORMAT(p.d.Budget, 'C') AS TransactionAmount,
+    FORMAT(d.Budget, 'C') AS TransactionAmount,
     'Active' AS TransactionStatus,
     FORMAT(p.StartDate, 'yyyy-MM-dd HH:mm:ss') AS TransactionTimestamp,
     'Project Management' AS BusinessUnit,
@@ -685,7 +685,7 @@ SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount,
     AVG(e.BaseSalary) AS AvgSalary
 FROM Departments d
-INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
 WHERE d.IsActive = 1
   AND e.IsActive = 1
   AND e.HireDate <= GETDATE()
@@ -698,7 +698,7 @@ SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount,
     AVG(ea.BaseSalary) AS AvgSalary
 FROM Departments d
-INNER JOIN EmployeeArchive ea ON d.DepartmentID = ea.d.DepartmentID
+INNER JOIN EmployeeArchive ea ON d.DepartmentID = d.DepartmentID
 WHERE d.IsActive = 1
   AND ea.TerminationDate >= DATEADD(YEAR, -2, GETDATE())
 GROUP BY d.DepartmentID, d.DepartmentName

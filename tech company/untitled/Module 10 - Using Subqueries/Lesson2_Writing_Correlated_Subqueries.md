@@ -74,18 +74,18 @@ SELECT
     d.DepartmentName,
     (SELECT AVG(e2.BaseSalary) 
      FROM Employees e e2 
-     WHERE e2.d.DepartmentID = e.d.DepartmentID 
+     WHERE d.DepartmentID = d.DepartmentID 
        AND e2.IsActive = 1) AS DeptAvgSalary,
     e.BaseSalary - (SELECT AVG(e2.BaseSalary) 
                     FROM Employees e e2 
-                    WHERE e2.d.DepartmentID = e.d.DepartmentID 
+                    WHERE d.DepartmentID = d.DepartmentID 
                       AND e2.IsActive = 1) AS SalaryDifferenceFromDeptAvg
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.BaseSalary > (
     SELECT AVG(e2.BaseSalary)
     FROM Employees e e2
-    WHERE e2.d.DepartmentID = e.d.DepartmentID  -- Correlation with outer query
+    WHERE d.DepartmentID = d.DepartmentID  -- Correlation with outer query
       AND e2.IsActive = 1
 )
   AND e.IsActive = 1
@@ -99,7 +99,7 @@ SELECT d.DepartmentName,
     d.Budget,
     (SELECT COUNT(*)
      FROM Departments d d2
-     WHERE d2.d.Budget > d.Budget
+     WHERE d.Budget > d.Budget
        AND d2.IsActive = 1) + 1 AS BudgetRank,
     (SELECT COUNT(*)
      FROM Departments d d2
@@ -120,7 +120,7 @@ SELECT
     d.DepartmentName,
     (SELECT COUNT(*)
      FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
      WHERE e.ManagerID = mgr.EmployeeID
        AND e.IsActive = 1) AS DirectReports,
     (SELECT AVG(e.BaseSalary)
@@ -129,7 +129,7 @@ SELECT
        AND e.IsActive = 1) AS AvgTeamSalary,
     mgr.BaseSalary AS ManagerSalary
 FROM Employees e mgr
-INNER JOIN Departments d ON mgr.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE EXISTS (
     SELECT 1
     FROM Employees e
@@ -153,15 +153,15 @@ SELECT
     DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
     (SELECT AVG(DATEDIFF(YEAR, e2.HireDate, GETDATE()))
      FROM Employees e e2
-     WHERE e2.d.DepartmentID = e.d.DepartmentID
+     WHERE d.DepartmentID = d.DepartmentID
        AND e2.IsActive = 1) AS DeptAvgTenure,
     (SELECT COUNT(*)
      FROM Employees e e2
-     WHERE e2.d.DepartmentID = e.d.DepartmentID
+     WHERE d.DepartmentID = d.DepartmentID
        AND e2.HireDate < e.HireDate
        AND e2.IsActive = 1) AS EmployeesHiredBefore
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 ORDER BY d.DepartmentName, e.HireDate;
 ```
@@ -209,7 +209,7 @@ SELECT
         WHEN e.BaseSalary > (
             SELECT AVG(e2.BaseSalary)
             FROM Employees e e2
-            WHERE e2.d.DepartmentID = e.d.DepartmentID
+            WHERE d.DepartmentID = d.DepartmentID
               AND e2.IsActive = 1
         ) AND (
             SELECT AVG(ISNULL(ep.HoursWorked, 0))
@@ -220,14 +220,14 @@ SELECT
             SELECT AVG(ISNULL(ep2.HoursWorked, 0))
             FROM EmployeeProjects ep2
             INNER JOIN Employees e3 ON ep2.EmployeeID = e3.EmployeeID
-            WHERE e3.d.DepartmentID = e.d.DepartmentID
+            WHERE d.DepartmentID = d.DepartmentID
               AND ep2.IsActive = 1
               AND e3.IsActive = 1
         ) THEN 'High Performer'
         ELSE 'Standard Performer'
     END AS PerformanceCategory
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 ORDER BY d.DepartmentName, e.BaseSalary DESC;
 ```
@@ -251,7 +251,7 @@ SELECT
        AND o.IsActive = 1) AS TotalSalesAmount,
     (SELECT COUNT(*)
      FROM Employees e e2
-     WHERE e2.d.DepartmentID = e.d.DepartmentID
+     WHERE d.DepartmentID = d.DepartmentID
        AND (SELECT ISNULL(SUM(o2.TotalAmount), 0)
             FROM Orders o2
             WHERE o2.EmployeeID = e2.EmployeeID
@@ -262,7 +262,7 @@ SELECT
               AND o3.IsActive = 1)
        AND e2.IsActive = 1) + 1 AS SalesRankInDepartment
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE EXISTS (
     SELECT 1
     FROM Orders o
@@ -336,7 +336,7 @@ WHERE e.BaseSalary > DeptAvgSalary;
 -- Correlated subquery for counting
 SELECT d.DepartmentName,
     (SELECT COUNT(*) FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID WHERE e.d.DepartmentID = d.DepartmentID AND e.IsActive = 1) AS EmpCount
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID WHERE d.DepartmentID = d.DepartmentID AND e.IsActive = 1) AS EmpCount
 FROM Departments d
 WHERE d.IsActive = 1;
 
@@ -344,7 +344,7 @@ WHERE d.IsActive = 1;
 SELECT d.DepartmentName,
     COUNT(e.EmployeeID) AS EmpCount
 FROM Departments d
-LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
+LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID AND e.IsActive = 1
 WHERE d.IsActive = 1
 GROUP BY d.DepartmentID, d.DepartmentName;
 ```
@@ -363,12 +363,12 @@ SELECT
     -- e.BaseSalary percentile within d.DepartmentName
     (SELECT COUNT(*)
      FROM Employees e e2
-     WHERE e2.d.DepartmentID = e.d.DepartmentID
+     WHERE d.DepartmentID = d.DepartmentID
        AND e2.BaseSalary <= e.BaseSalary
        AND e2.IsActive = 1) * 100.0 / 
     (SELECT COUNT(*)
      FROM Employees e e3
-     WHERE e3.d.DepartmentID = e.d.DepartmentID
+     WHERE d.DepartmentID = d.DepartmentID
        AND e3.IsActive = 1) AS SalaryPercentileInDept,
     -- Project involvement comparison
     (SELECT COUNT(*)
@@ -379,12 +379,12 @@ SELECT
      FROM (SELECT COUNT(*) AS project_count
            FROM EmployeeProjects ep2
            INNER JOIN Employees e4 ON ep2.EmployeeID = e4.EmployeeID
-           WHERE e4.d.DepartmentID = e.d.DepartmentID
+           WHERE d.DepartmentID = d.DepartmentID
              AND ep2.IsActive = 1
              AND e4.IsActive = 1
            GROUP BY ep2.EmployeeID) avg_calc) AS DeptAvgProjects
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 ORDER BY d.DepartmentName, SalaryPercentileInDept DESC;
 ```
@@ -399,13 +399,13 @@ SELECT d.DepartmentName,
     -- Employee efficiency: budget per employee vs company average
     d.Budget / NULLIF((SELECT COUNT(*) 
                        FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-                       WHERE e.d.DepartmentID = d.DepartmentID 
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+                       WHERE d.DepartmentID = d.DepartmentID 
                          AND e.IsActive = 1), 0) AS BudgetPerEmployee,
     (SELECT AVG(dept_budget_per_emp)
      FROM (SELECT dept.Budget / NULLIF(COUNT(emp.EmployeeID), 0) AS dept_budget_per_emp
            FROM Departments d dept
-           LEFT JOIN Employees emp ON dept.DepartmentID = emp.d.DepartmentID 
+           LEFT JOIN Employees emp ON dept.DepartmentID = d.DepartmentID 
                                    AND emp.IsActive = 1
            WHERE dept.IsActive = 1
            GROUP BY dept.DepartmentID, dept.Budget) calc) AS CompanyAvgBudgetPerEmployee,
@@ -415,7 +415,7 @@ SELECT d.DepartmentName,
      WHERE p.ProjectManagerID IN (
          SELECT e.EmployeeID
          FROM Employees e
-         WHERE e.d.DepartmentID = d.DepartmentID
+         WHERE d.DepartmentID = d.DepartmentID
            AND e.IsActive = 1
      )
        AND p.IsActive = 1) AS ProjectsManaged

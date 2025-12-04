@@ -184,7 +184,7 @@ BEGIN
             ELSE 'e.LastName'
         END + ' ' + @SortOrder + ') AS RowNum
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID';
     
     -- Build WHERE clause dynamically
@@ -205,7 +205,7 @@ BEGIN
     
     IF @d.DepartmentID IS NOT NULL
     BEGIN
-        SET @WhereClause = @WhereClause + ' AND e.d.DepartmentID = @DepartmentIDParam';
+        SET @WhereClause = @WhereClause + ' AND d.DepartmentID = @DepartmentIDParam';
         SET @Params = @Params + '@DepartmentIDParam INT, ';
     END
     
@@ -289,7 +289,7 @@ BEGIN
         
         -- Build count query (reuse WHERE clause)
         SET @TotalCountSQL = 'SELECT @TotalOut = COUNT(*) FROM Employees e
-                              INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID' + @WhereClause;
+                              INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID' + @WhereClause;
         SET @TotalCountParams = REPLACE(@Params, '@PageNumberParam INT, @PageSizeParam INT', '') + '@TotalOut INT OUTPUT';
         
         EXEC sp_executesql @TotalCountSQL, @TotalCountParams,
@@ -417,7 +417,7 @@ BEGIN
         SET @SelectClause = @SelectClause + ',
         COUNT(DISTINCT p.ProjectID) AS TotalProjects,
         SUM(CASE WHEN p.IsActive = 1 THEN 1 ELSE 0 END) AS ActiveProjects,
-        FORMAT(SUM(CASE WHEN p.IsActive = 1 THEN p.d.Budget ELSE 0 END), ''C'') AS TotalProjectBudget';
+        FORMAT(SUM(CASE WHEN p.IsActive = 1 THEN d.Budget ELSE 0 END), ''C'') AS TotalProjectBudget';
     END
     
     -- Add manager information if requested
@@ -431,14 +431,14 @@ BEGIN
     -- Build FROM clause with necessary joins
     SET @FromClause = '
     FROM Departments d
-    LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID';
+    LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID';
     
     -- Add project join if needed
     IF @IncludeProjectInfo = 1
     BEGIN
         SET @FromClause = @FromClause + '
         LEFT JOIN Projects p ON d.DepartmentID = (
-            SELECT TOP 1 emp.d.DepartmentID 
+            SELECT TOP 1 d.DepartmentID 
             FROM Employees e emp 
             WHERE emp.EmployeeID = p.ProjectManagerID
         )';

@@ -48,16 +48,16 @@ WITH ExecutiveIntelligence AS (
         
         -- REVENUE ANALYTICS
         COUNT(p.ProjectID) AS ProjectVolume,
-        SUM(p.d.Budget) AS TotalRevenue,
-        AVG(p.d.Budget) AS AvgProjectValue,
-        STDEV(p.d.Budget) AS RevenueVariability,
-        MIN(p.d.Budget) AS SmallestProject,
-        MAX(p.d.Budget) AS LargestProject,
+        SUM(d.Budget) AS TotalRevenue,
+        AVG(d.Budget) AS AvgProjectValue,
+        STDEV(d.Budget) AS RevenueVariability,
+        MIN(d.Budget) AS SmallestProject,
+        MAX(d.Budget) AS LargestProject,
         
         -- PROFITABILITY ANALYTICS
         SUM(ISNULL(p.ActualCost, 0)) AS TotalCosts,
-        SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)) AS TotalProfit,
-        AVG(CASE WHEN p.d.Budget > 0 THEN (ISNULL(p.d.Budget, 0) - ISNULL(p.ActualCost, 0)) / p.d.Budget END) AS AvgProfitMargin,
+        SUM(ISNULL(d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)) AS TotalProfit,
+        AVG(CASE WHEN d.Budget > 0 THEN (ISNULL(d.Budget, 0) - ISNULL(p.ActualCost, 0)) / d.Budget END) AS AvgProfitMargin,
         
         -- DELIVERY PERFORMANCE
         COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
@@ -65,7 +65,7 @@ WITH ExecutiveIntelligence AS (
         AVG(CASE WHEN p.IsActive = 'Completed' THEN DATEDIFF(DAY, p.StartDate, p.ActualEndDate) END) AS AvgProjectDuration,
         
         -- GROWTH METRICS
-        SUM(p.d.Budget) - LAG(SUM(p.d.Budget), 1, 0) OVER (ORDER BY YEAR(p.StartDate), MONTH(p.StartDate)) AS MonthOverMonthGrowth,
+        SUM(d.Budget) - LAG(SUM(d.Budget), 1, 0) OVER (ORDER BY YEAR(p.StartDate), MONTH(p.StartDate)) AS MonthOverMonthGrowth,
         COUNT(p.ProjectID) - LAG(COUNT(p.ProjectID), 1, 0) OVER (ORDER BY YEAR(p.StartDate), MONTH(p.StartDate)) AS VolumeGrowth
         
     FROM Projects p
@@ -84,16 +84,16 @@ WITH ExecutiveIntelligence AS (
         
         -- d.DepartmentName METRICS
         COUNT(DISTINCT e.EmployeeID) AS EmployeeCount,
-        SUM(p.d.Budget) AS DepartmentRevenue,
-        AVG(p.d.Budget) AS AvgProjectValue,
-        STDEV(p.d.Budget) AS RevenueVariability,
+        SUM(d.Budget) AS DepartmentRevenue,
+        AVG(d.Budget) AS AvgProjectValue,
+        STDEV(d.Budget) AS RevenueVariability,
         SUM(e.BaseSalary) AS PayrollCosts,
-        SUM(p.d.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) AS RevenuePerEmployee,
+        SUM(d.Budget) / NULLIF(COUNT(DISTINCT e.EmployeeID), 0) AS RevenuePerEmployee,
         
         -- d.DepartmentName PROFITABILITY
         SUM(ISNULL(p.ActualCost, 0)) AS DepartmentCosts,
-        SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)) AS DepartmentProfit,
-        AVG(CASE WHEN p.d.Budget > 0 THEN (ISNULL(p.d.Budget, 0) - ISNULL(p.ActualCost, 0)) / p.d.Budget END) AS AvgProfitMargin,
+        SUM(ISNULL(d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)) AS DepartmentProfit,
+        AVG(CASE WHEN d.Budget > 0 THEN (ISNULL(d.Budget, 0) - ISNULL(p.ActualCost, 0)) / d.Budget END) AS AvgProfitMargin,
         
         -- d.DepartmentName DELIVERY
         COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
@@ -104,7 +104,7 @@ WITH ExecutiveIntelligence AS (
         NULL AS VolumeGrowth
         
     FROM Departments d
-        INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+        INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
         INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
     WHERE d.IsActive = 1 
         AND e.IsActive = 1 
@@ -122,16 +122,16 @@ WITH ExecutiveIntelligence AS (
         
         -- CLIENT METRICS
         COUNT(p.ProjectID) AS ClientProjects,
-        SUM(p.d.Budget) AS ClientValue,
-        AVG(p.d.Budget) AS AvgProjectValue,
-        STDEV(p.d.Budget) AS ProjectVariability,
+        SUM(d.Budget) AS ClientValue,
+        AVG(d.Budget) AS AvgProjectValue,
+        STDEV(d.Budget) AS ProjectVariability,
         c.AnnualRevenue AS ClientRevenue,
         DATEDIFF(MONTH, MIN(p.StartDate), MAX(ISNULL(p.ActualEndDate, GETDATE()))) AS RelationshipDuration,
         
         -- CLIENT PROFITABILITY
         SUM(ISNULL(p.ActualCost, 0)) AS ClientCosts,
-        SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)) AS ClientProfit,
-        AVG(CASE WHEN p.d.Budget > 0 THEN (ISNULL(p.d.Budget, 0) - ISNULL(p.ActualCost, 0)) / p.d.Budget END) AS AvgProfitMargin,
+        SUM(ISNULL(d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0)) AS ClientProfit,
+        AVG(CASE WHEN d.Budget > 0 THEN (ISNULL(d.Budget, 0) - ISNULL(p.ActualCost, 0)) / d.Budget END) AS AvgProfitMargin,
         
         -- CLIENT SATISFACTION
         COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
@@ -201,19 +201,19 @@ CompetitiveIntelligence AS (
         -- MARKET METRICS
         COUNT(DISTINCT c.CompanyID) AS MarketClients,
         COUNT(p.ProjectID) AS MarketProjects,
-        SUM(p.d.Budget) AS MarketRevenue,
-        AVG(p.d.Budget) AS MarketAvgProjectValue,
+        SUM(d.Budget) AS MarketRevenue,
+        AVG(d.Budget) AS MarketAvgProjectValue,
         
         -- COMPETITIVE POSITION
-        RANK() OVER (ORDER BY SUM(p.d.Budget) DESC) AS RevenueRank,
+        RANK() OVER (ORDER BY SUM(d.Budget) DESC) AS RevenueRank,
         RANK() OVER (ORDER BY COUNT(p.ProjectID) DESC) AS VolumeRank,
-        RANK() OVER (ORDER BY AVG(p.d.Budget) DESC) AS ValueRank,
+        RANK() OVER (ORDER BY AVG(d.Budget) DESC) AS ValueRank,
         
         -- MARKET SHARE ANALYSIS
-        SUM(p.d.Budget) * 100.0 / SUM(SUM(p.d.Budget)) OVER () AS MarketSharePercent,
+        SUM(d.Budget) * 100.0 / SUM(SUM(d.Budget)) OVER () AS MarketSharePercent,
         
         -- PERFORMANCE VS MARKET
-        (SUM(ISNULL(p.d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(p.d.Budget), 0) AS SegmentProfitMargin,
+        (SUM(ISNULL(d.Budget, 0)) - SUM(ISNULL(p.ActualCost, 0))) * 100.0 / NULLIF(SUM(d.Budget), 0) AS SegmentProfitMargin,
         COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 / 
         NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) AS SegmentOnTimeRate
         

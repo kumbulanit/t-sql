@@ -237,8 +237,8 @@ SELECT d.DepartmentName
 FROM Departments d
 WHERE EXISTS (
     SELECT 1 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    WHERE e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID
 );
 ```
 
@@ -303,14 +303,14 @@ FROM Departments d
 WHERE NOT EXISTS (
     SELECT 1
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    WHERE e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID
     AND e.BaseSalary <= 55000
 )
 AND EXISTS (
     SELECT 1
     FROM Employees e
-    WHERE e.d.DepartmentID = d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID
 );
 ```
 
@@ -528,7 +528,7 @@ SELECT
         ELSE 'Junior Level'
     END AS SalaryLevel
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 ORDER BY d.DepartmentName, e.BaseSalary DESC;
 ```
@@ -569,7 +569,7 @@ SELECT d.DepartmentName,
         ELSE 'Within d.Budget'
     END AS BudgetIsActive
 FROM Departments d
-LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID 
+LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID 
     AND e.IsActive = 1
 GROUP BY d.DepartmentID, d.DepartmentName, d.Budget
 ORDER BY BudgetRemaining ASC;

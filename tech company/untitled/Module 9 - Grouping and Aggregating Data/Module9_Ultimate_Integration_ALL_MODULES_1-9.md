@@ -188,7 +188,7 @@ SELECT d.DepartmentName,                          -- NVARCHAR data type
     MIN(e.HireDate) AS FirstHireDate,     -- DATE result
     MAX(e.HireDate) AS LastHireDate       -- DATE result
 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 GROUP BY d.DepartmentName
 ORDER BY AVG(e.BaseSalary) DESC;
 
@@ -227,7 +227,7 @@ SELECT d.DepartmentName,                                    -- Group by column
     FORMAT(AVG(e.BaseSalary), 'C0') AS AvgTeamSalary,  -- Average with formatting
     FORMAT(SUM(e.BaseSalary), 'C0') AS TeamTotalCost   -- Sum aggregation
 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 GROUP BY d.DepartmentName;
 ```
 
@@ -242,7 +242,7 @@ SELECT d.DepartmentName AS 'Department Name',
     FORMAT(AVG(e.BaseSalary), 'C0') AS 'Department Average e.BaseSalary',
     FORMAT(SUM(e.BaseSalary), 'C0') AS 'Total d.DepartmentName Payroll'
 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 GROUP BY d.DepartmentName
 ORDER BY COUNT(*) DESC;
 ```
@@ -258,7 +258,7 @@ ORDER BY COUNT(*) DESC;
 SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount
 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 INNER JOIN Projects p ON e.EmployeeID = p.AssignedEmployeeID;
 
 -- Module 4 + Module 9: JOIN + GROUP BY for business summary
@@ -266,9 +266,9 @@ SELECT d.DepartmentName,
     COUNT(e.EmployeeID) AS TotalEmployees,
     COUNT(p.ProjectID) AS TotalProjects,
     FORMAT(AVG(e.BaseSalary), 'C0') AS AvgSalary,
-    FORMAT(SUM(p.d.Budget), 'C0') AS TotalProjectBudget
+    FORMAT(SUM(d.Budget), 'C0') AS TotalProjectBudget
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 LEFT JOIN Projects p ON e.EmployeeID = p.AssignedEmployeeID
 GROUP BY d.DepartmentName
 ORDER BY COUNT(p.ProjectID) DESC;
@@ -317,8 +317,8 @@ SELECT d.DepartmentName,
     
     -- Project metrics
     COUNT(p.ProjectID) AS TotalProjects,
-    FORMAT(SUM(p.d.Budget), 'C0') AS TotalBudgetManaged,
-    FORMAT(AVG(p.d.Budget), 'C0') AS AvgProjectSize,
+    FORMAT(SUM(d.Budget), 'C0') AS TotalBudgetManaged,
+    FORMAT(AVG(d.Budget), 'C0') AS AvgProjectSize,
     
     -- Efficiency metrics
     CASE 
@@ -328,14 +328,14 @@ SELECT d.DepartmentName,
     
     CASE 
         WHEN COUNT(DISTINCT e.EmployeeID) = 0 THEN '$0'
-        ELSE FORMAT(SUM(p.d.Budget) / COUNT(DISTINCT e.EmployeeID), 'C0')
+        ELSE FORMAT(SUM(d.Budget) / COUNT(DISTINCT e.EmployeeID), 'C0')
     END AS BudgetPerEmployee
     
 FROM Departments d
-LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID
 LEFT JOIN Projects p ON e.EmployeeID = p.AssignedEmployeeID
 GROUP BY d.DepartmentName
-ORDER BY SUM(p.d.Budget) DESC;
+ORDER BY SUM(d.Budget) DESC;
 ```
 
 ---
@@ -366,7 +366,7 @@ ORDER BY e.BaseSalary DESC;
 SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount
 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.BaseSalary > 60000                    -- Filter rows first (Module 5)
   AND e.HireDate >= '2020-01-01'         -- Multiple conditions (Module 5)
 GROUP BY d.DepartmentName                     -- Then group (Module 9)
@@ -596,7 +596,7 @@ SELECT d.DepartmentName,
     AVG(CASE WHEN e.BaseSalary IS NOT NULL THEN e.BaseSalary END) AS AvgSalaryExplicit
     
 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 GROUP BY d.DepartmentName
 ORDER BY COUNT(*) DESC;
 ```
@@ -678,8 +678,8 @@ WHERE d.DepartmentName = 'IT';
 SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount
 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID e
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 GROUP BY d.DepartmentName
 ORDER BY SUM(e.BaseSalary) DESC;
 ```
@@ -971,8 +971,8 @@ SELECT
     -- Financial overview (Module 8 + 9)
     FORMAT(SUM(e.BaseSalary), 'C0') AS TotalPayrollCost,
     FORMAT(AVG(e.BaseSalary), 'C0') AS AvgEmployeeSalary,
-    FORMAT(SUM(p.d.Budget), 'C0') AS TotalProjectBudgets,
-    FORMAT(AVG(p.d.Budget), 'C0') AS AvgProjectBudget,
+    FORMAT(SUM(d.Budget), 'C0') AS TotalProjectBudgets,
+    FORMAT(AVG(d.Budget), 'C0') AS AvgProjectBudget,
     
     -- Performance metrics (Module 6 + 8 + 9)
     COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) AS CompletedProjects,
@@ -992,7 +992,7 @@ SELECT
     ) + '%' AS DataCompleteness
     
 FROM Employees e                               -- Main table (Module 1)
-FULL OUTER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID  -- Ensure all depts (Module 4)
+FULL OUTER JOIN Departments d ON d.DepartmentID = d.DepartmentID  -- Ensure all depts (Module 4)
 LEFT JOIN Projects p ON e.EmployeeID = p.AssignedEmployeeID       -- Include unassigned (Module 4)
 CROSS JOIN Clients c                           -- Cross join for totals (Module 4)
 WHERE e.HireDate IS NOT NULL                   -- Data quality filter (Module 5)
@@ -1005,7 +1005,7 @@ SELECT
     d.DepartmentName AS TotalEmployees,
     CAST(COUNT(e.EmployeeID) AS VARCHAR(10)) AS TotalDepartments,
     CAST(COUNT(p.ProjectID) AS VARCHAR(10)) AS TotalProjects,
-    FORMAT(SUM(p.d.Budget), 'C0') AS TotalClients,
+    FORMAT(SUM(d.Budget), 'C0') AS TotalClients,
     
     FORMAT(SUM(e.BaseSalary), 'C0') AS TotalPayrollCost,
     FORMAT(AVG(e.BaseSalary), 'C0') AS AvgEmployeeSalary,
@@ -1031,7 +1031,7 @@ SELECT
     '---' AS DataCompleteness
     
 FROM Departments d
-LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID
 LEFT JOIN Projects p ON e.EmployeeID = p.AssignedEmployeeID
 GROUP BY d.DepartmentName
 ORDER BY d.DepartmentName;

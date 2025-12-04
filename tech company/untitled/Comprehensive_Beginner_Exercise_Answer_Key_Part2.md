@@ -284,13 +284,13 @@ WITH SalaryAnalytics AS (
          WHERE pm.EmployeeID = e.EmployeeID) as AvgPerformanceRating,
         
         -- Project budget data
-        (SELECT SUM(p.d.Budget) 
+        (SELECT SUM(d.Budget) 
          FROM Projects p 
          INNER JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
          WHERE ep.EmployeeID = e.EmployeeID) as TotalProjectBudgetManaged
          
     FROM Employees e
-        INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+        INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     WHERE e.IsActive = 1
 )
 
@@ -366,7 +366,7 @@ SELECT
     END as SalaryQuartile,
     
     -- Square root for standard deviation-like calculations
-    SQRT(ABS(e.BaseSalary - (SELECT AVG(e.BaseSalary) FROM SalaryAnalytics WHERE d.DepartmentName = sa.d.DepartmentName))) as SalaryDeviationSqrt,
+    SQRT(ABS(e.BaseSalary - (SELECT AVG(e.BaseSalary) FROM SalaryAnalytics WHERE d.DepartmentName = d.DepartmentName))) as SalaryDeviationSqrt,
     
     -- Modulo operations for grouping
     e.EmployeeID % 10 as EmployeeGroupMod10,
@@ -458,7 +458,7 @@ WITH DepartmentMetrics AS (
         
     FROM Departments d
         INNER JOIN Companies c ON d.CompanyID = c.CompanyID
-        LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
+        LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID AND e.IsActive = 1
         LEFT JOIN (
             -- Get latest performance rating for each employee
             SELECT DISTINCT
@@ -483,20 +483,20 @@ ProjectMetrics AS (
     SELECT 
         d.DepartmentID,
         COUNT(DISTINCT p.ProjectID) as ActiveProjects,
-        SUM(p.d.Budget) as TotalProjectBudget,
-        AVG(p.d.Budget) as AvgProjectBudget,
+        SUM(d.Budget) as TotalProjectBudget,
+        AVG(d.Budget) as AvgProjectBudget,
         COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END) as CompletedProjects,
         COUNT(CASE WHEN p.IsActive = 'Active' THEN 1 END) as CurrentActiveProjects,
         COUNT(CASE WHEN p.IsActive = 'On Hold' THEN 1 END) as ProjectsOnHold
     FROM Departments d
-        LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+        LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID
         LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
         LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID
     GROUP BY d.DepartmentID
 )
 
 -- Final comprehensive dashboard
-SELECT dm.d.DepartmentName,
+SELECT d.DepartmentName,
     dm.CompanyName,
     
     -- Employee Statistics
@@ -591,7 +591,7 @@ SELECT dm.d.DepartmentName,
     END as PrimaryRecommendation
 
 FROM DepartmentMetrics dm
-    LEFT JOIN ProjectMetrics pm ON dm.d.DepartmentID = pm.d.DepartmentID
+    LEFT JOIN ProjectMetrics pm ON d.DepartmentID = d.DepartmentID
 
 ORDER BY 
     (
@@ -664,14 +664,14 @@ WITH ExecutiveSummary AS (
         -- Financial overview
         SUM(e.BaseSalary) as TotalAnnualPayroll,
         AVG(e.BaseSalary) as AvgEmployeeSalary,
-        SUM(p.d.Budget) as TotalProjectBudgets,
+        SUM(d.Budget) as TotalProjectBudgets,
         
         -- Performance overview
         AVG(pm.Achievement) as OverallPerformanceRating,
         COUNT(CASE WHEN pm.Achievement >= 4.0 THEN 1 END) * 100.0 / COUNT(pm.Achievement) as HighPerformerPercentage
         
     FROM Employees e
-        INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+        INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
         INNER JOIN Companies c ON d.CompanyID = c.CompanyID
         LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
         LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID
@@ -704,7 +704,7 @@ CompetitiveAnalysis AS (
         COUNT(DISTINCT es.SkillID) * 1.0 / COUNT(DISTINCT e.EmployeeID) as SkillDiversityIndex
         
     FROM Departments d
-        INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
+        INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID AND e.IsActive = 1
         LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
         LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
         LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID
@@ -741,23 +741,23 @@ RiskOpportunityAnalysis AS (
         COUNT(CASE WHEN dept_skills.SkillCount < 5 THEN 1 END) as DepartmentsWithSkillGaps,
         
         -- Revenue growth potential (projects in pipeline)
-        SUM(CASE WHEN p.IsActive = 'Planning' THEN p.d.Budget ELSE 0 END) as PipelineValue
+        SUM(CASE WHEN p.IsActive = 'Planning' THEN d.Budget ELSE 0 END) as PipelineValue
         
     FROM Employees e
-        INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+        INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
         LEFT JOIN (
             SELECT d.DepartmentID, AVG(e.BaseSalary) as AvgSalary
             FROM Employees e 
             WHERE IsActive = 1
             GROUP BY d.DepartmentID
-        ) dept_avg ON e.d.DepartmentID = dept_avg.d.DepartmentID
+        ) dept_avg ON d.DepartmentID = d.DepartmentID
         LEFT JOIN (
-            SELECT d2.d.DepartmentID, COUNT(DISTINCT es2.SkillID) as SkillCount
+            SELECT d.DepartmentID, COUNT(DISTINCT es2.SkillID) as SkillCount
             FROM Departments d d2
-            LEFT JOIN Employees e2 ON d2.d.DepartmentID = e2.d.DepartmentID
+            LEFT JOIN Employees e2 ON d.DepartmentID = d.DepartmentID
             LEFT JOIN EmployeeSkills es2 ON e2.EmployeeID = es2.EmployeeID
-            GROUP BY d2.d.DepartmentID
-        ) dept_skills ON d.DepartmentID = dept_skills.d.DepartmentID
+            GROUP BY d.DepartmentID
+        ) dept_skills ON d.DepartmentID = d.DepartmentID
         LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
         LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID
         LEFT JOIN (
@@ -904,7 +904,7 @@ FROM ExecutiveSummary es
 -- Supporting departmental analysis for deep-dive discussions
 SELECT 
     '=== DEPARTMENTAL DEEP DIVE ANALYSIS ===' as DepartmentalAnalysis,
-    ca.d.DepartmentName,
+    d.DepartmentName,
     FORMAT(ca.AvgDeptSalary, 'C') as AverageSalary,
     ca.UniqueSkillsInDept as SkillPortfolio,
     CAST(ca.AvgTenure AS DECIMAL(3,1)) as AverageTenure,

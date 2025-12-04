@@ -82,7 +82,7 @@ SELECT
     d.DepartmentName,
     e.HireDate
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 
 EXCEPT
@@ -95,7 +95,7 @@ SELECT
     d.DepartmentName,
     e.HireDate
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
 WHERE e.IsActive = 1
   AND o.IsActive = 1;
@@ -146,9 +146,9 @@ WHERE d.IsActive = 1
 EXCEPT  
 
 SELECT 
-    dh.d.DepartmentID,
-    dh.d.DepartmentName,
-    dh.d.Budget,
+    d.DepartmentID,
+    d.DepartmentName,
+    d.Budget,
     dh.Location
 FROM DepartmentHistory dh
 WHERE dh.RecordDate = DATEADD(MONTH, -1, GETDATE())

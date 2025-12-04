@@ -98,7 +98,7 @@ SELECT
     d.DepartmentName,
     e.BaseSalary
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID;
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID;
 
 -- Multiple table aliases
 SELECT 
@@ -107,7 +107,7 @@ SELECT
     m.FirstName + ' ' + m.LastName AS ManagerName,
     e.BaseSalary AS [Employee e.BaseSalary]
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 LEFT JOIN Employees m ON e.ManagerID = m.EmployeeID;
 ```
 
@@ -157,7 +157,7 @@ FROM Employees e;
 ### 4. Aliases in Subqueries
 ```sql
 -- Subquery with table alias
-SELECT dept_stats.d.DepartmentName,
+SELECT d.DepartmentName,
     dept_stats.EmployeeCount,
     dept_stats.AverageSalary
 FROM (
@@ -165,7 +165,7 @@ FROM (
         COUNT(e.EmployeeID) AS EmployeeCount,
         AVG(e.BaseSalary) AS AverageBaseSalary
     FROM Departments d
-    LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+    LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID
     GROUP BY d.DepartmentName
 ) dept_stats
 WHERE dept_stats.EmployeeCount > 2;
@@ -260,7 +260,7 @@ SELECT
         ELSE 'Market Rate'
     END AS SalaryPosition
 FROM EmployeePerformanceMetrics epm
-INNER JOIN DepartmentBenchmarks db ON epm.DepartmentName = db.d.DepartmentName
+INNER JOIN DepartmentBenchmarks db ON epm.DepartmentName = d.DepartmentName
 ORDER BY epm.DepartmentName, epm.BaseSalary DESC;
 ```
 

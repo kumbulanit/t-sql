@@ -186,7 +186,7 @@ FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE 
     -- Parentheses for explicit precedence
-    (e.d.DepartmentName IN ('Sales', 'Marketing', 'Customer Service')
+    (d.DepartmentName IN ('Sales', 'Marketing', 'Customer Service')
      AND e.BaseSalary BETWEEN 40000 AND 80000)
     OR 
     (d.DepartmentName = 'Engineering' 
@@ -566,7 +566,7 @@ FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
 WHERE 
     -- Most selective filter first
-    e.d.DepartmentName = 'Sales'
+    d.DepartmentName = 'Sales'
     AND e.HireDate >= '2020-01-01'
     AND (
         e.LastName LIKE 'S%'  -- SARGable (Search ARGument able)

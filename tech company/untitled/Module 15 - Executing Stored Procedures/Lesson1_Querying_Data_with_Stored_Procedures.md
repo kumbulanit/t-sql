@@ -15,7 +15,7 @@ Instead of writing the same complex query every time:
 -- Instead of writing this repeatedly:
 SELECT e.FirstName, e.LastName, e.JobTitle, d.DepartmentName, e.BaseSalary
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1 AND d.DepartmentName = 'Engineering'
 ORDER BY e.BaseSalary DESC;
 ```
@@ -175,9 +175,9 @@ BEGIN
             ELSE 'New Hire (< 2 years)'
         END AS ServiceCategory
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
-    WHERE (@d.DepartmentID IS NULL OR e.d.DepartmentID = @d.DepartmentID)
+    WHERE (@d.DepartmentID IS NULL OR d.DepartmentID = @d.DepartmentID)
       AND (e.IsActive = 1 OR @IncludeInactive = 1)
       AND d.IsActive = 1
     ORDER BY 
@@ -262,14 +262,14 @@ BEGIN
             ELSE 'Solid contributor - continue current trajectory with minor improvements'
         END AS PerformanceRecommendation
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     LEFT JOIN (
         -- Project involvement aggregation
         SELECT 
             ep.EmployeeID,
             COUNT(DISTINCT ep.ProjectID) AS ProjectCount,
             SUM(ep.HoursWorked) AS TotalProjectHours,
-            SUM(p.d.Budget) AS TotalProjectBudget
+            SUM(d.Budget) AS TotalProjectBudget
         FROM EmployeeProjects ep
         INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
         WHERE ep.IsActive = 1
@@ -292,7 +292,7 @@ BEGIN
     WHERE e.IsActive = 1
       AND d.IsActive = 1
       AND (@e.EmployeeID IS NULL OR e.EmployeeID = @e.EmployeeID)
-      AND (@d.DepartmentID IS NULL OR e.d.DepartmentID = @d.DepartmentID)
+      AND (@d.DepartmentID IS NULL OR d.DepartmentID = @d.DepartmentID)
     ORDER BY PerformanceScore DESC, e.LastName, e.FirstName;
 END;
 
@@ -396,33 +396,33 @@ BEGIN
     INNER JOIN (
         -- Employee cost aggregation
         SELECT 
-            e.d.DepartmentID,
+            d.DepartmentID,
             COUNT(*) AS ActiveEmployeeCount,
             SUM(e.BaseSalary) AS TotalBaseSalaryCost,
             AVG(e.BaseSalary) AS AverageBaseSalary
         FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
         WHERE e.IsActive = 1
-        GROUP BY e.d.DepartmentID
-    ) employee_costs ON d.DepartmentID = employee_costs.d.DepartmentID
+        GROUP BY d.DepartmentID
+    ) employee_costs ON d.DepartmentID = d.DepartmentID
     LEFT JOIN (
         -- Project financial aggregation
         SELECT 
-            e.d.DepartmentID,
+            d.DepartmentID,
             COUNT(DISTINCT p.ProjectID) AS ActiveProjectCount,
-            SUM(p.d.Budget) AS TotalProjectBudget,
-            AVG(p.d.Budget) AS AverageProjectBudget
+            SUM(d.Budget) AS TotalProjectBudget,
+            AVG(d.Budget) AS AverageProjectBudget
         FROM Projects p
         INNER JOIN Employees e ON p.ProjectManagerID = e.EmployeeID
         WHERE p.IsActive = 1
           AND e.IsActive = 1
           AND p.StartDate >= DATEADD(MONTH, -@AnalysisPeriodMonths, GETDATE())
-        GROUP BY e.d.DepartmentID
-    ) project_financials ON d.DepartmentID = project_financials.d.DepartmentID
+        GROUP BY d.DepartmentID
+    ) project_financials ON d.DepartmentID = d.DepartmentID
     LEFT JOIN (
         -- Revenue generation aggregation
         SELECT 
-            e.d.DepartmentID,
+            d.DepartmentID,
             SUM(o.TotalAmount) AS TotalRevenue,
             COUNT(o.OrderID) AS OrderCount,
             COUNT(DISTINCT o.CustomerID) AS UniqueCustomerCount
@@ -431,8 +431,8 @@ BEGIN
         WHERE o.IsActive = 1
           AND e.IsActive = 1
           AND o.OrderDate >= DATEADD(MONTH, -@AnalysisPeriodMonths, GETDATE())
-        GROUP BY e.d.DepartmentID
-    ) revenue_metrics ON d.DepartmentID = revenue_metrics.d.DepartmentID
+        GROUP BY d.DepartmentID
+    ) revenue_metrics ON d.DepartmentID = d.DepartmentID
     WHERE d.IsActive = 1
       AND (@d.DepartmentID IS NULL OR d.DepartmentID = @d.DepartmentID)
     ORDER BY 
@@ -578,7 +578,7 @@ BEGIN
             (SELECT TOP 1 d.DepartmentName
              FROM Orders o2 
              INNER JOIN Employees e ON o2.EmployeeID = e.EmployeeID
-             INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+             INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
              WHERE o2.CustomerID = o.CustomerID 
                AND o2.IsActive = 1
                AND e.IsActive = 1
@@ -684,7 +684,7 @@ BEGIN
                 ELSE NULL
             END AS TotalProjectHours
         FROM Employees e
-        INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+        INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
         LEFT JOIN (
             SELECT 
                 ep.EmployeeID,
@@ -795,10 +795,10 @@ BEGIN
         d.DepartmentName,
         e.HireDate
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
-      AND (@d.DepartmentID IS NULL OR e.d.DepartmentID = @d.DepartmentID)
+      AND (@d.DepartmentID IS NULL OR d.DepartmentID = @d.DepartmentID)
       AND e.HireDate BETWEEN @StartDate AND @EndDate
     ORDER BY e.HireDate DESC;
 END;
@@ -829,14 +829,14 @@ BEGIN
     FROM Departments d
     LEFT JOIN (
         SELECT 
-            e.d.DepartmentID,
+            d.DepartmentID,
             COUNT(*) AS EmployeeCount,
             SUM(e.BaseSalary) AS TotalSalary
         FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
         WHERE e.IsActive = 1
-        GROUP BY e.d.DepartmentID
-    ) emp_count ON d.DepartmentID = emp_count.d.DepartmentID
+        GROUP BY d.DepartmentID
+    ) emp_count ON d.DepartmentID = d.DepartmentID
     WHERE d.IsActive = 1
       AND (@IncludeEmpty = 1 OR emp_count.EmployeeCount > 0)
     ORDER BY d.DepartmentName;

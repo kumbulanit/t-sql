@@ -128,7 +128,7 @@ WHERE e.FirstName + ' ' + e.LastName LIKE 'John%';
 #### 3. Subqueries and Logical Order
 ```sql
 -- Each subquery follows its own logical processing order
-SELECT e.d.DepartmentName,
+SELECT d.DepartmentName,
     e.AvgSalary,
     d.DepartmentName
 FROM (

@@ -403,10 +403,10 @@ BEGIN
     -- Get total number of employees to process
     SELECT @TotalEmployees = COUNT(*)
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
-      AND (@d.DepartmentID IS NULL OR e.d.DepartmentID = @d.DepartmentID);
+      AND (@d.DepartmentID IS NULL OR d.DepartmentID = @d.DepartmentID);
     
     PRINT '=== TechCorp Monthly Bonus Processing ===';
     PRINT 'Processing Year: ' + CAST(@ProcessingYear AS VARCHAR);
@@ -449,18 +449,18 @@ BEGIN
             e.FirstName + ' ' + e.LastName,
             e.BaseSalary
         FROM Employees e
-        INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+        INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
         WHERE e.IsActive = 1
           AND d.IsActive = 1
-          AND (@d.DepartmentID IS NULL OR e.d.DepartmentID = @d.DepartmentID)
+          AND (@d.DepartmentID IS NULL OR d.DepartmentID = @d.DepartmentID)
           AND e.EmployeeID NOT IN (
               -- Exclude already processed employees (in real system, would use a status table)
               SELECT TOP (@ProcessedCount) emp.EmployeeID 
               FROM Employees e emp 
-              INNER JOIN Departments dep ON emp.d.DepartmentID = dep.d.DepartmentID
+              INNER JOIN Departments dep ON d.DepartmentID = d.DepartmentID
               WHERE emp.IsActive = 1 
                 AND dep.IsActive = 1
-                AND (@d.DepartmentID IS NULL OR emp.d.DepartmentID = @d.DepartmentID)
+                AND (@d.DepartmentID IS NULL OR d.DepartmentID = @d.DepartmentID)
               ORDER BY emp.EmployeeID
           )
         ORDER BY e.EmployeeID;
@@ -724,7 +724,7 @@ EMPLOYEE_VALIDATION:
         DECLARE @OrphanEmployees INT;
         SELECT @OrphanEmployees = COUNT(*)
         FROM Employees e
-        LEFT JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+        LEFT JOIN Departments d ON d.DepartmentID = d.DepartmentID
         WHERE e.IsActive = 1 AND (d.DepartmentID IS NULL OR d.IsActive = 0);
         
         IF @OrphanEmployees > 0
@@ -797,7 +797,7 @@ DEPARTMENT_VALIDATION:
         DECLARE @EmptyDepartments INT;
         SELECT @EmptyDepartments = COUNT(*)
         FROM Departments d
-        LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
+        LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID AND e.IsActive = 1
         WHERE d.IsActive = 1
         GROUP BY d.DepartmentID, d.DepartmentName
         HAVING COUNT(e.EmployeeID) = 0;
@@ -818,7 +818,7 @@ DEPARTMENT_VALIDATION:
                 d.Budget,
                 SUM(e.BaseSalary) AS TotalPayroll
             FROM Departments d
-            INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+            INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
             WHERE d.IsActive = 1 AND e.IsActive = 1
             GROUP BY d.DepartmentID, d.Budget
             HAVING SUM(e.BaseSalary) > d.Budget

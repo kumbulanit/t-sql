@@ -488,7 +488,7 @@ WITH ExecutiveSummary AS (
         SUM(e.BaseSalary) AS TotalValue,
         NULL AS CompletionRate
     FROM Departments d
-        LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
+        LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID AND e.IsActive = 1
     WHERE d.IsActive = 1
     GROUP BY d.DepartmentID, d.DepartmentName
     
@@ -499,8 +499,8 @@ WITH ExecutiveSummary AS (
         'Project Performance' AS MetricCategory,
         pt.TypeName AS Dimension,
         COUNT(p.ProjectID) AS Volume,
-        AVG(p.d.Budget) AS AvgValue,
-        SUM(p.d.Budget) AS TotalValue,
+        AVG(d.Budget) AS AvgValue,
+        SUM(d.Budget) AS TotalValue,
         (COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0) / 
         NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) AS CompletionRate
     FROM ProjectTypes pt
@@ -516,7 +516,7 @@ WITH ExecutiveSummary AS (
         c.IndustryID AS Dimension,
         COUNT(DISTINCT c.CompanyID) AS Volume,
         AVG(c.AnnualRevenue) AS AvgValue,
-        SUM(p.d.Budget) AS TotalValue,
+        SUM(d.Budget) AS TotalValue,
         NULL AS CompletionRate
     FROM Companies c
         LEFT JOIN Projects p ON c.CompanyID = p.CompanyID AND p.IsActive = 1
@@ -594,15 +594,15 @@ BEGIN
         -- Financial metrics
         SUM(e.BaseSalary) AS TotalPayroll,
         AVG(e.BaseSalary) AS AvgSalary,
-        SUM(p.d.Budget) AS TotalProjectRevenue,
-        AVG(p.d.Budget) AS AvgProjectBudget,
+        SUM(d.Budget) AS TotalProjectRevenue,
+        AVG(d.Budget) AS AvgProjectBudget,
         
         -- Performance metrics
         COUNT(CASE WHEN e.PerformanceRating >= 4 THEN 1 END) * 100.0 / COUNT(e.EmployeeID) AS HighPerformerPercent,
         COUNT(CASE WHEN p.IsActive = 'Completed' AND p.ActualEndDate <= p.PlannedEndDate THEN 1 END) * 100.0 /
         NULLIF(COUNT(CASE WHEN p.IsActive = 'Completed' THEN 1 END), 0) AS OnTimeDeliveryPercent
     FROM Departments d
-        LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID 
+        LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID 
                                AND e.IsActive = 1
                                AND e.HireDate <= @EndDate
         LEFT JOIN Projects p ON e.EmployeeID = p.ProjectManagerID

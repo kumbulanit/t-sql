@@ -289,7 +289,7 @@ WHERE d.DepartmentID IN (
 -- Correlated subquery
 WHERE e.BaseSalary > (
     SELECT AVG(e.BaseSalary) FROM Employees e e2 
-    WHERE e2.d.DepartmentID = Employees.d.DepartmentID
+    WHERE d.DepartmentID = Employees.d.DepartmentID
 )
 ```
 

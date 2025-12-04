@@ -92,7 +92,7 @@ Use appropriate set operations to create these categories.
 ```sql
 SELECT d.DepartmentName, AVG(e.BaseSalary) as AvgSal, TeamSize
 FROM Departments d
-JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+JOIN Employees e ON d.DepartmentID = d.DepartmentID
 WHERE TeamSize > 2
 GROUP BY d.DepartmentName
 HAVING AVG(e.BaseSalary) > 60000

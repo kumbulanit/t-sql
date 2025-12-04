@@ -82,8 +82,8 @@ CROSS APPLY (
         e.HireDate,
         NTILE(4) OVER (ORDER BY e.BaseSalary) AS SalaryPercentileInDept
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    WHERE e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID
     AND e.IsActive = 1
     ORDER BY e.BaseSalary DESC
 ) AS top_performers
@@ -110,8 +110,8 @@ CROSS APPLY (
         e.FirstName + ' ' + e.LastName AS EmployeeName,
         e.BaseSalary
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    WHERE e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID
     AND e.IsActive = 1
     ORDER BY e.BaseSalary DESC
 ) AS top_performers
@@ -120,7 +120,7 @@ CROSS APPLY (
         AVG(e.BaseSalary) AS DepartmentAvgSalary,
         COUNT(*) AS TotalEmployees
     FROM Employees e
-    WHERE e.d.DepartmentID = d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID
     AND e.IsActive = 1
 ) AS dept_stats
 WHERE d.IsActive = 1
@@ -170,15 +170,15 @@ OUTER APPLY (
         MAX(e.BaseSalary) AS MaxSalary,
         COUNT(CASE WHEN DATEDIFF(YEAR, e.HireDate, GETDATE()) >= 5 THEN 1 END) AS LongTenureEmployees
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    WHERE e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID
     AND e.IsActive = 1
 ) AS emp_stats
 WHERE d.IsActive = 1
 ORDER BY emp_stats.EmployeeCount DESC NULLS LAST, d.DepartmentName;
 
 -- d.DepartmentName planning recommendations based on analysis
-SELECT main_analysis.d.DepartmentName,
+SELECT d.DepartmentName,
     main_analysis.EmployeeCount,
     main_analysis.BudgetUtilizationStatus,
     main_analysis.BudgetUtilizationPercent,
@@ -207,8 +207,8 @@ FROM (
             COUNT(*) AS EmployeeCount,
             SUM(e.BaseSalary) AS TotalSalaryExpense
         FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-        WHERE e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+        WHERE d.DepartmentID = d.DepartmentID
         AND e.IsActive = 1
     ) AS emp_stats
     WHERE d.IsActive = 1
@@ -290,15 +290,15 @@ SELECT
     END AS ContributionLevel,
     project_summary.TotalHours * (e.BaseSalary / 2080.0) AS EstimatedProjectCostContribution
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 CROSS APPLY (
     -- Inline table expression simulating the function
     SELECT 
         COUNT(DISTINCT ep.ProjectID) AS ProjectCount,
         SUM(ISNULL(ep.HoursWorked, 0)) AS TotalHours,
         AVG(ISNULL(ep.HoursWorked, 0)) AS AverageHoursPerProject,
-        COUNT(DISTINCT CASE WHEN p.d.Budget > 100000 THEN ep.ProjectID END) AS HighValueProjectCount,
-        SUM(CASE WHEN p.d.Budget > 100000 THEN ISNULL(ep.HoursWorked, 0) ELSE 0 END) AS HighValueProjectHours,
+        COUNT(DISTINCT CASE WHEN d.Budget > 100000 THEN ep.ProjectID END) AS HighValueProjectCount,
+        SUM(CASE WHEN d.Budget > 100000 THEN ISNULL(ep.HoursWorked, 0) ELSE 0 END) AS HighValueProjectHours,
         MIN(ep.StartDate) AS FirstProjectStart,
         MAX(ISNULL(ep.EndDate, GETDATE())) AS LastProjectActivity
     FROM EmployeeProjects ep
@@ -476,12 +476,12 @@ WITH DepartmentPerformanceMetrics AS (
         COUNT(e.EmployeeID) AS TotalEmployees,
         AVG(e.BaseSalary) AS AvgSalary
     FROM Departments d
-    INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+    INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
     WHERE d.IsActive = 1 AND e.IsActive = 1
     GROUP BY d.DepartmentID, d.DepartmentName, d.Budget
 )
 
-SELECT dpm.d.DepartmentName,
+SELECT d.DepartmentName,
     dpm.TotalEmployees,
     dpm.AvgSalary,
     top_contributors.EmployeeName,
@@ -501,7 +501,7 @@ CROSS APPLY (
         ROW_NUMBER() OVER (ORDER BY SUM(ISNULL(ep.HoursWorked, 0)) DESC) AS ContributionRank
     FROM Employees e
     INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-    WHERE e.d.DepartmentID = dpm.d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID
     AND e.IsActive = 1
     AND ep.IsActive = 1
     AND ep.StartDate >= DATEADD(YEAR, -1, GETDATE())  -- Filter for recent activity
@@ -516,18 +516,18 @@ CROSS APPLY (
         SUM(ISNULL(ep.HoursWorked, 0)) AS DepartmentTotalHours
     FROM Employees e
     INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-    WHERE e.d.DepartmentID = dpm.d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID
     AND e.IsActive = 1
     AND ep.IsActive = 1
     AND ep.StartDate >= DATEADD(YEAR, -1, GETDATE())
 ) AS performance_metrics
 
-ORDER BY dpm.d.DepartmentName, top_contributors.ContributionRank;
+ORDER BY d.DepartmentName, top_contributors.ContributionRank;
 
 -- Performance monitoring query
 SELECT 
     'Query Performance Metrics' AS MetricType,
-    COUNT(DISTINCT dpm.d.DepartmentID) AS DepartmentsAnalyzed,
+    COUNT(DISTINCT d.DepartmentID) AS DepartmentsAnalyzed,
     COUNT(*) AS TopContributorsFound,
     AVG(top_contributors.TotalProjectHours) AS AvgContributionHours,
     MAX(top_contributors.TotalProjectHours) AS MaxContributionHours,
@@ -538,7 +538,7 @@ CROSS APPLY (
         SUM(ISNULL(ep.HoursWorked, 0)) AS TotalProjectHours
     FROM Employees e
     INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-    WHERE e.d.DepartmentID = dpm.d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID
     AND e.IsActive = 1
     AND ep.IsActive = 1
     AND ep.StartDate >= DATEADD(YEAR, -1, GETDATE())

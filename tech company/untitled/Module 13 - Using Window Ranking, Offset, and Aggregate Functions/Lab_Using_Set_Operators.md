@@ -55,7 +55,7 @@ SELECT
     -- Add your columns here
     ...
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 
 UNION
@@ -107,7 +107,7 @@ SELECT
     d.DepartmentName,
     'Never Assigned Projects' AS ComplianceIssue
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 
 EXCEPT
@@ -160,7 +160,7 @@ SELECT
     d.DepartmentName,
     e.BaseSalary
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND e.EmployeeID IN (
       -- Define high performer criteria here
@@ -177,7 +177,7 @@ SELECT
     d.DepartmentName,
     e.BaseSalary
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND e.BaseSalary >= (
       -- Calculate d.DepartmentName e.BaseSalary threshold (75th percentile)
@@ -232,7 +232,7 @@ SELECT
     performance_metrics.CareerRecommendation,
     performance_metrics.DepartmentRank
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 CROSS APPLY (
     SELECT 
         -- Calculate project performance score (0-100)
@@ -256,7 +256,7 @@ CROSS APPLY (
         END AS CareerRecommendation,
         -- d.DepartmentName ranking
         ROW_NUMBER() OVER (
-            PARTITION BY e.d.DepartmentID 
+            PARTITION BY d.DepartmentID 
             ORDER BY (
                 (project_data.ProjectScore * 0.4) +
                 (customer_data.CustomerScore * 0.3) +

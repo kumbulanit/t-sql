@@ -89,7 +89,7 @@ SELECT d.DepartmentName,
     FORMAT(SUM(e.BaseSalary), 'C0') AS 'Total d.DepartmentName Cost',
     FORMAT(AVG(e.BaseSalary), 'C0') AS 'Average e.BaseSalary'
 FROM Departments d
-INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
 GROUP BY d.DepartmentName
 ORDER BY COUNT(e.EmployeeID) DESC;
 
@@ -97,12 +97,12 @@ ORDER BY COUNT(e.EmployeeID) DESC;
 SELECT 
     c.ClientName,
     COUNT(p.ProjectID) AS 'Number of Projects',
-    FORMAT(SUM(p.d.Budget), 'C0') AS 'Total Project Value',
-    FORMAT(AVG(p.d.Budget), 'C0') AS 'Average Project Size'
+    FORMAT(SUM(d.Budget), 'C0') AS 'Total Project Value',
+    FORMAT(AVG(d.Budget), 'C0') AS 'Average Project Size'
 FROM Clients c
 INNER JOIN Projects p ON c.ClientID = p.ClientID
 GROUP BY c.ClientName
-ORDER BY SUM(p.d.Budget) DESC;
+ORDER BY SUM(d.Budget) DESC;
 ```
 
 ### Exercise 2.2: Multi-Table Analysis (🟢 INTERMEDIATE)
@@ -112,26 +112,26 @@ ORDER BY SUM(p.d.Budget) DESC;
 -- Exercise 2.2a: d.DepartmentName project management analysis
 SELECT d.DepartmentName,
     COUNT(p.ProjectID) AS 'Projects Managed',
-    FORMAT(SUM(p.d.Budget), 'C0') AS 'Total d.Budget Managed',
-    FORMAT(AVG(p.d.Budget), 'C0') AS 'Average Project Size'
+    FORMAT(SUM(d.Budget), 'C0') AS 'Total d.Budget Managed',
+    FORMAT(AVG(d.Budget), 'C0') AS 'Average Project Size'
 FROM Departments d
-INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
 INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
 GROUP BY d.DepartmentName
 HAVING COUNT(p.ProjectID) >= 2  -- Only departments managing multiple projects
-ORDER BY SUM(p.d.Budget) DESC;
+ORDER BY SUM(d.Budget) DESC;
 
 -- Exercise 2.2b: Client industry analysis
 SELECT 
     c.Industry,
     COUNT(DISTINCT c.ClientID) AS 'Number of Clients',
     COUNT(p.ProjectID) AS 'Total Projects', 
-    FORMAT(SUM(p.d.Budget), 'C0') AS 'Industry Revenue'
+    FORMAT(SUM(d.Budget), 'C0') AS 'Industry Revenue'
 FROM Clients c
 INNER JOIN Projects p ON c.ClientID = p.ClientID
 GROUP BY c.Industry
 HAVING COUNT(p.ProjectID) >= 3  -- Industries with significant business
-ORDER BY SUM(p.d.Budget) DESC;
+ORDER BY SUM(d.Budget) DESC;
 ```
 
 ---
@@ -147,7 +147,7 @@ ORDER BY SUM(p.d.Budget) DESC;
 SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount
 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.BaseSalary > 45000  -- Filter for high earners first
 GROUP BY d.DepartmentName
 HAVING COUNT(*) >= 2  -- Only departments with multiple high earners
@@ -282,7 +282,7 @@ ORDER BY AVG(DATEDIFF(DAY, StartDate, ISNULL(EndDate, GETDATE())));
 SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount
 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 GROUP BY d.DepartmentName
 HAVING COUNT(*) >= 3  -- Departments with enough employees for meaningful stats
 ORDER BY AVG(e.BaseSalary) DESC;
@@ -316,8 +316,8 @@ ORDER BY (SUM(d.Budget) - SUM(ISNULL(ActualCost, d.Budget * 0.8))) DESC;
 SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount
 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID e
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 GROUP BY d.DepartmentName
 ORDER BY COUNT(*) DESC;
 
@@ -349,9 +349,9 @@ WITH DepartmentStats AS (
         COUNT(e.EmployeeID) AS EmployeeCount,
         AVG(e.BaseSalary) AS AvgSalary,
         COUNT(p.ProjectID) AS ProjectsManaged,
-        SUM(p.d.Budget) AS TotalBudgetManaged
+        SUM(d.Budget) AS TotalBudgetManaged
     FROM Departments d
-    LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+    LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID
     LEFT JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
     GROUP BY d.DepartmentName
 ),
@@ -360,15 +360,15 @@ ClientStats AS (
         c.Industry,
         COUNT(DISTINCT c.ClientID) AS ClientCount,
         COUNT(p.ProjectID) AS ProjectCount,
-        AVG(p.d.Budget) AS AvgProjectSize,
-        SUM(p.d.Budget) AS TotalRevenue
+        AVG(d.Budget) AS AvgProjectSize,
+        SUM(d.Budget) AS TotalRevenue
     FROM Clients c
     LEFT JOIN Projects p ON c.ClientID = p.ClientID
     GROUP BY c.Industry
 )
 SELECT 
     'Department Performance' AS ReportSection,
-    ds.d.DepartmentName AS Category,
+    d.DepartmentName AS Category,
     ds.EmployeeCount AS Count1,
     FORMAT(ds.AvgSalary, 'C0') AS Value1,
     ds.ProjectsManaged AS Count2,
@@ -417,7 +417,7 @@ SELECT
     END AS 'Hiring Growth %',
     
     -- d.DepartmentName diversity
-    COUNT(DISTINCT e.d.DepartmentName) AS 'Departments Involved',
+    COUNT(DISTINCT d.DepartmentName) AS 'Departments Involved',
     
     -- e.BaseSalary progression
     CASE 

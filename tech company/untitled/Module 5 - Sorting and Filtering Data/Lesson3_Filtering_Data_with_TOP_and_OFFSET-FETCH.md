@@ -271,7 +271,7 @@ SELECT
     e.HireDate,
     d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 ORDER BY 
     CASE WHEN @SortColumn = 'e.BaseSalary' AND @SortDirection = 'ASC' THEN e.BaseSalary END ASC,
@@ -295,7 +295,7 @@ SELECT
     d.DepartmentName,
     COUNT(ep.ProjectID) AS ActiveProjects
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 LEFT JOIN Projects p ON ep.ProjectID = p.ProjectID AND p.IsActive = 'Active'
 WHERE e.IsActive = 1
@@ -323,7 +323,7 @@ WITH EmployeeData AS (
         d.DepartmentName,
         COUNT(*) OVER() AS TotalRecords
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     WHERE e.IsActive = 1
 ),
 PagedResults AS (
@@ -405,7 +405,7 @@ WITH EmployeePerformance AS (
                   ELSE 5 END)
         ) AS PerformanceScore
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     LEFT JOIN EmployeeSkills es ON e.EmployeeID = es.EmployeeID
     WHERE e.IsActive = 1
@@ -485,13 +485,13 @@ WITH FilteredEmployees AS (
         e.HireDate,
         d.DepartmentName
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     WHERE e.IsActive = 1
       AND (@SearchTerm IS NULL 
            OR e.FirstName LIKE '%' + @SearchTerm + '%'
            OR e.LastName LIKE '%' + @SearchTerm + '%'
            OR e.JobTitle LIKE '%' + @SearchTerm + '%')
-      AND (@DepartmentFilter IS NULL OR e.d.DepartmentID = @DepartmentFilter)
+      AND (@DepartmentFilter IS NULL OR d.DepartmentID = @DepartmentFilter)
       AND e.BaseSalary >= @MinSalary
 ),
 PaginatedResults AS (
@@ -528,7 +528,7 @@ SELECT TOP (5)
     FORMAT(AVG(e.BaseSalary), 'C0') AS AvgSalary,
     FORMAT(MAX(e.BaseSalary), 'C0') AS MaxSalary
 FROM Departments d
-INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 GROUP BY d.DepartmentName
 ORDER BY AVG(e.BaseSalary) DESC;

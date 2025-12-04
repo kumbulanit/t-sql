@@ -148,7 +148,7 @@ FROM Projects p;
 SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount
 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 GROUP BY d.DepartmentName
 ORDER BY COUNT(e.EmployeeID) DESC;
 
@@ -175,12 +175,12 @@ ORDER BY COUNT(p.ProjectID) DESC;
 -- Example: Which departments manage the most project money?
 SELECT d.DepartmentName,
     COUNT(p.ProjectID) AS 'Projects Managed',
-    FORMAT(SUM(p.d.Budget), 'C0') AS 'Total d.Budget Managed'
+    FORMAT(SUM(d.Budget), 'C0') AS 'Total d.Budget Managed'
 FROM Departments d
-INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID  
+INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID  
 INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
 GROUP BY d.DepartmentName
-ORDER BY SUM(p.d.Budget) DESC;
+ORDER BY SUM(d.Budget) DESC;
 ```
 
 **What's happening?**

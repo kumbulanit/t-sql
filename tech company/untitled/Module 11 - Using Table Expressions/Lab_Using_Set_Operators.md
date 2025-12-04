@@ -345,7 +345,7 @@ SELECT
     d.Location AS Location,
     'Internal' AS ContactCategory
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND e.WorkEmail IS NOT NULL
   AND d.IsActive = 1
@@ -386,7 +386,7 @@ SELECT
     CAST(DATEDIFF(DAY, e.HireDate, GETDATE()) / 365.25 AS DECIMAL(4,1)) AS EmploymentDurationYears,
     e.HireDate AS StatusDate
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND d.IsActive = 1
 
@@ -401,7 +401,7 @@ SELECT
     CAST(DATEDIFF(DAY, ea.HireDate, ea.TerminationDate) / 365.25 AS DECIMAL(4,1)) AS EmploymentDurationYears,
     ea.TerminationDate AS StatusDate
 FROM EmployeeArchive ea
-INNER JOIN Departments d ON ea.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE ea.TerminationDate >= DATEADD(MONTH, -12, GETDATE())
   AND d.IsActive = 1
 
@@ -426,7 +426,7 @@ SELECT
     CAST(DATEDIFF(DAY, e.HireDate, GETDATE()) / 365.25 AS DECIMAL(4,1)) AS YearsWithCompany,
     FORMAT(e.BaseSalary, 'C') AS CurrentSalary
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND d.IsActive = 1
 
@@ -440,7 +440,7 @@ SELECT
     CAST(DATEDIFF(DAY, e.HireDate, GETDATE()) / 365.25 AS DECIMAL(4,1)) AS YearsWithCompany,
     FORMAT(e.BaseSalary, 'C') AS CurrentSalary
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 WHERE e.IsActive = 1
   AND d.IsActive = 1
@@ -466,7 +466,7 @@ SELECT
     e.JobTitle,
     CAST(DATEDIFF(DAY, e.HireDate, GETDATE()) / 365.25 AS DECIMAL(4,1)) AS YearsWithCompany
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.BaseSalary > 75000
   AND e.IsActive = 1
   AND d.IsActive = 1
@@ -480,7 +480,7 @@ SELECT
     mgr.JobTitle,
     CAST(DATEDIFF(DAY, mgr.HireDate, GETDATE()) / 365.25 AS DECIMAL(4,1)) AS YearsWithCompany
 FROM Employees e mgr
-INNER JOIN Departments d ON mgr.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE mgr.IsActive = 1
   AND d.IsActive = 1
   AND EXISTS (
@@ -516,7 +516,7 @@ SELECT
      FROM Orders o
      WHERE o.EmployeeID = e.EmployeeID
        AND o.IsActive = 1) AS OrdersProcessed,
-    FORMAT((SELECT ISNULL(SUM(p.d.Budget), 0)
+    FORMAT((SELECT ISNULL(SUM(d.Budget), 0)
             FROM Projects p
             WHERE p.ProjectManagerID = e.EmployeeID
               AND p.IsActive = 1), 'C') AS TotalProjectBudgetManaged,
@@ -526,7 +526,7 @@ SELECT
               AND o.IsActive = 1), 'C') AS TotalOrderValueProcessed
 FROM (
     -- Employees who manage projects
-    SELECT DISTINCT e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.d.DepartmentID
+    SELECT DISTINCT e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, d.DepartmentID
     FROM Employees e
     INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
     WHERE e.IsActive = 1
@@ -535,16 +535,16 @@ FROM (
     INTERSECT
 
     -- Employees who process orders
-    SELECT DISTINCT e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, e.d.DepartmentID
+    SELECT DISTINCT e.EmployeeID, e.FirstName, e.LastName, e.JobTitle, d.DepartmentID
     FROM Employees e
     INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
     WHERE e.IsActive = 1
       AND o.IsActive = 1
 ) e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE d.IsActive = 1
 ORDER BY 
-    ((SELECT ISNULL(SUM(p.d.Budget), 0) FROM Projects p WHERE p.ProjectManagerID = e.EmployeeID AND p.IsActive = 1) +
+    ((SELECT ISNULL(SUM(d.Budget), 0) FROM Projects p WHERE p.ProjectManagerID = e.EmployeeID AND p.IsActive = 1) +
      (SELECT ISNULL(SUM(o.TotalAmount), 0) FROM Orders o WHERE o.EmployeeID = e.EmployeeID AND o.IsActive = 1)) DESC;
 ```
 
@@ -631,11 +631,11 @@ CROSS APPLY (
         (
             -- e.BaseSalary percentile (30% weight)
             (CAST((SELECT COUNT(*) FROM Employees e e2 
-                   WHERE e2.d.DepartmentID = e.d.DepartmentID 
+                   WHERE d.DepartmentID = d.DepartmentID 
                      AND e2.BaseSalary <= e.BaseSalary 
                      AND e2.IsActive = 1) AS FLOAT) * 100.0 / 
              NULLIF((SELECT COUNT(*) FROM Employees e e3 
-                     WHERE e3.d.DepartmentID = e.d.DepartmentID 
+                     WHERE d.DepartmentID = d.DepartmentID 
                        AND e3.IsActive = 1), 0)) * 0.30 +
             
             -- Projects managed (25% weight)
@@ -658,11 +658,11 @@ CROSS APPLY (
             (
                 -- Same calculation for ordering
                 (CAST((SELECT COUNT(*) FROM Employees e e2 
-                       WHERE e2.d.DepartmentID = e.d.DepartmentID 
+                       WHERE d.DepartmentID = d.DepartmentID 
                          AND e2.BaseSalary <= e.BaseSalary 
                          AND e2.IsActive = 1) AS FLOAT) * 100.0 / 
                  NULLIF((SELECT COUNT(*) FROM Employees e e3 
-                         WHERE e3.d.DepartmentID = e.d.DepartmentID 
+                         WHERE d.DepartmentID = d.DepartmentID 
                            AND e3.IsActive = 1), 0)) * 0.30 +
                 (LEAST(ISNULL((SELECT COUNT(DISTINCT p.ProjectID) 
                               FROM Projects p 
@@ -687,8 +687,8 @@ CROSS APPLY (
                   AND o.IsActive = 1), 0) AS OrdersProcessed
     
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    WHERE e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID
       AND e.IsActive = 1
     ORDER BY PerformanceScore DESC
 ) top_performers

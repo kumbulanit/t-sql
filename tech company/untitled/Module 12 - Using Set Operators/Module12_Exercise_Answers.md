@@ -27,7 +27,7 @@ SELECT
         ELSE DATEADD(DAY, RAND() * 180, DATEADD(MONTH, -6, GETDATE())) -- Estimated end date
     END AS LastWorkDate
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 
 UNION
@@ -39,7 +39,7 @@ SELECT
     e.BaseSalary,
     DATEADD(DAY, RAND() * 180, DATEADD(MONTH, -6, GETDATE())) AS LastWorkDate
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 0
 AND e.EmployeeID IN (
     -- Simulate former employees who left in last 6 months
@@ -193,7 +193,7 @@ WITH BudgetAllocations AS (
         'Q1 2024' AS Period,
         COUNT(e.EmployeeID) AS AllocationCount
     FROM Departments d
-    INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+    INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
     WHERE d.IsActive = 1 AND e.IsActive = 1
     GROUP BY d.DepartmentID, d.DepartmentName
 
@@ -204,11 +204,11 @@ WITH BudgetAllocations AS (
         d.DepartmentID,
         d.DepartmentName,
         'Project' AS AllocationType,
-        SUM(p.d.Budget) / 4 AS Amount, -- Quarterly allocation
+        SUM(d.Budget) / 4 AS Amount, -- Quarterly allocation
         'Q1 2024' AS Period,
         COUNT(p.ProjectID) AS AllocationCount
     FROM Departments d
-    INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+    INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
     INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
     WHERE d.IsActive = 1 AND e.IsActive = 1 AND p.IsActive = 1
     GROUP BY d.DepartmentID, d.DepartmentName
@@ -238,27 +238,27 @@ WITH BudgetAllocations AS (
         'Q1 2024' AS Period,
         COUNT(e.EmployeeID) AS AllocationCount
     FROM Departments d
-    INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+    INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
     WHERE d.IsActive = 1 AND e.IsActive = 1
     GROUP BY d.DepartmentID, d.DepartmentName
 )
 
-SELECT ba.d.DepartmentName,
+SELECT d.DepartmentName,
     ba.AllocationType,
     ba.Amount,
     ba.Period,
     ba.AllocationCount,
-    SUM(ba.Amount) OVER (PARTITION BY ba.d.DepartmentID) AS TotalDepartmentAllocation,
-    FORMAT(ba.Amount / SUM(ba.Amount) OVER (PARTITION BY ba.d.DepartmentID) * 100, 'N1') + '%' AS AllocationPercentage,
+    SUM(ba.Amount) OVER (PARTITION BY d.DepartmentID) AS TotalDepartmentAllocation,
+    FORMAT(ba.Amount / SUM(ba.Amount) OVER (PARTITION BY d.DepartmentID) * 100, 'N1') + '%' AS AllocationPercentage,
     CASE 
-        WHEN ba.AllocationType = 'e.BaseSalary' AND ba.Amount / SUM(ba.Amount) OVER (PARTITION BY ba.d.DepartmentID) > 0.7 
+        WHEN ba.AllocationType = 'e.BaseSalary' AND ba.Amount / SUM(ba.Amount) OVER (PARTITION BY d.DepartmentID) > 0.7 
             THEN 'High e.BaseSalary Dependency'
-        WHEN ba.AllocationType = 'Project' AND ba.Amount / SUM(ba.Amount) OVER (PARTITION BY ba.d.DepartmentID) > 0.4 
+        WHEN ba.AllocationType = 'Project' AND ba.Amount / SUM(ba.Amount) OVER (PARTITION BY d.DepartmentID) > 0.4 
             THEN 'Project Heavy'
         ELSE 'Balanced Allocation'
     END AS AllocationProfile
 FROM BudgetAllocations ba
-ORDER BY ba.d.DepartmentName, ba.Amount DESC;
+ORDER BY d.DepartmentName, ba.Amount DESC;
 ```
 
 **Business Logic**: This analysis provides finance with detailed budget allocation patterns, including percentage distributions and allocation profiles for strategic planning.

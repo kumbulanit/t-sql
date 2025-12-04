@@ -212,7 +212,7 @@ SELECT
     e.BaseSalary,
     d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1;
 
 -- Verify the backup
@@ -237,7 +237,7 @@ SELECT
     AVG(e.BaseSalary) AS AverageBaseSalary,
     SUM(e.BaseSalary) AS TotalSalary
 FROM Departments d
-LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1 OR e.IsActive IS NULL
 GROUP BY d.DepartmentID, d.DepartmentName;
 
@@ -271,15 +271,15 @@ SELECT
     CASE 
         WHEN RANK() OVER (PARTITION BY d.DepartmentName ORDER BY e.BaseSalary DESC) = 1 THEN 'Top Performer'
         WHEN RANK() OVER (PARTITION BY d.DepartmentName ORDER BY e.BaseSalary DESC) <= 2 THEN 'High Performer'
-        WHEN e.BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees e WHERE d.DepartmentID = e.d.DepartmentID) THEN 'Above Average'
+        WHEN e.BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees e WHERE d.DepartmentID = d.DepartmentID) THEN 'Above Average'
         ELSE 'Standard'
     END AS PerformanceCategory
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1 
   AND e.BaseSalary IS NOT NULL
   AND (RANK() OVER (PARTITION BY d.DepartmentName ORDER BY e.BaseSalary DESC) <= 2 
-       OR e.BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees e WHERE d.DepartmentID = e.d.DepartmentID));
+       OR e.BaseSalary > (SELECT AVG(e.BaseSalary) FROM Employees e WHERE d.DepartmentID = d.DepartmentID));
 
 SELECT * FROM HighPerformers ORDER BY DepartmentIDName, SalaryRank;
 
@@ -302,7 +302,7 @@ SELECT
     e.WorkEmail,
     d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 
 UNION ALL
@@ -315,7 +315,7 @@ SELECT
     d.DepartmentName
 FROM Employees e
 INNER JOIN Employees m ON e.ManagerID = m.EmployeeID
-INNER JOIN Departments d ON m.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1 AND m.IsActive = 1;
 
 SELECT ContactType, COUNT(*) AS ContactCount 

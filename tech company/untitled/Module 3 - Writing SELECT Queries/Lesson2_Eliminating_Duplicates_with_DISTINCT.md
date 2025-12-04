@@ -132,16 +132,16 @@ WHERE d.DepartmentID IN (
 
 -- Find the most recent hire date for each d.DepartmentName
 SELECT 
-    e.d.DepartmentID,
+    d.DepartmentID,
     e.FirstName,
     e.LastName,
     e.HireDate
 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.HireDate IN (
     SELECT MAX(e.HireDate)
     FROM Employees e e2
-    WHERE e2.d.DepartmentID = e.d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID
 );
 ```
 
@@ -151,7 +151,7 @@ WHERE e.HireDate IN (
 -- Find unique d.DepartmentName names that have employees
 SELECT DISTINCT d.DepartmentName
 FROM Departments d
-INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
 ORDER BY d.DepartmentName;
 
 -- Find unique combinations of d.DepartmentName and manager information

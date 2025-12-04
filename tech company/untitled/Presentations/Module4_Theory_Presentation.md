@@ -207,7 +207,7 @@ SELECT
     e.LastName,
     d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID;
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID;
 ```
 
 #### **Legacy WHERE Clause JOIN (Deprecated)**
@@ -244,7 +244,7 @@ SELECT
     d.DepartmentName,
     d.Location
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID;
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID;
 ```
 
 ##### **Multiple Column Join Conditions**
@@ -452,12 +452,12 @@ SELECT
     e.LastName,
     d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID;
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID;
 
 -- Legacy syntax (avoid)
 SELECT e.FirstName, e.LastName, d.DepartmentName
 FROM Employees e, Departments d
-WHERE e.d.DepartmentID = d.DepartmentID;
+WHERE d.DepartmentID = d.DepartmentID;
 ```
 
 ---
@@ -472,7 +472,7 @@ SELECT
     d.DepartmentName,
     c.CompanyName
 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     INNER JOIN Companies c ON d.CompanyID = c.CompanyID
 WHERE e.IsActive = 1;
 ```
@@ -600,13 +600,13 @@ ON YEAR(e.HireDate) = YEAR(p.StartDate)
 -- JOIN condition: defines relationship
 SELECT e.FirstName, d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.BaseSalary > 50000;  -- Filter condition
 
 -- Incorrect: filtering in JOIN for INNER JOIN
 SELECT e.FirstName, d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID 
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID 
                         AND e.BaseSalary > 50000;
 ```
 
@@ -672,7 +672,7 @@ SELECT d.DepartmentName,
     AVG(e.BaseSalary) AS AverageBaseSalary,
     MAX(e.HireDate) AS MostRecentHire
 FROM Departments d
-LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID
                      AND e.IsActive = 1
 GROUP BY d.DepartmentID, d.DepartmentName
 ORDER BY EmployeeCount DESC;

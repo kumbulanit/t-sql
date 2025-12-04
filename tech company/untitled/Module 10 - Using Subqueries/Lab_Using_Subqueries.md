@@ -306,27 +306,27 @@ SELECT
     FORMAT(e.BaseSalary, 'C') AS EmployeeSalary,
     FORMAT((SELECT AVG(e2.BaseSalary)
             FROM Employees e e2
-            WHERE e2.d.DepartmentID = e.d.DepartmentID
+            WHERE d.DepartmentID = d.DepartmentID
               AND e2.IsActive = 1), 'C') AS DepartmentAverageSalary,
     CAST((e.BaseSalary - (SELECT AVG(e2.BaseSalary)
                           FROM Employees e e2
-                          WHERE e2.d.DepartmentID = e.d.DepartmentID
+                          WHERE d.DepartmentID = d.DepartmentID
                             AND e2.IsActive = 1)) * 100.0 /
          (SELECT AVG(e2.BaseSalary)
           FROM Employees e e2
-          WHERE e2.d.DepartmentID = e.d.DepartmentID
+          WHERE d.DepartmentID = d.DepartmentID
             AND e2.IsActive = 1) AS DECIMAL(5,1)) AS PercentAboveDeptAverage,
     (SELECT COUNT(*)
      FROM Employees e e3
-     WHERE e3.d.DepartmentID = e.d.DepartmentID
+     WHERE d.DepartmentID = d.DepartmentID
        AND e3.BaseSalary > e.BaseSalary
        AND e3.IsActive = 1) + 1 AS RankInDepartment
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.BaseSalary > (
     SELECT AVG(e2.BaseSalary)
     FROM Employees e e2
-    WHERE e2.d.DepartmentID = e.d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID
       AND e2.IsActive = 1
 )
   AND e.IsActive = 1
@@ -355,7 +355,7 @@ SELECT
      FROM (SELECT ISNULL(SUM(ep2.HoursWorked), 0) AS hours
            FROM EmployeeProjects ep2
            INNER JOIN Employees e2 ON ep2.EmployeeID = e2.EmployeeID
-           WHERE e2.d.DepartmentID = e.d.DepartmentID
+           WHERE d.DepartmentID = d.DepartmentID
              AND ep2.IsActive = 1
              AND e2.IsActive = 1
            GROUP BY ep2.EmployeeID) total_hours) AS DepartmentAverageHours,
@@ -379,7 +379,7 @@ SELECT
         ELSE 0
     END AS AverageHoursPerProject
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE ISNULL((SELECT SUM(ep.HoursWorked)
               FROM EmployeeProjects ep
               WHERE ep.EmployeeID = e.EmployeeID
@@ -388,7 +388,7 @@ WHERE ISNULL((SELECT SUM(ep.HoursWorked)
        FROM (SELECT ISNULL(SUM(ep2.HoursWorked), 0) AS hours
              FROM EmployeeProjects ep2
              INNER JOIN Employees e2 ON ep2.EmployeeID = e2.EmployeeID
-             WHERE e2.d.DepartmentID = e.d.DepartmentID
+             WHERE d.DepartmentID = d.DepartmentID
                AND ep2.IsActive = 1
                AND e2.IsActive = 1
              GROUP BY ep2.EmployeeID) total_hours)
@@ -418,7 +418,7 @@ SELECT
     FORMAT(e.HireDate, 'yyyy-MM-dd') AS e.HireDate,
     DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsWithCompany
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE EXISTS (
     -- Has subordinates (is a manager)
     SELECT 1
@@ -529,29 +529,29 @@ SELECT d.DepartmentName,
     END AS BudgetVsCompanyAverage,
     (SELECT COUNT(*)
      FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-     WHERE e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+     WHERE d.DepartmentID = d.DepartmentID
        AND e.BaseSalary > (SELECT AVG(e2.BaseSalary)
                            FROM Employees e e2
-                           WHERE e2.d.DepartmentID = e.d.DepartmentID
+                           WHERE d.DepartmentID = d.DepartmentID
                              AND e2.IsActive = 1)
        AND e.IsActive = 1) AS HighSalaryEmployeeCount,
     (SELECT COUNT(*)
      FROM Projects p
      INNER JOIN Employees e ON p.ProjectManagerID = e.EmployeeID
-     WHERE e.d.DepartmentID = d.DepartmentID
+     WHERE d.DepartmentID = d.DepartmentID
        AND p.IsActive = 1
        AND e.IsActive = 1) AS ProjectsManaged,
     (SELECT COUNT(*)
      FROM Orders o
      INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
-     WHERE e.d.DepartmentID = d.DepartmentID
+     WHERE d.DepartmentID = d.DepartmentID
        AND o.IsActive = 1
        AND e.IsActive = 1) AS TotalOrdersProcessed,
     FORMAT((SELECT ISNULL(SUM(o.TotalAmount), 0)
             FROM Orders o
             INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
-            WHERE e.d.DepartmentID = d.DepartmentID
+            WHERE d.DepartmentID = d.DepartmentID
               AND o.IsActive = 1
               AND e.IsActive = 1), 'C') AS TotalRevenueGenerated,
     CASE 
@@ -559,7 +559,7 @@ SELECT d.DepartmentName,
             SELECT 1
             FROM Orders o
             INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
-            WHERE e.d.DepartmentID = d.DepartmentID
+            WHERE d.DepartmentID = d.DepartmentID
               AND o.OrderDate >= DATEADD(MONTH, -1, GETDATE())
               AND o.IsActive = 1
               AND e.IsActive = 1
@@ -567,7 +567,7 @@ SELECT d.DepartmentName,
             SELECT 1
             FROM Projects p
             INNER JOIN Employees e ON p.ProjectManagerID = e.EmployeeID
-            WHERE e.d.DepartmentID = d.DepartmentID
+            WHERE d.DepartmentID = d.DepartmentID
               AND p.IsActive = 1
               AND e.IsActive = 1
         ) THEN 'Excellent'
@@ -575,7 +575,7 @@ SELECT d.DepartmentName,
             SELECT 1
             FROM Orders o
             INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
-            WHERE e.d.DepartmentID = d.DepartmentID
+            WHERE d.DepartmentID = d.DepartmentID
               AND o.OrderDate >= DATEADD(MONTH, -3, GETDATE())
               AND o.IsActive = 1
               AND e.IsActive = 1
@@ -583,7 +583,7 @@ SELECT d.DepartmentName,
             SELECT 1
             FROM Projects p
             INNER JOIN Employees e ON p.ProjectManagerID = e.EmployeeID
-            WHERE e.d.DepartmentID = d.DepartmentID
+            WHERE d.DepartmentID = d.DepartmentID
               AND p.IsActive = 1
               AND e.IsActive = 1
         ) THEN 'Good'

@@ -180,7 +180,7 @@ SELECT DISTINCT
     d.DepartmentName,
     e.JobTitle
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 ORDER BY d.DepartmentName, e.JobTitle;
 ```
 
@@ -261,7 +261,7 @@ SELECT
     d.DepartmentName,
     d.Budget
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID;
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID;
 ```
 
 #### Question 2: Multiple Table Aliases
@@ -277,7 +277,7 @@ SELECT
     ep.HoursAllocated,
     ep.HoursWorked
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 ORDER BY e.LastName, e.FirstName, p.ProjectName;
@@ -358,7 +358,7 @@ SELECT d.DepartmentName,
     SUM(CASE WHEN e.BaseSalary >= 80000 THEN e.BaseSalary ELSE 0 END) AS HighSalaryTotal,
     SUM(CASE WHEN e.BaseSalary < 50000 THEN e.BaseSalary ELSE 0 END) AS LowSalaryTotal
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 GROUP BY d.DepartmentID, d.DepartmentName
 ORDER BY AverageSalary DESC;
@@ -489,7 +489,7 @@ SELECT
         ELSE 'No Emergency Contact'
     END AS EmergencyContact
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 ORDER BY d.DepartmentName, e.LastName, e.FirstName;
 ```
@@ -586,7 +586,7 @@ SELECT d.DepartmentName AS d.DepartmentName,
         ELSE 'Small'
     END AS [Department Size]
 FROM Departments d
-LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
+LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID AND e.IsActive = 1
 LEFT JOIN Employees mgr ON d.ManagerID = mgr.EmployeeID
 GROUP BY 
     d.DepartmentID, d.DepartmentName, d.DepartmentCode, d.Budget, 

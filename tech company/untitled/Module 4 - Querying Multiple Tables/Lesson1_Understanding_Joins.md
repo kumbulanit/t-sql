@@ -266,7 +266,7 @@ SELECT
     d.DepartmentName,
     d.Location
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID;
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID;
 
 -- Result: John, Jane, Bob (Alice excluded - no department)
 ```
@@ -280,7 +280,7 @@ SELECT
     d.DepartmentName,
     d.Location
 FROM Employees e
-LEFT JOIN Departments d ON e.d.DepartmentID = d.DepartmentID;
+LEFT JOIN Departments d ON d.DepartmentID = d.DepartmentID;
 
 -- Result: John, Jane, Bob, Alice (Alice shows NULL for d.DepartmentName info)
 ```
@@ -297,7 +297,7 @@ SELECT
     ep.Role,
     ep.HoursAllocated
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE p.IsActive = 'Active'
@@ -312,7 +312,7 @@ SELECT d.DepartmentName,
     COUNT(e.EmployeeID) AS EmployeeCount,
     AVG(e.BaseSalary) AS AverageBaseSalary
 FROM Departments d
-LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID
 GROUP BY d.DepartmentID, d.DepartmentName, d.Location
 ORDER BY EmployeeCount DESC;
 ```
@@ -461,7 +461,7 @@ INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 SELECT 
     Employees.FirstName,
     Employees.LastName,
-    Departments.d.DepartmentName
+    d.DepartmentName
 FROM Employees e
 INNER JOIN Departments d ON Employees.DepartmentID = Departments.DepartmentID;
 ```

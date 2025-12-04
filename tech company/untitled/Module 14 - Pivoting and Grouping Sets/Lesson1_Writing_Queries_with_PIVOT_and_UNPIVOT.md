@@ -83,9 +83,9 @@ WITH QuarterlyBudgetData AS (
             WHEN MONTH(p.StartDate) BETWEEN 7 AND 9 THEN 'Q3'
             ELSE 'Q4'
         END AS Quarter,
-        p.d.Budget AS ProjectBudget
+        d.Budget AS ProjectBudget
     FROM Departments d
-    INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+    INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
     INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
     WHERE d.IsActive = 1
       AND e.IsActive = 1 
@@ -128,7 +128,7 @@ WITH EmployeeExperienceData AS (
         END AS ExperienceLevel,
         e.BaseSalary
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     WHERE e.IsActive = 1
       AND d.IsActive = 1
 )
@@ -229,7 +229,7 @@ FROM (
         FORMAT(o.OrderDate, 'yyyy-MM') + ' - ' + FORMAT(o.OrderDate, 'MMM') AS MonthName
     FROM Orders o
     INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     WHERE o.IsActive = 1
       AND e.IsActive = 1
       AND d.IsActive = 1
@@ -245,7 +245,7 @@ WITH MonthlySalesData AS (
         o.TotalAmount
     FROM Orders o
     INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     WHERE o.IsActive = 1
       AND e.IsActive = 1
       AND d.IsActive = 1
@@ -280,7 +280,7 @@ WITH ProjectAllocationData AS (
         -- Create project-role combination for pivot
         p.ProjectName + ' - ' + ep.Role AS ProjectRoleCombo
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
     WHERE e.IsActive = 1
@@ -398,12 +398,12 @@ UNPIVOT (
 WITH QuarterlyBudgetMatrix AS (
     -- Simulate quarterly budget crosstab (would typically come from PIVOT or imported data)
     SELECT d.DepartmentName,
-        SUM(CASE WHEN MONTH(p.StartDate) BETWEEN 1 AND 3 THEN p.d.Budget ELSE 0 END) AS Q1_Budget,
-        SUM(CASE WHEN MONTH(p.StartDate) BETWEEN 4 AND 6 THEN p.d.Budget ELSE 0 END) AS Q2_Budget,
-        SUM(CASE WHEN MONTH(p.StartDate) BETWEEN 7 AND 9 THEN p.d.Budget ELSE 0 END) AS Q3_Budget,
-        SUM(CASE WHEN MONTH(p.StartDate) BETWEEN 10 AND 12 THEN p.d.Budget ELSE 0 END) AS Q4_Budget
+        SUM(CASE WHEN MONTH(p.StartDate) BETWEEN 1 AND 3 THEN d.Budget ELSE 0 END) AS Q1_Budget,
+        SUM(CASE WHEN MONTH(p.StartDate) BETWEEN 4 AND 6 THEN d.Budget ELSE 0 END) AS Q2_Budget,
+        SUM(CASE WHEN MONTH(p.StartDate) BETWEEN 7 AND 9 THEN d.Budget ELSE 0 END) AS Q3_Budget,
+        SUM(CASE WHEN MONTH(p.StartDate) BETWEEN 10 AND 12 THEN d.Budget ELSE 0 END) AS Q4_Budget
     FROM Departments d
-    INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+    INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
     INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
     WHERE d.IsActive = 1
       AND e.IsActive = 1
@@ -489,7 +489,7 @@ WITH PerformanceMatrix AS (
         CAST(ISNULL(team_metrics.TeamScore, 0) AS DECIMAL(5,2)) AS Team_Collaboration,
         CAST(ISNULL(innovation_metrics.InnovationScore, 0) AS DECIMAL(5,2)) AS Innovation_Index
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     LEFT JOIN (
         -- Project performance scoring
         SELECT 
@@ -628,7 +628,7 @@ WITH DepartmentKPIMatrix AS (
             'Employee_Count' AS KPI_Type,
             CAST(COUNT(DISTINCT e.EmployeeID) AS DECIMAL(15,2)) AS KPI_Value
         FROM Departments d
-        LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
+        LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID AND e.IsActive = 1
         WHERE d.IsActive = 1
         GROUP BY d.DepartmentName
         
@@ -638,7 +638,7 @@ WITH DepartmentKPIMatrix AS (
             'Avg_Salary' AS KPI_Type,
             CAST(AVG(e.BaseSalary) AS DECIMAL(15,2)) AS KPI_Value
         FROM Departments d
-        INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+        INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
         WHERE d.IsActive = 1 AND e.IsActive = 1
         GROUP BY d.DepartmentName
         
@@ -648,7 +648,7 @@ WITH DepartmentKPIMatrix AS (
             'Total_Projects' AS KPI_Type,
             CAST(COUNT(DISTINCT p.ProjectID) AS DECIMAL(15,2)) AS KPI_Value
         FROM Departments d
-        INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+        INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
         INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
         WHERE d.IsActive = 1 AND e.IsActive = 1 AND p.IsActive = 1
         GROUP BY d.DepartmentName
@@ -657,9 +657,9 @@ WITH DepartmentKPIMatrix AS (
         
         SELECT d.DepartmentName,
             'Project_Budget' AS KPI_Type,
-            CAST(SUM(p.d.Budget) AS DECIMAL(15,2)) AS KPI_Value
+            CAST(SUM(d.Budget) AS DECIMAL(15,2)) AS KPI_Value
         FROM Departments d
-        INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+        INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
         INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
         WHERE d.IsActive = 1 AND e.IsActive = 1 AND p.IsActive = 1
         GROUP BY d.DepartmentName
@@ -670,7 +670,7 @@ WITH DepartmentKPIMatrix AS (
             'Customer_Orders' AS KPI_Type,
             CAST(COUNT(o.OrderID) AS DECIMAL(15,2)) AS KPI_Value
         FROM Departments d
-        INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+        INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
         INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
         WHERE d.IsActive = 1 AND e.IsActive = 1 AND o.IsActive = 1
         GROUP BY d.DepartmentName
@@ -681,7 +681,7 @@ WITH DepartmentKPIMatrix AS (
             'Order_Revenue' AS KPI_Type,
             CAST(SUM(o.TotalAmount) AS DECIMAL(15,2)) AS KPI_Value
         FROM Departments d
-        INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+        INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
         INNER JOIN Orders o ON e.EmployeeID = o.EmployeeID
         WHERE d.IsActive = 1 AND e.IsActive = 1 AND o.IsActive = 1
         GROUP BY d.DepartmentName
@@ -800,7 +800,7 @@ WITH OptimizedPivotSource AS (
         o.TotalAmount
     FROM Orders o WITH(INDEX(IX_Orders_Employee_Date_Amount))  -- Force index usage
     INNER JOIN Employees e WITH(INDEX(IX_Employees_Department_Salary)) ON o.EmployeeID = e.EmployeeID
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     WHERE o.IsActive = 1
       AND e.IsActive = 1
       AND d.IsActive = 1
@@ -829,7 +829,7 @@ WITH FilteredData AS (
         o.TotalAmount
     FROM Orders o
     INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     WHERE o.IsActive = 1
       AND e.IsActive = 1
       AND d.IsActive = 1
@@ -897,9 +897,9 @@ FROM (
             WHEN MONTH(p.StartDate) BETWEEN 7 AND 9 THEN 'Q3'
             ELSE 'Q4'
         END AS Quarter,
-        p.d.Budget AS Revenue
+        d.Budget AS Revenue
     FROM Departments d
-    LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+    LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID
     LEFT JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
     WHERE d.IsActive = 1
       AND (e.IsActive = 1 OR e.EmployeeID IS NULL)
@@ -939,9 +939,9 @@ BEGIN
     WITH ProjectBudgetData AS (
         SELECT d.DepartmentName,
             p.ProjectName,
-            p.d.Budget
+            d.Budget
         FROM Departments d
-        INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+        INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
         INNER JOIN Projects p ON e.EmployeeID = p.ProjectManagerID
         WHERE d.IsActive = 1
           AND e.IsActive = 1

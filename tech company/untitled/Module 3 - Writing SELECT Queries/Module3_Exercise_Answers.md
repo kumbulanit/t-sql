@@ -122,7 +122,7 @@ SELECT d.DepartmentName AS [Department],
     COUNT(e.EmployeeID) AS [Current Headcount]
 FROM Departments d
 LEFT JOIN Employees m ON d.ManagerID = m.EmployeeID
-LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
+LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID AND e.IsActive = 1
 GROUP BY d.DepartmentID, d.DepartmentName, d.Location, d.Budget, 
          d.CostCenter, d.ManagerID, m.FirstName, m.LastName
 ORDER BY d.Budget DESC;
@@ -455,7 +455,7 @@ SELECT DISTINCT
         ELSE 'Dual Coverage'
     END AS [Position Coverage]
 FROM Departments d
-INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 ORDER BY d.DepartmentName, 
          CASE 
@@ -722,7 +722,7 @@ ORDER BY COUNT(es.SkillID) DESC, emp.LastName;
 
 **Answer 3.1.5**: Financial Performance Report
 ```sql
-SELECT dept.d.DepartmentName AS [Cost Center],
+SELECT d.DepartmentName AS [Cost Center],
     dept.CostCenter AS [Accounting Code],
     
     -- Cost center analysis with accounting terminology
@@ -782,7 +782,7 @@ SELECT dept.d.DepartmentName AS [Cost Center],
         ELSE 'Lean Operation Unit'
     END AS [Business Unit Classification]
 FROM Departments d dept
-LEFT JOIN Employees emp ON dept.DepartmentID = emp.d.DepartmentID AND emp.IsActive = 1
+LEFT JOIN Employees emp ON dept.DepartmentID = d.DepartmentID AND emp.IsActive = 1
 LEFT JOIN EmployeeProjects ep ON emp.EmployeeID = ep.EmployeeID
 LEFT JOIN Projects proj ON ep.ProjectID = proj.ProjectID
 GROUP BY dept.DepartmentID, dept.DepartmentName, dept.CostCenter, dept.Budget

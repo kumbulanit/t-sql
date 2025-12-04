@@ -535,7 +535,7 @@ BEGIN
             COUNT(DISTINCT p.ProjectID) AS ProjectCount,
             GETDATE() AS ReportTimestamp
         FROM Departments d
-        LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
+        LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID AND e.IsActive = 1
         LEFT JOIN Projects p ON d.DepartmentID = (
             SELECT d.DepartmentID FROM Employees e WHERE e.EmployeeID = p.ProjectManagerID
         ) AND p.IsActive = 1

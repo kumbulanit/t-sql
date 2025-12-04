@@ -16,7 +16,7 @@ SELECT
     d.DepartmentName,
     e.BaseSalary
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 ORDER BY d.DepartmentName, e.LastName;
 ```
 
@@ -50,10 +50,10 @@ SELECT
     ep.Role,
     ep.HoursAllocated,
     ep.HoursWorked,
-    p.d.Budget AS ProjectBudget,
+    d.Budget AS ProjectBudget,
     p.IsActive AS ProjectIsActive
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE e.IsActive = 1
@@ -75,7 +75,7 @@ SELECT
     ep.Role,
     p.IsActive AS ProjectIsActive
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
 WHERE e.BaseSalary > 70000
@@ -91,7 +91,7 @@ ORDER BY e.BaseSalary DESC;
 SELECT 
     p.ProjectName,
     p.IsActive,
-    p.d.Budget,
+    d.Budget,
     e.FirstName + ' ' + e.LastName AS TeamMember,
     ep.Role,
     ep.HoursAllocated,
@@ -100,7 +100,7 @@ SELECT
 FROM Projects p
 INNER JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
 INNER JOIN Employees e ON ep.EmployeeID = e.EmployeeID
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE p.IsActive = 'In Progress'
   AND e.IsActive = 1
 ORDER BY p.ProjectName, ep.Role, e.LastName;
@@ -122,7 +122,7 @@ SELECT
     COALESCE(d.DepartmentName, 'No d.DepartmentName Assigned') AS d.DepartmentName,
     COALESCE(d.DepartmentCode, 'N/A') AS d.DepartmentCode
 FROM Employees e
-LEFT JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+LEFT JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 ORDER BY d.DepartmentName, e.LastName;
 ```
@@ -160,7 +160,7 @@ SELECT d.DepartmentName,
     COALESCE(AVG(e.BaseSalary), 0) AS AverageBaseSalary,
     COALESCE(SUM(e.BaseSalary), 0) AS TotalPayroll
 FROM Employees e
-RIGHT JOIN Departments d ON e.d.DepartmentID = d.DepartmentID AND e.IsActive = 1
+RIGHT JOIN Departments d ON d.DepartmentID = d.DepartmentID AND e.IsActive = 1
 GROUP BY d.DepartmentID, d.DepartmentName, d.DepartmentCode, d.Budget
 ORDER BY d.DepartmentName;
 ```
@@ -205,7 +205,7 @@ SELECT
         ELSE 'Normal assignment'
     END AS RelationshipIsActive
 FROM Employees e
-FULL OUTER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+FULL OUTER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.EmployeeID IS NULL OR d.DepartmentID IS NULL OR e.IsActive = 1
 ORDER BY RelationshipIsActive, d.DepartmentName, EmployeeName;
 ```
@@ -248,7 +248,7 @@ SELECT d.DepartmentName,
 FROM Departments d
 CROSS JOIN Projects p
 LEFT JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
-LEFT JOIN Employees e ON ep.EmployeeID = e.EmployeeID AND e.d.DepartmentID = d.DepartmentID
+LEFT JOIN Employees e ON ep.EmployeeID = e.EmployeeID AND d.DepartmentID = d.DepartmentID
 GROUP BY d.DepartmentID, d.DepartmentName, p.ProjectID, p.ProjectName, p.IsActive
 ORDER BY d.DepartmentName, p.ProjectName;
 ```
@@ -294,8 +294,8 @@ SELECT
         ELSE 'Different Manager'
     END AS ManagerIsActive
 FROM Employees e e1
-INNER JOIN Employees e2 ON e1.d.DepartmentID = e2.d.DepartmentID AND e1.EmployeeID < e2.EmployeeID
-INNER JOIN Departments d ON e1.d.DepartmentID = d.DepartmentID
+INNER JOIN Employees e2 ON d.DepartmentID = d.DepartmentID AND e1.EmployeeID < e2.EmployeeID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e1.IsActive = 1 AND e2.IsActive = 1
 ORDER BY d.DepartmentName, e1.LastName, e2.LastName;
 ```
@@ -360,7 +360,7 @@ SELECT
     COALESCE(AVG(CAST(ep.HoursWorked AS FLOAT)), 0) AS AvgHoursPerProject,
     COUNT(sub.EmployeeID) AS DirectReports
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
 LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 LEFT JOIN Employees sub ON e.EmployeeID = sub.ManagerID AND sub.IsActive = 1
@@ -383,22 +383,22 @@ SELECT
     e.JobTitle,
     d.DepartmentName,
     p.ProjectName,
-    p.d.Budget AS ProjectBudget,
+    d.Budget AS ProjectBudget,
     avgbudget.AverageProjectBudget,
-    p.d.Budget - avgbudget.AverageProjectBudget AS BudgetDifference,
+    d.Budget - avgbudget.AverageProjectBudget AS BudgetDifference,
     ep.Role AS ProjectRole,
     ep.HoursAllocated
 FROM Employees e
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
 INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 CROSS JOIN (
     SELECT AVG(d.Budget) AS AverageProjectBudget
     FROM Projects p
 ) avgbudget
-WHERE p.d.Budget > avgbudget.AverageProjectBudget
+WHERE d.Budget > avgbudget.AverageProjectBudget
   AND e.IsActive = 1
-ORDER BY p.d.Budget DESC, e.LastName;
+ORDER BY d.Budget DESC, e.LastName;
 ```
 
 #### Question 2: d.DepartmentName Performance Comparison
@@ -420,7 +420,7 @@ SELECT d.DepartmentName,
         ELSE 'Below Average'
     END AS PerformanceCategory
 FROM Departments d
-LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
+LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID AND e.IsActive = 1
 CROSS JOIN (
     SELECT AVG(e.BaseSalary) AS CompanyAvgSalary
     FROM Employees e

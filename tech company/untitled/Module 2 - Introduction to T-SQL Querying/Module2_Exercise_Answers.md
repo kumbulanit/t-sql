@@ -51,9 +51,9 @@ WITH EmployeeTenure AS (
         e.FirstName + ' ' + e.LastName AS EmployeeName,
         d.DepartmentName,
         DATEDIFF(YEAR, e.HireDate, GETDATE()) AS YearsOfService,
-        ROW_NUMBER() OVER (PARTITION BY e.d.DepartmentID ORDER BY e.HireDate ASC) AS TenureRank
+        ROW_NUMBER() OVER (PARTITION BY d.DepartmentID ORDER BY e.HireDate ASC) AS TenureRank
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     WHERE e.IsActive = 1
 )
 SELECT d.DepartmentName,
@@ -124,11 +124,11 @@ UNION
 SELECT d.DepartmentName, 'High Average e.BaseSalary' AS Reason
 FROM Departments d
 WHERE d.DepartmentID IN (
-    SELECT e.d.DepartmentID
+    SELECT d.DepartmentID
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     WHERE e.IsActive = 1
-    GROUP BY e.d.DepartmentID
+    GROUP BY d.DepartmentID
     HAVING AVG(e.BaseSalary) > 70000
 )
 ORDER BY DepartmentIDName;
@@ -165,8 +165,8 @@ SELECT
     d.Budget,
     'Potential underutilization' AS ManagementConcern
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-WHERE e.d.DepartmentID IN (
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+WHERE d.DepartmentID IN (
     SELECT d.DepartmentID FROM Departments d WHERE d.Budget > 250000
 )
 
@@ -178,7 +178,7 @@ SELECT
     d.Budget,
     'Potential underutilization'
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID;
 ```
 
@@ -273,7 +273,7 @@ SELECT
     e.MiddleName,
     e.JobTitle
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
   AND (e.HireDate > '2020-12-31' OR e.BaseSalary > 80000)
   AND d.Budget > 200000
@@ -291,11 +291,11 @@ WHERE EXISTS (
     -- At least one employee earns more than d.DepartmentName average
     SELECT 1
     FROM Employees e e1
-    WHERE e1.d.DepartmentID = d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID
       AND e1.BaseSalary > (
           SELECT AVG(e2.BaseSalary)
           FROM Employees e e2
-          WHERE e2.d.DepartmentID = d.DepartmentID
+          WHERE d.DepartmentID = d.DepartmentID
       )
 )
 AND EXISTS (
@@ -303,14 +303,14 @@ AND EXISTS (
     SELECT 1
     FROM Employees e
     INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-    WHERE e.d.DepartmentID = d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID
 )
 AND d.Budget > (
     -- d.Budget justified by employee cost
     SELECT SUM(e.BaseSalary) * 1.5  -- 50% overhead assumption
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    WHERE e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID
 );
 ```
 
@@ -336,7 +336,7 @@ WHERE NOT EXISTS (
     FROM Employees e
     INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     INNER JOIN Projects p ON ep.ProjectID = p.ProjectID
-    WHERE e.d.DepartmentID = d.DepartmentID
+    WHERE d.DepartmentID = d.DepartmentID
       AND p.IsActive = 'In Progress'
 )
 
@@ -350,8 +350,8 @@ WHERE d.Budget > 300000
       SELECT 1
       FROM Employees e
       INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-      WHERE e.d.DepartmentID = d.DepartmentID
-      GROUP BY e.d.DepartmentID
+      WHERE d.DepartmentID = d.DepartmentID
+      GROUP BY d.DepartmentID
       HAVING COUNT(*) >= 2
   );
 ```
@@ -378,7 +378,7 @@ SELECT d.DepartmentName,
     AVG(e.BaseSalary) as AvgSal,
     COUNT(*) as TeamSize
 FROM Departments d
-JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+JOIN Employees e ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1  -- Use actual column in WHERE
 GROUP BY d.DepartmentName
 HAVING COUNT(*) > 2   -- Use HAVING for aggregate conditions
@@ -449,7 +449,7 @@ SELECT d.DepartmentName,
     COUNT(*) AS EmployeeCount,
     AVG(e.BaseSalary) AS AvgSalary
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.HireDate > '2020-12-31'  -- WHERE: filters individual rows before grouping
   AND e.IsActive = 1             -- WHERE: row-level filter
 GROUP BY d.DepartmentName
@@ -489,13 +489,13 @@ WITH DepartmentMetrics AS (
         SUM(e.BaseSalary) AS TotalBaseSalaryCost,
         COUNT(DISTINCT ep.ProjectID) AS ProjectCount
     FROM Departments d
-    LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
+    LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID AND e.IsActive = 1
     LEFT JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
     GROUP BY d.DepartmentID, d.DepartmentName, d.Budget
 ),
 ResourceUtilization AS (
     SELECT 
-        e.d.DepartmentID,
+        d.DepartmentID,
         SUM(ep.HoursAllocated) AS TotalHoursAllocated,
         SUM(ep.HoursWorked) AS TotalHoursWorked,
         CASE 
@@ -505,7 +505,7 @@ ResourceUtilization AS (
         END AS UtilizationPercent
     FROM Employees e
     INNER JOIN EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID
-    GROUP BY e.d.DepartmentID
+    GROUP BY d.DepartmentID
 ),
 DepartmentRanking AS (
     SELECT 
@@ -521,11 +521,11 @@ DepartmentRanking AS (
             WHEN dm.EmployeeCount = 0 THEN 'No Active Employees'
             WHEN dm.ProjectCount = 0 THEN 'No Project Assignments'
             WHEN ISNULL(ru.UtilizationPercent, 0) < 70 THEN 'Low Utilization'
-            WHEN dm.TotalSalaryCost > dm.d.Budget * 0.8 THEN 'High e.BaseSalary Burden'
+            WHEN dm.TotalSalaryCost > d.Budget * 0.8 THEN 'High e.BaseSalary Burden'
             ELSE 'Good Performance'
         END AS AttentionFlag
     FROM DepartmentMetrics dm
-    LEFT JOIN ResourceUtilization ru ON dm.d.DepartmentID = ru.d.DepartmentID
+    LEFT JOIN ResourceUtilization ru ON d.DepartmentID = d.DepartmentID
 )
 SELECT d.DepartmentName,
     EmployeeCount,
@@ -597,7 +597,7 @@ CareerAnalysis AS (
             ELSE 'Current Role Appropriate'
         END AS DevelopmentOpportunity
     FROM EmployeeMetrics em
-    INNER JOIN DepartmentBenchmarks db ON em.DepartmentName = db.d.DepartmentName
+    INNER JOIN DepartmentBenchmarks db ON em.DepartmentName = d.DepartmentName
 )
 SELECT 
     EmployeeName,
@@ -725,14 +725,14 @@ OptimizationOpportunities AS (
     WHERE pa.IsActive = 'In Progress' AND pa.ProjectCompletion < 75
 ),
 ImpactAnalysis AS (
-    SELECT wc.d.DepartmentName,
+    SELECT d.DepartmentName,
         COUNT(CASE WHEN wc.WorkloadIsActive = 'Overallocated' THEN 1 END) AS OverallocatedCount,
         COUNT(CASE WHEN wc.WorkloadIsActive = 'Underutilized' THEN 1 END) AS UnderutilizedCount,
         COUNT(CASE WHEN wc.WorkloadIsActive = 'Unassigned' THEN 1 END) AS UnassignedCount,
         AVG(wc.UtilizationRate) AS DeptUtilizationRate,
         SUM(ABS(wc.VarianceHours)) AS TotalVarianceHours
     FROM WorkloadCategories wc
-    GROUP BY wc.d.DepartmentName
+    GROUP BY d.DepartmentName
 )
 -- Final Results: Management Action Plan
 SELECT 

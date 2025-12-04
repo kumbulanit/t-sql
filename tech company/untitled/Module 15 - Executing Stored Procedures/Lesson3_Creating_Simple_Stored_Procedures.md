@@ -175,7 +175,7 @@ BEGIN
             ELSE 'New Employee'
         END AS ServiceCategory
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
     WHERE e.EmployeeID = @e.EmployeeID
       AND d.IsActive = 1;
@@ -259,7 +259,7 @@ BEGIN
         ROW_NUMBER() OVER (ORDER BY e.LastName, e.FirstName) AS RowNumber
     FROM Employees e
     LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID
-    WHERE e.d.DepartmentID = @d.DepartmentID
+    WHERE d.DepartmentID = @d.DepartmentID
       AND (e.IsActive = 1 OR @IncludeInactive = 1)
     ORDER BY e.LastName, e.FirstName;
     
@@ -271,8 +271,8 @@ BEGIN
         FORMAT(AVG(CASE WHEN e.IsActive = 1 THEN e.BaseSalary ELSE NULL END), 'C') AS AverageActiveSalary,
         FORMAT(SUM(CASE WHEN e.IsActive = 1 THEN e.BaseSalary ELSE 0 END), 'C') AS TotalActivePayroll
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    WHERE e.d.DepartmentID = @d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+    WHERE d.DepartmentID = @d.DepartmentID
       AND (e.IsActive = 1 OR @IncludeInactive = 1);
     
     RETURN 0;  -- Success
@@ -380,7 +380,7 @@ BEGIN
             ROW_NUMBER() OVER (ORDER BY o.OrderDate DESC) AS OrderRank
         FROM Orders o
         INNER JOIN Employees e ON o.EmployeeID = e.EmployeeID
-        INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+        INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
         WHERE o.CustomerID = @CustomerID
           AND o.IsActive = 1
           AND e.IsActive = 1
@@ -473,9 +473,9 @@ BEGIN
         -- Ensure manager is in same d.DepartmentName or is a senior manager
         IF NOT EXISTS (
             SELECT 1 FROM Employees e
-            INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+            INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
             WHERE e.EmployeeID = @ManagerID
-              AND (e.d.DepartmentID = @d.DepartmentID OR e.BaseSalary >= 80000)
+              AND (d.DepartmentID = @d.DepartmentID OR e.BaseSalary >= 80000)
         )
         BEGIN
             RAISERROR('Manager must be in the same d.DepartmentName or be a senior manager.', 16, 1);

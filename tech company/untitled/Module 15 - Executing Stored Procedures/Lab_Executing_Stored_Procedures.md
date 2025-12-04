@@ -132,7 +132,7 @@ BEGIN
             ELSE 'Manager Info Not Requested'
         END AS ManagerName
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     LEFT JOIN Employees mgr ON e.ManagerID = mgr.EmployeeID AND @IncludeManager = 1
     WHERE e.EmployeeID = @e.EmployeeID;
     
@@ -214,7 +214,7 @@ BEGIN
                          (e.IsActive = 1 OR @IncludeInactiveEmployees = 1)
                    THEN 1 END) AS EmployeesAboveThreshold
     FROM Departments d
-    LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+    LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID
     WHERE (@d.DepartmentID IS NULL OR d.DepartmentID = @d.DepartmentID)
       AND d.IsActive = 1
       AND (e.EmployeeID IS NULL OR e.IsActive = 1 OR @IncludeInactiveEmployees = 1)
@@ -230,8 +230,8 @@ BEGIN
                                       AND e.BaseSalary >= @SalaryThreshold
                                   THEN e.BaseSalary ELSE NULL END)
     FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
-    WHERE (@d.DepartmentID IS NULL OR e.d.DepartmentID = @d.DepartmentID)
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
+    WHERE (@d.DepartmentID IS NULL OR d.DepartmentID = @d.DepartmentID)
       AND d.IsActive = 1
       AND (e.IsActive = 1 OR @IncludeInactiveEmployees = 1);
     
@@ -353,9 +353,9 @@ BEGIN
         -- Business rule: Manager should be in same d.DepartmentName or senior level
         IF NOT EXISTS (
             SELECT 1 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
             WHERE e.EmployeeID = @ManagerID 
-              AND (e.d.DepartmentID = @d.DepartmentID OR e.BaseSalary >= 80000)
+              AND (d.DepartmentID = @d.DepartmentID OR e.BaseSalary >= 80000)
         )
         BEGIN
             SET @ValidationMessage = 'Manager must be in same d.DepartmentName or be a senior manager.';
@@ -811,7 +811,7 @@ BEGIN
         
         SET @FromClause = '
         FROM Employees e
-        INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+        INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
         LEFT JOIN Orders o ON e.EmployeeID = o.EmployeeID 
                               AND o.OrderDate >= @DateFromParam 
                               AND o.OrderDate <= @DateToParam
@@ -868,7 +868,7 @@ BEGIN
         
         SET @FromClause = '
         FROM Departments d
-        LEFT JOIN Employees e ON d.DepartmentID = e.d.DepartmentID AND e.IsActive = 1
+        LEFT JOIN Employees e ON d.DepartmentID = d.DepartmentID AND e.IsActive = 1
         LEFT JOIN Orders o ON e.EmployeeID = o.EmployeeID 
                               AND o.OrderDate >= @DateFromParam 
                               AND o.OrderDate <= @DateToParam

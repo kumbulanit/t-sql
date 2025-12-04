@@ -15,10 +15,10 @@ Table aliases are **shortcut names** we give to tables to make queries easier to
 
 ### **Example Without Aliases (Long and Confusing):**
 ```sql
-SELECT Companies.CompanyName, Departments.d.DepartmentName, Employees.FirstName
+SELECT Companies.CompanyName, d.DepartmentName, Employees.FirstName
 FROM Companies 
 INNER JOIN Departments d ON Companies.CompanyID = Departments.CompanyID
-INNER JOIN Employees ON Departments.d.DepartmentID = Employees.d.DepartmentID;
+INNER JOIN Employees ON d.DepartmentID = Employees.d.DepartmentID;
 ```
 
 ### **Same Query With Aliases (Clean and Professional):**
@@ -26,7 +26,7 @@ INNER JOIN Employees ON Departments.d.DepartmentID = Employees.d.DepartmentID;
 SELECT c.CompanyName, d.DepartmentName, e.FirstName
 FROM Companies c                    -- "c" is the alias for Companies
 INNER JOIN Departments d ON c.CompanyID = d.CompanyID    -- "d" is alias for Departments  
-INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID;  -- "e" is alias for Employees
+INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID;  -- "e" is alias for Employees
 ```
 
 ### **Why Use Aliases?**
@@ -136,7 +136,7 @@ SELECT
     d.DepartmentName,       -- d. means "FROM Departments d table"  
     e.BaseSalary
 FROM Employees e            -- "e" is the alias for Employees
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID  -- Join using aliases
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID  -- Join using aliases
 WHERE e.IsActive = 1;       -- Filter using alias
 ```
 
@@ -174,7 +174,7 @@ ORDER BY e.HireDate DESC;
 SELECT d.DepartmentName,
     COUNT(e.EmployeeID) as EmployeeCount
 FROM Departments d
-INNER JOIN Employees e ON d.DepartmentID = e.d.DepartmentID
+INNER JOIN Employees e ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 GROUP BY d.DepartmentID, d.DepartmentName
 HAVING COUNT(e.EmployeeID) > 10;                    -- Filter groups, not individual rows
@@ -187,7 +187,7 @@ SELECT
     e.BaseSalary,
     d.DepartmentName
 FROM Employees e
-INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1                                 -- Must be active
     AND (                                            -- AND with grouped conditions
         e.BaseSalary > 80000                        -- High e.BaseSalary
@@ -216,7 +216,7 @@ SELECT
     END as PhoneNumber
     
 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 ORDER BY e.LastName, e.FirstName;
 
@@ -495,7 +495,7 @@ SELECT
     ISNULL(m.FirstName + ' ' + m.LastName, 'No Manager Assigned') as ManagerName
 
 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     INNER JOIN Companies c ON d.CompanyID = c.CompanyID
     LEFT JOIN Employees m ON e.ManagerID = m.EmployeeID
     
@@ -590,7 +590,7 @@ SELECT -- d.DepartmentName and level information
     AVG(ISNULL(pm.Achievement, 0)) as AveragePerformanceRating
 
 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
     LEFT JOIN JobLevels jl ON e.JobLevelID = jl.JobLevelID
     LEFT JOIN (
         -- Get latest performance metrics for each employee
@@ -621,7 +621,7 @@ SELECT d.DepartmentName,
     FORMAT(AVG(e.BaseSalary), 'C', 'en-US') as AverageSalary,
     FORMAT(STDEV(e.BaseSalary), 'N2') as SalaryStandardDeviation
 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
     AND e.Gender IS NOT NULL
 GROUP BY d.DepartmentName, e.Gender
@@ -695,8 +695,8 @@ SELECT
 
 FROM Employees e emp
     INNER JOIN Employees mgr ON emp.ManagerID = mgr.EmployeeID  -- Self-join for manager relationship
-    INNER JOIN Departments emp_dept ON emp.d.DepartmentID = emp_dept.DepartmentID
-    INNER JOIN Departments mgr_dept ON mgr.d.DepartmentID = mgr_dept.DepartmentID
+    INNER JOIN Departments emp_dept ON d.DepartmentID = emp_dept.DepartmentID
+    INNER JOIN Departments mgr_dept ON d.DepartmentID = mgr_dept.DepartmentID
     
 WHERE emp.IsActive = 1 AND mgr.IsActive = 1
 
@@ -716,7 +716,7 @@ SELECT d.DepartmentName,
     ) THEN 1 END) as IndividualContributors,
     AVG(CASE WHEN e.ManagerID IS NOT NULL THEN e.BaseSalary END) as AvgNonExecutiveSalary
 FROM Employees e
-    INNER JOIN Departments d ON e.d.DepartmentID = d.DepartmentID
+    INNER JOIN Departments d ON d.DepartmentID = d.DepartmentID
 WHERE e.IsActive = 1
 GROUP BY d.DepartmentName
 ORDER BY d.DepartmentName;
@@ -744,31 +744,31 @@ ORDER BY d.DepartmentName;
 -- Show actual collaborations between departments
 WITH DepartmentCollaboration AS (
     SELECT DISTINCT
-        d1.d.DepartmentName as Department1,
-        d2.d.DepartmentName as Department2,
+        d.DepartmentName as Department1,
+        d.DepartmentName as Department2,
         p.ProjectName,
         p.Status,
         COUNT(*) as EmployeesCollaborating
     FROM Projects p
         INNER JOIN EmployeeProjects ep1 ON p.ProjectID = ep1.ProjectID
         INNER JOIN Employees e1 ON ep1.EmployeeID = e1.EmployeeID
-        INNER JOIN Departments d1 ON e1.d.DepartmentID = d1.d.DepartmentID
+        INNER JOIN Departments d1 ON d.DepartmentID = d.DepartmentID
         INNER JOIN EmployeeProjects ep2 ON p.ProjectID = ep2.ProjectID
         INNER JOIN Employees e2 ON ep2.EmployeeID = e2.EmployeeID
-        INNER JOIN Departments d2 ON e2.d.DepartmentID = d2.d.DepartmentID
-    WHERE d1.d.DepartmentID < d2.d.DepartmentID  -- Avoid duplicates
+        INNER JOIN Departments d2 ON d.DepartmentID = d.DepartmentID
+    WHERE d.DepartmentID < d.DepartmentID  -- Avoid duplicates
         AND p.Status IN ('Active', 'Planning')
-    GROUP BY d1.d.DepartmentName, d2.d.DepartmentName, p.ProjectName, p.Status
+    GROUP BY d.DepartmentName, d.DepartmentName, p.ProjectName, p.Status
 ),
 
 -- Create all possible d.DepartmentName pairs
 AllDepartmentPairs AS (
     SELECT DISTINCT
-        d1.d.DepartmentName as Department1,
-        d2.d.DepartmentName as Department2
+        d.DepartmentName as Department1,
+        d.DepartmentName as Department2
     FROM Departments d d1
         CROSS JOIN Departments d2
-    WHERE d1.d.DepartmentID < d2.d.DepartmentID
+    WHERE d.DepartmentID < d.DepartmentID
 )
 
 -- Compare actual vs potential collaborations

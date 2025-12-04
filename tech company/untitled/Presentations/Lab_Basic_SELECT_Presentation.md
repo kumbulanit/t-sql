@@ -158,7 +158,7 @@ SELECT
     e.EmployeeID,
     e.FirstName,
     e.LastName,
-    e.d.DepartmentName
+    d.DepartmentName
 FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
 
@@ -760,7 +760,7 @@ SELECT
     END AS [Career Level]
 FROM Employees e
     INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
-WHERE e.d.DepartmentName IN ('IT', 'Finance') 
+WHERE d.DepartmentName IN ('IT', 'Finance') 
   AND e.BaseSalary > 50000
 ORDER BY e.DepartmentName, e.BaseSalary DESC;
 ```
