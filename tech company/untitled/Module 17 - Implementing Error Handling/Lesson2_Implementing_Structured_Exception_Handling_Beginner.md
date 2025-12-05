@@ -647,6 +647,172 @@ EXEC usp_ValidateSalary @EmployeeID = 3001, @NewSalary = -1000;  -- Negative sal
 
 ---
 
+---
+
+## 📈 Optional: Intermediate & Advanced Examples
+
+Ready for production-level error handling? Try these:
+
+### Intermediate Example: Complete Transaction with Error Logging
+
+**Challenge:** Process multiple operations with full error tracking.
+
+```sql
+CREATE OR ALTER PROCEDURE usp_ProcessPayroll
+    @DepartmentID INT,
+    @BonusPercent DECIMAL(5,2)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    DECLARE @RowsAffected INT = 0;
+    DECLARE @StartTime DATETIME = GETDATE();
+    
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        -- Step 1: Calculate and apply bonuses
+        UPDATE e
+        SET e.BaseSalary = e.BaseSalary * (1 + @BonusPercent / 100)
+        FROM Employees e
+        WHERE e.DepartmentID = @DepartmentID
+          AND e.IsActive = 1;
+        
+        SET @RowsAffected = @@ROWCOUNT;
+        
+        -- Step 2: Verify no salary exceeds maximum
+        IF EXISTS (SELECT 1 FROM Employees 
+                   WHERE DepartmentID = @DepartmentID AND BaseSalary > 500000)
+        BEGIN
+            THROW 50001, 'Some salaries would exceed the maximum allowed ($500,000)', 1;
+        END
+        
+        -- Step 3: Log the successful operation
+        INSERT INTO AuditLog (Action, TableName, Details, RowsAffected, ExecutedBy)
+        VALUES ('PAYROLL_BONUS', 'Employees', 
+                CONCAT('Department: ', @DepartmentID, ', Bonus: ', @BonusPercent, '%'),
+                @RowsAffected, SUSER_NAME());
+        
+        COMMIT TRANSACTION;
+        
+        -- Success output
+        SELECT 
+            'SUCCESS' AS Status,
+            @RowsAffected AS EmployeesUpdated,
+            DATEDIFF(MILLISECOND, @StartTime, GETDATE()) AS ExecutionTimeMs;
+        
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        
+        -- Log the error
+        INSERT INTO ErrorLog (ErrorNumber, ErrorMessage, ErrorProcedure, ErrorLine)
+        VALUES (ERROR_NUMBER(), ERROR_MESSAGE(), ERROR_PROCEDURE(), ERROR_LINE());
+        
+        -- Return error info
+        SELECT 
+            'FAILED' AS Status,
+            ERROR_NUMBER() AS ErrorCode,
+            ERROR_MESSAGE() AS ErrorDetails;
+        
+        -- Re-throw if needed for calling application
+        -- THROW;
+    END CATCH
+END;
+GO
+```
+
+### Advanced Example: Nested TRY...CATCH with Transaction Savepoints
+
+**Challenge:** Handle errors in multi-step processes with partial rollback capability.
+
+```sql
+CREATE OR ALTER PROCEDURE usp_ComplexBatchProcess
+    @BatchID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @ErrorCount INT = 0;
+    
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        -- Phase 1: Primary operations (critical - must succeed)
+        SAVE TRANSACTION Phase1;
+        
+        BEGIN TRY
+            -- Critical operation 1
+            UPDATE Orders SET ProcessedDate = GETDATE() 
+            WHERE BatchID = @BatchID AND ProcessedDate IS NULL;
+            
+            PRINT 'Phase 1: Orders processed successfully';
+        END TRY
+        BEGIN CATCH
+            ROLLBACK TRANSACTION Phase1;
+            SET @ErrorCount = @ErrorCount + 1;
+            PRINT 'Phase 1 failed: ' + ERROR_MESSAGE();
+            THROW;  -- Critical failure - stop everything
+        END CATCH
+        
+        -- Phase 2: Secondary operations (optional - can fail)
+        SAVE TRANSACTION Phase2;
+        
+        BEGIN TRY
+            -- Non-critical operation
+            UPDATE Notifications SET SentDate = GETDATE()
+            WHERE BatchID = @BatchID;
+            
+            PRINT 'Phase 2: Notifications sent successfully';
+        END TRY
+        BEGIN CATCH
+            ROLLBACK TRANSACTION Phase2;
+            SET @ErrorCount = @ErrorCount + 1;
+            PRINT 'Phase 2 failed (continuing): ' + ERROR_MESSAGE();
+            -- Don't throw - continue with Phase 3
+        END CATCH
+        
+        -- Phase 3: Audit logging (optional)
+        SAVE TRANSACTION Phase3;
+        
+        BEGIN TRY
+            INSERT INTO AuditLog (Action, Details, BatchID)
+            VALUES ('BATCH_PROCESS', 'Completed with ' + CAST(@ErrorCount AS VARCHAR) + ' errors', @BatchID);
+            
+            PRINT 'Phase 3: Audit log created';
+        END TRY
+        BEGIN CATCH
+            ROLLBACK TRANSACTION Phase3;
+            PRINT 'Phase 3 failed (continuing): ' + ERROR_MESSAGE();
+        END CATCH
+        
+        -- Commit whatever succeeded
+        COMMIT TRANSACTION;
+        
+        SELECT 'COMPLETED' AS Status, @ErrorCount AS PartialFailures;
+        
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        
+        SELECT 'FAILED' AS Status, ERROR_MESSAGE() AS CriticalError;
+        THROW;
+    END CATCH
+END;
+GO
+```
+
+### 📚 For More Advanced Topics
+
+See `Lesson2_Implementing_Structured_Exception_Handling.md` for:
+- Error handling in distributed transactions
+- Integration with application exception handling
+- Custom error message catalogs
+- Performance considerations in error handling
+
+---
+
 ## 📖 Quick Reference
 
 ```sql

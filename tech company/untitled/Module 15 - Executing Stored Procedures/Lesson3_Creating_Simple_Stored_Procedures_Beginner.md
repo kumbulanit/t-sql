@@ -621,6 +621,122 @@ SELECT @Count AS EmployeeCount, @Avg AS AverageSalary;
 
 ---
 
+## 📈 Optional: Intermediate & Advanced Examples
+
+Ready for more challenging procedures? Try these:
+
+### Intermediate Example: Procedure with Validation
+
+**Challenge:** Create a procedure that validates input before inserting.
+
+```sql
+CREATE OR ALTER PROCEDURE usp_AddEmployee
+    @FirstName VARCHAR(50),
+    @LastName VARCHAR(50),
+    @DepartmentID INT,
+    @BaseSalary DECIMAL(10,2),
+    @NewEmployeeID INT OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- Validation 1: Names cannot be empty
+    IF @FirstName IS NULL OR LEN(TRIM(@FirstName)) = 0
+    BEGIN
+        RAISERROR('First name is required', 16, 1);
+        RETURN -1;
+    END
+    
+    -- Validation 2: Department must exist
+    IF NOT EXISTS (SELECT 1 FROM Departments WHERE DepartmentID = @DepartmentID)
+    BEGIN
+        RAISERROR('Invalid department ID', 16, 1);
+        RETURN -1;
+    END
+    
+    -- Validation 3: Salary must be positive
+    IF @BaseSalary <= 0
+    BEGIN
+        RAISERROR('Salary must be positive', 16, 1);
+        RETURN -1;
+    END
+    
+    -- All validations passed - do the insert
+    INSERT INTO Employees (FirstName, LastName, DepartmentID, BaseSalary, HireDate, IsActive)
+    VALUES (@FirstName, @LastName, @DepartmentID, @BaseSalary, GETDATE(), 1);
+    
+    SET @NewEmployeeID = SCOPE_IDENTITY();
+    RETURN 0;  -- Success
+END;
+GO
+```
+
+### Advanced Example: Procedure with Transaction Handling
+
+**Challenge:** Transfer budget between departments safely.
+
+```sql
+CREATE OR ALTER PROCEDURE usp_TransferBudget
+    @FromDeptID INT,
+    @ToDeptID INT,
+    @Amount DECIMAL(15,2)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        -- Subtract from source department
+        UPDATE Departments 
+        SET Budget = Budget - @Amount
+        WHERE DepartmentID = @FromDeptID
+          AND Budget >= @Amount;  -- Check sufficient funds
+        
+        IF @@ROWCOUNT = 0
+        BEGIN
+            RAISERROR('Insufficient budget or invalid department', 16, 1);
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
+        
+        -- Add to destination department
+        UPDATE Departments
+        SET Budget = Budget + @Amount
+        WHERE DepartmentID = @ToDeptID;
+        
+        IF @@ROWCOUNT = 0
+        BEGIN
+            RAISERROR('Destination department not found', 16, 1);
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
+        
+        COMMIT TRANSACTION;
+        PRINT 'Budget transfer successful!';
+        
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        
+        -- Re-throw the error
+        THROW;
+    END CATCH
+END;
+GO
+```
+
+### 📚 For More Advanced Topics
+
+See `Lesson3_Creating_Simple_Stored_Procedures.md` for:
+- Complex multi-statement procedures
+- Cursor-based processing
+- Temp tables within procedures
+- Enterprise error handling patterns
+
+---
+
 ## 📖 Quick Reference
 
 ```sql

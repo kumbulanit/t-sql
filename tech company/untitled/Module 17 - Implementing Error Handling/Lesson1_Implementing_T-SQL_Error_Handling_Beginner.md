@@ -502,6 +502,141 @@ END
 
 ---
 
+## 📈 Optional: Intermediate & Advanced Examples
+
+Ready for more complex error handling? Try these:
+
+### Intermediate Example: Comprehensive Validation
+
+**Challenge:** Validate multiple business rules and report all violations.
+
+```sql
+CREATE OR ALTER PROCEDURE usp_ValidateEmployee
+    @FirstName VARCHAR(50),
+    @LastName VARCHAR(50),
+    @DepartmentID INT,
+    @BaseSalary DECIMAL(10,2),
+    @HireDate DATE
+AS
+BEGIN
+    DECLARE @ErrorMessages VARCHAR(MAX) = '';
+    DECLARE @HasError BIT = 0;
+    
+    -- Validation 1: Names required
+    IF ISNULL(@FirstName, '') = ''
+    BEGIN
+        SET @ErrorMessages = @ErrorMessages + 'First name is required. ';
+        SET @HasError = 1;
+    END
+    
+    IF ISNULL(@LastName, '') = ''
+    BEGIN
+        SET @ErrorMessages = @ErrorMessages + 'Last name is required. ';
+        SET @HasError = 1;
+    END
+    
+    -- Validation 2: Department must exist
+    IF NOT EXISTS (SELECT 1 FROM Departments WHERE DepartmentID = @DepartmentID AND IsActive = 1)
+    BEGIN
+        SET @ErrorMessages = @ErrorMessages + 'Invalid department ID. ';
+        SET @HasError = 1;
+    END
+    
+    -- Validation 3: Salary range check
+    IF @BaseSalary < 30000 OR @BaseSalary > 500000
+    BEGIN
+        SET @ErrorMessages = @ErrorMessages + 'Salary must be between $30,000 and $500,000. ';
+        SET @HasError = 1;
+    END
+    
+    -- Validation 4: Hire date reasonable
+    IF @HireDate > GETDATE()
+    BEGIN
+        SET @ErrorMessages = @ErrorMessages + 'Hire date cannot be in the future. ';
+        SET @HasError = 1;
+    END
+    
+    IF @HireDate < DATEADD(YEAR, -50, GETDATE())
+    BEGIN
+        SET @ErrorMessages = @ErrorMessages + 'Hire date is too far in the past. ';
+        SET @HasError = 1;
+    END
+    
+    -- Report all errors at once
+    IF @HasError = 1
+    BEGIN
+        RAISERROR(@ErrorMessages, 16, 1);
+        RETURN -1;
+    END
+    
+    -- All validations passed
+    PRINT 'All validations passed!';
+    RETURN 0;
+END;
+GO
+```
+
+### Advanced Example: Error Logging with Severity Levels
+
+**Challenge:** Log errors with different severity levels.
+
+```sql
+-- Create an enhanced error log table
+CREATE TABLE ErrorLogAdvanced (
+    LogID INT IDENTITY(1,1) PRIMARY KEY,
+    ErrorDate DATETIME DEFAULT GETDATE(),
+    ErrorLevel VARCHAR(20),  -- 'INFO', 'WARNING', 'ERROR', 'CRITICAL'
+    ErrorNumber INT,
+    ErrorMessage NVARCHAR(4000),
+    ProcedureName NVARCHAR(128),
+    LineNumber INT,
+    UserName NVARCHAR(128) DEFAULT SUSER_NAME(),
+    AdditionalInfo NVARCHAR(MAX)
+);
+GO
+
+-- Logging procedure
+CREATE OR ALTER PROCEDURE usp_LogError
+    @ErrorLevel VARCHAR(20),
+    @AdditionalInfo NVARCHAR(MAX) = NULL
+AS
+BEGIN
+    INSERT INTO ErrorLogAdvanced (ErrorLevel, ErrorNumber, ErrorMessage, 
+                                  ProcedureName, LineNumber, AdditionalInfo)
+    VALUES (
+        @ErrorLevel,
+        ERROR_NUMBER(),
+        ERROR_MESSAGE(),
+        ERROR_PROCEDURE(),
+        ERROR_LINE(),
+        @AdditionalInfo
+    );
+END;
+GO
+
+-- Usage in a procedure
+BEGIN TRY
+    -- Risky operation
+    UPDATE Employees SET BaseSalary = BaseSalary / 0;  -- Will fail!
+END TRY
+BEGIN CATCH
+    -- Log with severity level
+    EXEC usp_LogError @ErrorLevel = 'ERROR', 
+                      @AdditionalInfo = 'Attempted salary calculation';
+    THROW;
+END CATCH
+```
+
+### 📚 For More Advanced Topics
+
+See `Lesson1_Implementing_T-SQL_Error_Handling.md` for:
+- Custom error message catalogs
+- Severity level deep dive
+- System error handling patterns
+- Integration with application error handling
+
+---
+
 ## 📖 Quick Reference
 
 ```sql

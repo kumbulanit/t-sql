@@ -446,6 +446,90 @@ ORDER BY
 
 ---
 
+## 📈 Optional: Intermediate & Advanced Examples
+
+Ready for more challenging scenarios? Try these:
+
+### Intermediate Example: Sales Analysis with Multiple Dimensions
+
+**Challenge:** Create a comprehensive sales report with multiple grouping levels.
+
+```sql
+-- Sales analysis by Year, Quarter, and Region with all levels of totals
+WITH SalesData AS (
+    SELECT 
+        YEAR(o.OrderDate) AS SalesYear,
+        'Q' + CAST(DATEPART(QUARTER, o.OrderDate) AS VARCHAR) AS Quarter,
+        c.City AS Region,
+        o.TotalAmount
+    FROM Orders o
+    INNER JOIN Customers c ON o.CustomerID = c.CustomerID
+    WHERE o.OrderDate >= '2023-01-01'
+)
+SELECT 
+    COALESCE(CAST(SalesYear AS VARCHAR), '*** ALL YEARS ***') AS Year,
+    COALESCE(Quarter, '-- All Quarters --') AS Quarter,
+    COALESCE(Region, '-- All Regions --') AS Region,
+    COUNT(*) AS OrderCount,
+    SUM(TotalAmount) AS TotalSales,
+    AVG(TotalAmount) AS AvgOrderValue
+FROM SalesData
+GROUP BY CUBE(SalesYear, Quarter, Region)
+HAVING GROUPING(SalesYear) = 0  -- Exclude all-NULL row
+    OR (GROUPING(SalesYear) = 1 AND GROUPING(Quarter) = 1 AND GROUPING(Region) = 1)  -- Include grand total only
+ORDER BY 
+    GROUPING(SalesYear), SalesYear,
+    GROUPING(Quarter), Quarter,
+    GROUPING(Region), Region;
+```
+
+### Advanced Example: Budget vs Actual Analysis
+
+**Challenge:** Compare budgets with actual spending using ROLLUP.
+
+```sql
+-- Department budget analysis with hierarchical totals
+WITH DepartmentAnalysis AS (
+    SELECT 
+        d.DepartmentName,
+        p.ProjectName,
+        p.Budget AS PlannedBudget,
+        ISNULL(SUM(e.BaseSalary * 0.1), 0) AS ActualCost  -- Simplified cost calc
+    FROM Departments d
+    LEFT JOIN Projects p ON d.DepartmentID = p.DepartmentID
+    LEFT JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
+    LEFT JOIN Employees e ON ep.EmployeeID = e.EmployeeID
+    WHERE d.IsActive = 1
+    GROUP BY d.DepartmentName, p.ProjectName, p.Budget
+)
+SELECT 
+    COALESCE(DepartmentName, '*** COMPANY TOTAL ***') AS Department,
+    COALESCE(ProjectName, '-- Dept Total --') AS Project,
+    SUM(PlannedBudget) AS TotalBudget,
+    SUM(ActualCost) AS TotalActual,
+    SUM(PlannedBudget) - SUM(ActualCost) AS Variance,
+    CASE 
+        WHEN SUM(PlannedBudget) > 0 
+        THEN CAST(SUM(ActualCost) * 100.0 / SUM(PlannedBudget) AS DECIMAL(5,2))
+        ELSE 0 
+    END AS PercentUsed
+FROM DepartmentAnalysis
+GROUP BY ROLLUP(DepartmentName, ProjectName)
+ORDER BY 
+    GROUPING(DepartmentName), DepartmentName,
+    GROUPING(ProjectName), ProjectName;
+```
+
+### 📚 For More Advanced Topics
+
+See `Lesson2_Working_with_Grouping_Sets.md` for:
+- Complex multi-level hierarchies
+- Performance optimization with large datasets
+- Combining GROUPING SETS with PIVOT
+- Real-world enterprise reporting patterns
+
+---
+
 ## 🏆 Module 14 Complete!
 
 Congratulations! You've learned:

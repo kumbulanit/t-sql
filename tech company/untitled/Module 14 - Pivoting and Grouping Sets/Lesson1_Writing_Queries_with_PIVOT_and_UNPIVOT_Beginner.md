@@ -489,6 +489,85 @@ ORDER BY CustomerName;
 
 ---
 
+## 📈 Optional: Intermediate & Advanced Examples
+
+Ready to level up? Here are more challenging examples:
+
+### Intermediate Example: Dynamic Month Columns
+
+**Challenge:** The IN clause requires known values. What if months vary?
+
+```sql
+-- Create a PIVOT report for the last 12 months of orders
+-- Using CTE for cleaner code
+WITH MonthlyOrders AS (
+    SELECT 
+        c.CustomerName,
+        FORMAT(o.OrderDate, 'yyyy-MM') AS OrderMonth,
+        o.TotalAmount
+    FROM Orders o
+    INNER JOIN Customers c ON o.CustomerID = c.CustomerID
+    WHERE o.OrderDate >= DATEADD(MONTH, -12, GETDATE())
+)
+SELECT *
+FROM MonthlyOrders
+PIVOT (
+    SUM(TotalAmount)
+    FOR OrderMonth IN ([2024-01], [2024-02], [2024-03], [2024-04], 
+                       [2024-05], [2024-06], [2024-07], [2024-08],
+                       [2024-09], [2024-10], [2024-11], [2024-12])
+) AS PivotTable;
+```
+
+### Advanced Example: Nested PIVOT with Multiple Aggregations
+
+**Challenge:** Show both COUNT and SUM in a PIVOT report.
+
+```sql
+-- Get both employee count AND total salary by department and job level
+WITH EmployeeData AS (
+    SELECT 
+        d.DepartmentName,
+        CASE 
+            WHEN e.BaseSalary >= 100000 THEN 'Senior'
+            WHEN e.BaseSalary >= 70000 THEN 'Mid'
+            ELSE 'Junior'
+        END AS JobLevel,
+        e.BaseSalary,
+        1 AS EmployeeCount  -- Use this for counting
+    FROM Employees e
+    INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+    WHERE e.IsActive = 1
+)
+-- Separate queries for COUNT and SUM, then combine
+SELECT 
+    'Employee Count' AS Metric,
+    DepartmentName,
+    [Junior], [Mid], [Senior]
+FROM EmployeeData
+PIVOT (COUNT(EmployeeCount) FOR JobLevel IN ([Junior], [Mid], [Senior])) AS CountPivot
+
+UNION ALL
+
+SELECT 
+    'Total Salary' AS Metric,
+    DepartmentName,
+    [Junior], [Mid], [Senior]
+FROM EmployeeData
+PIVOT (SUM(BaseSalary) FOR JobLevel IN ([Junior], [Mid], [Senior])) AS SalaryPivot
+ORDER BY DepartmentName, Metric;
+```
+
+### 📚 For More Advanced Topics
+
+See `Lesson1_Writing_Queries_with_PIVOT_and_UNPIVOT.md` for:
+- Dynamic PIVOT using Dynamic SQL
+- Performance optimization techniques
+- Error handling in PIVOT queries
+- Real-world enterprise patterns
+
+---
+
 ## 🚀 What's Next?
 
 Great job! You've learned how to use PIVOT and UNPIVOT. In the next lesson, we'll learn about **Grouping Sets** - a powerful way to create multiple levels of aggregation (subtotals and grand totals) in a single query!

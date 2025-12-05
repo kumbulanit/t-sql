@@ -490,6 +490,133 @@ EXEC GetTablePreview @TableName = 'Departments';
 
 ---
 
+## 📈 Optional: Intermediate & Advanced Examples
+
+These are more challenging patterns - use with caution!
+
+### Intermediate Example: Dynamic Search Procedure
+
+**Challenge:** Build a flexible search with optional filters.
+
+```sql
+CREATE OR ALTER PROCEDURE usp_SearchEmployeesAdvanced
+    @FirstName VARCHAR(50) = NULL,
+    @LastName VARCHAR(50) = NULL,
+    @DepartmentID INT = NULL,
+    @MinSalary DECIMAL(10,2) = NULL,
+    @MaxSalary DECIMAL(10,2) = NULL,
+    @JobTitle VARCHAR(100) = NULL
+AS
+BEGIN
+    DECLARE @SQL NVARCHAR(MAX);
+    DECLARE @Params NVARCHAR(500);
+    
+    SET @SQL = N'
+        SELECT 
+            e.EmployeeID, e.FirstName, e.LastName, 
+            e.JobTitle, d.DepartmentName, e.BaseSalary
+        FROM Employees e
+        INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+        WHERE e.IsActive = 1';
+    
+    -- Add optional filters dynamically
+    IF @FirstName IS NOT NULL
+        SET @SQL = @SQL + N' AND e.FirstName LIKE @pFirstName';
+    
+    IF @LastName IS NOT NULL
+        SET @SQL = @SQL + N' AND e.LastName LIKE @pLastName';
+    
+    IF @DepartmentID IS NOT NULL
+        SET @SQL = @SQL + N' AND e.DepartmentID = @pDeptID';
+    
+    IF @MinSalary IS NOT NULL
+        SET @SQL = @SQL + N' AND e.BaseSalary >= @pMinSalary';
+    
+    IF @MaxSalary IS NOT NULL
+        SET @SQL = @SQL + N' AND e.BaseSalary <= @pMaxSalary';
+    
+    IF @JobTitle IS NOT NULL
+        SET @SQL = @SQL + N' AND e.JobTitle LIKE @pJobTitle';
+    
+    SET @SQL = @SQL + N' ORDER BY e.LastName, e.FirstName';
+    
+    -- Define parameter types
+    SET @Params = N'@pFirstName VARCHAR(50), @pLastName VARCHAR(50), 
+                   @pDeptID INT, @pMinSalary DECIMAL(10,2), 
+                   @pMaxSalary DECIMAL(10,2), @pJobTitle VARCHAR(100)';
+    
+    -- Execute safely with parameters
+    EXEC sp_executesql @SQL, @Params,
+        @pFirstName = @FirstName,
+        @pLastName = @LastName,
+        @pDeptID = @DepartmentID,
+        @pMinSalary = @MinSalary,
+        @pMaxSalary = @MaxSalary,
+        @pJobTitle = @JobTitle;
+END;
+GO
+
+-- Usage examples:
+EXEC usp_SearchEmployeesAdvanced @LastName = 'Smith%';
+EXEC usp_SearchEmployeesAdvanced @DepartmentID = 2001, @MinSalary = 70000;
+EXEC usp_SearchEmployeesAdvanced @JobTitle = '%Manager%';
+```
+
+### Advanced Example: Dynamic Pivot Report
+
+**Challenge:** Generate PIVOT with dynamic column names.
+
+```sql
+CREATE OR ALTER PROCEDURE usp_DynamicSalesPivot
+    @Year INT
+AS
+BEGIN
+    DECLARE @SQL NVARCHAR(MAX);
+    DECLARE @Columns NVARCHAR(MAX);
+    
+    -- Get distinct quarters as column names
+    SELECT @Columns = STRING_AGG(QUOTENAME(Quarter), ', ')
+    FROM (SELECT DISTINCT 'Q' + CAST(DATEPART(QUARTER, OrderDate) AS VARCHAR) AS Quarter
+          FROM Orders
+          WHERE YEAR(OrderDate) = @Year) AS Quarters;
+    
+    -- Build the dynamic PIVOT query
+    SET @SQL = N'
+        SELECT CustomerName, ' + @Columns + '
+        FROM (
+            SELECT 
+                c.CustomerName,
+                ''Q'' + CAST(DATEPART(QUARTER, o.OrderDate) AS VARCHAR) AS Quarter,
+                o.TotalAmount
+            FROM Orders o
+            INNER JOIN Customers c ON o.CustomerID = c.CustomerID
+            WHERE YEAR(o.OrderDate) = @pYear
+        ) AS SourceData
+        PIVOT (
+            SUM(TotalAmount)
+            FOR Quarter IN (' + @Columns + ')
+        ) AS PivotTable
+        ORDER BY CustomerName';
+    
+    -- Debug
+    -- PRINT @SQL;
+    
+    -- Execute
+    EXEC sp_executesql @SQL, N'@pYear INT', @pYear = @Year;
+END;
+GO
+```
+
+### 📚 For More Advanced Topics
+
+See `Lesson4_Working_with_Dynamic_SQL.md` for:
+- Advanced injection prevention techniques
+- Building complex dynamic queries
+- Performance considerations
+- Error handling in dynamic SQL
+
+---
+
 ## 📖 Quick Reference
 
 ```sql
